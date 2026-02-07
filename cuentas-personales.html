@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Finanzas - Historial Intacto</title>
+  <style>
+    :root {
+      --bg-body: #0f172a; --bg-card: #1e293b; --text-main: #f8fafc;
+      --text-dim: #94a3b8; --accent: #38bdf8; --success: #4ade80;
+      --danger: #f87171; --warning: #fb923c; --border: #334155;
+      --neon-purple: #a855f7; --neon-lime: #84cc16;
+    }
+    /* Forzar icono claro en date input */
+    input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
+    * { box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background-color: var(--bg-body); color: var(--text-main); margin: 0; padding: 15px; }
+    .contenedor { max-width: 1150px; margin: auto; background: var(--bg-card); padding: 20px; border-radius: 12px; border: 1px solid var(--border); }
+    .titulo-principal { text-align: center; color: var(--accent); margin-bottom: 10px; font-weight: bold; }
+
+    /* Barra de año: centrada, visible, con fondo */
+.anio-toolbar{
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  margin: 8px 0 12px;
+  position: relative;
+}
+
+/* Pastilla con fondo */
+.anio-toolbar .anio-chip{
+  display:flex; align-items:center; gap:10px;
+  background: linear-gradient(180deg, rgba(56,189,248,.15), rgba(56,189,248,.08));
+  border: 1px solid rgba(56,189,248,.35);           /* azul/accent */
+  color: #e2f3ff;
+  padding: 10px 14px;
+  border-radius: 999px;                              /* píldora */
+  box-shadow: 0 4px 14px rgba(56,189,248,.18);
+}
+
+/* Texto “Año” más legible */
+.anio-toolbar label{
+  font-size: .8rem; color: #cbe7ff;
+  text-transform: uppercase; letter-spacing: .6px;
+}
+
+/* Selector más grande y contrastado */
+.anio-toolbar select{
+  background: #0b1220; color: #e5f2ff;
+  border: 1px solid rgba(56,189,248,.45);
+  padding: 8px 12px; border-radius: 10px;
+  font-weight: 700; min-width: 130px; font-size: .92rem;
+  outline: none;
+  transition: box-shadow .15s ease, border-color .15s ease, transform .1s ease;
+}
+.anio-toolbar select:hover{
+  border-color: rgba(56,189,248,.7);
+  box-shadow: 0 0 0 3px rgba(56,189,248,.15);
+}
+.anio-toolbar select:focus{
+  border-color: rgba(168,85,247,.85);               /* morado */
+  box-shadow: 0 0 0 3px rgba(168,85,247,.22);
+  transform: translateY(-1px);
+}
+
+/* (Opcional) que siempre quede visible al hacer scroll */
+@media (min-width: 680px){
+  .anio-toolbar.sticky {
+    position: sticky;
+    top: 6px; z-index: 5;
+  }
+}
+
+    /* ALERTAS */
+    .panel-alertas { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-bottom: 12px; }
+    .alerta-card { padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: rgba(15, 23, 42, 0.4); }
+    .monitor-negativo { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; text-align: center; }
+    .punto-info { background: rgba(0,0,0,0.2); padding: 6px; border-radius: 6px; }
+    .punto-info label { display: block; font-size: 0.6rem; color: var(--text-dim); margin-bottom: 3px; text-transform: uppercase; }
+    .punto-info span { font-family: 'JetBrains Mono', monospace; font-weight: bold; font-size: 0.85rem; }
+
+    /* TABLA */
+    .tabla-scroll { height: 380px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; margin: 12px 0 16px; background: #0f172a; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    th { background: #1e293b; color: var(--text-dim); padding: 10px; position: sticky; top: 0; text-transform: uppercase; font-size: 0.7rem; }
+    td { padding: 6px; border-bottom: 1px solid var(--border); text-align: center; }
+    .fila-hito { background: rgba(56, 189, 248, 0.08); border-bottom: 2px solid var(--accent) !important; }
+
+    /* FORMULARIOS */
+    .panel-entrada {
+      background: rgba(15, 23, 42, 0.5); padding: 12px; border-radius: 10px; margin-bottom: 12px;
+      display: grid; grid-template-columns: 1.2fr 1.8fr 1fr 1fr auto; gap: 8px; align-items: end;
+    }
+    input, select { background: var(--bg-body); border: 1px solid var(--border); color: white; padding: 8px; border-radius: 6px; font-size: 0.85rem; width: 100%; }
+
+    .fijos-container { display: flex; gap: 10px; margin-bottom: 14px; }
+    .bloque-fijos { flex: 1; background: rgba(15, 23, 42, 0.3); padding: 12px; border-radius: 10px; border: 1px solid var(--border); }
+    .meses-selector { display: flex; gap: 2px; margin: 6px 0; flex-wrap: wrap; }
+    .mes-btn { font-size: 0.6rem; padding: 4px 6px; border: 1px solid var(--border); border-radius: 3px; cursor: pointer; background: transparent; color: var(--text-dim); }
+    .mes-btn.active { background: var(--accent); color: var(--bg-body); border-color: var(--accent); }
+
+    .btn-add-mini { background: var(--accent); color: var(--bg-body); font-weight: bold; border: none; border-radius: 4px; cursor: pointer; height: 30px; width: 100%; }
+    .item-fijo { border-top: 1px solid var(--border); padding: 8px 0; }
+    .moneda-font { font-family: 'JetBrains Mono', monospace; font-weight: bold; }
+    .btn-edit { background: #22c55e; border: none; border-radius: 4px; padding: 3px 6px; cursor: pointer; font-size: 0.75rem; }
+    .btn-del { background: transparent; color: var(--danger); border: none; cursor: pointer; font-size: 0.95rem; }
+
+    /* ===== MODO COMPACTO PARA BLOQUES DE FIJOS ===== */
+    .compacto .bloque-fijos { padding: 8px !important; border-radius: 8px !important; }
+    .compacto .bloque-fijos h3 { font-size: 0.72rem !important; margin: 0 0 6px 0 !important; }
+    .compacto .meses-selector { gap: 2px !important; margin: 4px 0 !important; }
+    .compacto .mes-btn { padding: 2px 4px !important; font-size: 0.58rem !important; }
+    .compacto .btn-add-mini, .compacto .btn-edit, .compacto .btn-del { height: 24px !important; padding: 2px 6px !important; font-size: 0.68rem !important; }
+    .compacto .item-fijo { padding: 6px 0 !important; margin: 0 !important; }
+    .compacto .item-fijo b { font-size: 0.78rem !important; }
+    .compacto .item-fijo span { font-size: 0.58rem !important; }
+
+    /* Listas de fijos en 2 columnas (modo compacto) */
+    .compacto #lista-ingresos,
+    .compacto #lista-gastos,
+    .compacto #lista-ahorros-fijos,
+    .compacto #lista-tarjeta-fijos {
+      display: grid !important;
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 6px !important;
+    }
+
+    /* Micro-layout: los items fijos en una sola fila muy comprimida */
+    .compacto .item-fijo {
+      display: grid !important;
+      grid-template-columns: 1.3fr 0.7fr 1.1fr auto !important; /* concepto | importe | meses/día | acciones */
+      align-items: center !important; gap: 8px !important;
+    }
+    .compacto .item-fijo > div { display: contents !important; }
+    /* Columna 1: concepto */
+    .compacto .item-fijo > div:nth-child(1) > b { grid-column: 1 / 2 !important; align-self: center !important; }
+    /* Columna 2: importe */
+    .compacto .item-fijo > div:nth-child(1) > b:last-child { grid-column: 2 / 3 !important; justify-self: end !important; }
+    /* Columna 3: meses y día */
+    .compacto .item-fijo > div:nth-child(2) > span { grid-column: 3 / 4 !important; color: var(--text-dim) !important; }
+    /* Columna 4: acciones */
+    .compacto .item-fijo > div:nth-child(2) > div { grid-column: 4 / 5 !important; justify-self: end !important; }
+
+    /* Inputs en formularios de fijos más compactos */
+    .compacto #form-ingreso input,
+    .compacto #form-gasto input,
+    .compacto #form-ingreso select,
+    .compacto #form-gasto select,
+    .compacto #form-ingreso button,
+    .compacto #form-gasto button,
+    .compacto #in-tar-con,
+    .compacto #in-tar-mon,
+    .compacto #in-aho-con,
+    .compacto #in-aho-mon,
+    .compacto #in-aho-dia {
+      padding: 4px 6px !important; font-size: 0.78rem !important;
+    }
+
+    /* Cabecera de botones */
+    .toolbar { display:flex; justify-content:center; gap:10px; align-items:center; margin-bottom: 12px; }
+    .toolbar button { border-radius:6px; cursor:pointer; padding: 8px 14px; font-weight:bold; font-size:0.9rem; border:1px solid transparent; }
+    .toolbar .secondary { background: transparent; color: #a7f3d0; border: 1px solid rgba(167, 243, 208, 0.25); font-size: 0.8rem; }
+  
+/* --- Botón "APLICAR IPC" en versión mini --- */
+.ipc-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.ipc-row label {
+  font-size: 0.62rem;
+  color: var(--text-dim);
+}
+
+.ipc-row input[type="number"] {
+  width: 56px;
+  padding: 2px 4px;              /* más compacto */
+  font-size: 0.72rem;
+  border-radius: 4px;
+}
+
+
+
+
+.ipc-row .btn-ipc-mini {
+  padding: 1px 4px !important;
+  font-size: 0.55rem !important;
+  height: 18px !important;
+  border-radius: 3px;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+  line-height: 1;
+}
+
+
+/* === Overrides fuertes para el botón IPC (colocar AL FINAL del CSS) === */
+.ipc-row button.btn-ipc-mini {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  /* Tamaño súper compacto */
+  height: 18px !important;
+  min-height: 0 !important;        /* por si hay min-height global */
+  padding: 0 6px !important;        /* sin padding vertical */
+  line-height: 16px !important;     /* que no lo expanda */
+  font-size: 0.62rem !important;
+  font-weight: 700 !important;
+
+  /* Look & feel */
+  border-radius: 4px !important;
+  border: none !important;
+  background: var(--success) !important; /* o var(--danger) para Gastos */
+  color: #fff !important;
+
+  /* Evita que herede ancho o estire en grids/flex padres */
+  width: auto !important;
+  flex: 0 0 auto !important;
+}
+
+/* (Opcional) iguala el alto del input para que queden alineados */
+.ipc-row input[type="number"] {
+  height: 18px !important;
+  min-height: 0 !important;
+  padding: 0 4px !important;
+  font-size: 0.7rem !important;
+  line-height: 16px !important;
+}
+
+
+
+</style>
+</head>
+<body>
+<div class="contenedor compacto" id="root">
+  <h1 class="titulo-principal">Finanzas Personales</h1>
+
+  <!-- Barra de selección de año (visible arriba) -->
+  <div class="anio-toolbar sticky">  <!-- añade “sticky” si quieres que siga visible al hacer scroll -->
+  <div class="anio-chip">
+    <label for="select-anio">Año</label>
+    <select id="select-anio" onchange="render()"></select>
+  </div>
+</div>
+
+  <!-- Barra de acciones -->
+  <div class="toolbar">
+    <button onclick="abrirResumen()" style="background:#d8b4fe; color:#581c87; border:1px solid #c084fc;">📊 VER RESUMEN GENERAL (2026 - 2035)</button>
+    <button onclick="abrirDesglose()" style="background:#bae6fd; color:#0c4a6e; border:1px solid #7dd3fc;">🧾 DESGLOSE DE GASTOS/INGRESOS</button>
+    <button class="secondary" onclick="toggleCompacto()">↔ Compactar / Expandir</button>
+  </div>
+
+  <div id="panel-alertas" class="panel-alertas"></div>
+
+  <!-- TABLA -->
+  <div class="tabla-scroll">
+    <table>
+      <thead><tr><th>Fecha</th><th>Concepto</th><th>Importe</th><th>Saldo Acumulado</th></tr></thead>
+      <tbody id="cuerpo"></tbody>
+    </table>
+  </div>
+
+  <!-- ENTRADA MANUAL (sin selector de año) -->
+  <div class="panel-entrada" style="background: rgba(167, 243, 208, 0.07); border: 1px solid rgba(167, 243, 208, 0.2);">
+    <div><label style="font-size:0.7rem; color:#a7f3d0; opacity:0.8;">Fecha</label><input type="date" id="input-fecha" style="border-color:rgba(167,243,208,0.2); color:white;"></div>
+    <div><label style="font-size:0.7rem; color:#a7f3d0; opacity:0.8;">Concepto</label><input type="text" id="input-concepto" style="border-color:rgba(167,243,208,0.2);"></div>
+    <div><label style="font-size:0.7rem; color:#a7f3d0; opacity:0.8;">Tipo</label><select id="input-tipo" style="border-color:rgba(167,243,208,0.2);"><option value="ingreso">Ingreso (+)</option><option value="gasto" selected>Gasto (-)</option></select></div>
+    <div><label style="font-size:0.7rem; color:#a7f3d0; opacity:0.8;">Importe</label><input type="number" id="input-monto" style="border-color:rgba(167,243,208,0.2);"></div>
+    <button class="btn-add-mini" onclick="agregarManual()" style="background:#065f46; color:#a7f3d0; border:1px solid rgba(167,243,208,0.3); height:30px;">Añadir</button>
+  </div>
+
+  <!-- TARJETA: puntuales + fijos fin de mes -->
+  <div style="background: rgba(167, 243, 208, 0.07); padding: 10px; border-radius: 10px; border: 1px solid rgba(167, 243, 208, 0.2);">
+    <h4 style="color:#a7f3d0; margin:0 0 6px 0; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.5px; opacity:0.85;">💳 Gasto Tarjeta (Carga fin de mes)</h4>
+
+    <!-- Puntuales -->
+    <div style="display:grid; grid-template-columns: 2fr 1fr auto; gap:8px; margin-bottom:8px;">
+      <input type="text" id="tarjeta-con" placeholder="Concepto compra puntual..." style="border-color:rgba(167,243,208,0.2); background:rgba(15,23,42,0.6);">
+      <input type="number" id="tarjeta-mon" placeholder="Importe €" style="border-color:rgba(167,243,208,0.2); background:rgba(15,23,42,0.6);">
+      <button onclick="añadirGastoTarjeta()" style="background:#065f46; color:#a7f3d0; border:1px solid rgba(167,243,208,0.3); border-radius:6px; cursor:pointer; padding:0 16px; font-weight:bold; font-size:0.8rem; height:30px;">Añadir</button>
+    </div>
+
+    <!-- Fijos de tarjeta (como ahorro fijo), siempre fin de mes -->
+    <div style="border-top:1px dashed rgba(167,243,208,0.25); padding-top:8px; margin-top:8px;">
+      <h5 style="margin:0 0 6px 0; color:#a7f3d0; opacity:0.9;">Gastos Tarjeta Fijos (se cargan al último día de cada mes)</h5>
+      <div style="display:grid; grid-template-columns: 2fr 1fr auto; gap:8px; margin-bottom:6px;">
+        <input type="text" id="in-tar-con" placeholder="Concepto fijo tarjeta" style="border-color:rgba(167,243,208,0.2); background:rgba(15,23,42,0.6);">
+        <input type="number" id="in-tar-mon" placeholder="€/mes" style="border-color:rgba(167,243,208,0.2); background:rgba(15,23,42,0.6);">
+        <button onclick="crearFijoTarjeta()" style="background:#0b3b2e; color:#a7f3d0; border:1px solid rgba(167,243,208,0.3); border-radius:6px; cursor:pointer; font-weight:bold; height:30px;">Programar</button>
+      </div>
+      <div class="meses-selector" id="meses-tar" style="margin-bottom:6px;"></div>
+      <div id="lista-tarjeta-fijos" style="display:flex; flex-direction:column; gap:4px;"></div>
+    </div>
+  </div>
+
+  <!-- AHORRO -->
+  <div style="background: rgba(254, 243, 199, 0.05); padding: 10px; border-radius: 10px; border: 1px solid rgba(254, 243, 199, 0.15); margin-top: 18px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+      <h4 style="color:#fef3c7; margin:0; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.5px; opacity:0.85;">🏦 Planificación de Ahorro</h4>
+      <span id="total-ahorro" style="color:#fef3c7; font-weight:bold; font-family:'JetBrains Mono', monospace; font-size:1rem;">0 €</span>
+    </div>
+
+    <div style="display:grid; grid-template-columns: 1.2fr 2fr 1fr auto; gap:6px; margin-bottom:10px; padding-bottom:8px; border-bottom:1px solid rgba(254,243,199,0.1);">
+      <input type="date" id="ahorro-fec" style="border-color:rgba(254,243,199,0.1); background:rgba(15,23,42,0.6); color:white; padding:6px; border-radius:4px; font-size:0.75rem;">
+      <input type="text" id="ahorro-con" placeholder="Ahorro puntual..." style="border-color:rgba(254,243,199,0.1); background:rgba(15,23,42,0.6); color:white; padding:6px; border-radius:4px; font-size:0.75rem;">
+      <input type="number" id="ahorro-mon" placeholder="€" style="border-color:rgba(254,243,199,0.1); background:rgba(15,23,42,0.6); color:white; padding:6px; border-radius:4px; font-size:0.75rem;">
+      <button onclick="añadirAhorro()" style="background:#78350f; color:#fef3c7; border:1px solid rgba(254,243,199,0.2); border-radius:4px; cursor:pointer; padding:0 10px; font-weight:bold; font-size:0.7rem; height:28px;">+ Puntual</button>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:8px;">
+      <div style="display:grid; grid-template-columns: 2fr 1fr 0.8fr auto; gap:6px;">
+        <input type="text" id="in-aho-con" placeholder="Ahorro fijo (Ej: Fondo)" style="border-color:rgba(254,243,199,0.1); background:rgba(15,23,42,0.6); color:white; padding:6px; border-radius:4px; font-size:0.75rem;">
+        <input type="number" id="in-aho-mon" placeholder="€/mes" style="border-color:rgba(254,243,199,0.1); background:rgba(15,23,42,0.6); color:white; padding:6px; border-radius:4px; font-size:0.75rem;">
+        <input type="number" id="in-aho-dia" placeholder="Día" value="7" style="border-color:rgba(254,243,199,0.1); background:rgba(15,23,42,0.6); color:white; padding:6px; border-radius:4px; font-size:0.75rem;">
+        <button onclick="crearFijo('ahorro')" style="background:#fef3c7; color:#78350f; border:none; border-radius:4px; cursor:pointer; padding:0 10px; font-weight:bold; font-size:0.7rem; height:28px;">Programar</button>
+      </div>
+      <div id="meses-aho" class="meses-grid" style="display:grid; grid-template-columns: repeat(6, 1fr); gap:4px;"></div>
+    </div>
+
+    <div style="margin-top:10px; border-top:1px solid rgba(254,243,199,0.1); padding-top:8px;">
+      <span style="color:#fef3c7; font-size:0.62rem; text-transform:uppercase; opacity:0.65;">📋 Ahorros Programados:</span>
+      <div id="lista-ahorros-fijos" style="margin-top:6px; display:flex; flex-direction:column; gap:4px;"></div>
+    </div>
+  </div>
+
+  <!-- FIJOS: INGRESOS / GASTOS GENERALES -->
+  <div class="fijos-container" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:10px; width:100%; margin: 12px 0 16px;">
+    <div class="bloque-fijos" style="border-top: 4px solid var(--success); background: rgba(15, 23, 42, 0.4);">
+      <h3 style="color:var(--success); font-size:0.78rem; margin:0 0 6px 0;">💰 Ingresos Fijos</h3>
+      
+<div id="form-ingreso">
+  <input type="text" id="in-ing-con" placeholder="Concepto" style="width:100%; margin-bottom:4px;">
+  <div style="display:flex; gap:6px; margin-bottom:4px;">
+    <input type="number" id="in-ing-mon" placeholder="€" style="flex:1;">
+    <input type="number" id="in-ing-dia" placeholder="Día" style="flex:1;">
+
+<label style="display:flex; align-items:center; gap:6px; font-size:0.75rem; color:#a7f3d0;">
+  <input type="checkbox" id="in-ing-fin"> Fin de mes
+</label>
+
+  </div>
+
+  <!-- Meses -->
+  <div class="meses-selector" id="meses-ing" style="margin-bottom:6px;"></div>
+
+  <!-- Botón Añadir -->
+  <button class="btn-add-mini" onclick="crearFijo('ingreso')" style="width:100%;">Añadir Recurrente</button>
+
+  <!-- IPC (ahora debajo de Añadir) -->
+  <div class="ipc-row">
+    <label for="in-ing-ipc">Crecimiento anual (%):</label>
+    <input type="number" id="in-ing-ipc" value="1" step="0.1">
+    <button class="btn-ipc-mini" onclick="recalcularTodo('ingreso')" style="background:var(--success); color:white;">APLICAR IPC</button>
+  </div>
+</div>
+      <div id="lista-ingresos" style="margin-top:8px;"></div>
+    </div>
+
+    <div class="bloque-fijos" style="border-top: 4px solid var(--danger); background: rgba(15, 23, 42, 0.4);">
+      <h3 style="color:var(--danger); font-size:0.78rem; margin:0 0 6px 0;">💸 Gastos Fijos</h3>
+
+
+      <div id="form-gasto">
+  <input type="text" id="in-gas-con" placeholder="Concepto" style="width:100%; margin-bottom:4px;">
+  <div style="display:flex; gap:6px; margin-bottom:4px;">
+    <input type="number" id="in-gas-mon" placeholder="€" style="flex:1;">
+    <input type="number" id="in-gas-dia" placeholder="Día" style="flex:1;">
+
+<label style="display:flex; align-items:center; gap:6px; font-size:0.75rem; color:#a7f3d0;">
+  <input type="checkbox" id="in-gas-fin"> Fin de mes
+</label>
+
+  </div>
+
+  <!-- Meses -->
+  <div class="meses-selector" id="meses-gas" style="margin-bottom:6px;"></div>
+
+  <!-- Botón Añadir -->
+  <button class="btn-add-mini" onclick="crearFijo('gasto')" style="width:100%; background:var(--danger); color:white;">Añadir Recurrente</button>
+
+  <!-- IPC (ahora debajo de Añadir) -->
+  <div class="ipc-row">
+    <label for="in-gas-ipc">Incremento anual (%):</label>
+    <input type="number" id="in-gas-ipc" value="2" step="0.1">
+    <button class="btn-ipc-mini" onclick="recalcularTodo('gasto')" style="background:var(--danger); color:white;">APLICAR IPC</button>
+  </div>
+</div>
+      <div id="lista-gastos" style="margin-top:8px;"></div>
+    </div>
+  </div>
+
+  <!-- Copias/backup -->
+  <div style="margin-top: 10px; padding: 10px; border-top: 1px dashed #334155; text-align: center; width: 100%;">
+    <p style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Gestión de Datos y Copias de Seguridad</p>
+    <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
+      <button id="btn-export" onclick="exportarDatos()" style="background: rgba(56, 189, 248, 0.1); color: #38bdf8; border: 1px solid #38bdf8; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.78rem; font-weight: bold;">📥 GUARDAR COPIA (JSON)</button>
+      <button onclick="document.getElementById('input-import').click()" style="background: transparent; color: #94a3b8; border: 1px solid #334155; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.78rem;">📤 CARGAR COPIA</button>
+    </div>
+    <div id="status-carga" style="font-size: 0.65rem; color: #fb923c; margin-top: 6px; font-weight: bold; height: 14px;"></div>
+    <input type="file" id="input-import" style="display:none" accept=".json" onchange="importarDatos(event)">
+  </div>
+</div>
+
+<!-- (Ids repetidos por compatibilidad con el HTML original) -->
+<div id="status-carga" style="font-size: 0.65rem; color: #fb923c; margin-top: 10px; font-weight: bold; height: 15px;"></div>
+<input type="file" id="input-import" style="display:none" accept=".json" onchange="importarDatos(event)">
+<div id="status-carga" style="font-size: 0.65rem; color: #fb923c; margin-top: 10px; font-weight: bold; height: 15px;"></div>
+<input type="file" id="input-import" style="display:none" accept=".json" onchange="importarDatos(event)">
+
+<script>
+ // ========= CONFIG =========
+ const STORAGE_DATA = 'cuentas_vFinal_data';
+ const STORAGE_FIJOS = 'cuentas_vFinal_fijos';
+ const STORAGE_UI = 'ui_compacto';
+ const MESES_NOM = ['E','F','M','A','M','J','J','A','S','O','N','D'];
+ const ANIO_LIMITE_MAX = 2035;
+
+ let baseDatos = JSON.parse(localStorage.getItem(STORAGE_DATA)) || {};
+ let maestroFijos = JSON.parse(localStorage.getItem(STORAGE_FIJOS)) || { ingreso: [], gasto: [] };
+ let hayCambiosSinGuardar = false;
+
+ const DEFAULT_IPC = { ingreso: 1, gasto: 2 };
+
+ // ========= COMPACTO TOGGLE =========
+ function toggleCompacto() {
+  const root = document.getElementById('root');
+  root.classList.toggle('compacto');
+  localStorage.setItem(STORAGE_UI, root.classList.contains('compacto') ? '1' : '0');
+ }
+ (function loadCompactPref(){
+  const pref = localStorage.getItem(STORAGE_UI);
+  const root = document.getElementById('root');
+  if (pref === '0') root.classList.remove('compacto'); // por defecto viene compacto; si guardaste 0, desactiva
+ })();
+
+ // ========= SAVE =========
+ function save() {
+  try {
+    localStorage.setItem(STORAGE_DATA, JSON.stringify(baseDatos));
+    localStorage.setItem(STORAGE_FIJOS, JSON.stringify(maestroFijos));
+    hayCambiosSinGuardar = true;
+    const cuerpo = document.getElementById('cuerpo'); if (cuerpo) cuerpo.innerHTML = '';
+    render();
+    if (typeof gestionarAvisoCambios === "function") gestionarAvisoCambios();
+  } catch (e) { console.error("Error al guardar:", e); }
+ }
+ function gestionarAvisoCambios() {
+  const btn = document.getElementById('btn-export');
+  const status = document.getElementById('status-carga');
+  if (!btn || !status) return;
+  if (hayCambiosSinGuardar) {
+    btn.style.backgroundColor = "#f87171"; btn.style.color = "white";
+    btn.innerText = "⚠️ GUARDAR COPIA (JSON)"; status.innerText = "Cambios pendientes de exportar al archivo.";
+  } else {
+    btn.style.backgroundColor = "transparent"; btn.style.color = "var(--text-dim)";
+    btn.innerText = "📥 GUARDAR COPIA (JSON)"; status.innerText = "Datos sincronizados.";
+  }
+ }
+
+ // ========= UI INIT =========
+ function initMesesSelectors() {
+  ['ing', 'gas', 'aho', 'tar'].forEach(tipo => {
+    const cont = document.getElementById(`meses-${tipo}`);
+    if (!cont) return;
+    cont.innerHTML = '';
+    MESES_NOM.forEach((m, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'mes-btn active';
+      btn.innerText = m;
+      btn.onclick = () => btn.classList.toggle('active');
+      btn.dataset.mes = i;
+      cont.appendChild(btn);
+    });
+  });
+ }
+ const selAnio = document.getElementById('select-anio');
+ if (selAnio) {
+  selAnio.innerHTML = '';
+  for (let i = 2026; i <= ANIO_LIMITE_MAX; i++) {
+    const opt = document.createElement('option'); opt.value = i; opt.textContent = i; selAnio.appendChild(opt);
+  }
+ }
+
+ // ========= CÁLCULOS =========
+ function format(n) { return new Intl.NumberFormat('de-DE').format(Math.round(n)) + ' €'; }
+ function calcularSaldoInicial(anioLimite) {
+  let saldo = 0;
+  Object.keys(baseDatos).forEach(f => {
+    const a = parseInt(f.split('-')[0]);
+    if (a < anioLimite) baseDatos[f].forEach(mov => saldo += (mov.tipo === 'ingreso' ? mov.monto : -mov.monto));
+  });
+  return saldo;
+ }
+ function getIPCForYear(fijo, tipo, anio) {
+  if (!fijo.ipcOverrides) fijo.ipcOverrides = {};
+  if (Object.prototype.hasOwnProperty.call(fijo.ipcOverrides, anio)) {
+    const v = parseFloat(fijo.ipcOverrides[anio]); return isNaN(v) ? 0 : v;
+  }
+  if (typeof fijo.ipc === 'number') return fijo.ipc;
+  return DEFAULT_IPC[tipo] ?? 0;
+ }
+ function calcularMontoParaAnio(fijo, tipo, anioObjetivo) {
+  const anioBase = fijo.anioInicio ?? anioObjetivo;
+  let importe = fijo.monto;
+  for (let a = anioBase + 1; a <= anioObjetivo; a++) {
+    const tasa = getIPCForYear(fijo, tipo, a);
+    importe = Math.round(importe * (1 + (tasa / 100)));
+  }
+  return importe;
+ }
+
+ // ========= RENDER =========
+ function render() {
+  const anioVista = parseInt(selAnio.value);
+  const cuerpo = document.getElementById('cuerpo'); if (!cuerpo) return; cuerpo.innerHTML = '';
+  let saldoGlobal = calcularSaldoInicial(anioVista);
+  let hoy = new Date(); hoy.setHours(0,0,0,0);
+  let pNeg = null, mNeg = { monto: 0, fecha: null };
+
+  let f = new Date(anioVista, 0, 1);
+  while (f.getFullYear() === anioVista) {
+    const iso = `${f.getFullYear()}-${String(f.getMonth()+1).padStart(2,'0')}-${String(f.getDate()).padStart(2,'0')}`;
+    const esUlt = (new Date(anioVista, f.getMonth() + 1, 0).getDate() === f.getDate());
+    const movs = baseDatos[iso] || [];
+
+    movs.forEach(mov => { saldoGlobal += (mov.tipo === 'ingreso' ? mov.monto : -mov.monto); });
+
+    let hCon = '', hCif = '';
+    movs.forEach((m, i) => {
+      const color = m.tipo === 'ingreso' ? 'var(--success)' : 'var(--warning)';
+      const signo = m.tipo === 'ingreso' ? '+' : '-';
+      const esFijo = (m.origen || 'manual') === 'fijo';
+      const botones = esFijo
+        ? `<span>
+             <button title="Editar esta ocurrencia (fijo)" style="background:#1f2937; color:#a7f3d0; border:1px solid #334155; border-radius:3px; padding:2px 6px; cursor:pointer; font-size:0.68rem;" onclick="editarMovimientoFijo('${iso}', ${i})">✏️</button>
+             <button title="Borrar solo esta ocurrencia (fijo)" style="background:transparent; color:var(--danger); border:none; cursor:pointer; font-size:0.9rem;" onclick="borrarMovimientoFijo('${iso}', ${i})">✕</button>
+           </span>`
+        : `<span>
+             <button title="Editar" style="background:#1f2937; color:#a7f3d0; border:1px solid #334155; border-radius:3px; padding:2px 6px; cursor:pointer; font-size:0.68rem;" onclick="editarMovimiento('${iso}', ${i})">✏️</button>
+             <button title="Borrar" style="background:transparent; color:var(--danger); border:none; cursor:pointer; font-size:0.9rem;" onclick="borrarMovimiento('${iso}', ${i})">✕</button>
+           </span>`;
+      hCon += `<div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                 <span>${m.concepto || ''} ${esFijo && m.excepcion ? '<em style="color:#93c5fd; font-size:0.7rem;">(excepción)</em>' : ''}</span>${botones}</div>`;
+      hCif += `<div class="moneda-font" style="color:${color}; text-align:right;">${signo}${format(m.monto)}</div>`;
+    });
+    if (movs.length === 0) { hCon = '---'; hCif = '---'; }
+
+    if (movs.length > 0 || (f.getDate() === 1 && f.getMonth() === 0) || esUlt) {
+      cuerpo.innerHTML += `<tr class="${esUlt?'fila-hito':''}">
+        <td style="color:var(--text-dim)">${f.getDate()} ${f.toLocaleDateString('es-ES',{month:'short'})}</td>
+        <td>${hCon}</td>
+        <td class="moneda-font">${hCif}</td>
+        <td class="moneda-font" style="color:${saldoGlobal>=0?'var(--success)':'var(--danger)'}">${format(saldoGlobal)}</td>
+      </tr>`;
+    }
+
+    if (f >= hoy && saldoGlobal < 0) {
+      if (!pNeg) pNeg = { fecha: new Date(f), monto: saldoGlobal };
+      if (saldoGlobal < mNeg.monto) mNeg = { monto: saldoGlobal, fecha: new Date(f) };
+    }
+    f.setDate(f.getDate() + 1);
+  }
+
+  actualizarAlertas(saldoGlobal, pNeg, mNeg);
+  actualizarListaFijos();
+  actualizarHucha();
+ }
+
+ function actualizarAlertas(sFinal, pN, mN) {
+  const recupera = pN && sFinal >= 0;
+  const panel = document.getElementById('panel-alertas'); if (!panel) return;
+  panel.innerHTML = `
+    <div class="alerta-card" style="border-top: 4px solid var(--neon-lime)">
+      <h4 style="color: var(--neon-lime)">⚠️ Monitor de Riesgos (${selAnio.value})</h4>
+      <div class="monitor-negativo">
+        <div class="punto-info"><label>Primer Negativo</label><span>${pN ? pN.fecha.toLocaleDateString('es-ES',{day:'numeric',month:'short'}) : 'Ninguno'}</span><div style="font-size:0.75rem; color:var(--danger); font-weight:bold; margin-top:2px">${pN ? format(pN.monto) : ''}</div></div>
+        <div class="punto-info"><label>Punto más bajo</label><span style="color:var(--danger)">${mN.fecha ? format(mN.monto) : '---'}</span><div style="font-size:0.75rem; color:var(--text-dim); margin-top:2px">${mN.fecha ? mN.fecha.toLocaleDateString('es-ES',{day:'numeric',month:'short'}) : ''}</div></div>
+        <div class="punto-info"><label>Recuperación</label><span>${recupera ? 'SÍ ✅' : (pN ? 'NO ❌' : '---')}</span><div style="font-size:0.6rem; color:var(--text-dim); margin-top:2px">A 31 de DIC</div></div>
+      </div>
+    </div>
+    <div class="alerta-card" style="border-top: 4px solid var(--neon-lime); text-align:center">
+      <h4 style="color: var(--neon-lime)">💰 Saldo al 31 de Diciembre</h4>
+      <div class="moneda-font" style="font-size:1.3rem; color:${sFinal >= 0 ? 'var(--neon-lime)' : 'var(--danger)'}">${format(sFinal)}</div>
+    </div>`;
+ }
+
+ // ========= ENTRADA MANUAL =========
+ function agregarManual() {
+  const f = document.getElementById('input-fecha').value,
+        c = document.getElementById('input-concepto').value,
+        m = document.getElementById('input-monto').value,
+        t = document.getElementById('input-tipo').value;
+  if (!f || !c || !m) return alert("Faltan datos");
+  if (!baseDatos[f]) baseDatos[f] = [];
+  baseDatos[f].push({ concepto: c, monto: parseInt(m), tipo: t, origen: 'manual' });
+  document.getElementById('input-concepto').value = '';
+  document.getElementById('input-monto').value = '';
+  save();
+  document.getElementById('input-concepto').focus();
+ }
+ function añadirGastoTarjeta() {
+  const concepto = document.getElementById('tarjeta-con').value;
+  const monto = document.getElementById('tarjeta-mon').value;
+  if (!concepto || !monto) return alert("Indica el concepto e importe");
+  const anioActual = parseInt(selAnio.value);
+  const mesActual = new Date().getMonth();
+  const ultimoDia = new Date(anioActual, mesActual + 1, 0).getDate();
+  const fechaISO = `${anioActual}-${String(mesActual + 1).padStart(2, '0')}-${String(ultimoDia).padStart(2, '0')}`;
+  if (!baseDatos[fechaISO]) baseDatos[fechaISO] = [];
+  baseDatos[fechaISO].push({ concepto: `[TARJETA] ${concepto}`, monto: parseInt(monto), tipo: 'gasto', origen: 'manual' });
+  document.getElementById('tarjeta-con').value = '';
+  document.getElementById('tarjeta-mon').value = '';
+  save();
+  document.getElementById('tarjeta-con').focus();
+ }
+
+ // ========= FIJOS =========
+ function uniqId() { return (Date.now().toString(36) + Math.random().toString(36).slice(2,8)); }
+
+ function crearFijo(tipo) {
+  const t = tipo === 'ahorro' ? 'aho' : (tipo === 'ingreso' ? 'ing' : 'gas');
+  const con = document.getElementById(`in-${t}-con`).value;
+  const mon = parseInt(document.getElementById(`in-${t}-mon`).value);
+
+  // NUEVO: leer el checkbox "Fin de mes" si existe (en ahorro no existe)
+  const finDeMesCheck = document.getElementById(`in-${t}-fin`);
+  const finDeMes = !!(finDeMesCheck && finDeMesCheck.checked);
+
+  // Día: solo obligatorio si NO es fin de mes
+  const diaInput = document.getElementById(`in-${t}-dia`);
+  const dia = finDeMes ? 28 : parseInt(diaInput?.value ?? 1); // placeholder si finDeMes
+
+  const ipcInput = document.getElementById(`in-${t}-ipc`);
+  const defaultIpc = (tipo === 'ingreso') ? 1 : 2;
+  const ipc = (ipcInput && ipcInput.value !== "") ? parseFloat(ipcInput.value) : defaultIpc;
+  const meses = Array.from(document.querySelectorAll(`#meses-${t} .mes-btn.active`)).map(b => parseInt(b.dataset.mes));
+
+  // Validación: si finDeMes => no exigimos "día"
+  if (!con || !mon || (!finDeMes && !dia) || meses.length === 0) {
+    return alert("Faltan datos");
+  }
+
+  const anioSel = parseInt(selAnio.value);
+  // Preguntas de vigencia:
+  let finRaw = prompt(`¿Hasta qué año lo quieres? (YYYY, inclusive)\nDeja vacío = solo ${anioSel}`, anioSel);
+  let anioFin = parseInt(finRaw || anioSel, 10);
+  if (isNaN(anioFin) || anioFin < anioSel) anioFin = anioSel;
+
+  let mesesUltRaw = prompt(
+    `Meses del último año (${anioFin}).\nEjemplos: "1-12" (todos) o "1,2,3,4,5,6".\nDeja vacío = los mismos de todos los años.`,
+    ""
+  );
+  const mesesUltimo = parseMesesUltimoAnio(mesesUltRaw);
+
+  const conceptoFinal = tipo === 'ahorro' ? `[AHORRO] ${con}` : con;
+  const tipoMovimiento = tipo === 'ahorro' ? 'gasto' : tipo;
+
+  const nuevo = {
+    id: (Date.now().toString(36) + Math.random().toString(36).slice(2,8)),
+    concepto: conceptoFinal,
+    monto: mon,
+    dia: dia,                 // si finDeMes=true, no se usa
+    meses: meses,
+    finDeMes: finDeMes,       // ⬅️ NUEVO: activará último día de cada mes
+    ipc: isNaN(ipc) ? defaultIpc : ipc,
+    ipcOverrides: {},
+    excepciones: {},
+    anioInicio: anioSel,
+    vigencia: { anioFin, mesesUltimoAnio: mesesUltimo || null }
+  };
+  maestroFijos[tipoMovimiento].push(nuevo);
+  aplicarDesde(tipoMovimiento, nuevo, anioSel, 0);
+  save();
+}
+
+
+// === Vigencia: parsear meses del último año (input humano -> [0..11] o null)
+function parseMesesUltimoAnio(input) {
+  if (!input) return null;                  // null = usar "todos" (los de fijo.meses)
+  const txt = String(input).trim();
+  if (!txt) return null;
+  if (/^\d+\s*-\s*\d+$/.test(txt)) {        // "1-12" etc.
+    const [a,b] = txt.split('-').map(x => parseInt(x.trim(),10));
+    const ini = Math.max(1, Math.min(a,b));
+    const fin = Math.min(12, Math.max(a,b));
+    return Array.from({length: (fin-ini+1)}, (_,i) => (ini+i)-1);
+  }
+  // "1,2,3,6,10"
+  const arr = txt.split(',').map(x => parseInt(x.trim(),10))
+                 .filter(n => !isNaN(n) && n>=1 && n<=12)
+                 .map(n => n-1);
+  return arr.length ? Array.from(new Set(arr)).sort((x,y)=>x-y) : null;
+}
+
+
+
+
+ // NUEVO: fijos de tarjeta (fin de mes)
+ function crearFijoTarjeta() {
+  const con = document.getElementById('in-tar-con').value;
+  const mon = parseInt(document.getElementById('in-tar-mon').value);
+  const meses = Array.from(document.querySelectorAll(`#meses-tar .mes-btn.active`)).map(b => parseInt(b.dataset.mes));
+  if (!con || !mon || meses.length === 0) return alert("Faltan datos en fijo Tarjeta");
+
+  const anioSel = parseInt(selAnio.value);
+  let finRaw = prompt(`¿Hasta qué año lo quieres? (YYYY, inclusive)\nDeja vacío = solo ${anioSel}`, anioSel);
+  let anioFin = parseInt(finRaw || anioSel, 10);
+  if (isNaN(anioFin) || anioFin < anioSel) anioFin = anioSel;
+
+  let mesesUltRaw = prompt(
+    `Meses del último año (${anioFin}).\nEjemplos: "1-12" (todos) o "1,2,3,4,5,6".\nDeja vacío = los mismos de todos los años.`,
+    ""
+  );
+  const mesesUltimo = parseMesesUltimoAnio(mesesUltRaw);
+
+  const nuevo = {
+    id: (Date.now().toString(36) + Math.random().toString(36).slice(2,8)),
+    concepto: `[TARJETA] ${con}`,
+    monto: mon,
+    dia: 28,                 // placeholder; se ignora con finDeMes=true
+    meses: meses,
+    finDeMes: true,
+    ipc: DEFAULT_IPC.gasto,
+    ipcOverrides: {},
+    excepciones: {},
+    anioInicio: anioSel,
+    vigencia: { anioFin, mesesUltimoAnio: mesesUltimo || null }  // 👈 NUEVO
+  };
+  maestroFijos['gasto'].push(nuevo);
+  aplicarDesde('gasto', nuevo, anioSel, 0);
+  document.getElementById('in-tar-con').value = '';
+  document.getElementById('in-tar-mon').value = '';
+  save();
+}
+
+ // Aplicación iterativa (limpieza por fijoId, soporta fin de mes y excepciones)
+ function aplicarDesde(tipo, fijo, anioInicio, mesInicio) {
+  const anioFin = Math.min(
+    (fijo.vigencia && fijo.vigencia.anioFin) ? fijo.vigencia.anioFin : ANIO_LIMITE_MAX,
+    ANIO_LIMITE_MAX
+  );
+
+  // 1) Limpieza: SOLO ocurrencias de ESTE fijo (por id) desde anioInicio..anioFin
+  for (let a = anioInicio; a <= anioFin; a++) {
+    for (let m = 0; m <= 11; m++) {
+      const prefijoFecha = `${a}-${String(m + 1).padStart(2, '0')}`;
+      Object.keys(baseDatos).forEach(fecha => {
+        if (fecha.startsWith(prefijoFecha)) {
+          baseDatos[fecha] = baseDatos[fecha].filter(x => !(x.origen === 'fijo' && x.fijoId === fijo.id));
+          if (baseDatos[fecha].length === 0) delete baseDatos[fecha];
+        }
+      });
+    }
+  }
+
+  // 2) Reaplicación año a año, respetando meses del último año si existen
+  for (let a = anioInicio; a <= anioFin; a++) {
+    const montoAnual = calcularMontoParaAnio(fijo, tipo, a);
+    const mesesDeEsteAnio = (a === anioFin && fijo.vigencia && Array.isArray(fijo.vigencia.mesesUltimoAnio) && fijo.vigencia.mesesUltimoAnio.length)
+      ? fijo.vigencia.mesesUltimoAnio
+      : fijo.meses;
+
+    mesesDeEsteAnio.forEach(m => {
+      if (a > anioInicio || m >= mesInicio) {
+        const lastDay = new Date(a, m + 1, 0).getDate();
+        const dia = fijo.finDeMes ? lastDay : fijo.dia;
+        const iso = `${a}-${String(m + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+
+        const exc = (fijo.excepciones && fijo.excepciones[iso]) ? fijo.excepciones[iso] : null;
+        if (exc && exc.cancelar) return;
+
+        const conceptoUse = (exc && typeof exc.concepto === 'string') ? exc.concepto : fijo.concepto;
+        const montoUse = (exc && typeof exc.monto === 'number') ? exc.monto : montoAnual;
+
+        if (!baseDatos[iso]) baseDatos[iso] = [];
+        baseDatos[iso].push({
+          concepto: conceptoUse,
+          monto: Math.round(montoUse),
+          tipo: tipo,
+          origen: 'fijo',
+          fijoId: fijo.id,
+          excepcion: !!exc
+        });
+      }
+    });
+  }
+}
+
+ function editarFijo(tipo, index) {
+  const f = maestroFijos[tipo][index];
+  const nMon = prompt(`Nuevo importe para ${f.concepto}:`, f.monto); if (nMon === null) return;
+  const mesIni = prompt(`¿Mes de inicio en ${selAnio.value}? (1-12):`, new Date().getMonth() + 1); if (mesIni === null) return;
+  f.monto = parseInt(nMon);
+  aplicarDesde(tipo, f, parseInt(selAnio.value), parseInt(mesIni) - 1);
+  save();
+ }
+ function borrarFijo(tipo, index) {
+  if (!confirm("¿Borrar recurrencia futura?")) return;
+  const f = maestroFijos[tipo][index];
+  Object.keys(baseDatos).forEach(fecha => {
+    if (parseInt(fecha.split('-')[0]) >= parseInt(selAnio.value)) {
+      baseDatos[fecha] = baseDatos[fecha].filter(x => !(x.origen === 'fijo' && x.fijoId === f.id));
+      if (baseDatos[fecha].length === 0) delete baseDatos[fecha];
+    }
+  });
+  maestroFijos[tipo].splice(index, 1);
+  save(); render();
+ }
+
+ function actualizarListaFijos() {
+  const contIng = document.getElementById('lista-ingresos');
+  const contGas = document.getElementById('lista-gastos');
+  const contAho = document.getElementById('lista-ahorros-fijos');
+  const contTar = document.getElementById('lista-tarjeta-fijos');
+  if (contIng) contIng.innerHTML = '';
+  if (contGas) contGas.innerHTML = '';
+  if (contAho) contAho.innerHTML = '';
+  if (contTar) contTar.innerHTML = '';
+
+  ['ingreso', 'gasto'].forEach(tipo => {
+    maestroFijos[tipo].forEach((f, i) => {
+      const esAhorro = f.concepto.includes('[AHORRO]');
+      const esTarjeta = f.concepto.includes('[TARJETA]');
+      let destino = (tipo === 'ingreso') ? contIng : (esAhorro ? contAho : (esTarjeta && contTar ? contTar : contGas));
+      if (!destino) return;
+      const anioVista = parseInt(selAnio.value);
+      const montoVista = calcularMontoParaAnio(f, tipo, anioVista);
+      const etiquetaDia = f.finDeMes ? 'Fin de mes' : `Día ${f.dia}`;
+      destino.innerHTML += `
+        <div class="item-fijo" style="${esAhorro ? 'border:1px solid rgba(254,243,199,0.2); background:rgba(254,243,199,0.05); padding:6px; border-radius:6px; margin-bottom:4px;' : 'border-top: 1px solid var(--border); padding: 6px 0;'}">
+          <div style="display:flex; justify-content:space-between">
+            <b style="${esAhorro ? 'color:#fef3c7;' : ''}">${f.concepto.replace('[AHORRO] ', '').replace('[TARJETA] ', '')}</b>
+            <b style="color:${tipo==='ingreso'?'var(--success)':'var(--warning)'}">${format(montoVista)}</b>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px">
+            <span style="font-size:0.58rem; color:var(--accent)">${f.meses.map(m=>MESES_NOM[m]).join(' ')} - ${etiquetaDia}</span>
+            <div>
+              <button onclick="editarFijo('${tipo}',${i})" class="btn-edit">✏️</button>
+              <button onclick="borrarFijo('${tipo}',${i})" class="btn-del">✕</button>
+            </div>
+          </div>
+        </div>`;
+    });
+  });
+ }
+
+ // ========= IPC OVERRIDE =========
+ function recalcularTodo(tipo) {
+  const t = (tipo === 'ingreso') ? 'ing' : 'gas';
+  const input = document.getElementById(`in-${t}-ipc`);
+  const raw = input ? input.value.trim() : "";
+  const anioActual = parseInt(selAnio.value);
+
+  if (maestroFijos[tipo].length === 0) { alert("No hay elementos para actualizar."); return; }
+  const ids = new Set(maestroFijos[tipo].map(f => f.id));
+
+  Object.keys(baseDatos).forEach(fecha => {
+    if (parseInt(fecha.split('-')[0]) >= anioActual) {
+      baseDatos[fecha] = baseDatos[fecha].filter(mov => !(mov.origen === 'fijo' && mov.fijoId && ids.has(mov.fijoId)));
+      if (baseDatos[fecha].length === 0) delete baseDatos[fecha];
+    }
+  });
+
+  const nuevoIpc = raw === "" ? null : parseFloat(raw);
+  maestroFijos[tipo].forEach(fijo => {
+    if (!fijo.ipcOverrides) fijo.ipcOverrides = {};
+    if (nuevoIpc === null || isNaN(nuevoIpc)) delete fijo.ipcOverrides[anioActual];
+    else fijo.ipcOverrides[anioActual] = nuevoIpc;
+    aplicarDesde(tipo, fijo, anioActual, 0);
+  });
+
+  save();
+  alert("Cifras actualizadas. Si no ves el cambio, cambia de año en el selector y vuelve.");
+ }
+
+ // ========= BACKUP =========
+ function exportarDatos() {
+  const dataStr = JSON.stringify({ data: baseDatos, fijos: maestroFijos });
+  const blob = new Blob([dataStr], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `finanzas_${new Date().toISOString().slice(0,10)}.json`; a.click();
+  hayCambiosSinGuardar = false; gestionarAvisoCambios();
+ }
+ function importarDatos(e) {
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const imp = JSON.parse(ev.target.result);
+      baseDatos = imp.data; maestroFijos = imp.fijos;
+      hayCambiosSinGuardar = false; save(); location.reload();
+    } catch (err) { alert("Archivo inválido"); }
+  };
+  reader.readAsText(e.target.files[0]);
+ }
+
+ // ========= MODALES =========
+ function abrirResumen() {
+  const modal = document.createElement('div'); modal.id = "modal-resumen";
+  modal.style = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.9); z-index:1000; display:flex; align-items:center; justify-content:center; backdrop-filter: blur(4px);";
+  let contenidoHitos = "", saldoAcumulado = 0, ahorroAcumuladoHucha = 0;
+  for (let a = 2026; a <= ANIO_LIMITE_MAX; a++) {
+    let saldoAnual = 0, ahorroAnual = 0;
+    Object.keys(baseDatos).forEach(fecha => {
+      if (fecha.startsWith(a + "-")) {
+        baseDatos[fecha].forEach(m => {
+          saldoAnual += (m.tipo === 'ingreso' ? m.monto : -m.monto);
+          if (m.concepto && m.concepto.includes('[AHORRO]')) ahorroAnual += m.monto;
+        });
+      }
+    });
+    saldoAcumulado += saldoAnual; ahorroAcumuladoHucha += ahorroAnual;
+    contenidoHitos += `
+      <div style="display:grid; grid-template-columns: 0.8fr 1.2fr 1.2fr 1.2fr; padding:10px; border-bottom:1px solid var(--border); font-family:'JetBrains Mono', monospace; align-items:center; text-align:center;">
+        <span style="font-weight:bold; color:var(--text-main)">${a}</span>
+        <span style="color:${saldoAnual >= 0 ? 'var(--accent)' : 'var(--warning)'}">${format(saldoAnual)}</span>
+        <span style="color:${saldoAcumulado >= 0 ? 'var(--success)' : 'var(--danger)'}; font-weight:bold;">${format(saldoAcumulado)}</span>
+        <span style="color:#fef3c7; font-weight:bold;">${format(ahorroAcumuladoHucha)}</span>
+      </div>`;
+  }
+  modal.innerHTML = `
+    <div style="background:var(--bg-card); width:95%; max-width:680px; padding:24px; border-radius:16px; border:1px solid var(--neon-purple); max-height:85vh; overflow-y:auto; position:relative; box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);">
+      <button onclick="document.getElementById('modal-resumen').remove()" style="position:absolute; top:10px; right:10px; background:none; border:none; color:var(--text-dim); font-size:1.4rem; cursor:pointer;">✕</button>
+      <h2 style="color:var(--neon-purple); margin-top:0; text-align:center; letter-spacing:1px;">📊 PROYECCIÓN ESTRATÉGICA</h2>
+      <div style="background:rgba(0,0,0,0.2); border-radius:10px; overflow:hidden; margin-top:12px;">
+        <div style="display:grid; grid-template-columns: 0.8fr 1.2fr 1.2fr 1.2fr; padding:10px; background:rgba(15, 23, 42, 0.5); color:var(--text-dim); font-size:0.62rem; text-transform:uppercase; letter-spacing:1px; text-align:center; border-bottom:1px solid var(--border);">
+          <span>Año</span><span>Balance</span><span>Saldo Final</span><span>Hucha Ahorro</span>
+        </div>
+        ${contenidoHitos}
+      </div>
+      <div style="margin-top:14px; text-align:center;">
+        <button onclick="document.getElementById('modal-resumen').remove()" style="background:transparent; border:1px solid var(--border); color:var(--text-dim); padding:8px 16px; border-radius:8px; cursor:pointer; font-size:0.78rem; text-transform:uppercase; letter-spacing:1px;">Cerrar Resumen</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+ }
+
+
+// ===============================
+// HELPERS NUEVOS (PEGAR TAL CUAL)
+// ===============================
+
+// Quita tags como [AHORRO] o [TARJETA] al mostrar/agrup ar
+function quitarTags(concepto) {
+  return (concepto || '').replace(/\[(AHORRO|TARJETA)\]\s*/gi, '').trim();
+}
+
+// Normaliza: minúsculas y sin acentos, para comparar textos
+function normaliza(s) {
+  return (s || '').toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+
+// Capitaliza la primera letra
+function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
+
+/**
+ * Devuelve la categoría de un gasto de TARJETA.
+ * Reglas:
+ * 1) Si encuentra una palabra clave en "alias", usa esa categoría.
+ * 2) Si el concepto tiene formato "Prefijo. Detalle", usa "Prefijo".
+ * 3) Si no, usa la primera palabra del concepto.
+ */
+function categoriaTarjeta(nombre) {
+  const clean = quitarTags(nombre);
+  const lower = normaliza(clean);
+
+  // Alias/keywords (ajústalo a tu gusto)
+  const alias = {
+    // Vacaciones / viajes
+    'vacaciones': 'Vacaciones', 'viaje': 'Vacaciones', 'hotel': 'Vacaciones',
+
+    // Comida / súper / restaurantes
+    'comida': 'Comida', 'mercadona': 'Comida', 'carrefour': 'Comida',
+    'lidl': 'Comida', 'aldi': 'Comida', 'ahorramas': 'Comida',
+    'restaurante': 'Comida', 'uber eats': 'Comida', 'ubereats': 'Comida',
+    'just eat': 'Comida', 'justeat': 'Comida', 'glovo': 'Comida',
+
+    // Transporte
+    'gasolina': 'Gasolina - Transporte', 'repsol': 'Gasolina - Transporte', 'cepsa': 'Gasolina - Transporte', 'bp': 'Gasolina - Transporte',
+
+    // Varios ejemplo
+    'amazon': 'Amazon', 'ikea': 'Hogar'
+  };
+  for (const k in alias) {
+    if (lower.includes(k)) return alias[k];
+  }
+
+  // “Comida. Mercadona” -> “Comida”
+  const preDot = clean.split('.')[0].trim();
+  if (preDot.length >= 2) return cap(preDot);
+
+  // Por defecto, la primera palabra
+  const primera = clean.split(/\s+/)[0];
+  return primera ? cap(primera) : 'Otros';
+}
+
+
+
+ 
+function abrirDesglose() {
+  const anio = parseInt(selAnio.value, 10);
+
+  // Mapas de agregación
+  const mapIng = new Map();
+  const mapGas = new Map();
+  let totalAhorro = 0;
+
+  // Desglose adicional SOLO de tarjeta:
+  const mapTarjetaDet = new Map();
+  let totalTarjeta = 0;
+
+  // Recorrido de datos del año seleccionado
+  Object.keys(baseDatos).forEach(fecha => {
+    if (!fecha.startsWith(anio + "-")) return;
+
+    baseDatos[fecha].forEach(m => {
+      const conceptoOriginal = m.concepto || 'Sin concepto';
+      const conceptoLimpio   = quitarTags(conceptoOriginal);
+      const esAhorro  = conceptoOriginal.includes('[AHORRO]');
+      const esTarjeta = conceptoOriginal.includes('[TARJETA]');
+
+      // Ahorro → va a su bloque (mostrado en positivo), no a ingresos/gastos
+      if (esAhorro) {
+        if (m.tipo !== 'ingreso') totalAhorro += m.monto;
+        return;
+      }
+
+      if (m.tipo === 'ingreso') {
+        // INGRESOS
+        mapIng.set(conceptoLimpio, (mapIng.get(conceptoLimpio) || 0) + m.monto);
+      } else {
+        // GASTOS
+        if (esTarjeta) {
+          // 1) Línea agregada “Tarjeta” dentro de Gastos (mantener)
+          mapGas.set('Tarjeta', (mapGas.get('Tarjeta') || 0) + m.monto);
+
+          // 2) Desglose por categorías para la 4ª columna
+          const cat = categoriaTarjeta(conceptoOriginal);
+          mapTarjetaDet.set(cat, (mapTarjetaDet.get(cat) || 0) + m.monto);
+          totalTarjeta += m.monto;
+        } else {
+          // Gastos NO tarjeta
+          mapGas.set(conceptoLimpio, (mapGas.get(conceptoLimpio) || 0) + m.monto);
+        }
+      }
+    });
+  });
+
+  // Listas ordenadas por importe desc
+  const ingList     = Array.from(mapIng.entries()).sort((a, b) => b[1] - a[1]);
+  const gasList     = Array.from(mapGas.entries()).sort((a, b) => b[1] - a[1]);
+  const tarjetaList = Array.from(mapTarjetaDet.entries()).sort((a, b) => b[1] - a[1]);
+
+  const totalIng = ingList.reduce((s, [,v]) => s + v, 0);
+  const totalGas = gasList.reduce((s, [,v]) => s + v, 0);
+
+  // Modal
+  const modal = document.createElement('div');
+  modal.id = "modal-desglose";
+  modal.style = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.9); z-index:1000; display:flex; align-items:center; justify-content:center; backdrop-filter: blur(4px);";
+
+  // Render helpers
+  const renderRows = (list, tipo) => {
+    if (!list || list.length === 0) {
+      return `<tr><td colspan="2" style="color:var(--text-dim); text-align:center; padding:8px;">(Sin datos)</td></tr>`;
+    }
+    const color = (tipo === 'ingreso') ? 'var(--success)' : 'var(--warning)';
+    const signo = (tipo === 'ingreso') ? '+' : '-';
+    return list.map(([k, v]) =>
+      `<tr>
+        <td style="padding:6px 8px; text-align:left;">${k}</td>
+        <td class="moneda-font" style="padding:6px 8px; color:${color}; text-align:right;">${signo}${format(v)}</td>
+      </tr>`
+    ).join('');
+  };
+
+  const bloque = (titulo, list, tipo, total, color, signo) => `
+    <div style="flex:1; min-width:250px;">
+      <h4 style="margin:0 0 8px 0; color:${color};">${titulo}</h4>
+      <div style="border:1px solid var(--border); border-radius:8px; overflow:hidden; background:rgba(15,23,42,0.4);">
+        <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+          <thead>
+            <tr style="background:rgba(15,23,42,0.5); color:var(--text-dim); text-transform:uppercase; font-size:0.7rem;">
+              <th style="text-align:left; padding:8px;">Concepto</th>
+              <th style="text-align:right; padding:8px;">Total año</th>
+            </tr>
+          </thead>
+          <tbody>${renderRows(list, tipo)}</tbody>
+          <tfoot>
+            <tr style="background:rgba(0,0,0,0.2);">
+              <td style="padding:8px; text-align:left; font-weight:bold;">TOTAL</td>
+              <td class="moneda-font" style="padding:8px; text-align:right; color:${color}; font-weight:bold;">${signo}${format(total)}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>`;
+
+  const bloqueIngresos    = bloque(`Ingresos (${anio})`, ingList, 'ingreso', totalIng, 'var(--success)', '+');
+
+  const bloqueAhorro      = `
+    <div style="flex:1; min-width:250px;">
+      <h4 style="margin:0 0 8px 0; color:#fef3c7;">Ahorro (${anio})</h4>
+      <div style="border:1px solid var(--border); border-radius:8px; overflow:hidden; background:rgba(15,23,42,0.4);">
+        <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+          <thead>
+            <tr style="background:rgba(15,23,42,0.5); color:var(--text-dim); text-transform:uppercase; font-size:0.7rem;">
+              <th style="text-align:left; padding:8px;">Concepto</th>
+              <th style="text-align:right; padding:8px;">Total año</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="padding:6px 8px; text-align:left;">Ahorro</td>
+              <td class="moneda-font" style="padding:6px 8px; color:#fef3c7; text-align:right;">+${format(totalAhorro)}</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr style="background:rgba(0,0,0,0.2);">
+              <td style="padding:8px; text-align:left; font-weight:bold;">TOTAL</td>
+              <td class="moneda-font" style="padding:8px; text-align:right; color:#fef3c7; font-weight:bold;">+${format(totalAhorro)}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>`;
+
+  const bloqueGastos      = bloque(`Gastos (${anio})`,   gasList, 'gasto',   totalGas, 'var(--warning)', '-');
+  const bloqueTarjetaDet  = bloque(`Tarjeta (desglose)`, tarjetaList, 'gasto', totalTarjeta, 'var(--warning)', '-');
+
+  modal.innerHTML = `
+    <div style="background:var(--bg-card); width:95%; max-width:1280px; padding:20px; border-radius:16px; border:1px solid var(--neon-purple); max-height:85vh; overflow-y:auto; position:relative; box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);">
+      <button onclick="document.getElementById('modal-desglose').remove()" style="position:absolute; top:10px; right:10px; background:none; border:none; color:var(--text-dim); font-size:1.4rem; cursor:pointer;">✕</button>
+      <h2 style="color:var(--neon-purple); margin:0 0 12px 0; text-align:center; letter-spacing:1px;">🧾 DESGLOSE DE GASTOS / INGRESOS</h2>
+      <div style="display:flex; gap:12px; flex-wrap:wrap;">
+        ${bloqueIngresos}
+        ${bloqueAhorro}
+        ${bloqueGastos}
+        ${bloqueTarjetaDet}
+      </div>
+      <div style="margin-top:12px; text-align:center; color:var(--text-dim); font-size:0.72rem;">
+        * “Tarjeta (desglose)” clasifica solo movimientos con <code>[TARJETA]</code> por categorías (palabra inicial, prefijo antes del punto o alias).<br/>
+        * “Gastos” mantiene “Tarjeta” como línea agregada dentro del total.
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+
+ // ========= AHORRO =========
+ function añadirAhorro() {
+  let fechaISO = document.getElementById('ahorro-fec').value;
+  const concepto = document.getElementById('ahorro-con').value;
+  const monto = document.getElementById('ahorro-mon').value;
+  if (!concepto || !monto) return alert("Indica concepto e importe del ahorro");
+  if (!fechaISO) { const hoy = new Date(); fechaISO = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`; }
+  if (!baseDatos[fechaISO]) baseDatos[fechaISO] = [];
+  baseDatos[fechaISO].push({ concepto: `[AHORRO] ${concepto}`, monto: parseInt(monto), tipo: 'gasto', origen: 'manual' });
+  document.getElementById('ahorro-con').value = ''; document.getElementById('ahorro-mon').value = '';
+  save(); document.getElementById('ahorro-con').focus();
+ }
+ function actualizarHucha() {
+  let totalHucha = 0;
+  Object.keys(baseDatos).forEach(fecha => { baseDatos[fecha].forEach(mov => { if (mov.concepto && mov.concepto.includes('[AHORRO]')) totalHucha += mov.monto; }); });
+  const el = document.getElementById('total-ahorro'); if (el) el.innerText = format(totalHucha);
+ }
+
+ // ========= EDITAR/BORRAR: MANUAL =========
+ function editarMovimiento(fechaISO, index) {
+  const movs = baseDatos[fechaISO]; if (!movs || !movs[index]) return;
+  const mov = movs[index];
+  if ((mov.origen || 'manual') === 'fijo') { alert("Este movimiento es un fijo. Usa ✏️ de fijo para editar solo esa fecha."); return; }
+  const nuevoConcepto = prompt("Nuevo concepto:", mov.concepto ?? ""); if (nuevoConcepto === null) return;
+  const nuevoMontoRaw = prompt("Nuevo importe (€):", mov.monto); if (nuevoMontoRaw === null) return;
+  const nuevoMonto = parseInt(nuevoMontoRaw); if (isNaN(nuevoMonto) || nuevoMonto < 0) { alert("Importe no válido."); return; }
+  const nuevoTipo = prompt("Tipo (ingreso/gasto):", mov.tipo); if (nuevoTipo === null) return;
+  mov.concepto = nuevoConcepto; mov.monto = nuevoMonto; mov.tipo = (String(nuevoTipo).toLowerCase() === 'ingreso') ? 'ingreso' : 'gasto'; mov.origen = mov.origen || 'manual';
+  save();
+ }
+ function borrarMovimiento(fechaISO, index) {
+  const movs = baseDatos[fechaISO]; if (!movs || !movs[index]) return;
+  const mov = movs[index];
+  if ((mov.origen || 'manual') === 'fijo') { alert("Este movimiento es un fijo. Usa ✕ de fijo para borrar solo esa fecha."); return; }
+  if (!confirm(`¿Borrar "${mov.concepto}" de ${fechaISO}?`)) return;
+  movs.splice(index, 1); if (movs.length === 0) delete baseDatos[fechaISO]; save();
+ }
+
+ // ========= EDITAR/BORRAR: FIJO (OCURRENCIA) =========
+ function localizarFijoPorMovimiento(mov) {
+  if (mov.fijoId) {
+    for (const t of ['ingreso','gasto']) { const ff = maestroFijos[t].find(x => x.id === mov.fijoId); if (ff) return { fijo: ff, tipo: t }; }
+  }
+  for (const t of ['ingreso','gasto']) { const ff = maestroFijos[t].find(x => x.concepto === mov.concepto); if (ff) return { fijo: ff, tipo: t }; }
+  return null;
+ }
+ function editarMovimientoFijo(fechaISO, index) {
+  const movs = baseDatos[fechaISO]; if (!movs || !movs[index]) return;
+  const mov = movs[index]; if ((mov.origen || 'manual') !== 'fijo') { alert("No es una ocurrencia de fijo."); return; }
+  const ref = localizarFijoPorMovimiento(mov); if (!ref) { alert("No se pudo localizar el fijo original."); return; }
+  const { fijo, tipo } = ref;
+  const nuevoConcepto = prompt("Nuevo concepto para esta fecha:", mov.concepto ?? fijo.concepto); if (nuevoConcepto === null) return;
+  const nuevoMontoRaw = prompt("Nuevo importe (€) SOLO para esta fecha:", mov.monto); if (nuevoMontoRaw === null) return;
+  const nuevoMonto = parseInt(nuevoMontoRaw); if (isNaN(nuevoMonto) || nuevoMonto < 0) { alert("Importe no válido."); return; }
+  if (!fijo.excepciones) fijo.excepciones = {}; fijo.excepciones[fechaISO] = { concepto: nuevoConcepto, monto: nuevoMonto };
+  const anio = parseInt(fechaISO.split('-')[0]); aplicarDesde(tipo, fijo, anio, 0); save();
+ }
+ function borrarMovimientoFijo(fechaISO, index) {
+  const movs = baseDatos[fechaISO]; if (!movs || !movs[index]) return;
+  const mov = movs[index]; if ((mov.origen || 'manual') !== 'fijo') { alert("No es una ocurrencia de fijo."); return; }
+  if (!confirm(`¿Cancelar la ocurrencia de "${mov.concepto}" en ${fechaISO}?`)) return;
+  const ref = localizarFijoPorMovimiento(mov); if (!ref) { alert("No se pudo localizar el fijo original."); return; }
+  const { fijo, tipo } = ref;
+  if (!fijo.excepciones) fijo.excepciones = {}; fijo.excepciones[fechaISO] = { cancelar: true };
+  const anio = parseInt(fechaISO.split('-')[0]); aplicarDesde(tipo, fijo, anio, 0); save();
+ }
+
+ // ========= LANZAR =========
+ initMesesSelectors();
+ render();
+</script>
+</body>
+</html>
