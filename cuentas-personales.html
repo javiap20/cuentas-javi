@@ -1188,12 +1188,15 @@ function abrirDesglose() {
 
  // ========= EDITAR/BORRAR: FIJO (OCURRENCIA) =========
  function localizarFijoPorMovimiento(mov) {
-  if (mov.fijoId) {
-    for (const t of ['ingreso','gasto']) { const ff = maestroFijos[t].find(x => x.id === mov.fijoId); if (ff) return { fijo: ff, tipo: t }; }
+  // Buscamos en todos los tipos de fijos (ingresos, gastos, ahorros, tarjeta)
+  for (let tipo in maestroFijos) {
+    const lista = maestroFijos[tipo];
+    // Buscamos un fijo que coincida con el concepto original del movimiento
+    const encontrado = lista.find(f => f.concepto === (mov.conceptoOriginal || mov.concepto));
+    if (encontrado) return { fijo: encontrado, tipo: tipo };
   }
-  for (const t of ['ingreso','gasto']) { const ff = maestroFijos[t].find(x => x.concepto === mov.concepto); if (ff) return { fijo: ff, tipo: t }; }
   return null;
- }
+}
  function editarMovimientoFijo(fechaISO, index) {
   const movs = baseDatos[fechaISO]; if (!movs || !movs[index]) return;
   const mov = movs[index]; if ((mov.origen || 'manual') !== 'fijo') { alert("No es una ocurrencia de fijo."); return; }
@@ -1206,14 +1209,38 @@ function abrirDesglose() {
   const anio = parseInt(fechaISO.split('-')[0]); aplicarDesde(tipo, fijo, anio, 0); save();
  }
  function borrarMovimientoFijo(fechaISO, index) {
-  const movs = baseDatos[fechaISO]; if (!movs || !movs[index]) return;
-  const mov = movs[index]; if ((mov.origen || 'manual') !== 'fijo') { alert("No es una ocurrencia de fijo."); return; }
-  if (!confirm(`¿Cancelar la ocurrencia de "${mov.concepto}" en ${fechaISO}?`)) return;
-  const ref = localizarFijoPorMovimiento(mov); if (!ref) { alert("No se pudo localizar el fijo original."); return; }
+  const movs = baseDatos[fechaISO];
+  if (!movs || !movs[index]) return;
+  const mov = movs[index];
+
+  const ref = localizarFijoPorMovimiento(mov);
+  if (!ref) {
+    // Si no lo encuentra, por lo menos dejamos que lo borre manualmente de la tabla
+    if (confirm("No se encontró el origen fijo. ¿Borrar esta línea de todos modos?")) {
+      movs.splice(index, 1);
+      save();
+    }
+    return;
+  }
+
   const { fijo, tipo } = ref;
-  if (!fijo.excepciones) fijo.excepciones = {}; fijo.excepciones[fechaISO] = { cancelar: true };
-  const anio = parseInt(fechaISO.split('-')[0]); aplicarDesde(tipo, fijo, anio, 0); save();
- }
+  const opcion = confirm(`¿Qué quieres hacer con "${mov.concepto}"?\n\n- ACEPTAR: Borrar SOLO esta fecha.\n- CANCELAR: Borrar esta y TODAS las futuras.`);
+
+  if (opcion) {
+    // Borrar solo hoy (añade una excepción)
+    if (!fijo.excepciones) fijo.excepciones = {};
+    fijo.excepciones[fechaISO] = { borrado: true };
+  } else {
+    // Borrar de hoy en adelante
+    const fechaCorte = new Date(fechaISO);
+    const mesCorte = fechaCorte.getMonth();
+    // Desactivamos los meses a partir de este
+    fijo.meses = fijo.meses.filter(m => m < mesCorte);
+    alert("Se ha limitado el gasto fijo hasta el mes anterior a " + fechaISO);
+  }
+
+  save();
+}
 
  // ========= LANZAR =========
  initMesesSelectors();
