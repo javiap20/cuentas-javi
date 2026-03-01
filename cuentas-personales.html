@@ -32,6 +32,14 @@
       font-size: .8rem; color: #cbe7ff;
       text-transform: uppercase; letter-spacing: .6px;
     }
+
+
+.mes-btn.active {
+  background: var(--accent) !important;
+  color: var(--bg-body) !important;
+  border-color: var(--accent) !important;
+}
+
     .anio-toolbar select{
       background: #0b1220; color: #e5f2ff;
       border: 1px solid rgba(56,189,248,.45);
@@ -654,27 +662,182 @@
       }
     }
 
-    function editarFijo(tipo, index) {
-      const f = maestroFijos[tipo][index];
-      const nMon = prompt(`Nuevo importe para ${f.concepto}:`, f.monto); if (nMon === null) return;
-      const mesIni = prompt(`¿Mes de inicio en ${selAnio.value}? (1-12):`, new Date().getMonth() + 1); if (mesIni === null) return;
-      f.monto = parseInt(nMon,10);
-      aplicarDesde(tipo, f, parseInt(selAnio.value,10), parseInt(mesIni,10) - 1);
-      save();
-    }
+    
+function editarFijo(tipo, index) {
+  const fijo = maestroFijos[tipo][index];
+  const anioSel = parseInt(selAnio.value, 10);
 
-    function borrarFijo(tipo, index) {
-      if (!confirm("¿Borrar recurrencia futura?")) return;
-      const f = maestroFijos[tipo][index];
-      Object.keys(baseDatos).forEach(fecha => {
-        if (parseInt(fecha.split('-')[0],10) >= parseInt(selAnio.value,10)) {
-          baseDatos[fecha] = baseDatos[fecha].filter(x => !(x.origen === 'fijo' && x.fijoId === f.id));
-          if (baseDatos[fecha].length === 0) delete baseDatos[fecha];
-        }
-      });
-      maestroFijos[tipo].splice(index, 1);
-      save(); render();
+  // Modal base
+  const modal = document.createElement('div');
+  modal.id = 'modal-editar-fijo';
+  modal.style = `
+    position:fixed; inset:0; background:rgba(15,23,42,.85);
+    display:flex; align-items:center; justify-content:center; z-index:9999; backdrop-filter:blur(4px);
+  `;
+
+  // UI de meses (se marca .active si estaba elegido)
+  const mesesMarkup = MESES_NOM.map((m, i) => `
+    <button type="button"
+      class="mes-btn ${fijo.meses.includes(i) ? 'active' : ''}"
+      data-mes="${i}"
+      style="
+        padding:6px 8px; border:1px solid #334155; border-radius:6px;
+        background:${fijo.meses.includes(i) ? 'var(--accent)' : 'transparent'};
+        color:${fijo.meses.includes(i) ? 'var(--bg-body)' : '#cbd5e1'};
+        cursor:pointer; transition:all .12s ease;
+      ">
+      ${m}
+    </button>
+  `).join('');
+
+  // Plantilla del modal
+  modal.innerHTML = `
+    <div style="background:#0b1220; border:1px solid #334155; width:95%; max-width:560px; padding:16px; border-radius:12px; color:#e5e7eb; position:relative;">
+      <button onclick="document.getElementById('modal-editar-fijo').remove()"
+        style="position:absolute; right:10px; top:10px; background:transparent; border:none; color:#94a3b8; font-size:20px; cursor:pointer;">✕</button>
+
+      <h3 style="margin:0 0 10px 0;">Editar fijo</h3>
+      <div style="font-size:.9rem; color:#94a3b8; margin-bottom:12px;">${fijo.concepto}</div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+        <div>
+          <label style="font-size:.75rem; color:#94a3b8;">Importe (€)</label>
+          <input id="ed-monto" type="number" value="${fijo.monto}"
+            style="width:100%; padding:8px; border-radius:6px; background:#0f172a; border:1px solid #334155; color:white;">
+        </div>
+        <div>
+          <label style="font-size:.75rem; color:#94a3b8;">Fin de mes</label>
+          <select id="ed-finmes" style="width:100%; padding:8px; border-radius:6px; background:#0f172a; border:1px solid #334155; color:white;">
+            <option value="si" ${fijo.finDeMes ? 'selected' : ''}>Sí</option>
+            <option value="no" ${!fijo.finDeMes ? 'selected' : ''}>No</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:.75rem; color:#94a3b8;">Día (1-31)</label>
+          <input id="ed-dia" type="number" value="${fijo.finDeMes ? 28 : (fijo.dia ?? 1)}"
+            style="width:100%; padding:8px; border-radius:6px; background:#0f172a; border:1px solid #334155; color:white;"
+            ${fijo.finDeMes ? 'disabled' : ''}>
+        </div>
+      </div>
+
+      <!-- Sección meses -->
+      <div style="display:flex; align-items:center; justify-content:space-between; margin:10px 0 6px;">
+        <div style="font-size:.75rem; color:#94a3b8;">Meses activos</div>
+        <div id="ed-resumen" style="font-size:.75rem; color:#a7f3d0;"></div>
+      </div>
+      <div id="ed-meses" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px;">
+        ${mesesMarkup}
+      </div>
+
+      <div style="display:flex; gap:8px; justify-content:space-between; align-items:center;">
+        <div style="display:flex; gap:6px;">
+          <button type="button" id="ed-sel-todos"  style="background:transparent; color:#94a3b8; border:1px solid #334155; padding:6px 10px; border-radius:8px; cursor:pointer;">Todos</button>
+          <button type="button" id="ed-sel-ninguno"style="background:transparent; color:#94a3b8; border:1px solid #334155; padding:6px 10px; border-radius:8px; cursor:pointer;">Ninguno</button>
+          <button type="button" id="ed-sel-trimestre"style="background:transparent; color:#94a3b8; border:1px solid #334155; padding:6px 10px; border-radius:8px; cursor:pointer;">Trim. actual</button>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button type="button" id="ed-cancel" style="background:transparent; color:#94a3b8; border:1px solid #334155; padding:8px 12px; border-radius:8px; cursor:pointer;">Cancelar</button>
+          <button type="button" id="ed-save" style="background:#22c55e; color:#0b1220; border:none; padding:8px 14px; border-radius:8px; font-weight:700; cursor:pointer;">Guardar</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  // Helpers DOM
+  const nodoMeses = modal.querySelector('#ed-meses');
+  const resumen   = modal.querySelector('#ed-resumen');
+  const selFinMes = modal.querySelector('#ed-finmes');
+  const inputDia  = modal.querySelector('#ed-dia');
+  const inputMon  = modal.querySelector('#ed-monto');
+
+  // Actualiza texto "Meses seleccionados: ..."
+  function actualizarResumen() {
+    const activos = Array.from(nodoMeses.querySelectorAll('button[data-mes].active'))
+      .map(b => parseInt(b.dataset.mes, 10))
+      .sort((a,b)=>a-b);
+    const etiqueta = activos.length
+      ? activos.map(i => MESES_NOM[i]).join(' ')
+      : '(ninguno)';
+    resumen.textContent = `Seleccionados: ${etiqueta}`;
+  }
+  actualizarResumen();
+
+  // Toggling visual con feedback
+  nodoMeses.addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-mes]');
+    if (!b) return;
+    b.classList.toggle('active');
+    if (b.classList.contains('active')) {
+      b.style.background = 'var(--accent)'; b.style.color = 'var(--bg-body)';
+    } else {
+      b.style.background = 'transparent';   b.style.color = '#cbd5e1';
     }
+    actualizarResumen();
+  });
+
+  // Acciones rápidas
+  modal.querySelector('#ed-sel-todos').onclick = () => {
+    nodoMeses.querySelectorAll('button[data-mes]').forEach(b => {
+      b.classList.add('active'); b.style.background = 'var(--accent)'; b.style.color = 'var(--bg-body)';
+    });
+    actualizarResumen();
+  };
+  modal.querySelector('#ed-sel-ninguno').onclick = () => {
+    nodoMeses.querySelectorAll('button[data-mes]').forEach(b => {
+      b.classList.remove('active'); b.style.background = 'transparent'; b.style.color = '#cbd5e1';
+    });
+    actualizarResumen();
+  };
+  modal.querySelector('#ed-sel-trimestre').onclick = () => {
+    const now = new Date(); const q = Math.floor(now.getMonth() / 3); // 0..3
+    const setQ = new Set([q*3, q*3+1, q*3+2]);
+    nodoMeses.querySelectorAll('button[data-mes]').forEach(b => {
+      const idx = parseInt(b.dataset.mes, 10);
+      if (setQ.has(idx)) { b.classList.add('active'); b.style.background = 'var(--accent)'; b.style.color = 'var(--bg-body)'; }
+      else { b.classList.remove('active'); b.style.background = 'transparent'; b.style.color = '#cbd5e1'; }
+    });
+    actualizarResumen();
+  };
+
+  // Fin de mes habilita/deshabilita el día
+  selFinMes.addEventListener('change', () => {
+    const fm = selFinMes.value === 'si';
+    inputDia.disabled = fm;
+  });
+
+  // Botones guardar/cancelar
+  modal.querySelector('#ed-cancel').onclick = () => modal.remove();
+
+  modal.querySelector('#ed-save').onclick = () => {
+    const monto = parseInt(inputMon.value, 10);
+    const fm    = (selFinMes.value === 'si');
+    let  dia    = fm ? 28 : parseInt(inputDia.value, 10);
+
+    if (isNaN(monto) || monto < 0) { alert('Importe no válido'); return; }
+    if (!fm && (isNaN(dia) || dia < 1 || dia > 31)) { alert('Día no válido'); return; }
+
+    const meses = Array.from(nodoMeses.querySelectorAll('button[data-mes].active'))
+      .map(b => parseInt(b.dataset.mes, 10))
+      .filter(n => !isNaN(n))
+      .sort((a,b)=>a-b);
+    if (!meses.length) { alert('Selecciona al menos un mes'); return; }
+
+    // Aplicar cambios al fijo
+    fijo.monto    = monto;
+    fijo.finDeMes = fm;
+    fijo.dia      = fm ? 28 : dia;
+    fijo.meses    = meses;
+
+    // Reaplicar desde el año visible y guardar
+    aplicarDesde(tipo, fijo, anioSel, 0);
+    save();
+
+    modal.remove();
+  };
+}
+
 
     function actualizarListaFijos() {
       const contIng = document.getElementById('lista-ingresos');
