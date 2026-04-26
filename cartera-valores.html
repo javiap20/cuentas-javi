@@ -758,7 +758,7 @@ function exportData() {
     const url = URL.createObjectURL(dataBlob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'cartera_backup_' + new Date().toISOString().split('T')[0] + '.json';
+    link.download = 'cartera_backup.json';
     link.click();
     URL.revokeObjectURL(url);
     alert('✅ Datos exportados correctamente');
@@ -1152,11 +1152,43 @@ function loadExchangeRate() {
     }
 }
 
-window.onload = function() {
+async function loadFromGitHub() {
+    const url = 'https://raw.githubusercontent.com/javiap20/cuentas-javi/main/cartera_backup.json';
+    try {
+        const response = await fetch(url + '?nocache=' + Date.now());
+        if (!response.ok) return false;
+        const data = await response.json();
+        const localRaw = localStorage.getItem('portfolioData');
+        if (localRaw) {
+            const local = JSON.parse(localRaw);
+            const localYears = Object.keys(local).length;
+            const remoteYears = Object.keys(data).length;
+            // Solo sobreescribe si el remoto tiene más datos o igual
+            if (remoteYears < localYears) return false;
+        }
+        portfolioData = {};
+        Object.keys(data).forEach(k => {
+            portfolioData[String(k)] = data[k];
+            if (portfolioData[String(k)].positions) {
+                portfolioData[String(k)].positions.forEach(p => {
+                    if (!p.id) p.id = 'pos_' + Date.now() + '_' + Math.random().toString(36).substr(2,5);
+                });
+            }
+        });
+        savePortfolioData();
+        return true;
+    } catch (e) {
+        console.log('No se pudo cargar desde GitHub:', e);
+        return false;
+    }
+}
+
+window.onload = async function() {
     initializeDefaultData();
     loadApiKey();
     loadManualPrices();
     loadExchangeRate();
+    await loadFromGitHub();
     renderYearSelector();
     renderPortfolio();
 };
