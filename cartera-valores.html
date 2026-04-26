@@ -140,9 +140,20 @@
         <div class="last-update" id="lastUpdate">Última actualización: Nunca</div>
         <div class="loading" id="loading"><div class="spinner"></div>Actualizando precios y calculando soportes/resistencias...</div>
         <div class="summary">
-            <div class="summary-card"><h3>Inversión Total</h3><div class="value" id="totalInvested">0,00 €</div><div class="subvalue" id="totalInvestedEUR">&nbsp;</div></div>
-            <div class="summary-card"><h3>Valor Actual</h3><div class="value" id="currentValue">0,00 €</div><div class="subvalue" id="currentValueEUR">&nbsp;</div></div>
-            <div class="summary-card"><h3>Ganancia/Pérdida</h3><div class="value" id="totalPL">0,00 €</div><div class="subvalue" id="totalPLPercent">0,00%</div></div>
+            <div class="summary-card"><h3>Inversión Total</h3><div class="value" id="totalInvested">0,00 €</div><div id="totalInvestedUSD" style="font-size:14px;opacity:0.65;margin-top:6px;">&nbsp;</div></div>
+            <div class="summary-card"><h3>Valor Actual</h3><div class="value" id="currentValue">0,00 €</div><div id="currentValueUSD" style="font-size:14px;opacity:0.65;margin-top:6px;">&nbsp;</div></div>
+            <div class="summary-card" style="display:flex;gap:0;padding:0;overflow:hidden;">
+                <div style="flex:1;padding:25px;border-right:1px solid #475569;">
+                    <h3 style="font-size:12px;opacity:0.9;margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;">G/P sin cripto</h3>
+                    <div class="value" id="totalPLStocks">0,00 €</div>
+                    <div id="totalPLStocksPercent" style="font-size:16px;opacity:0.9;">0,00%</div>
+                </div>
+                <div style="flex:1;padding:25px;">
+                    <h3 style="font-size:12px;opacity:0.9;margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;">G/P Total</h3>
+                    <div class="value" id="totalPL">0,00 €</div>
+                    <div id="totalPLPercent" style="font-size:16px;opacity:0.9;">0,00%</div>
+                </div>
+            </div>
         </div>
         <div id="globalPanel" style="display:none; margin-bottom:20px;"></div>
         <div id="normalTableWrapper" class="table-wrapper">
@@ -568,7 +579,7 @@ function renderPortfolio() {
             + makeBlock('Acumulado', '📈', cumulRows, 'linear-gradient(135deg,#7c3aed,#a855f7)')
             + '</div>';
 
-        updateSummary(totalInvested, totalCurrent);
+        updateSummary(totalInvested, totalCurrent, totalInvested, totalCurrent);
         return;
     }
 
@@ -579,7 +590,7 @@ function renderPortfolio() {
     const yearData = portfolioData[String(currentYear)];
     if (!yearData || !yearData.positions) {
         tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; padding:40px; color:#718096;">No hay posiciones en este año</td></tr>';
-        updateSummary(0, 0);
+        updateSummary(0, 0, 0, 0);
         return;
     }
 
@@ -664,18 +675,32 @@ function renderPortfolio() {
                 + '<td>' + actionCell(item) + '</td></tr>';
         });
     }
-    updateSummary(totalInvested, totalCurrent);
+    updateSummary(totalInvested, totalCurrent, stocksInvestedEUR, stocksCurrentEUR);
 }
 
-function updateSummary(totalInvestedEUR, totalCurrentEUR) {
+function updateSummary(totalInvestedEUR, totalCurrentEUR, stocksInvestedEUR, stocksCurrentEUR) {
+    // Total G/P
     const totalPL = totalCurrentEUR - totalInvestedEUR;
     const totalPLPercent = totalInvestedEUR > 0 ? ((totalPL / totalInvestedEUR) * 100) : 0;
     document.getElementById('totalInvested').textContent = formatEUR(totalInvestedEUR);
     document.getElementById('currentValue').textContent = formatEUR(totalCurrentEUR);
+    // USD equivalents
+    if (usdToEur > 0) {
+        document.getElementById('totalInvestedUSD').textContent = formatUSD(totalInvestedEUR / usdToEur);
+        document.getElementById('currentValueUSD').textContent = formatUSD(totalCurrentEUR / usdToEur);
+    }
+    // Total G/P card (right side)
     document.getElementById('totalPL').textContent = (totalPL >= 0 ? '+' : '') + formatEUR(totalPL);
     document.getElementById('totalPLPercent').textContent = (totalPLPercent >= 0 ? '+' : '') + formatNumber(totalPLPercent, 2) + '%';
-    const plElements = [document.getElementById('totalPL'), document.getElementById('totalPLPercent')];
-    plElements.forEach(el => { el.className = totalPL >= 0 ? 'value positive' : 'value negative'; });
+    document.getElementById('totalPL').className = totalPL >= 0 ? 'value positive' : 'value negative';
+    document.getElementById('totalPLPercent').className = totalPL >= 0 ? 'value positive' : 'value negative';
+    // Stocks-only G/P card (left side)
+    const stocksPL = stocksCurrentEUR - stocksInvestedEUR;
+    const stocksPLPercent = stocksInvestedEUR > 0 ? ((stocksPL / stocksInvestedEUR) * 100) : 0;
+    document.getElementById('totalPLStocks').textContent = (stocksPL >= 0 ? '+' : '') + formatEUR(stocksPL);
+    document.getElementById('totalPLStocksPercent').textContent = (stocksPLPercent >= 0 ? '+' : '') + formatNumber(stocksPLPercent, 2) + '%';
+    document.getElementById('totalPLStocks').className = stocksPL >= 0 ? 'value positive' : 'value negative';
+    document.getElementById('totalPLStocksPercent').className = stocksPL >= 0 ? 'value positive' : 'value negative';
 }
 
 function editPrice(ticker) {
