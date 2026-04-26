@@ -814,7 +814,12 @@ async function getStockPrice(ticker, apiKey) {
         const url = 'https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=' + ticker + '&apikey=' + apiKey;
         const response = await fetch(url);
         const data = await response.json();
-        if (data['Global Quote'] && data['Global Quote']['05. price']) { currentPrices[ticker] = parseFloat(data['Global Quote']['05. price']); }
+        if (data['Global Quote'] && data['Global Quote']['05. price']) {
+            const price = parseFloat(data['Global Quote']['05. price']);
+            currentPrices[ticker] = price;
+            manualPrices[ticker] = price;
+            saveManualPrices();
+        }
     } catch (error) { console.error('Error:', error); }
 }
 
@@ -823,7 +828,12 @@ async function getCryptoPrice(symbol) {
         const url = 'https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd';
         const response = await fetch(url);
         const data = await response.json();
-        if (data.ethereum && data.ethereum.usd) { currentPrices['ETH'] = data.ethereum.usd; }
+        if (data.ethereum && data.ethereum.usd) {
+            const price = data.ethereum.usd;
+            currentPrices['ETH'] = price;
+            manualPrices['ETH'] = price;
+            saveManualPrices();
+        }
     } catch (error) { console.error('Error:', error); }
 }
 
