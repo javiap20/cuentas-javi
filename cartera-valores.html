@@ -26,13 +26,15 @@
         .api-status { margin-top: 10px; padding: 10px; border-radius: 6px; font-size: 14px; display: none; }
         .api-status.success { background: #c6f6d5; color: #22543d; display: block; }
         .api-status.error { background: #fed7d7; color: #742a2a; display: block; }
-        .year-selector { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; flex-wrap: wrap; }
-        .year-tab { padding: 12px 30px; background: #e2e8f0; color: #475569; border: 2px solid #cbd5e0; border-radius: 10px; cursor: pointer; font-weight: bold; transition: all 0.3s; font-size: 16px; }
-        .year-tab:hover { background: #cbd5e0; transform: translateY(-2px); }
+        .year-selector { display: flex; justify-content: center; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+        .year-tab { padding: 5px 14px; background: #e2e8f0; color: #475569; border: 1.5px solid #cbd5e0; border-radius: 7px; cursor: pointer; font-weight: bold; transition: all 0.3s; font-size: 12px; }
+        .year-tab:hover { background: #cbd5e0; transform: translateY(-1px); }
         .year-tab.active { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: white; border-color: #475569; }
-        .year-tab.global { background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); color: white; border-color: #7c3aed; }
-        .year-tab.global:hover { background: linear-gradient(135deg, #6d28d9 0%, #9333ea 100%); }
-        .controls { display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; flex-wrap: wrap; }
+        .year-tab.global { display: none; } /* oculto en fila de años, aparece en controles */
+        .controls { display: flex; justify-content: center; align-items: center; gap: 15px; margin-bottom: 30px; flex-wrap: wrap; }
+        .btn-global { padding: 15px 28px; background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); color: white; border: 2px solid #7c3aed; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(124,58,237,0.3); }
+        .btn-global:hover { background: linear-gradient(135deg, #6d28d9 0%, #9333ea 100%); transform: translateY(-3px); }
+        .btn-global.active { outline: 3px solid #fff; outline-offset: 2px; }
         .btn-update { padding: 15px 40px; background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: white; border: 2px solid #475569; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); }
         .btn-update:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4); background: linear-gradient(135deg, #334155 0%, #475569 100%); }
         .btn-update:disabled { background: #cbd5e0; cursor: not-allowed; transform: none; }
@@ -97,7 +99,10 @@
         .support-value { color: #ef4444; font-weight: bold; font-size: 12px; }
         .resistance-value { color: #22c55e; font-weight: bold; font-size: 12px; }
         .sr-label { font-size: 9px; color: #94a3b8; display: inline; margin-right: 3px; }
-        .editable-price { background: #fff3cd; border: 2px solid #ffc107; border-radius: 5px; padding: 5px 10px; cursor: pointer; transition: all 0.3s; display: inline-block; min-width: 80px; }
+        .global-year-table td { padding: 12px 16px; border-bottom: 1px solid #e2e8f0; text-align: center; font-size: 15px; }
+        .global-year-table td:first-child { text-align: left; }
+        #globalPanel tbody tr:nth-child(even) { background: #f8fafc; }
+        #globalPanel tbody tr:hover { background: #f1f5f9; }
         .editable-price:hover { background: #ffe69c; transform: scale(1.05); }
         .manual-override { font-size: 10px; color: #856404; display: block; margin-top: 3px; }
         @media (max-width: 768px) { .container { padding: 15px; } .header h1 { font-size: 1.8em; } table { font-size: 12px; } th, td { padding: 10px 5px; } .summary { grid-template-columns: 1fr; } }
@@ -128,6 +133,7 @@
         </div>
         <div class="year-selector" id="yearSelector"></div>
         <div class="controls">
+            <button class="btn-global" id="globalBtn" onclick="switchYear('GLOBAL')">🌍 GLOBAL</button>
             <button class="btn-update" onclick="updatePrices()" id="updateBtn">🔄 Actualizar Precios</button>
             <button class="btn-close-year" onclick="closeCurrentYear()" id="closeYearBtn" style="display:none;">📅 Cerrar Año y Pasar al Siguiente</button>
         </div>
@@ -138,7 +144,8 @@
             <div class="summary-card"><h3>Valor Actual</h3><div class="value" id="currentValue">0,00 €</div><div class="subvalue" id="currentValueEUR">&nbsp;</div></div>
             <div class="summary-card"><h3>Ganancia/Pérdida</h3><div class="value" id="totalPL">0,00 €</div><div class="subvalue" id="totalPLPercent">0,00%</div></div>
         </div>
-        <div class="table-wrapper">
+        <div id="globalPanel" style="display:none; margin-bottom:20px;"></div>
+        <div id="normalTableWrapper" class="table-wrapper">
             <table>
                 <thead>
                     <tr><th>Ticker / Empresa</th><th>Cantidad</th><th>Precio Compra</th><th>Precio Actual/Venta</th><th>Inversión (€)</th><th>Valor Actual (€)</th><th>G/P (€)</th><th>G/P (%)</th><th>Soporte</th><th>Resistencia</th><th>Acción</th></tr>
@@ -146,7 +153,14 @@
                 <tbody id="portfolioTable"></tbody>
             </table>
         </div>
-        <div class="exchange-rate" id="exchangeRate">Tipo de cambio: 1 USD = 0,92 EUR</div>
+        <div class="exchange-rate" id="exchangeRate">
+            Tipo de cambio: 1 USD = 
+            <input type="number" id="usdEurInput" step="0.001" min="0.01" value="0.92"
+                style="width:70px;border:1px solid #cbd5e0;border-radius:5px;padding:2px 6px;font-size:14px;color:#2d3748;text-align:center;"
+                onchange="updateExchangeRate(this.value)"
+                onkeypress="if(event.key==='Enter') updateExchangeRate(this.value)">
+            EUR &nbsp;<span style="font-size:12px;color:#a0aec0;">(editable)</span>
+        </div>
     </div>
     <div id="sellModal" class="modal">
         <div class="modal-content">
@@ -405,11 +419,9 @@ function renderYearSelector() {
         tab.onclick = () => switchYear(parseInt(year));
         selector.appendChild(tab);
     });
-    const globalTab = document.createElement('div');
-    globalTab.className = 'year-tab global' + (currentYear === 'GLOBAL' ? ' active' : '');
-    globalTab.textContent = '🌍 GLOBAL';
-    globalTab.onclick = () => switchYear('GLOBAL');
-    selector.appendChild(globalTab);
+    // Highlight global button
+    const globalBtn = document.getElementById('globalBtn');
+    if (globalBtn) globalBtn.className = 'btn-global' + (currentYear === 'GLOBAL' ? ' active' : '');
 }
 
 function switchYear(year) {
@@ -476,20 +488,93 @@ function renderPortfolio() {
     }
 
     if (currentYear === 'GLOBAL') {
-        Object.keys(portfolioData).forEach(year => {
+        document.getElementById('normalTableWrapper').style.display = 'none';
+        const panel = document.getElementById('globalPanel');
+        panel.style.display = 'block';
+
+        const yearStats = [];
+        Object.keys(portfolioData).sort().forEach(year => {
             const yd = portfolioData[String(year)];
             if (yd && yd.positions) {
+                let yInvested = 0, yCurrent = 0;
                 yd.positions.forEach(item => {
                     const { investedEUR, currentValueEUR } = getEURValues(item);
+                    yInvested += investedEUR;
+                    yCurrent += currentValueEUR;
                     totalInvested += investedEUR;
                     totalCurrent += currentValueEUR;
                 });
+                yearStats.push({ year, invested: yInvested, current: yCurrent });
             }
         });
-        tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; padding:40px; color:#718096;">Vista global: Resumen consolidado de todos los años</td></tr>';
+
+        // Pre-calcular acumulado en orden cronológico
+        let cumInvested = 0, cumCurrent = 0;
+        const yearStatsWithCumul = yearStats.map(ys => {
+            cumInvested += ys.invested;
+            cumCurrent += ys.current;
+            return { ...ys, cumInvested, cumCurrent };
+        });
+
+        // Mostrar del más reciente al más antiguo
+        const yearStatsDisplay = [...yearStatsWithCumul].reverse();
+
+        let annualRows = '', cumulRows = '';
+
+        yearStatsDisplay.forEach((ys, i) => {
+            const rowBg = i % 2 === 0 ? '#fff' : '#f8fafc';
+            const rowStyle = 'display:flex;align-items:center;background:' + rowBg + ';border-bottom:1px solid #e2e8f0;';
+
+            // Annual
+            const pl = ys.current - ys.invested;
+            const pct = ys.invested > 0 ? (pl / ys.invested) * 100 : 0;
+            const clr = pl >= 0 ? '#22c55e' : '#ef4444';
+            const sign = pl >= 0 ? '+' : '';
+            annualRows += '<div style="' + rowStyle + '">'
+                + '<div style="flex:0 0 20%;padding:10px 12px;font-weight:700;font-size:13px;text-align:center;">' + ys.year + '</div>'
+                + '<div style="flex:0 0 50%;padding:10px 12px;text-align:center;font-weight:700;font-size:13px;color:' + clr + ';">' + sign + formatEUR(pl) + '</div>'
+                + '<div style="flex:0 0 30%;padding:10px 12px;text-align:center;font-weight:700;font-size:13px;color:' + clr + ';">' + sign + formatNumber(pct, 2) + '%</div>'
+                + '</div>';
+
+            // Cumulative (pre-calculado)
+            const cumPl = ys.cumCurrent - ys.cumInvested;
+            const cumPct = ys.cumInvested > 0 ? (cumPl / ys.cumInvested) * 100 : 0;
+            const cumClr = cumPl >= 0 ? '#22c55e' : '#ef4444';
+            const cumSign = cumPl >= 0 ? '+' : '';
+            cumulRows += '<div style="' + rowStyle + '">'
+                + '<div style="flex:0 0 20%;padding:10px 12px;font-weight:700;font-size:13px;text-align:center;">' + ys.year + '</div>'
+                + '<div style="flex:0 0 50%;padding:10px 12px;text-align:center;font-weight:700;font-size:13px;color:' + cumClr + ';">' + cumSign + formatEUR(cumPl) + '</div>'
+                + '<div style="flex:0 0 30%;padding:10px 12px;text-align:center;font-weight:700;font-size:13px;color:' + cumClr + ';">' + cumSign + formatNumber(cumPct, 2) + '%</div>'
+                + '</div>';
+        });
+
+        const thStyle = 'padding:9px 12px;font-size:10px;letter-spacing:0.8px;font-weight:700;text-transform:uppercase;color:white;white-space:nowrap;';
+        const theadBg = 'background:linear-gradient(135deg,#1e293b,#334155);';
+
+        function makeBlock(title, emoji, rows, accentColor) {
+            return '<div style="flex:0 0 44%;background:white;border-radius:14px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,0.1);border:2px solid #e2e8f0;">'
+                + '<div style="padding:12px 16px;background:' + accentColor + ';color:white;font-weight:700;font-size:14px;">' + emoji + '&nbsp; ' + title + '</div>'
+                + '<div style="display:flex;align-items:center;background:linear-gradient(135deg,#1e293b,#334155);color:white;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;">'
+                + '<div style="flex:0 0 20%;padding:8px 12px;text-align:center;">Año</div>'
+                + '<div style="flex:0 0 50%;padding:8px 12px;text-align:center;">Ganancia / Pérdida</div>'
+                + '<div style="flex:0 0 30%;padding:8px 12px;text-align:center;">%</div>'
+                + '</div>'
+                + rows
+                + '</div>';
+        }
+
+        panel.innerHTML = '<div style="display:flex;gap:30px;justify-content:center;align-items:flex-start;">'
+            + makeBlock('Por año', '📅', annualRows, 'linear-gradient(135deg,#334155,#475569)')
+            + makeBlock('Acumulado', '📈', cumulRows, 'linear-gradient(135deg,#7c3aed,#a855f7)')
+            + '</div>';
+
         updateSummary(totalInvested, totalCurrent);
         return;
     }
+
+    // Normal year view — hide global panel, show table
+    document.getElementById('globalPanel').style.display = 'none';
+    document.getElementById('normalTableWrapper').style.display = 'block';
 
     const yearData = portfolioData[String(currentYear)];
     if (!yearData || !yearData.positions) {
@@ -749,7 +834,8 @@ async function getExchangeRate(apiKey) {
         const data = await response.json();
         if (data['Realtime Currency Exchange Rate']) {
             usdToEur = parseFloat(data['Realtime Currency Exchange Rate']['5. Exchange Rate']);
-            document.getElementById('exchangeRate').textContent = 'Tipo de cambio: 1 USD = ' + formatNumber(usdToEur, 4) + ' EUR';
+            document.getElementById('usdEurInput').value = usdToEur.toFixed(4);
+            localStorage.setItem('usdToEur', usdToEur);
         }
     } catch (error) { console.error('Error:', error); }
 }
@@ -1040,10 +1126,27 @@ function confirmEditPosition() {
     alert('✅ Posición actualizada correctamente');
 }
 
+function updateExchangeRate(val) {
+    const rate = parseFloat(val);
+    if (!rate || rate <= 0) { alert('⚠️ Introduce un tipo de cambio válido'); return; }
+    usdToEur = rate;
+    localStorage.setItem('usdToEur', rate);
+    renderPortfolio();
+}
+
+function loadExchangeRate() {
+    const saved = localStorage.getItem('usdToEur');
+    if (saved) {
+        usdToEur = parseFloat(saved);
+        document.getElementById('usdEurInput').value = parseFloat(saved).toFixed(4);
+    }
+}
+
 window.onload = function() {
     initializeDefaultData();
     loadApiKey();
     loadManualPrices();
+    loadExchangeRate();
     renderYearSelector();
     renderPortfolio();
 };
