@@ -203,14 +203,6 @@
             </div>
         </div>
         <div id="globalPanel" style="display:none; margin-bottom:20px;"></div>
-        <div class="ai-panel" id="aiPanel" style="display:none;">
-            <h2>🤖 Análisis IA de tu Cartera</h2>
-            <div style="margin-bottom:15px;">
-                <button class="btn-ai" id="btnAI" onclick="runAIAnalysis()">✨ Analizar con Claude</button>
-                <span style="font-size:12px;color:#64748b;">El análisis se basa en los datos actuales de tu cartera</span>
-            </div>
-            <div class="ai-response placeholder" id="aiResponse">Pulsa el botón para obtener un análisis de tu cartera con inteligencia artificial.</div>
-        </div>
         <div id="normalTableWrapper" class="table-wrapper">
             <table>
                 <thead>
@@ -226,6 +218,14 @@
                 onchange="updateExchangeRate(this.value)"
                 onkeypress="if(event.key==='Enter') updateExchangeRate(this.value)">
             EUR &nbsp;<span style="font-size:12px;color:#a0aec0;">(editable)</span>
+        </div>
+        <div class="ai-panel" id="aiPanel" style="display:none;margin-top:30px;">
+            <h2>🤖 Análisis IA de tu Cartera</h2>
+            <div style="margin-bottom:15px;">
+                <button class="btn-ai" id="btnAI" onclick="runAIAnalysis()">✨ Analizar con Claude</button>
+                <span style="font-size:12px;color:#64748b;">El análisis se basa en los datos actuales de tu cartera</span>
+            </div>
+            <div class="ai-response placeholder" id="aiResponse">Pulsa el botón para obtener un análisis de tu cartera con inteligencia artificial.</div>
         </div>
     </div>
     <div id="sellModal" class="modal">
