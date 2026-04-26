@@ -105,13 +105,14 @@
         #globalPanel tbody tr:hover { background: #f1f5f9; }
         .editable-price:hover { background: #ffe69c; transform: scale(1.05); }
         .manual-override { font-size: 10px; color: #856404; display: block; margin-top: 3px; }
-        @media (max-width: 768px) { .container { padding: 15px; } .header h1 { font-size: 1.8em; } table { font-size: 12px; } th, td { padding: 10px 5px; } .summary { grid-template-columns: 1fr; } }
+        @media (max-width: 1100px) { .summary { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) { .container { padding: 15px; } .header h1 { font-size: 1.8em; } table { font-size: 12px; } th, td { padding: 10px 5px; } .summary { grid-template-columns: 1fr; } .summary-card .value { font-size: 22px; } }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>📊 Cartera Multi-Año</h1>
+            <h1>📊 Cartera JaviAp</h1>
             <div class="header-buttons">
                 <button class="btn-header" onclick="toggleApiConfig()">⚙️ API</button>
                 <button class="btn-header" onclick="exportData()">💾 Exportar</button>
@@ -440,6 +441,8 @@ function initializeDefaultData() {
 function savePortfolioData() { localStorage.setItem('portfolioData', JSON.stringify(portfolioData)); }
 function loadManualPrices() { const saved = localStorage.getItem('manualPrices'); if (saved) { manualPrices = JSON.parse(saved); Object.keys(manualPrices).forEach(ticker => { currentPrices[ticker] = manualPrices[ticker]; }); } }
 function saveManualPrices() { localStorage.setItem('manualPrices', JSON.stringify(manualPrices)); }
+function formatEUR0(amount) { return Math.round(amount).toLocaleString('es-ES', { useGrouping: true }) + ' €'; }
+function formatUSD0(amount) { return '$' + Math.round(amount).toLocaleString('es-ES', { useGrouping: true }); }
 function formatNumber(num, decimals = 2) { return num.toLocaleString('es-ES', { minimumFractionDigits: decimals, maximumFractionDigits: decimals, useGrouping: true }); }
 function formatUSD(amount) { return '\$' + formatNumber(amount, 2); }
 function formatEUR(amount) { return formatNumber(amount, 2) + ' €'; }
@@ -532,6 +535,7 @@ function renderPortfolio() {
         panel.style.display = 'block';
 
         const yearStats = [];
+        let stocksInvestedTotal = 0, stocksCurrentTotal = 0;
         Object.keys(portfolioData).sort().forEach(year => {
             const yd = portfolioData[String(year)];
             if (yd && yd.positions) {
@@ -542,6 +546,10 @@ function renderPortfolio() {
                     yCurrent += currentValueEUR;
                     totalInvested += investedEUR;
                     totalCurrent += currentValueEUR;
+                    if (item.type === 'stock') {
+                        stocksInvestedTotal += investedEUR;
+                        stocksCurrentTotal += currentValueEUR;
+                    }
                 });
                 yearStats.push({ year, invested: yInvested, current: yCurrent });
             }
@@ -607,7 +615,7 @@ function renderPortfolio() {
             + makeBlock('Acumulado', '📈', cumulRows, 'linear-gradient(135deg,#7c3aed,#a855f7)')
             + '</div>';
 
-        updateSummary(totalInvested, totalCurrent, totalInvested, totalCurrent);
+        updateSummary(totalInvested, totalCurrent, stocksInvestedTotal, stocksCurrentTotal);
         return;
     }
 
@@ -670,9 +678,9 @@ function renderPortfolio() {
         const spl = stocksCurrentEUR - stocksInvestedEUR;
         const splPct = (spl / stocksInvestedEUR) * 100;
         tbody.innerHTML += '<tr class="subtotal-row"><td>SUBTOTAL ACCIONES</td><td></td><td></td><td></td>'
-            + '<td>' + formatEUR(stocksInvestedEUR) + '</td>'
-            + '<td>' + formatEUR(stocksCurrentEUR) + '</td>'
-            + '<td class="' + (spl >= 0 ? 'positive' : 'negative') + '">' + (spl >= 0 ? '+' : '') + formatEUR(spl) + '</td>'
+            + '<td>' + formatEUR0(stocksInvestedEUR) + '</td>'
+            + '<td>' + formatEUR0(stocksCurrentEUR) + '</td>'
+            + '<td class="' + (spl >= 0 ? 'positive' : 'negative') + '">' + (spl >= 0 ? '+' : '') + formatEUR0(spl) + '</td>'
             + '<td class="' + (splPct >= 0 ? 'positive' : 'negative') + '">' + (splPct >= 0 ? '+' : '') + formatNumber(splPct, 2) + '%</td>'
             + '<td></td><td></td><td></td></tr>';
     }
@@ -710,27 +718,27 @@ function updateSummary(totalInvestedEUR, totalCurrentEUR, stocksInvestedEUR, sto
     // Bloque Total (acciones + cripto)
     const totalPL = totalCurrentEUR - totalInvestedEUR;
     const totalPLPercent = totalInvestedEUR > 0 ? ((totalPL / totalInvestedEUR) * 100) : 0;
-    document.getElementById('totalInvested').textContent = formatEUR(totalInvestedEUR);
-    document.getElementById('currentValue').textContent = formatEUR(totalCurrentEUR);
-    document.getElementById('totalPL').textContent = (totalPL >= 0 ? '+' : '') + formatEUR(totalPL);
+    document.getElementById('totalInvested').textContent = formatEUR0(totalInvestedEUR);
+    document.getElementById('currentValue').textContent = formatEUR0(totalCurrentEUR);
+    document.getElementById('totalPL').textContent = (totalPL >= 0 ? '+' : '') + formatEUR0(totalPL);
     document.getElementById('totalPLPercent').textContent = (totalPLPercent >= 0 ? '+' : '') + formatNumber(totalPLPercent, 2) + '%';
     document.getElementById('totalPL').className = totalPL >= 0 ? 'value positive' : 'value negative';
     document.getElementById('totalPLPercent').className = totalPL >= 0 ? 'value positive' : 'value negative';
     // Bloque Solo Acciones
     const stocksPL = stocksCurrentEUR - stocksInvestedEUR;
     const stocksPLPercent = stocksInvestedEUR > 0 ? ((stocksPL / stocksInvestedEUR) * 100) : 0;
-    document.getElementById('stocksInvested').textContent = formatEUR(stocksInvestedEUR);
-    document.getElementById('stocksCurrent').textContent = formatEUR(stocksCurrentEUR);
-    document.getElementById('totalPLStocks').textContent = (stocksPL >= 0 ? '+' : '') + formatEUR(stocksPL);
+    document.getElementById('stocksInvested').textContent = formatEUR0(stocksInvestedEUR);
+    document.getElementById('stocksCurrent').textContent = formatEUR0(stocksCurrentEUR);
+    document.getElementById('totalPLStocks').textContent = (stocksPL >= 0 ? '+' : '') + formatEUR0(stocksPL);
     document.getElementById('totalPLStocksPercent').textContent = (stocksPLPercent >= 0 ? '+' : '') + formatNumber(stocksPLPercent, 2) + '%';
     document.getElementById('totalPLStocks').className = stocksPL >= 0 ? 'value positive' : 'value negative';
     document.getElementById('totalPLStocksPercent').className = stocksPL >= 0 ? 'value positive' : 'value negative';
-    // USD equivalents
+    // USD equivalents (sin decimales)
     if (usdToEur > 0) {
-        document.getElementById('totalInvestedUSD').textContent = formatUSD(totalInvestedEUR / usdToEur);
-        document.getElementById('currentValueUSD').textContent = formatUSD(totalCurrentEUR / usdToEur);
-        document.getElementById('stocksInvestedUSD').textContent = formatUSD(stocksInvestedEUR / usdToEur);
-        document.getElementById('stocksCurrentUSD').textContent = formatUSD(stocksCurrentEUR / usdToEur);
+        document.getElementById('totalInvestedUSD').textContent = formatUSD0(totalInvestedEUR / usdToEur);
+        document.getElementById('currentValueUSD').textContent = formatUSD0(totalCurrentEUR / usdToEur);
+        document.getElementById('stocksInvestedUSD').textContent = formatUSD0(stocksInvestedEUR / usdToEur);
+        document.getElementById('stocksCurrentUSD').textContent = formatUSD0(stocksCurrentEUR / usdToEur);
     }
 }
 
