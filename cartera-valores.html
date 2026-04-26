@@ -105,14 +105,15 @@
         #globalPanel tbody tr:hover { background: #f1f5f9; }
         .editable-price:hover { background: #ffe69c; transform: scale(1.05); }
         .manual-override { font-size: 10px; color: #856404; display: block; margin-top: 3px; }
-        @media (max-width: 1100px) { .summary { grid-template-columns: 1fr; } }
+        @media (min-width: 769px) and (max-width: 1100px) { .summary { grid-template-columns: repeat(2, 1fr); } .summary-card .value { font-size: 20px; } .summary-card h3 { font-size: 11px; } }
+        @media (max-width: 1100px) and (orientation: landscape) and (max-height: 900px) { .summary { grid-template-columns: repeat(2, 1fr); } .summary-card .value { font-size: 18px; } .summary-card h3 { font-size: 10px; } }
         @media (max-width: 768px) { .container { padding: 15px; } .header h1 { font-size: 1.8em; } table { font-size: 12px; } th, td { padding: 10px 5px; } .summary { grid-template-columns: 1fr; } .summary-card .value { font-size: 22px; } }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>📊 Cartera JaviAp</h1>
+            <h1>📊 Cartera Multi-Año</h1>
             <div class="header-buttons">
                 <button class="btn-header" onclick="toggleApiConfig()">⚙️ API</button>
                 <button class="btn-header" onclick="exportData()">💾 Exportar</button>
