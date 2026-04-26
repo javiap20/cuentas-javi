@@ -105,6 +105,14 @@
         #globalPanel tbody tr:hover { background: #f1f5f9; }
         .editable-price:hover { background: #ffe69c; transform: scale(1.05); }
         .manual-override { font-size: 10px; color: #856404; display: block; margin-top: 3px; }
+        .ai-panel { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border: 2px solid #7c3aed; border-radius: 15px; padding: 25px; margin-bottom: 30px; color: white; }
+        .ai-panel h2 { font-size: 18px; margin-bottom: 15px; color: #a78bfa; }
+        .ai-response { background: rgba(255,255,255,0.05); border-radius: 10px; padding: 20px; font-size: 14px; line-height: 1.8; white-space: pre-wrap; min-height: 60px; color: #e2e8f0; }
+        .ai-response.placeholder { color: #64748b; font-style: italic; }
+        .btn-ai { padding: 12px 28px; background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(124,58,237,0.4); margin-right: 10px; }
+        .btn-ai:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(124,58,237,0.5); }
+        .btn-ai:disabled { background: #475569; cursor: not-allowed; transform: none; box-shadow: none; }
+        .ai-spinner { display: inline-block; border: 3px solid rgba(167,139,250,0.3); border-top: 3px solid #a78bfa; border-radius: 50%; width: 18px; height: 18px; animation: spin 1s linear infinite; vertical-align: middle; margin-right: 8px; }
         @media (max-width: 1100px) { .summary { grid-template-columns: 1fr; } }
         @media (max-width: 768px) { .container { padding: 15px; } .header h1 { font-size: 1.8em; } table { font-size: 12px; } th, td { padding: 10px 5px; } .summary { grid-template-columns: 1fr; } .summary-card .value { font-size: 22px; } }
         .ipad-landscape .summary { grid-template-columns: repeat(2, 1fr) !important; }
@@ -130,10 +138,17 @@
             <h3>🔑 Configuración API</h3>
             <div class="api-input-group">
                 <input type="text" id="apiKeyInput" placeholder="Pega aquí tu API Key de Alpha Vantage">
-                <button onclick="saveApiKey()">Guardar API Key</button>
+                <button onclick="saveApiKey()">Guardar Alpha Vantage Key</button>
             </div>
             <div class="api-help">ℹ️ Obtén tu API Key gratuita en: <a href="https://www.alphavantage.co/support/#api-key" target="_blank">Alpha Vantage</a></div>
             <div id="apiStatus" class="api-status"></div>
+            <hr style="border-color:#e2e8f0;margin:15px 0;">
+            <div class="api-input-group">
+                <input type="password" id="anthropicKeyInput" placeholder="Pega aquí tu API Key de Anthropic (Claude IA)">
+                <button onclick="saveAnthropicKey()">Guardar Anthropic Key</button>
+            </div>
+            <div class="api-help">ℹ️ Obtén tu API Key en: <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a></div>
+            <div id="anthropicStatus" class="api-status"></div>
         </div>
         <div class="year-selector" id="yearSelector"></div>
         <div class="controls">
@@ -188,6 +203,14 @@
             </div>
         </div>
         <div id="globalPanel" style="display:none; margin-bottom:20px;"></div>
+        <div class="ai-panel" id="aiPanel" style="display:none;">
+            <h2>🤖 Análisis IA de tu Cartera</h2>
+            <div style="margin-bottom:15px;">
+                <button class="btn-ai" id="btnAI" onclick="runAIAnalysis()">✨ Analizar con Claude</button>
+                <span style="font-size:12px;color:#64748b;">El análisis se basa en los datos actuales de tu cartera</span>
+            </div>
+            <div class="ai-response placeholder" id="aiResponse">Pulsa el botón para obtener un análisis de tu cartera con inteligencia artificial.</div>
+        </div>
         <div id="normalTableWrapper" class="table-wrapper">
             <table>
                 <thead>
@@ -473,6 +496,8 @@ function switchYear(year) {
     currentYear = year;
     renderYearSelector();
     renderPortfolio();
+    const aiPanel = document.getElementById('aiPanel');
+    if (aiPanel) aiPanel.style.display = (year === 'GLOBAL') ? 'none' : 'block';
     const closeYearBtn = document.getElementById('closeYearBtn');
     const updateBtn = document.getElementById('updateBtn');
     if (year === Math.max(...Object.keys(portfolioData).map(y => parseInt(y)))) {
@@ -1285,6 +1310,133 @@ async function loadFromGitHub() {
     }
 }
 
+function saveAnthropicKey() {
+    const key = document.getElementById('anthropicKeyInput').value.trim();
+    const status = document.getElementById('anthropicStatus');
+    if (!key || !key.startsWith('sk-ant-')) {
+        status.className = 'api-status error';
+        status.textContent = '❌ La key debe empezar por sk-ant-';
+        return;
+    }
+    localStorage.setItem('anthropicApiKey', key);
+    status.className = 'api-status success';
+    status.textContent = '✅ Anthropic Key guardada correctamente';
+    document.getElementById('anthropicKeyInput').value = '';
+}
+
+function loadAnthropicKey() {
+    const key = localStorage.getItem('anthropicApiKey');
+    const status = document.getElementById('anthropicStatus');
+    if (key) {
+        status.className = 'api-status success';
+        status.textContent = '✅ Anthropic Key configurada';
+    }
+}
+
+async function runAIAnalysis() {
+    const key = localStorage.getItem('anthropicApiKey');
+    if (!key) {
+        alert('⚠️ Configura primero tu API Key de Anthropic en ⚙️ API');
+        return;
+    }
+    if (currentYear === 'GLOBAL') {
+        alert('⚠️ Selecciona un año concreto para analizar');
+        return;
+    }
+    const yearData = portfolioData[String(currentYear)];
+    if (!yearData || !yearData.positions || yearData.positions.length === 0) {
+        alert('⚠️ No hay posiciones en este año');
+        return;
+    }
+
+    const btn = document.getElementById('btnAI');
+    const responseDiv = document.getElementById('aiResponse');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="ai-spinner"></span>Analizando...';
+    responseDiv.className = 'ai-response placeholder';
+    responseDiv.textContent = 'Claude está analizando tu cartera...';
+
+    // Preparar resumen de cartera para el prompt
+    const positions = yearData.positions.map(p => {
+        const isUSD = p.currency === 'USD';
+        const buyEUR = isUSD ? p.buyPriceEUR : p.buyPrice;
+        const currentEUR = p.sold
+            ? (isUSD ? (p.sellPriceEUR || p.sellPrice) : p.sellPrice)
+            : ((currentPrices[p.ticker] || buyEUR) * (isUSD ? usdToEur : 1));
+        const invested = p.quantity * buyEUR + (p.buyCosts || 0);
+        const current = p.sold ? p.quantity * currentEUR - (p.sellCosts || 0) : p.quantity * currentEUR;
+        const pl = current - invested;
+        const plPct = invested > 0 ? ((pl / invested) * 100).toFixed(2) : 0;
+        return {
+            ticker: p.ticker,
+            nombre: p.name,
+            tipo: p.type,
+            cantidad: p.quantity,
+            estado: p.sold ? 'VENDIDA' : 'ABIERTA',
+            invertidoEUR: invested.toFixed(2),
+            valorActualEUR: current.toFixed(2),
+            gpEUR: pl.toFixed(2),
+            gpPct: plPct + '%'
+        };
+    });
+
+    const stocksOnly = positions.filter(p => p.tipo === 'stock');
+    const crypto = positions.filter(p => p.tipo === 'crypto');
+    const totalInv = positions.reduce((s, p) => s + parseFloat(p.invertidoEUR), 0);
+    const totalCur = positions.reduce((s, p) => s + parseFloat(p.valorActualEUR), 0);
+    const totalPL = totalCur - totalInv;
+
+    const prompt = `Eres un analista financiero experto. Analiza esta cartera de inversión del año ${currentYear} y proporciona un análisis claro, directo y útil en español.
+
+RESUMEN GENERAL:
+- Año: ${currentYear}
+- Inversión total: ${totalInv.toFixed(2)} €
+- Valor actual total: ${totalCur.toFixed(2)} €
+- Ganancia/Pérdida total: ${totalPL.toFixed(2)} € (${((totalPL/totalInv)*100).toFixed(2)}%)
+- Tipo de cambio USD/EUR: ${usdToEur}
+
+POSICIONES EN ACCIONES (${stocksOnly.length}):
+${JSON.stringify(stocksOnly, null, 2)}
+
+POSICIONES EN CRIPTO (${crypto.length}):
+${JSON.stringify(crypto, null, 2)}
+
+Por favor, proporciona:
+1. 📊 Resumen del estado general de la cartera
+2. 🏆 Mejores y peores posiciones (con datos concretos)
+3. ⚠️ Riesgos o concentraciones destacables
+4. 💡 Observaciones y sugerencias constructivas
+5. 📈 Conclusión general
+
+Sé conciso, usa los emojis de cada sección, y da datos numéricos concretos. No uses asteriscos para negritas, usa mayúsculas si quieres enfatizar algo.`;
+
+    try {
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
+            body: JSON.stringify({
+                model: 'claude-sonnet-4-20250514',
+                max_tokens: 1500,
+                messages: [{ role: 'user', content: prompt }]
+            })
+        });
+        const data = await response.json();
+        if (data.content && data.content[0]) {
+            responseDiv.className = 'ai-response';
+            responseDiv.textContent = data.content[0].text;
+        } else if (data.error) {
+            responseDiv.className = 'ai-response';
+            responseDiv.textContent = '❌ Error: ' + data.error.message;
+        }
+    } catch (err) {
+        responseDiv.className = 'ai-response';
+        responseDiv.textContent = '❌ Error de conexión: ' + err.message;
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '✨ Analizar con Claude';
+    }
+}
+
 function applyOrientationClass() {
     const isTablet = window.innerWidth >= 769 && window.innerWidth <= 1366 && 'ontouchstart' in window;
     const isLandscape = window.innerWidth > window.innerHeight;
@@ -1298,12 +1450,15 @@ function applyOrientationClass() {
 window.onload = async function() {
     initializeDefaultData();
     loadApiKey();
+    loadAnthropicKey();
     loadManualPrices();
     loadExchangeRate();
     await loadFromGitHub();
     renderYearSelector();
     renderPortfolio();
     applyOrientationClass();
+    const aiPanel = document.getElementById('aiPanel');
+    if (aiPanel && currentYear !== 'GLOBAL') aiPanel.style.display = 'block';
 };
 
 window.addEventListener('resize', applyOrientationClass);
