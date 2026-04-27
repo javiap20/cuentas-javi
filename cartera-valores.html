@@ -1274,14 +1274,8 @@ async function loadFromGitHub() {
         // Soporte para formato nuevo (con portfolioData) y formato antiguo (directo)
         const remotePortfolio = data.portfolioData || data;
         const remoteManualPrices = data.manualPrices || null;
-        const localRaw = localStorage.getItem('portfolioData');
-        if (localRaw) {
-            const local = JSON.parse(localRaw);
-            const localYears = Object.keys(local).length;
-            const remoteYears = Object.keys(remotePortfolio).length;
-            // Solo sobreescribe si el remoto tiene más datos o igual
-            if (remoteYears < localYears) return false;
-        }
+        // GitHub siempre tiene prioridad si tiene datos válidos
+        if (!remotePortfolio || Object.keys(remotePortfolio).length === 0) return false;
         portfolioData = {};
         Object.keys(remotePortfolio).forEach(k => {
             portfolioData[String(k)] = remotePortfolio[k];
