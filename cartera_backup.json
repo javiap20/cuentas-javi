@@ -862,9 +862,7 @@
       ]
     }
   },
-  "manualPrices": {
-    "BBAI": 3.7
-  },
+  "manualPrices": {},
   "targetPrices": {},
   "stopLossPrices": {},
   "usdToEur": 0.85342247
