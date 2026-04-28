@@ -868,7 +868,9 @@
     "NBIS": 147.16,
     "PLTR": 143.09,
     "SNDK": 989.9,
-    "ETH": 2346.6
+    "ETH": 2299.1
   },
-  "usdToEur": 0.854
+  "targetPrices": {},
+  "stopLossPrices": {},
+  "usdToEur": 0.85363625
 }
