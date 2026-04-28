@@ -858,6 +858,18 @@
           "buyPriceUSD": 2065.1539,
           "buyPriceEUR": 1789.0429,
           "buyCosts": 0
+        },
+        {
+          "id": "pos_1777412447809_zibsz",
+          "ticker": "BTC",
+          "name": "Bitcoin",
+          "quantity": 0.07617167,
+          "type": "crypto",
+          "currency": "USD",
+          "sold": false,
+          "buyPriceUSD": 76373.49,
+          "buyPriceEUR": 65209.6,
+          "buyCosts": 0
         }
       ]
     }
