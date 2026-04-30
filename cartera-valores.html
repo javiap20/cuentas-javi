@@ -261,8 +261,10 @@
         </div>
         <div class="ai-panel" id="aiPanel" style="display:none;margin-top:30px;">
             <h2>🤖 Análisis IA de tu Cartera</h2>
-            <div style="margin-bottom:15px;">
+            <div style="margin-bottom:15px;display:flex;align-items:center;flex-wrap:wrap;gap:10px;">
                 <button class="btn-ai" id="btnAI" onclick="runAIAnalysis()">✨ Analizar con Claude</button>
+                <button class="btn-ai" id="btnPDF" onclick="exportAnalysisPDF()" style="display:none;background:linear-gradient(135deg,#059669,#047857);">📄 Guardar PDF</button>
+                <span id="analysisDateLabel" style="font-size:12px;color:#a78bfa;display:none;"></span>
                 <span style="font-size:12px;color:#64748b;">El análisis se basa en los datos actuales de tu cartera</span>
             </div>
             <div class="ai-response placeholder" id="aiResponse">Pulsa el botón para obtener un análisis de tu cartera con inteligencia artificial.</div>
@@ -656,6 +658,24 @@ function switchYear(year) {
     renderPortfolio();
     const aiPanel = document.getElementById('aiPanel');
     if (aiPanel) aiPanel.style.display = (year === 'GLOBAL') ? 'none' : 'block';
+    // Cargar análisis guardado si existe para este año
+    if (year !== 'GLOBAL') {
+        const yd = portfolioData[String(year)];
+        const responseDiv = document.getElementById('aiResponse');
+        const btnPDF = document.getElementById('btnPDF');
+        const lbl = document.getElementById('analysisDateLabel');
+        if (yd && yd.lastAnalysis && responseDiv) {
+            responseDiv.className = 'ai-response';
+            responseDiv.textContent = yd.lastAnalysis;
+            if (btnPDF) btnPDF.style.display = 'inline-block';
+            if (lbl) { lbl.style.display = 'inline'; lbl.textContent = '💾 Guardado el ' + (yd.lastAnalysisDate || ''); }
+        } else if (responseDiv) {
+            responseDiv.className = 'ai-response placeholder';
+            responseDiv.textContent = 'Pulsa el botón para obtener un análisis de tu cartera con inteligencia artificial.';
+            if (btnPDF) btnPDF.style.display = 'none';
+            if (lbl) lbl.style.display = 'none';
+        }
+    }
     const closeYearBtn = document.getElementById('closeYearBtn');
     const updateBtn = document.getElementById('updateBtn');
     if (year === Math.max(...Object.keys(portfolioData).map(y => parseInt(y)))) {
@@ -1799,8 +1819,20 @@ IMPORTANTE: No uses asteriscos para negritas. Usa MAYÚSCULAS para énfasis. Usa
         });
         const data = await response.json();
         if (data.content && data.content[0]) {
+            const analysisText = data.content[0].text;
+            const analysisDate = new Date().toLocaleString('es-ES');
             responseDiv.className = 'ai-response';
-            responseDiv.textContent = data.content[0].text;
+            responseDiv.textContent = analysisText;
+            // Guardar en portfolioData y persistir en JSON
+            if (!portfolioData[String(currentYear)]) portfolioData[String(currentYear)] = {};
+            portfolioData[String(currentYear)].lastAnalysis = analysisText;
+            portfolioData[String(currentYear)].lastAnalysisDate = analysisDate;
+            saveData();
+            // Mostrar fecha y botón PDF
+            document.getElementById('btnPDF').style.display = 'inline-block';
+            const lbl = document.getElementById('analysisDateLabel');
+            lbl.style.display = 'inline';
+            lbl.textContent = '💾 Guardado el ' + analysisDate;
         } else if (data.error) {
             responseDiv.className = 'ai-response';
             responseDiv.textContent = '❌ Error: ' + data.error.message;
@@ -1812,6 +1844,37 @@ IMPORTANTE: No uses asteriscos para negritas. Usa MAYÚSCULAS para énfasis. Usa
         btn.disabled = false;
         btn.innerHTML = '✨ Analizar con Claude';
     }
+}
+
+function exportAnalysisPDF() {
+    const analysisText = document.getElementById('aiResponse').textContent;
+    if (!analysisText || analysisText.startsWith('Pulsa') || analysisText.startsWith('❌')) return;
+    const yearData = portfolioData[String(currentYear)];
+    const dateStr = yearData && yearData.lastAnalysisDate ? yearData.lastAnalysisDate : new Date().toLocaleString('es-ES');
+    
+    // Crear ventana de impresión con formato limpio
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Análisis Cartera ${currentYear}</title>
+<style>
+  body { font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.7; color: #1e293b; max-width: 800px; margin: 40px auto; padding: 0 20px; }
+  h1 { font-size: 18px; color: #1e293b; border-bottom: 2px solid #7c3aed; padding-bottom: 10px; margin-bottom: 5px; }
+  .meta { font-size: 11px; color: #64748b; margin-bottom: 30px; }
+  pre { white-space: pre-wrap; word-break: break-word; font-family: 'Courier New', monospace; font-size: 13px; }
+  @media print { body { margin: 20px; } button { display: none; } }
+</style>
+</head>
+<body>
+<h1>📊 Análisis de Cartera — ${currentYear}</h1>
+<div class="meta">Generado el ${dateStr}</div>
+<pre>${analysisText.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
+<script>window.onload = function() { window.print(); }<\/script>
+</body>
+</html>`);
+    printWindow.document.close();
 }
 
 let maxPrices = {};
