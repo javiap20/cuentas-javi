@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resumen Global - Todos los Años</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #1e40af 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 8px;
+            font-size: 2.2em;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.4);
+        }
+        .subtitle {
+            text-align: center;
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 30px;
+            font-size: 0.95em;
+        }
+
+        /* ---------- back button ---------- */
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: bold;
+            margin-bottom: 25px;
+            transition: background 0.2s;
+            text-decoration: none;
+        }
+        .btn-back:hover { background: rgba(255,255,255,0.25); }
+
+        /* ---------- section titles ---------- */
+        .section-title {
+            color: white;
+            font-size: 1.4em;
+            font-weight: bold;
+            margin: 30px 0 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* ---------- table card ---------- */
+        .table-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.35);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        thead tr {
+            background: linear-gradient(135deg, #1e3a8a, #2563eb);
+            color: white;
+        }
+        thead th {
+            padding: 14px 20px;
+            text-align: left;
+            font-size: 0.9em;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+        }
+        thead th:not(:first-child) { text-align: right; }
+
+        tbody tr {
+            border-bottom: 1px solid #f1f5f9;
+            transition: background 0.15s;
+        }
+        tbody tr:hover { background: #f8faff; }
+        tbody tr:last-child { border-bottom: none; }
+
+        td {
+            padding: 14px 20px;
+            font-size: 0.95em;
+        }
+        td:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
+
+        .año-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #1e3a8a, #2563eb);
+            color: white;
+            border-radius: 6px;
+            padding: 3px 10px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        .año-badge.sin-datos {
+            background: #9ca3af;
+        }
+
+        .val-positivo { color: #059669; font-weight: 700; }
+        .val-negativo { color: #dc2626; font-weight: 700; }
+        .val-neutro   { color: #374151; font-weight: 600; }
+        .val-dim      { color: #9ca3af; font-size: 0.85em; }
+
+        .diff-pill {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        .diff-pill.pos { background: #dcfce7; color: #15803d; }
+        .diff-pill.neg { background: #fee2e2; color: #b91c1c; }
+        .diff-pill.neu { background: #f1f5f9; color: #475569; }
+
+        /* ---------- totals row ---------- */
+        tfoot tr {
+            background: #f8faff;
+            border-top: 2px solid #e2e8f0;
+        }
+        tfoot td {
+            font-weight: 700;
+            font-size: 0.95em;
+            padding: 16px 20px;
+        }
+        tfoot td:not(:first-child) { text-align: right; }
+
+        /* ---------- summary KPI row ---------- */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+        .kpi-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        .kpi-label {
+            font-size: 0.8em;
+            color: #6b7280;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 6px;
+        }
+        .kpi-value {
+            font-size: 1.8em;
+            font-weight: 800;
+        }
+        .kpi-sub {
+            font-size: 0.8em;
+            color: #9ca3af;
+            margin-top: 4px;
+        }
+
+        /* ---------- no-data ---------- */
+        .no-data {
+            text-align: center;
+            padding: 50px 20px;
+            color: rgba(255,255,255,0.5);
+            font-size: 1.1em;
+        }
+
+        /* ---------- bar chart ---------- */
+        .bar-chart {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.35);
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        .chart-title {
+            font-weight: bold;
+            color: #1e3a8a;
+            margin-bottom: 20px;
+            font-size: 1em;
+        }
+        .bar-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+        .bar-label {
+            width: 50px;
+            text-align: right;
+            font-size: 0.85em;
+            font-weight: 700;
+            color: #374151;
+            flex-shrink: 0;
+        }
+        .bar-track {
+            flex: 1;
+            height: 26px;
+            background: #f1f5f9;
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
+        }
+        .bar-fill {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 0.6s ease;
+            display: flex;
+            align-items: center;
+            padding-left: 8px;
+            font-size: 0.78em;
+            font-weight: 700;
+            color: white;
+            min-width: 4px;
+        }
+        .bar-fill.pos { background: linear-gradient(90deg, #10b981, #059669); }
+        .bar-fill.neg { background: linear-gradient(90deg, #ef4444, #dc2626); }
+        .bar-value {
+            width: 100px;
+            text-align: right;
+            font-size: 0.85em;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .footer-note {
+            text-align: center;
+            color: rgba(255,255,255,0.4);
+            font-size: 0.8em;
+            padding: 20px 0 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <button class="btn-back" onclick="window.history.back()">← Volver al Dashboard</button>
+
+    <h1>🌍 Resumen Global — Todos los Años</h1>
+    <p class="subtitle">Datos leídos directamente de tu dashboard de finanzas personales</p>
+
+    <div id="app">
+        <div class="no-data">⏳ Cargando datos...</div>
+    </div>
+
+    <div class="footer-note" id="footer-note"></div>
+</div>
+
+<script>
+    const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    const ANOS_BUSCAR = [];
+    for (let y = 2024; y <= 2045; y++) ANOS_BUSCAR.push(y);
+
+    function fmt(v) {
+        const abs = Math.abs(Math.round(v));
+        const str = abs.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        return (v < 0 ? '-' : '') + str + '€';
+    }
+
+    // ── Calc helpers (mirrors the main dashboard logic) ──────────────────────
+    function calcBalanceAcumulado(d, ano, hastaMes) {
+        let acumulado = d.saldoInicial || 0;
+        for (let i = 0; i <= hastaMes; i++) {
+            let ingresos = 0, gastos = 0;
+
+            (d.ingresosFijos || []).forEach(item => {
+                if (item.frecuencia === 'mensual') ingresos += item.valor;
+                else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(i)) ingresos += item.valor;
+            });
+            (d.ingresosBonus || []).forEach(item => {
+                if (item.frecuencia === 'mensual') ingresos += item.valor;
+                else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(i)) ingresos += item.valor;
+            });
+            if (d.meses && d.meses[i]) {
+                (d.meses[i].ingresosExtras || []).forEach(item => ingresos += item.valor);
+                (d.meses[i].gastosExtras || []).forEach(item => gastos += item.valor);
+                (d.meses[i].gastosVacacionesExtras || []).forEach(item => gastos += item.valor);
+            }
+            // Extras recurrentes con fecha fin
+            (d.extrasRecurrentes || []).forEach(item => {
+                const inicio = item.anoInicio * 12 + item.mesInicio;
+                const fin    = item.anoFin   * 12 + item.mesFin;
+                const actual = ano * 12 + i;
+                if (actual >= inicio && actual <= fin) {
+                    if (item.tipo === 'ingresos') ingresos += item.valor;
+                    else gastos += item.valor;
+                }
+            });
+            (d.gastosFijos || []).forEach(item => {
+                if (item.frecuencia === 'mensual') gastos += item.valor;
+                else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(i)) gastos += item.valor;
+            });
+            (d.gastosVacaciones || []).forEach(item => {
+                if (item.frecuencia === 'mensual') gastos += item.valor;
+                else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(i)) gastos += item.valor;
+            });
+
+            acumulado += (ingresos - gastos);
+        }
+        return acumulado;
+    }
+
+    // ── Main ─────────────────────────────────────────────────────────────────
+    function main() {
+        const registros = []; // { ano, inicio, fin, diff, tieneData }
+
+        ANOS_BUSCAR.forEach(ano => {
+            const raw = localStorage.getItem('finanzasPersonales_' + ano);
+            if (!raw) return;
+            try {
+                const d = JSON.parse(raw);
+                const inicio = d.saldoInicial || 0;          // 1 enero
+                const fin    = calcBalanceAcumulado(d, ano, 11); // 31 dic
+                registros.push({ ano, inicio, fin, diff: fin - inicio });
+            } catch(e) {}
+        });
+
+        const app = document.getElementById('app');
+
+        if (registros.length === 0) {
+            app.innerHTML = '<div class="no-data">😕 No se encontraron datos guardados.<br>Abre primero el dashboard principal para que se carguen los datos.</div>';
+            return;
+        }
+
+        // ── KPI cards ──────────────────────────────────────────────────────
+        const totalAhorro  = registros.reduce((s, r) => s + r.diff, 0);
+        const mejorAno     = registros.reduce((a, b) => b.diff > a.diff ? b : a);
+        const peorAno      = registros.reduce((a, b) => b.diff < a.diff ? b : a);
+        const saldoFinal   = registros[registros.length - 1].fin;
+        const saldoInicial = registros[0].inicio;
+
+        const kpiData = [
+            { label: 'Saldo inicial registrado', value: fmt(saldoInicial), sub: registros[0].ano + ' · 1 enero', color: '#2563eb' },
+            { label: 'Saldo final registrado',   value: fmt(saldoFinal),   sub: registros[registros.length-1].ano + ' · 31 diciembre', color: saldoFinal >= 0 ? '#059669' : '#dc2626' },
+            { label: 'Ahorro total acumulado',   value: fmt(totalAhorro),  sub: 'todos los años', color: totalAhorro >= 0 ? '#059669' : '#dc2626' },
+            { label: 'Mejor año',  value: fmt(mejorAno.diff),  sub: '📈 ' + mejorAno.ano, color: '#059669' },
+            { label: 'Peor año',   value: fmt(peorAno.diff),   sub: '📉 ' + peorAno.ano,  color: '#dc2626' },
+            { label: 'Años con datos', value: registros.length, sub: 'años registrados', color: '#7c3aed' },
+        ];
+
+        let html = '<div class="kpi-grid">';
+        kpiData.forEach(k => {
+            html += `<div class="kpi-card">
+                <div class="kpi-label">${k.label}</div>
+                <div class="kpi-value" style="color:${k.color}">${k.value}</div>
+                <div class="kpi-sub">${k.sub}</div>
+            </div>`;
+        });
+        html += '</div>';
+
+        // ── Bloque 1: año a año ────────────────────────────────────────────
+        html += '<div class="section-title">📊 Bloque 1 — Datos año a año</div>';
+        html += '<div class="table-card"><table>';
+        html += `<thead><tr>
+            <th>Año</th>
+            <th>1 enero (inicio)</th>
+            <th>31 diciembre (fin)</th>
+            <th>Diferencia del año</th>
+            <th>Tendencia</th>
+        </tr></thead><tbody>`;
+
+        let totalDiff = 0;
+        registros.forEach(r => {
+            totalDiff += r.diff;
+            const diffClass = r.diff >= 0 ? 'val-positivo' : 'val-negativo';
+            const pillClass = r.diff >= 0 ? 'pos' : 'neg';
+            const arrow     = r.diff > 0 ? '↑' : r.diff < 0 ? '↓' : '→';
+            const finClass  = r.fin >= 0 ? 'val-positivo' : 'val-negativo';
+            html += `<tr>
+                <td><span class="año-badge">${r.ano}</span></td>
+                <td class="val-neutro">${fmt(r.inicio)}</td>
+                <td class="${finClass}">${fmt(r.fin)}</td>
+                <td class="${diffClass}">${fmt(r.diff)}</td>
+                <td><span class="diff-pill ${pillClass}">${arrow} ${fmt(Math.abs(r.diff))}</span></td>
+            </tr>`;
+        });
+
+        html += `</tbody><tfoot><tr>
+            <td colspan="3">TOTAL DIFERENCIA ACUMULADA</td>
+            <td class="${totalDiff >= 0 ? 'val-positivo' : 'val-negativo'}">${fmt(totalDiff)}</td>
+            <td></td>
+        </tr></tfoot></table></div>`;
+
+        // ── Bar chart diferencia año a año ─────────────────────────────────
+        const maxAbs = Math.max(...registros.map(r => Math.abs(r.diff)), 1);
+        html += '<div class="bar-chart"><div class="chart-title">📊 Ahorro/pérdida por año</div>';
+        registros.forEach(r => {
+            const pct = Math.min(100, (Math.abs(r.diff) / maxAbs) * 100);
+            const cls = r.diff >= 0 ? 'pos' : 'neg';
+            const vc  = r.diff >= 0 ? 'val-positivo' : 'val-negativo';
+            html += `<div class="bar-row">
+                <div class="bar-label">${r.ano}</div>
+                <div class="bar-track">
+                    <div class="bar-fill ${cls}" style="width:${pct}%"></div>
+                </div>
+                <div class="bar-value ${vc}">${fmt(r.diff)}</div>
+            </div>`;
+        });
+        html += '</div>';
+
+        // ── Bloque 2: acumulados ───────────────────────────────────────────
+        html += '<div class="section-title">📈 Bloque 2 — Saldo acumulado año a año</div>';
+        html += '<div class="table-card"><table>';
+        html += `<thead><tr>
+            <th>Año</th>
+            <th>Saldo al inicio del año</th>
+            <th>Saldo al final del año</th>
+            <th>Ganado ese año</th>
+            <th>Crecimiento</th>
+        </tr></thead><tbody>`;
+
+        registros.forEach((r, idx) => {
+            const anterior = idx > 0 ? registros[idx - 1].fin : r.inicio;
+            const pct = anterior !== 0 ? ((r.fin - anterior) / Math.abs(anterior) * 100) : null;
+            const pctStr = pct !== null ? (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%' : '—';
+            const pillClass = r.diff >= 0 ? 'pos' : 'neg';
+            const finClass  = r.fin >= 0 ? 'val-positivo' : 'val-negativo';
+            const diffClass = r.diff >= 0 ? 'val-positivo' : 'val-negativo';
+            html += `<tr>
+                <td><span class="año-badge">${r.ano}</span></td>
+                <td class="val-neutro">${fmt(r.inicio)}</td>
+                <td class="${finClass}">${fmt(r.fin)}</td>
+                <td class="${diffClass}">${fmt(r.diff)}</td>
+                <td><span class="diff-pill ${pillClass}">${pctStr}</span></td>
+            </tr>`;
+        });
+
+        // Fila de totales
+        const saldoInicialTotal = registros[0].inicio;
+        const saldoFinalTotal   = registros[registros.length - 1].fin;
+        const crecimientoTotal  = saldoInicialTotal !== 0
+            ? ((saldoFinalTotal - saldoInicialTotal) / Math.abs(saldoInicialTotal) * 100).toFixed(1) + '%'
+            : '—';
+
+        html += `</tbody><tfoot><tr>
+            <td>GLOBAL</td>
+            <td class="val-neutro">${fmt(saldoInicialTotal)}</td>
+            <td class="${saldoFinalTotal >= 0 ? 'val-positivo' : 'val-negativo'}">${fmt(saldoFinalTotal)}</td>
+            <td class="${(saldoFinalTotal - saldoInicialTotal) >= 0 ? 'val-positivo' : 'val-negativo'}">${fmt(saldoFinalTotal - saldoInicialTotal)}</td>
+            <td><span class="diff-pill ${(saldoFinalTotal - saldoInicialTotal) >= 0 ? 'pos' : 'neg'}">${crecimientoTotal}</span></td>
+        </tr></tfoot></table></div>`;
+
+        // ── Bar chart saldo acumulado ──────────────────────────────────────
+        const maxSaldo = Math.max(...registros.map(r => Math.abs(r.fin)), 1);
+        html += '<div class="bar-chart"><div class="chart-title">💰 Saldo acumulado al final de cada año</div>';
+        registros.forEach(r => {
+            const pct = Math.min(100, (Math.abs(r.fin) / maxSaldo) * 100);
+            const cls = r.fin >= 0 ? 'pos' : 'neg';
+            const vc  = r.fin >= 0 ? 'val-positivo' : 'val-negativo';
+            html += `<div class="bar-row">
+                <div class="bar-label">${r.ano}</div>
+                <div class="bar-track">
+                    <div class="bar-fill ${cls}" style="width:${pct}%"></div>
+                </div>
+                <div class="bar-value ${vc}">${fmt(r.fin)}</div>
+            </div>`;
+        });
+        html += '</div>';
+
+        app.innerHTML = html;
+
+        document.getElementById('footer-note').textContent =
+            'Datos leídos desde localStorage · ' + registros.length + ' año(s) encontrado(s): ' +
+            registros.map(r => r.ano).join(', ') + ' · Actualizado: ' + new Date().toLocaleString('es-ES');
+    }
+
+    main();
+</script>
+</body>
+</html>
