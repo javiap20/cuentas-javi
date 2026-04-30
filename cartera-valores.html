@@ -159,6 +159,48 @@
     </style>
 </head>
 <body>
+    
+    <!-- Pantalla de acceso -->
+    <div id="passwordScreen" style="position:fixed;z-index:9999;inset:0;background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);display:flex;justify-content:center;align-items:center;">
+        <div style="background:white;border-radius:20px;padding:48px 40px;max-width:400px;width:90%;box-shadow:0 25px 70px rgba(0,0,0,0.5);text-align:center;">
+            <div style="font-size:48px;margin-bottom:16px;">🔐</div>
+            <h2 style="color:#1e293b;font-size:1.6em;margin-bottom:8px;">Cartera JaviAp</h2>
+            <p style="color:#64748b;font-size:14px;margin-bottom:28px;">Introduce la contraseña para acceder</p>
+            <input type="password" id="pwdInput" placeholder="Contraseña"
+                style="width:100%;padding:14px 16px;border:2px solid #e2e8f0;border-radius:10px;font-size:16px;outline:none;text-align:center;margin-bottom:12px;box-sizing:border-box;"
+                onkeydown="if(event.key==='Enter') checkPassword()"
+                oninput="document.getElementById('pwdError').style.display='none'"
+                onfocus="this.style.borderColor='#7c3aed'" onblur="this.style.borderColor='#e2e8f0'">
+            <div id="pwdError" style="display:none;color:#ef4444;font-size:13px;margin-bottom:10px;">❌ Contraseña incorrecta</div>
+            <button onclick="checkPassword()"
+                style="width:100%;padding:14px;background:linear-gradient(135deg,#1e293b,#334155);color:white;border:none;border-radius:10px;font-size:16px;font-weight:bold;cursor:pointer;"
+                onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+                Entrar →
+            </button>
+        </div>
+    </div>
+    <script>
+        async function checkPassword() {
+            const val = document.getElementById('pwdInput').value;
+            const encoder = new TextEncoder();
+            const data = encoder.encode(val);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            if (hashHex === '19f7d9b4c26caf60692c035549825d295a66b3bfc93464f345ba604ea6eaf9d1') {
+                document.getElementById('passwordScreen').style.display = 'none';
+                document.getElementById('pwdInput').value = '';
+            } else {
+                document.getElementById('pwdError').style.display = 'block';
+                document.getElementById('pwdInput').value = '';
+                document.getElementById('pwdInput').focus();
+            }
+        }
+        window.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() { document.getElementById('pwdInput').focus(); }, 100);
+        });
+    </script>
+
     <div class="container">
         <div class="header">
             <h1>📊 Cartera JaviAp</h1>
@@ -261,10 +303,8 @@
         </div>
         <div class="ai-panel" id="aiPanel" style="display:none;margin-top:30px;">
             <h2>🤖 Análisis IA de tu Cartera</h2>
-            <div style="margin-bottom:15px;display:flex;align-items:center;flex-wrap:wrap;gap:10px;">
+            <div style="margin-bottom:15px;">
                 <button class="btn-ai" id="btnAI" onclick="runAIAnalysis()">✨ Analizar con Claude</button>
-                <button class="btn-ai" id="btnPDF" onclick="exportAnalysisPDF()" style="display:none;background:linear-gradient(135deg,#059669,#047857);">📄 Guardar PDF</button>
-                <span id="analysisDateLabel" style="font-size:12px;color:#a78bfa;display:none;"></span>
                 <span style="font-size:12px;color:#64748b;">El análisis se basa en los datos actuales de tu cartera</span>
             </div>
             <div class="ai-response placeholder" id="aiResponse">Pulsa el botón para obtener un análisis de tu cartera con inteligencia artificial.</div>
@@ -658,24 +698,6 @@ function switchYear(year) {
     renderPortfolio();
     const aiPanel = document.getElementById('aiPanel');
     if (aiPanel) aiPanel.style.display = (year === 'GLOBAL') ? 'none' : 'block';
-    // Cargar análisis guardado si existe para este año
-    if (year !== 'GLOBAL') {
-        const yd = portfolioData[String(year)];
-        const responseDiv = document.getElementById('aiResponse');
-        const btnPDF = document.getElementById('btnPDF');
-        const lbl = document.getElementById('analysisDateLabel');
-        if (yd && yd.lastAnalysis && responseDiv) {
-            responseDiv.className = 'ai-response';
-            responseDiv.textContent = yd.lastAnalysis;
-            if (btnPDF) btnPDF.style.display = 'inline-block';
-            if (lbl) { lbl.style.display = 'inline'; lbl.textContent = '💾 Guardado el ' + (yd.lastAnalysisDate || ''); }
-        } else if (responseDiv) {
-            responseDiv.className = 'ai-response placeholder';
-            responseDiv.textContent = 'Pulsa el botón para obtener un análisis de tu cartera con inteligencia artificial.';
-            if (btnPDF) btnPDF.style.display = 'none';
-            if (lbl) lbl.style.display = 'none';
-        }
-    }
     const closeYearBtn = document.getElementById('closeYearBtn');
     const updateBtn = document.getElementById('updateBtn');
     if (year === Math.max(...Object.keys(portfolioData).map(y => parseInt(y)))) {
@@ -1819,20 +1841,8 @@ IMPORTANTE: No uses asteriscos para negritas. Usa MAYÚSCULAS para énfasis. Usa
         });
         const data = await response.json();
         if (data.content && data.content[0]) {
-            const analysisText = data.content[0].text;
-            const analysisDate = new Date().toLocaleString('es-ES');
             responseDiv.className = 'ai-response';
-            responseDiv.textContent = analysisText;
-            // Guardar en portfolioData y persistir en JSON
-            if (!portfolioData[String(currentYear)]) portfolioData[String(currentYear)] = {};
-            portfolioData[String(currentYear)].lastAnalysis = analysisText;
-            portfolioData[String(currentYear)].lastAnalysisDate = analysisDate;
-            saveData();
-            // Mostrar fecha y botón PDF
-            document.getElementById('btnPDF').style.display = 'inline-block';
-            const lbl = document.getElementById('analysisDateLabel');
-            lbl.style.display = 'inline';
-            lbl.textContent = '💾 Guardado el ' + analysisDate;
+            responseDiv.textContent = data.content[0].text;
         } else if (data.error) {
             responseDiv.className = 'ai-response';
             responseDiv.textContent = '❌ Error: ' + data.error.message;
@@ -1844,37 +1854,6 @@ IMPORTANTE: No uses asteriscos para negritas. Usa MAYÚSCULAS para énfasis. Usa
         btn.disabled = false;
         btn.innerHTML = '✨ Analizar con Claude';
     }
-}
-
-function exportAnalysisPDF() {
-    const analysisText = document.getElementById('aiResponse').textContent;
-    if (!analysisText || analysisText.startsWith('Pulsa') || analysisText.startsWith('❌')) return;
-    const yearData = portfolioData[String(currentYear)];
-    const dateStr = yearData && yearData.lastAnalysisDate ? yearData.lastAnalysisDate : new Date().toLocaleString('es-ES');
-    
-    // Crear ventana de impresión con formato limpio
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(`<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<title>Análisis Cartera ${currentYear}</title>
-<style>
-  body { font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.7; color: #1e293b; max-width: 800px; margin: 40px auto; padding: 0 20px; }
-  h1 { font-size: 18px; color: #1e293b; border-bottom: 2px solid #7c3aed; padding-bottom: 10px; margin-bottom: 5px; }
-  .meta { font-size: 11px; color: #64748b; margin-bottom: 30px; }
-  pre { white-space: pre-wrap; word-break: break-word; font-family: 'Courier New', monospace; font-size: 13px; }
-  @media print { body { margin: 20px; } button { display: none; } }
-</style>
-</head>
-<body>
-<h1>📊 Análisis de Cartera — ${currentYear}</h1>
-<div class="meta">Generado el ${dateStr}</div>
-<pre>${analysisText.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
-<script>window.onload = function() { window.print(); }<\/script>
-</body>
-</html>`);
-    printWindow.document.close();
 }
 
 let maxPrices = {};
