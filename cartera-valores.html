@@ -180,6 +180,15 @@
         </div>
     </div>
     <script>
+        const SESSION_KEY = 'cartera_auth_ts';
+        const SESSION_HOURS = 12;
+
+        function isSessionValid() {
+            const ts = localStorage.getItem(SESSION_KEY);
+            if (!ts) return false;
+            return (Date.now() - parseInt(ts)) < SESSION_HOURS * 60 * 60 * 1000;
+        }
+
         async function checkPassword() {
             const val = document.getElementById('pwdInput').value;
             const encoder = new TextEncoder();
@@ -188,6 +197,7 @@
             const hashArray = Array.from(new Uint8Array(hashBuffer));
             const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
             if (hashHex === '19f7d9b4c26caf60692c035549825d295a66b3bfc93464f345ba604ea6eaf9d1') {
+                localStorage.setItem(SESSION_KEY, Date.now().toString());
                 document.getElementById('passwordScreen').style.display = 'none';
                 document.getElementById('pwdInput').value = '';
             } else {
@@ -196,8 +206,13 @@
                 document.getElementById('pwdInput').focus();
             }
         }
+
         window.addEventListener('DOMContentLoaded', function() {
-            setTimeout(function() { document.getElementById('pwdInput').focus(); }, 100);
+            if (isSessionValid()) {
+                document.getElementById('passwordScreen').style.display = 'none';
+            } else {
+                setTimeout(function() { document.getElementById('pwdInput').focus(); }, 100);
+            }
         });
     </script>
 
