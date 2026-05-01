@@ -880,7 +880,7 @@
     "PLTR": 139.11,
     "NBIS": 138.23,
     "SNDK": 1187,
-    "ETH": 2291.86,
+    "ETH": 2292.94,
     "BBAI": 4.14
   },
   "maxPrices": {
@@ -892,5 +892,5 @@
   },
   "targetPrices": {},
   "stopLossPrices": {},
-  "usdToEur": 0.85315491
+  "usdToEur": 0.85387312
 }
