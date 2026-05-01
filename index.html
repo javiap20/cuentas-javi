@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<script>
+  var password = prompt("Introduce el código de acceso:");
+  if (password !== "javiap") { 
+    alert("Código incorrecto");
+    window.location.href = "https://google.com";
+  }
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel de Control · Publicidad</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080b12;
+  --surface: #0e1420;
+  --surface2: #141b28;
+  --border: rgba(255,255,255,0.07);
+  --border-hover: rgba(255,255,255,0.18);
+  --text: #e8eaf2;
+  --text2: #8891ae;
+  --accent-blue: #38bdf8;
+  --accent-amber: #f59e0b;
+  --accent-green: #3dd68c;
+  --glow-blue: rgba(56,189,248,0.15);
+  --glow-amber: rgba(245,158,11,0.15);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Syne', sans-serif;
+  overflow-x: hidden;
+}
+
+/* ── FONDO ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 10% 0%, rgba(56,189,248,0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 90% 100%, rgba(245,158,11,0.06) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Grid sutil */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.page {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60px 24px 80px;
+}
+
+/* ── HEADER ── */
+.header {
+  text-align: center;
+  margin-bottom: 56px;
+  animation: fadeDown 0.6s ease both;
+}
+
+.header-eyebrow {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text2);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.header-eyebrow::before,
+.header-eyebrow::after {
+  content: '';
+  width: 32px;
+  height: 1px;
+  background: var(--border-hover);
+}
+
+.header h1 {
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  background: linear-gradient(135deg, #ffffff 30%, var(--accent-blue) 70%, var(--accent-amber));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 12px;
+}
+
+.header-sub {
+  font-size: 14px;
+  color: var(--text2);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+
+/* ── GRID PRINCIPAL ── */
+.grid {
+  width: 100%;
+  max-width: 960px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+}
+.grid .btn-card {
+  width: 300px;
+  flex: 0 0 300px;
+}
+
+/* ── BOTÓN / CARD ── */
+.btn-card {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  text-decoration: none;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: border-color 0.25s, transform 0.2s, box-shadow 0.25s;
+  animation: fadeUp 0.5s ease both;
+}
+
+.btn-card:nth-child(1) { animation-delay: 0.05s; }
+.btn-card:nth-child(2) { animation-delay: 0.10s; }
+.btn-card:nth-child(3) { animation-delay: 0.15s; }
+.btn-card:nth-child(4) { animation-delay: 0.20s; }
+.btn-card:nth-child(5) { animation-delay: 0.25s; }
+.btn-card:nth-child(6) { animation-delay: 0.30s; }
+.btn-card:nth-child(7) { animation-delay: 0.35s; }
+.btn-card:nth-child(8) { animation-delay: 0.40s; }
+.btn-card:nth-child(9) { animation-delay: 0.45s; }
+
+.btn-card:hover {
+  border-color: var(--border-hover);
+  transform: translateY(-3px);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.4);
+}
+
+/* Franja de color izquierda */
+.btn-card .stripe {
+  width: 3px;
+  flex-shrink: 0;
+  background: var(--c, var(--accent-blue));
+  transition: width 0.2s;
+}
+
+.btn-card:hover .stripe {
+  width: 5px;
+}
+
+/* Glow de fondo al hover */
+.btn-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 80% at 0% 50%, var(--glow, var(--glow-blue)), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+.btn-card:hover::before { opacity: 1; }
+
+/* Contenido */
+.btn-body {
+  flex: 1;
+  padding: 20px 20px 20px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.btn-icon {
+  font-size: 22px;
+  line-height: 1;
+  margin-bottom: 2px;
+}
+
+.btn-title {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+.btn-desc {
+  font-size: 11px;
+  color: var(--text2);
+  font-family: 'DM Mono', monospace;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+/* Flecha */
+.btn-arrow {
+  display: flex;
+  align-items: center;
+  padding: 0 18px 0 8px;
+  color: var(--text2);
+  font-size: 16px;
+  transition: color 0.2s, transform 0.2s;
+}
+
+.btn-card:hover .btn-arrow {
+  color: var(--c, var(--accent-blue));
+  transform: translateX(3px);
+}
+
+/* ── COLORES INDIVIDUALES ── */
+.c-blue  { --c: var(--accent-blue);  --glow: var(--glow-blue); }
+.c-amber { --c: var(--accent-amber); --glow: var(--glow-amber); }
+.c-green { --c: var(--accent-green); --glow: rgba(61,214,140,0.12); }
+.c-rose  { --c: #fb7185;             --glow: rgba(251,113,133,0.12); }
+.c-violet{ --c: #a78bfa;             --glow: rgba(167,139,250,0.12); }
+.c-cyan  { --c: #22d3ee;             --glow: rgba(34,211,238,0.12); }
+.c-orange{ --c: #fb923c;             --glow: rgba(251,146,60,0.12); }
+
+/* ── SECCIÓN LABEL ── */
+.section-label {
+  width: 100%;
+  max-width: 960px;
+  margin-bottom: 16px;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: fadeDown 0.5s ease both;
+}
+
+.section-label:first-of-type { margin-top: 0; }
+
+.section-label span {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text2);
+  white-space: nowrap;
+}
+
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.section-label::before {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ── FOOTER ── */
+.footer {
+  margin-top: 56px;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--text2);
+  letter-spacing: 0.1em;
+  opacity: 0.5;
+  animation: fadeUp 0.6s 0.5s ease both;
+}
+
+/* ── ANIMACIONES ── */
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 640px) {
+  .grid { grid-template-columns: 1fr; }
+  .header h1 { font-size: 2rem; }
+  .page { padding: 40px 16px 60px; }
+  .header { margin-bottom: 36px; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-eyebrow">Cuentas Personales JaviAp</div>
+    <h1>Panel de Control</h1>
+    <p class="header-sub">Selecciona un área de análisis</p>
+  </header>
+
+  <!-- SECCIÓN PRINCIPAL -->
+  <div class="section-label"><span>Cuentas &amp; Cartera Valores</span></div>
+  <div class="grid">
+
+    <a href="cuentas-personales.html" target="_blank" class="btn-card c-blue">
+      <div class="stripe"></div>
+      <div class="btn-body">
+        <div class="btn-icon">💰</div>
+        <div class="btn-title">Cuentas Personales</div>
+        <div class="btn-desc">Anualizadas hasta jubilación</div>
+      </div>
+      <div class="btn-arrow">→</div>
+    </a>
+
+    <a href="cartera-valores.html" target="_blank" class="btn-card c-amber">
+      <div class="stripe"></div>
+      <div class="btn-body">
+        <div class="btn-icon">📈</div>
+        <div class="btn-title">Cartera de Valores</div>
+        <div class="btn-desc">Información y análisis de la inversión</div>
+      </div>
+      <div class="btn-arrow">→</div>
+    </a>
+
+  </div>
+
+  <!-- SECCIÓN OTRAS CUENTAS -->
+  <div class="section-label" style="margin-top:32px;"><span>Otras Cuentas</span></div>
+  <div class="grid">
+
+    <a href="cuentas-mama.html" target="_blank" class="btn-card c-violet">
+      <div class="stripe"></div>
+      <div class="btn-body">
+        <div class="btn-icon">🏠</div>
+        <div class="btn-title">Cuentas Mamá</div>
+        <div class="btn-desc">Información año a año de ingresos y gastos</div>
+      </div>
+      <div class="btn-arrow">→</div>
+    </a>
+
+  </div>
+
+  
+  
+
+  <footer class="footer">PANEL INTERNO · 2026 - 2040</footer>
+
+</div>
+</body>
+</html>
