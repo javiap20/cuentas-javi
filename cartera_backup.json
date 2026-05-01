@@ -876,21 +876,21 @@
   },
   "manualPrices": {},
   "apiPrices": {
-    "PANW": 181.54,
-    "PLTR": 137.97,
-    "NBIS": 141.19,
-    "SNDK": 1064.21,
-    "ETH": 2266.29,
-    "BBAI": 3.82
+    "PANW": 181.08,
+    "PLTR": 139.11,
+    "NBIS": 138.23,
+    "SNDK": 1187,
+    "ETH": 2291.86,
+    "BBAI": 4.14
   },
   "maxPrices": {
     "PANW": 181.54,
-    "PLTR": 137.97,
+    "PLTR": 139.11,
     "NBIS": 141.19,
-    "SNDK": 1064.21,
-    "BBAI": 3.82
+    "SNDK": 1187,
+    "BBAI": 4.14
   },
   "targetPrices": {},
   "stopLossPrices": {},
-  "usdToEur": 0.85538496
+  "usdToEur": 0.85315491
 }
