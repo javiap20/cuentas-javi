@@ -1,0 +1,3059 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Finanzas Personales</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0f172a;
+            min-height: 100vh;
+            padding: 0;
+        }
+
+        .container { max-width: 1400px; margin: 0 auto; padding: 0 24px 32px; }
+
+        /* ── TOP NAVBAR ── */
+        .topbar {
+            background: #1e293b;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            padding: 0 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            margin-bottom: 28px;
+        }
+        .topbar-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+            font-size: 1.3em;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+        .topbar-logo span { color: #818cf8; }
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .tb-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.07);
+            color: rgba(255,255,255,0.85);
+            font-size: 0.82em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .tb-btn:hover { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.3); color: white; }
+        .tb-btn.primary { background: #4f46e5; border-color: #4f46e5; color: white; }
+        .tb-btn.primary:hover { background: #4338ca; }
+        .tb-btn.success { background: #059669; border-color: #059669; color: white; }
+        .tb-btn.success:hover { background: #047857; }
+        .tb-btn.purple { background: #7c3aed; border-color: #7c3aed; color: white; }
+        .tb-btn.purple:hover { background: #6d28d9; }
+
+        /* ── CONTROLS PANEL ── */
+        .controls-panel {
+            background: #1e293b;
+            border-radius: 16px;
+            padding: 20px 28px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255,255,255,0.07);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+        .controls-selects {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .controls-label {
+            color: rgba(255,255,255,0.45);
+            font-size: 0.78em;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        .ctrl-select {
+            padding: 9px 18px;
+            font-size: 1em;
+            font-weight: 600;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 10px;
+            background: rgba(255,255,255,0.07);
+            color: white;
+            cursor: pointer;
+            outline: none;
+            min-width: 140px;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23ffffff80' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 34px;
+        }
+        .ctrl-select:focus { border-color: #4f46e5; }
+        .ctrl-select option { background: #1e293b; color: white; }
+        .controls-actions {
+            display: flex;
+            gap: 12px;
+        }
+        .act-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 18px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.15);
+            background: #1d4ed8;
+            color: white;
+            font-size: 0.85em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .act-btn:hover { background: #1e40af; }
+
+        /* Hide old selector-mes */
+        .selector-mes { display: none !important; }
+        .botones-importar-exportar { display: none !important; }
+        h1 { display: none !important; }
+
+        /* ── CARDS — dark theme ── */
+        
+        .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 24px; }
+        .card { background: #1e293b; border-radius: 16px; padding: 25px; box-shadow: 0 4px 24px rgba(0,0,0,0.4); transition: transform 0.3s ease; border: 1px solid rgba(255,255,255,0.07); position: relative; }
+        .card:hover { transform: translateY(-3px); }
+        .card h2 { margin-bottom: 15px; color: rgba(255,255,255,0.9); border-bottom: 2px solid rgba(255,255,255,0.1); padding-bottom: 10px; font-size: 1.05em; }
+        .card.ingresos h2 { border-bottom-color: #10b981; }
+        .card.gastos h2 { border-bottom-color: #ef4444; }
+        .card.balance h2 { border-bottom-color: #f59e0b; }
+        .amount { font-size: 2.5em; font-weight: bold; margin: 20px 0; text-align: center; }
+        .amount.positive { color: #10b981; }
+        .amount.negative { color: #ef4444; }
+        .amount.neutral { color: #f59e0b; }
+        
+        .balance-detalle {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 0.95em;
+        }
+        .balance-detalle div {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.75);
+        }
+        .balance-detalle div:last-child {
+            border-bottom: none;
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-top: 5px;
+            padding-top: 10px;
+            border-top: 2px solid #f59e0b;
+        }
+        .balance-detalle .positivo { color: #10b981; }
+        .balance-detalle .negativo { color: #ef4444; }
+
+        .desglose-info {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 0.95em;
+        }
+        .desglose-info div {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.75);
+        }
+        .desglose-info div:last-child {
+            border-bottom: none;
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-top: 5px;
+            padding-top: 10px;
+            border-top: 2px solid #818cf8;
+            color: white;
+        }
+
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-top: 20px; }
+        .stat-box { background: rgba(255,255,255,0.06); padding: 15px; border-radius: 10px; text-align: center; border: 1px solid rgba(255,255,255,0.07); }
+        .stat-box .label { font-size: 0.9em; color: rgba(255,255,255,0.5); margin-bottom: 5px; }
+        .stat-box .value { font-size: 1.5em; font-weight: bold; color: #818cf8; }
+
+        .botones-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+        input[type="text"] { width: calc(40% - 5px); padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; margin-right: 5px; }
+        input[type="number"] { padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; }
+        input[type="file"] { display: none; }
+        button { padding: 12px 24px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1em; font-weight: bold; transition: background 0.3s; width: 100%; margin-top: 10px; }
+        button:hover { background: #5568d3; }
+        button.add-btn { width: calc(15% - 5px); margin-top: 0; padding: 10px; }
+        button.edit-btn { background: #f59e0b; margin-top: 5px; }
+        button.edit-btn:hover { background: #d97706; }
+        button.extras-btn { background: #8b5cf6; margin-top: 5px; }
+        button.extras-btn:hover { background: #7c3aed; }
+        button.vacaciones-btn { background: #06b6d4; margin-top: 5px; }
+        button.vacaciones-btn:hover { background: #0891b2; }
+        button.vacaciones-extras-btn { background: #ec4899; margin-top: 5px; }
+        button.vacaciones-extras-btn:hover { background: #db2777; }
+
+        .desglose-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.05); margin-bottom: 8px; border-radius: 8px; border-left: 4px solid #667eea; cursor: pointer; transition: all 0.3s; }
+        .desglose-item:hover { background: rgba(255,255,255,0.09); transform: translateX(5px); }
+        .desglose-item.ingreso { border-left-color: #10b981; }
+        .desglose-item.gasto { border-left-color: #ef4444; }
+        .desglose-item span { font-weight: 500; color: rgba(255,255,255,0.85); }
+        .desglose-item .valor { font-weight: bold; color: #818cf8; }
+        .desglose-item.ingreso .valor { color: #10b981; }
+        .desglose-item.gasto .valor { color: #ef4444; }
+        .desglose-item .info-frecuencia { font-size: 0.85em; color: rgba(255,255,255,0.45); margin-top: 3px; }
+        .delete-btn { background: #ef4444; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 0.9em; margin-left: 10px; }
+        .delete-btn:hover { background: #dc2626; }
+        .edit-item-btn { background: #3b82f6; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 0.9em; margin-left: 5px; }
+        .edit-item-btn:hover { background: #2563eb; }
+
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); }
+        .modal-content { background-color: white; margin: 5% auto; padding: 30px; border-radius: 15px; width: 90%; max-width: 700px; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.5); color: #1f2937; }
+        .modal-content h2 { color: #1e3a8a; }
+        .modal-content label { color: #374151; }
+        .modal-content p { color: #374151; }
+        .modal-content input[type="text"],
+        .modal-content input[type="number"],
+        .modal-content select {
+            background: white;
+            color: #1f2937;
+            border: 2px solid #d1d5db;
+        }
+        .modal-content input[type="text"]::placeholder,
+        .modal-content input[type="number"]::placeholder { color: #9ca3af; }
+        .modal-content .mes-checkbox label { color: #374151; }
+        .modal-content .desglose-item span { color: #374151; }
+        .modal-content .desglose-item .valor { color: #4f46e5; }
+        .modal-content .desglose-item.ingreso .valor { color: #059669; }
+        .modal-content .desglose-item.gasto .valor { color: #dc2626; }
+        .modal-content .desglose-item .info-frecuencia { color: #6b7280; }
+        .modal-content .desglose-item { background: #f8fafc; }
+        .modal-content .desglose-item:hover { background: #f1f5f9; }
+        .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; line-height: 20px; }
+        .close:hover { color: #000; }
+
+        .config-form { margin: 20px 0; }
+        .config-form label { display: block; font-weight: bold; margin-bottom: 8px; color: #333; }
+        .config-form input, .config-form select { width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 1.1em; margin-bottom: 15px; }
+        .config-form .help-text { font-size: 0.9em; color: #6b7280; margin-top: -10px; margin-bottom: 15px; }
+        
+        .add-item-form { display: flex; gap: 5px; margin-top: 15px; flex-wrap: wrap; }
+        .add-item-form input[type="number"] { width: calc(20% - 5px); margin: 0; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; }
+        .add-item-form select { width: calc(25% - 5px); margin: 0; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; background: white; }
+        
+        .meses-selector {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+            margin: 15px 0;
+            padding: 15px;
+            background: #f9fafb;
+            border-radius: 8px;
+        }
+        .mes-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9em;
+        }
+        .mes-checkbox input[type="checkbox"] {
+            cursor: pointer;
+        }
+        
+        .categoria-selector {
+            margin: 15px 0;
+            padding: 15px;
+            background: #fef3c7;
+            border-radius: 8px;
+            border: 2px solid #f59e0b;
+        }
+        .categoria-selector label {
+            font-weight: bold;
+            color: #92400e;
+            margin-right: 10px;
+        }
+        .categoria-selector select {
+            padding: 8px 15px;
+            border: 2px solid #f59e0b;
+            border-radius: 6px;
+            background: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .progress-bar { width: 100%; height: 20px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden; margin-top: 10px; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #10b981, #059669); transition: width 0.3s ease; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.8em; font-weight: bold; }
+
+        .resumen-anual {
+            background: #1e293b;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+            margin-top: 24px;
+            border: 1px solid rgba(255,255,255,0.07);
+        }
+        .resumen-anual h2 {
+            margin-bottom: 20px;
+            color: rgba(255,255,255,0.9);
+            border-bottom: 2px solid #4f46e5;
+            padding-bottom: 10px;
+        }
+        .meses-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .mes-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        .mes-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            background: rgba(255,255,255,0.09);
+        }
+        .mes-card.activo {
+            border-color: #4f46e5;
+            background: rgba(79,70,229,0.15);
+        }
+        .mes-card .mes-nombre {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            color: #818cf8;
+        }
+        .mes-card .mes-dato {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9em;
+            margin: 5px 0;
+            color: rgba(255,255,255,0.65);
+        }
+        .mes-card .mes-balance {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 2px solid rgba(255,255,255,0.1);
+            font-weight: bold;
+        }
+        .mes-card .mes-balance.positivo { color: #10b981; }
+        .mes-card .mes-balance.negativo { color: #ef4444; }
+        .mes-card .mes-acumulado {
+            font-size: 0.85em;
+            color: rgba(255,255,255,0.4);
+            margin-top: 5px;
+        }
+        
+        .categorias-section { margin-top: 24px; }
+        .categorias-container { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; margin-bottom: 24px; }
+        .categoria-grupo { background: #1e293b; border-radius: 16px; padding: 20px; box-shadow: 0 4px 24px rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.07); }
+        .categoria-grupo h2 { margin-bottom: 15px; padding-bottom: 10px; font-size: 1.3em; color: rgba(255,255,255,0.9); }
+        .categoria-grupo.ingresos-cat h2 { color: #10b981; border-bottom: 2px solid #10b981; }
+        .categoria-grupo.gastos-cat h2 { color: #ef4444; border-bottom: 2px solid #ef4444; }
+        .categoria-total { background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .categoria-total .label {
+            font-size: 0.85em;
+            color: #6b7280;
+            margin-bottom: 5px;
+        }
+        
+        .categoria-total .valor {
+            font-size: 1.8em;
+            font-weight: bold;
+        }
+        
+        .categoria-total.ingresos-cat .valor {
+            color: #10b981;
+        }
+        
+        .categoria-total.gastos-cat .valor {
+            color: #ef4444;
+        }
+        
+        .categorias-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px;
+        }
+        
+        .categoria-card {
+            background: #f9fafb;
+            border-radius: 8px;
+            padding: 12px;
+            transition: all 0.3s ease;
+            border-left: 3px solid #667eea;
+        }
+        
+        .categoria-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+        }
+        
+        .categoria-card.ingresos-cat {
+            border-left-color: #10b981;
+        }
+        
+        .categoria-card.gastos-cat {
+            border-left-color: #ef4444;
+        }
+        
+        .categoria-card .cat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .categoria-card .cat-nombre {
+            font-weight: bold;
+            color: #333;
+            font-size: 0.9em;
+        }
+        
+        .categoria-card .cat-icono {
+            font-size: 1.2em;
+        }
+        
+        .categoria-card .cat-valor {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .categoria-card.ingresos-cat .cat-valor {
+            color: #10b981;
+        }
+        
+        .categoria-card.gastos-cat .cat-valor {
+            color: #ef4444;
+        }
+        
+        .categoria-card .cat-acumulado {
+            font-size: 0.85em;
+            color: rgba(255,255,255,0.75);
+            margin-bottom: 8px;
+        }
+        
+        .categoria-card .btn-ver-detalle {
+            width: 100%;
+            padding: 6px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8em;
+            font-weight: bold;
+            transition: background 0.3s;
+            margin-top: 5px;
+        }
+        
+        .categoria-card .btn-ver-detalle:hover {
+            background: #5568d3;
+        }
+        
+        .detalle-categoria-lista {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid #e5e7eb;
+        }
+        
+        .detalle-categoria-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 0.9em;
+            color: #6b7280;
+        }
+        
+        .detalle-categoria-item .nombre {
+            font-weight: 500;
+        }
+        
+        .detalle-categoria-item .valor {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .notificacion {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            z-index: 2000;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .notificacion.exito { background: #10b981; }
+        .notificacion.error { background: #ef4444; }
+
+        /* Mes cerrado */
+        .mes-cerrado-overlay {
+            position: absolute;
+            top: 8px; right: 8px;
+            background: #1e3a8a;
+            color: white;
+            font-size: 0.75em;
+            font-weight: bold;
+            padding: 3px 10px;
+            border-radius: 20px;
+            letter-spacing: 0.04em;
+        }
+        .card { position: relative; }
+        @keyframes slideIn {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @media (max-width: 768px) {
+            .categorias-container {
+                grid-template-columns: 1fr;
+            }
+            .categorias-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+    <!-- TOP BAR -->
+    <nav class="topbar">
+        <div class="topbar-logo">
+            💰 <span>Finanzas</span>Personales
+        </div>
+        <div class="topbar-actions">
+            <button class="tb-btn" onclick="exportarGastosExcel()" style="background:#16a34a;border-color:#16a34a;color:white;">📊 Excel Gastos</button>
+            <button class="tb-btn" onclick="regenerarAnoDesdeAnterior()">🔄 Regenerar año</button>
+            <button class="tb-btn purple" onclick="regenerarTodosLosAnos()">⚡ Regenerar todos</button>
+            <button class="tb-btn success" onclick="exportarDatos()">📥 Exportar</button>
+            <button class="tb-btn primary" onclick="document.getElementById('file-input').click()">📤 Importar</button>
+            <button class="tb-btn" onclick="abrirModalConfig()">⚙️ Config</button>
+            <input type="file" id="file-input" accept=".json" onchange="importarDatos(event)" style="display:none;">
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- CONTROLS PANEL -->
+        <div class="controls-panel">
+            <div class="controls-selects">
+                <span class="controls-label">Año</span>
+                <select id="ano-select" class="ctrl-select" onchange="cambiarAno()">
+                    <option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option>
+                    <option value="2029">2029</option><option value="2030">2030</option><option value="2031">2031</option>
+                    <option value="2032">2032</option><option value="2033">2033</option><option value="2034">2034</option>
+                    <option value="2035">2035</option><option value="2036">2036</option><option value="2037">2037</option>
+                    <option value="2038">2038</option><option value="2039">2039</option><option value="2040">2040</option>
+                </select>
+                <span class="controls-label">Mes</span>
+                <select id="mes-select" class="ctrl-select" onchange="cambiarMes()">
+                    <option value="0">Enero</option><option value="1">Febrero</option><option value="2">Marzo</option>
+                    <option value="3">Abril</option><option value="4">Mayo</option><option value="5">Junio</option>
+                    <option value="6">Julio</option><option value="7">Agosto</option><option value="8">Septiembre</option>
+                    <option value="9">Octubre</option><option value="10">Noviembre</option><option value="11">Diciembre</option>
+                </select>
+            </div>
+            <div id="datos-fuente-info" style="font-size:0.75em; color:rgba(255,255,255,0.38); letter-spacing:0.04em; text-align:center; min-height:1.2em;"></div>
+            <div class="controls-actions">
+                <button class="act-btn" onclick="abrirResumenGlobal()">&#127757; Resumen Global</button>
+                <button class="act-btn" onclick="abrirDesgloseAnual()">&#128203; Desglose Anual</button>
+            </div>
+        </div>
+        
+        <div class="dashboard">
+            <div class="card ingresos">
+                <h2>📈 Ingresos Totales</h2>
+                <div class="desglose-info">
+                    <div>
+                        <span>Fijos mensuales:</span>
+                        <span id="ingresos-fijos-display">0€</span>
+                    </div>
+                    <div>
+                        <span>Extras y Bonus:</span>
+                        <span id="ingresos-bonus-display">0€</span>
+                    </div>
+                    <div>
+                        <span>Extras del mes:</span>
+                        <span id="ingresos-extras-display">0€</span>
+                    </div>
+                    <div>
+                        <span>TOTAL:</span>
+                        <span id="ingresos-total-display">0€</span>
+                    </div>
+                </div>
+                <div class="botones-grid">
+                    <button class="edit-btn" onclick="abrirModalFijos('ingresos')">✏️ Editar Ingresos Fijos</button>
+                    <button class="vacaciones-btn" onclick="abrirModalIngresosBonus()">🎁 Extras y Bonus</button>
+                    <button class="extras-btn" onclick="abrirModalExtras('ingresos')">➕ Extras del Mes</button>
+                </div>
+            </div>
+            
+            <div class="card gastos">
+                <h2>📉 Gastos Totales</h2>
+                <div class="desglose-info">
+                    <div>
+                        <span>Fijos mensuales:</span>
+                        <span id="gastos-fijos-display">0€</span>
+                    </div>
+                    <div>
+                        <span>Vacaciones:</span>
+                        <span id="gastos-vacaciones-display">0€</span>
+                    </div>
+                    <div>
+                        <span>Extras del mes:</span>
+                        <span id="gastos-extras-display">0€</span>
+                    </div>
+                    <div>
+                        <span>TOTAL:</span>
+                        <span id="gastos-total-display">0€</span>
+                    </div>
+                </div>
+                <div class="botones-grid">
+                    <button class="edit-btn" onclick="abrirModalFijos('gastos')">✏️ Editar Gastos Fijos</button>
+                    <button class="extras-btn" onclick="abrirModalExtras('gastos')">➕ Extras del Mes</button>
+                    <button class="vacaciones-btn" onclick="abrirModalVacaciones()">🏖️ Editar Vacaciones</button>
+                    <button class="vacaciones-extras-btn" onclick="abrirModalVacacionesExtras()">🌴 Extras Vacaciones</button>
+                </div>
+            </div>
+            
+            <div class="card balance">
+                <h2 id="balance-titulo">💵 Balance</h2>
+                <div class="amount neutral" id="balance-display">0€</div>
+                <div class="balance-detalle">
+                    <div>
+                        <span>Balance del mes:</span>
+                        <span id="balance-mes" class="positivo">0€</span>
+                    </div>
+                    <div>
+                        <span>Balance acumulado:</span>
+                        <span id="balance-acumulado" class="positivo">0€</span>
+                    </div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill" style="width: 0%">0%</div>
+                </div>
+                <!-- Estado mes: cerrado o botón cerrar -->
+                <div id="mes-cerrado-info" style="display:none; margin-top:12px; background:#eef2ff; border-radius:8px; padding:10px 14px; display:none; align-items:center; justify-content:space-between; gap:8px;">
+                    <span style="font-size:0.85em; color:#1e3a8a; font-weight:600;" id="mes-cerrado-fecha"></span>
+                    <button onclick="reabrirMes()" style="background:#1e3a8a;color:white;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-weight:bold;font-size:0.82em;width:auto;margin:0;">🔓 Reabrir</button>
+                </div>
+                <button id="btn-cerrar-mes" onclick="cerrarMesManual()" style="background:#1e3a8a;margin-top:12px;">🔒 Cerrar mes</button>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>📊 Estadísticas del Mes</h2>
+            <div class="stats">
+                <div class="stat-box">
+                    <div class="label">Tasa de Ahorro</div>
+                    <div class="value" id="tasa-ahorro">0%</div>
+                </div>
+                <div class="stat-box">
+                    <div class="label">Promedio Diario Gastos</div>
+                    <div class="value" id="promedio-diario">0€</div>
+                </div>
+                <div class="stat-box">
+                    <div class="label">Días hasta fin de mes</div>
+                    <div class="value" id="dias-restantes">--</div>
+                </div>
+                <div class="stat-box">
+                    <div class="label">Proyección Ahorro</div>
+                    <div class="value" id="proyeccion">0€</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="resumen-anual">
+            <h2>📅 Resumen Anual - Todos los Meses</h2>
+            <div class="meses-grid" id="meses-grid"></div>
+        </div>
+        
+        <!-- Nueva sección de Categorías - MÁS COMPACTA -->
+        <div class="categorias-section">
+            <div class="categorias-container">
+                <!-- Ingresos por Categoría -->
+                <div class="categoria-grupo ingresos-cat">
+                    <h2>📈 Ingresos por Categoría</h2>
+                    <div class="categoria-total ingresos-cat">
+                        <div class="label">TOTAL INGRESOS</div>
+                        <div class="valor" id="total-ingresos-cat">0€</div>
+                        <div class="cat-acumulado" id="total-ingresos-mes">Mes actual: 0€</div>
+                    </div>
+                    <div class="categorias-grid" id="ingresos-categorias-grid"></div>
+                </div>
+                
+                <!-- Gastos por Categoría -->
+                <div class="categoria-grupo gastos-cat">
+                    <h2>📉 Gastos por Categoría</h2>
+                    <div class="categoria-total gastos-cat">
+                        <div class="label">TOTAL GASTOS</div>
+                        <div class="valor" id="total-gastos-cat">0€</div>
+                        <div class="cat-acumulado" id="total-gastos-mes">Mes actual: 0€</div>
+                    </div>
+                    <div class="categorias-grid" id="gastos-categorias-grid"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Resumen Global -->
+    <div id="modal-resumen-global" class="modal">
+        <div class="modal-content" style="max-width:900px;">
+            <span class="close" onclick="cerrarResumenGlobal()">&times;</span>
+            <h2 style="margin-bottom:20px;color:#1e3a8a;border-bottom:2px solid #4f46e5;padding-bottom:10px;">🌍 Resumen Global — Todos los Años</h2>
+            <div id="resumen-global-contenido"></div>
+            <button onclick="cerrarResumenGlobal()" style="margin-top:20px;">Cerrar</button>
+        </div>
+    </div>
+
+    <!-- Modal Configuración -->
+    <div id="modal-config" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="cerrarModalConfig()">&times;</span>
+            <h2>⚙️ Configuración</h2>
+            <div class="config-form">
+                <label for="saldo-inicial-input">💰 Saldo inicial (Diciembre 2025):</label>
+                <input type="number" id="saldo-inicial-input" placeholder="3052" step="1">
+                <div class="help-text" id="saldo-help-text">Este es el balance con el que empiezas el año 2026</div>
+                <hr style="margin:15px 0;border:none;border-top:1px solid #e5e7eb;">
+                <label>📈 % Incremento ingresos al pasar de año (se aplica al regenerar):</label>
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+                    <input type="number" id="incremento-ingresos-input" placeholder="1" step="0.1" min="0" max="20" style="width:100px;">
+                    <span style="color:#64748b;font-size:0.9em;">% (por defecto 1%)</span>
+                </div>
+                <label>📉 % Incremento gastos al pasar de año (excepto ING):</label>
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+                    <input type="number" id="incremento-gastos-input" placeholder="2" step="0.1" min="0" max="20" style="width:100px;">
+                    <span style="color:#64748b;font-size:0.9em;">% (por defecto 2%)</span>
+                </div>
+                <div class="help-text">Estos % se guardan para este año y se usan al generar el año siguiente</div>
+            </div>
+            <button onclick="guardarConfiguracion()">💾 Guardar Configuración</button>
+        </div>
+    </div>
+    
+    <!-- Modal Desglose -->
+    <div id="modal-desglose" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="cerrarModal()">&times;</span>
+            <h2 id="modal-title">Desglose</h2>
+            
+            <div id="form-container">
+                <div class="add-item-form">
+                    <input type="text" id="concepto-input" placeholder="Concepto">
+                    <input type="number" id="valor-input" placeholder="€" step="1">
+                    <select id="frecuencia-input">
+                        <option value="mensual">Mensual (todos)</option>
+                        <option value="anual">Anual (elegir meses)</option>
+                        <option value="puntual">Puntual (solo este mes)</option>
+                    </select>
+                    <button class="add-btn" onclick="agregarItem()">+</button>
+                </div>
+                
+                <div id="categoria-selector-container" style="display: none;">
+                    <div class="categoria-selector">
+                        <label>📂 Categoría:</label>
+                        <select id="categoria-input">
+                            <option value="fijos">Gastos Fijos</option>
+                            <option value="vacaciones">Vacaciones</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div id="meses-selector-container" style="display: none;">
+                    <p style="margin: 10px 0; font-weight: bold; color: #333;">Selecciona los meses:</p>
+                    <div class="meses-selector" id="meses-selector"></div>
+                </div>
+                
+                <div id="fecha-fin-container" style="display:none; margin-top:10px; padding:12px; background:#f5f3ff; border-radius:8px; border:2px solid #8b5cf6;">
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:bold;color:#5b21b6;">
+                        <input type="checkbox" id="tiene-fecha-fin" onchange="toggleFechaFin()" style="width:18px;height:18px;cursor:pointer;">
+                        📅 ¿Este extra se repite hasta una fecha fin?
+                    </label>
+                    <div id="fecha-fin-inputs" style="display:none;margin-top:10px;gap:10px;flex-wrap:wrap;align-items:center;">
+                        <span style="font-weight:bold;color:#5b21b6;">Finaliza en:</span>
+                        <select id="fin-mes-input" style="padding:8px;border:2px solid #8b5cf6;border-radius:6px;background:white;font-weight:bold;">
+                            <option value="0">Enero</option><option value="1">Febrero</option><option value="2">Marzo</option>
+                            <option value="3">Abril</option><option value="4">Mayo</option><option value="5">Junio</option>
+                            <option value="6">Julio</option><option value="7">Agosto</option><option value="8">Septiembre</option>
+                            <option value="9">Octubre</option><option value="10">Noviembre</option><option value="11">Diciembre</option>
+                        </select>
+                        <select id="fin-ano-input" style="padding:8px;border:2px solid #8b5cf6;border-radius:6px;background:white;font-weight:bold;">
+                            <option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option>
+                            <option value="2029">2029</option><option value="2030">2030</option><option value="2031">2031</option>
+                            <option value="2032">2032</option><option value="2033">2033</option><option value="2034">2034</option>
+                            <option value="2035">2035</option><option value="2036">2036</option><option value="2037">2037</option>
+                            <option value="2038">2038</option><option value="2039">2039</option><option value="2040">2040</option>
+                        </select>
+                        <small style="color:#6b7280;">Aparecerá automáticamente en todos los meses hasta esa fecha.</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="desglose-lista" style="margin-top: 20px;"></div>
+            <button onclick="guardarDesglose()">💾 Guardar y Cerrar</button>
+        </div>
+    </div>
+    
+    <!-- Modal Detalle Categoría -->
+    <div id="modal-detalle-categoria" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="cerrarModalDetalle()">&times;</span>
+            <h2 id="detalle-categoria-title">Detalle Categoría</h2>
+            <div id="detalle-categoria-contenido"></div>
+            <button onclick="cerrarModalDetalle()">Cerrar</button>
+        </div>
+    </div>
+    
+    <script>
+        const MESES_NOMBRES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        const MESES_CORTOS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+        
+        // Definición de categorías
+        const CATEGORIAS_INGRESOS = {
+            'nomina': { nombre: 'Nómina', icono: '💼', conceptos: ['Nómina', 'nomina'] },
+            'extras': { nombre: 'Extras', icono: '💰', conceptos: ['Extra', 'extra'] },
+            'bonus': { nombre: 'Bonus', icono: '🎁', conceptos: ['Bonus', 'bonus'] },
+            'ingresos_extras': { nombre: 'Otros Ingresos', icono: '📥', conceptos: [] }
+        };
+        
+        const CATEGORIAS_GASTOS = {
+    'alquiler': { nombre: 'Alquiler', icono: '🏠', conceptos: ['Casa Madrid', 'Casa Majadahonda', 'Alquiler', 'alquiler'] },
+    'parking': { nombre: 'Parking', icono: '🅿️', conceptos: ['Parking', 'parking'] },
+    'coche': { nombre: 'Coche', icono: '🚗', conceptos: ['Gasolina', 'gasolina', 'Seguro Coche', 'Revisión Coche', 'Numerito Coche', 'ITV', 'itv', 'Taller', 'taller'] },
+    'suministros': { nombre: 'Suministros', icono: '⚡', conceptos: ['Agua', 'agua', 'Luz', 'luz', 'Gas', 'gas'] },
+    'gastos_casa': { nombre: 'Gastos Casa', icono: '🏡', conceptos: ['Móvil', 'movil', 'Limpieza', 'limpieza', 'Seguro Madrid', 'Pelo', 'pelo'] },
+    'comida': { nombre: 'Comida', icono: '🍽️', conceptos: ['Comida', 'comida'] },
+    'salir': { nombre: 'Salir', icono: '🎉', conceptos: ['Salir', 'salir', 'Restaurante', 'restaurante', 'Cena', 'cena'] },
+    'vacaciones': { nombre: 'Vacaciones', icono: '✈️', conceptos: ['Sky', 'SemSanta', 'Semana Santa', 'Verano', 'Fin de Año'] },
+    'ocio': { nombre: 'Ocio', icono: '🎮', conceptos: ['Lotería', 'loteria', 'Tele', 'tele', 'YouTube', 'youtube', 'Spotify', 'spotify', 'Cloud', 'cloud'] },
+    'deporte': { nombre: 'Deporte', icono: '⚽', conceptos: ['Gym', 'gym', 'Pádel', 'padel', 'Deporte', 'deporte'] },
+    'niños': { nombre: 'Niños', icono: '👶', conceptos: ['Regalo Navidad', 'Cumple Niños', 'Regalo', 'regalo', 'Niños', 'niños'] },
+    'ing': { nombre: 'ING', icono: '💰', conceptos: ['ING'] },
+    'gastos_extras': { nombre: 'Gastos Extras', icono: '📦', conceptos: [] }
+};
+
+        
+        let datos = {
+            saldoInicial: 3052,
+            ingresosFijos: [],
+            ingresosBonus: [],
+            gastosFijos: [],
+            gastosVacaciones: [],
+            meses: [],
+            incrementos: { ingresos: 1, gastos: 2 },
+            extrasRecurrentes: [],  // { concepto, valor, tipo:'ingresos'|'gastos', anoInicio, mesInicio, anoFin, mesFin }
+            mesesCerrados: {}       // { "0": { cerradoEn, snapshot:{...totales}, balanceAcumulado }, ... }
+        };
+        
+        for (let i = 0; i < 12; i++) {
+            datos.meses.push({
+                ingresosExtras: [],
+                gastosExtras: [],
+                gastosVacacionesExtras: []
+            });
+        }
+        
+        let mesActual = 0;
+        let tipoActual = '';
+        let modalTipo = '';
+        let itemEditandoIndex = -1;
+        let itemEditandoRecurrente = false;
+        
+        function formatearMoneda(valor) {
+            const entero = Math.round(valor);
+            return entero.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") + "€";
+        }
+        
+        function mostrarNotificacion(mensaje, tipo) {
+            const notif = document.createElement('div');
+            notif.className = 'notificacion ' + tipo;
+            notif.textContent = mensaje;
+            document.body.appendChild(notif);
+            setTimeout(() => notif.remove(), 3000);
+        }
+        
+        function clasificarConcepto(concepto, esIngreso) {
+            const categorias = esIngreso ? CATEGORIAS_INGRESOS : CATEGORIAS_GASTOS;
+            
+            for (const [key, categoria] of Object.entries(categorias)) {
+                for (const conceptoBuscado of categoria.conceptos) {
+                    if (concepto.toLowerCase().includes(conceptoBuscado.toLowerCase())) {
+                        return key;
+                    }
+                }
+            }
+            
+            return esIngreso ? 'ingresos_extras' : 'gastos_extras';
+        }
+        
+        function calcularCategorias(numMes) {
+            const ingresosCateg = {};
+            const gastosCateg = {};
+            
+            for (const key in CATEGORIAS_INGRESOS) {
+                ingresosCateg[key] = { total: 0, items: [] };
+            }
+            for (const key in CATEGORIAS_GASTOS) {
+                gastosCateg[key] = { total: 0, items: [] };
+            }
+            
+            datos.ingresosFijos.forEach(item => {
+                let aplicar = false;
+                if (item.frecuencia === 'mensual') {
+                    aplicar = true;
+                } else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) {
+                    aplicar = true;
+                }
+                
+                if (aplicar) {
+                    const cat = clasificarConcepto(item.concepto, true);
+                    if (cat && ingresosCateg[cat]) {
+                        ingresosCateg[cat].total += item.valor;
+                        ingresosCateg[cat].items.push({ concepto: item.concepto, valor: item.valor });
+                    }
+                }
+            });
+            
+            (datos.ingresosBonus || []).forEach(item => {
+                let aplicar = false;
+                if (item.frecuencia === 'mensual') {
+                    aplicar = true;
+                } else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) {
+                    aplicar = true;
+                }
+                if (aplicar) {
+                    const cat = clasificarConcepto(item.concepto, true);
+                    if (cat && ingresosCateg[cat]) {
+                        ingresosCateg[cat].total += item.valor;
+                        ingresosCateg[cat].items.push({ concepto: item.concepto, valor: item.valor });
+                    }
+                }
+            });
+
+            datos.meses[numMes].ingresosExtras.forEach(item => {
+                const cat = clasificarConcepto(item.concepto, true);
+                if (cat && ingresosCateg[cat]) {
+                    ingresosCateg[cat].total += item.valor;
+                    ingresosCateg[cat].items.push({ concepto: item.concepto, valor: item.valor });
+                }
+            });
+            
+            datos.gastosFijos.forEach(item => {
+                let aplicar = false;
+                if (item.frecuencia === 'mensual') {
+                    aplicar = true;
+                } else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) {
+                    aplicar = true;
+                }
+                
+                if (aplicar) {
+                    const cat = clasificarConcepto(item.concepto, false);
+                    if (cat && gastosCateg[cat]) {
+                        gastosCateg[cat].total += item.valor;
+                        gastosCateg[cat].items.push({ concepto: item.concepto, valor: item.valor });
+                    }
+                }
+            });
+            
+            datos.gastosVacaciones.forEach(item => {
+                let aplicar = false;
+                if (item.frecuencia === 'mensual') {
+                    aplicar = true;
+                } else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) {
+                    aplicar = true;
+                }
+                
+                if (aplicar) {
+                    gastosCateg['vacaciones'].total += item.valor;
+                    gastosCateg['vacaciones'].items.push({ concepto: item.concepto, valor: item.valor });
+                }
+            });
+            
+            datos.meses[numMes].gastosExtras.forEach(item => {
+                const cat = clasificarConcepto(item.concepto, false);
+                if (cat && gastosCateg[cat]) {
+                    gastosCateg[cat].total += item.valor;
+                    gastosCateg[cat].items.push({ concepto: item.concepto, valor: item.valor });
+                }
+            });
+            
+            datos.meses[numMes].gastosVacacionesExtras.forEach(item => {
+                gastosCateg['vacaciones'].total += item.valor;
+                gastosCateg['vacaciones'].items.push({ concepto: item.concepto, valor: item.valor });
+            });
+
+            // Extras recurrentes (con fecha fin)
+            (datos.extrasRecurrentes || []).forEach(item => {
+                if (!extraRecurrenteAplicaEnMes(item, anoActual, numMes)) return;
+                if (item.tipo === 'ingresos') {
+                    const cat = clasificarConcepto(item.concepto, true);
+                    ingresosCateg[cat].total += item.valor;
+                    ingresosCateg[cat].items.push({ concepto: item.concepto, valor: item.valor });
+                } else {
+                    const cat = clasificarConcepto(item.concepto, false);
+                    gastosCateg[cat].total += item.valor;
+                    gastosCateg[cat].items.push({ concepto: item.concepto, valor: item.valor });
+                }
+            });
+            
+            return { ingresos: ingresosCateg, gastos: gastosCateg };
+        }
+        
+        function actualizarCategorias() {
+            const categorias = calcularCategorias(mesActual);
+            
+            // Calcular acumulados desde enero hasta el mes actual
+            const acumuladosIngresos = {};
+            const acumuladosGastos = {};
+            
+            for (const key in CATEGORIAS_INGRESOS) {
+                acumuladosIngresos[key] = 0;
+            }
+            for (const key in CATEGORIAS_GASTOS) {
+                acumuladosGastos[key] = 0;
+            }
+            
+            for (let i = 0; i <= mesActual; i++) {
+                const catMes = calcularCategorias(i);
+                
+                for (const key in catMes.ingresos) {
+                    acumuladosIngresos[key] += catMes.ingresos[key].total;
+                }
+                for (const key in catMes.gastos) {
+                    acumuladosGastos[key] += catMes.gastos[key].total;
+                }
+            }
+            
+            // Actualizar ingresos
+            const ingresosGrid = document.getElementById('ingresos-categorias-grid');
+            ingresosGrid.innerHTML = '';
+            
+            let totalIngresosMes = 0;
+            let totalIngresosAcumulado = 0;
+            
+            for (const [key, catData] of Object.entries(categorias.ingresos)) {
+                if (catData.total > 0 || acumuladosIngresos[key] > 0) {
+                    totalIngresosMes += catData.total;
+                    totalIngresosAcumulado += acumuladosIngresos[key];
+                    const catInfo = CATEGORIAS_INGRESOS[key];
+                    
+                    const card = document.createElement('div');
+                    card.className = 'categoria-card ingresos-cat';
+                    
+                    const header = document.createElement('div');
+                    header.className = 'cat-header';
+                    
+                    const nombre = document.createElement('div');
+                    nombre.className = 'cat-nombre';
+                    nombre.textContent = catInfo.nombre;
+                    
+                    const icono = document.createElement('div');
+                    icono.className = 'cat-icono';
+                    icono.textContent = catInfo.icono;
+                    
+                    header.appendChild(nombre);
+                    header.appendChild(icono);
+                    
+                    const valor = document.createElement('div');
+                    valor.className = 'cat-valor';
+                    valor.textContent = formatearMoneda(acumuladosIngresos[key]);
+                    
+                    const mesActualValor = document.createElement('div');
+                    mesActualValor.className = 'cat-acumulado';
+                    mesActualValor.textContent = 'Mes actual: ' + formatearMoneda(catData.total);
+                    
+                    const btn = document.createElement('button');
+                    btn.className = 'btn-ver-detalle';
+                    btn.textContent = 'Ver detalle';
+                    btn.onclick = function() { verDetalleCategoria(key, true); };
+                    
+                    card.appendChild(header);
+                    card.appendChild(valor);
+                    card.appendChild(mesActualValor);
+                    card.appendChild(btn);
+                    
+                    ingresosGrid.appendChild(card);
+                }
+            }
+            
+            document.getElementById('total-ingresos-cat').textContent = formatearMoneda(totalIngresosAcumulado);
+            document.getElementById('total-ingresos-mes').textContent = 'Mes actual: ' + formatearMoneda(totalIngresosMes);
+            
+            // Actualizar gastos
+            const gastosGrid = document.getElementById('gastos-categorias-grid');
+            gastosGrid.innerHTML = '';
+            
+            let totalGastosMes = 0;
+            let totalGastosAcumulado = 0;
+            
+            for (const [key, catData] of Object.entries(categorias.gastos)) {
+                if (catData.total > 0 || acumuladosGastos[key] > 0) {
+                    totalGastosMes += catData.total;
+                    totalGastosAcumulado += acumuladosGastos[key];
+                    const catInfo = CATEGORIAS_GASTOS[key];
+                    
+                    const card = document.createElement('div');
+                    card.className = 'categoria-card gastos-cat';
+                    
+                    const header = document.createElement('div');
+                    header.className = 'cat-header';
+                    
+                    const nombre = document.createElement('div');
+                    nombre.className = 'cat-nombre';
+                    nombre.textContent = catInfo.nombre;
+                    
+                    const icono = document.createElement('div');
+                    icono.className = 'cat-icono';
+                    icono.textContent = catInfo.icono;
+                    
+                    header.appendChild(nombre);
+                    header.appendChild(icono);
+                    
+                    const valor = document.createElement('div');
+                    valor.className = 'cat-valor';
+                    valor.textContent = formatearMoneda(acumuladosGastos[key]);
+                    
+                    const mesActualValor = document.createElement('div');
+                    mesActualValor.className = 'cat-acumulado';
+                    mesActualValor.textContent = 'Mes actual: ' + formatearMoneda(catData.total);
+                    
+                    const btn = document.createElement('button');
+                    btn.className = 'btn-ver-detalle';
+                    btn.textContent = 'Ver detalle';
+                    btn.onclick = function() { verDetalleCategoria(key, false); };
+                    
+                    card.appendChild(header);
+                    card.appendChild(valor);
+                    card.appendChild(mesActualValor);
+                    card.appendChild(btn);
+                    
+                    gastosGrid.appendChild(card);
+                }
+            }
+            
+            document.getElementById('total-gastos-cat').textContent = formatearMoneda(totalGastosAcumulado);
+            document.getElementById('total-gastos-mes').textContent = 'Mes actual: ' + formatearMoneda(totalGastosMes);
+        }
+        
+        function verDetalleCategoria(key, esIngreso) {
+    const catInfo = esIngreso ? CATEGORIAS_INGRESOS[key] : CATEGORIAS_GASTOS[key];
+    
+    // Calcular acumulado de todos los meses hasta el actual
+    const itemsAcumulados = {};
+    
+    for (let i = 0; i <= mesActual; i++) {
+        const categorias = calcularCategorias(i);
+        const catData = esIngreso ? categorias.ingresos[key] : categorias.gastos[key];
+        
+        catData.items.forEach(item => {
+            if (itemsAcumulados[item.concepto]) {
+                itemsAcumulados[item.concepto] += item.valor;
+            } else {
+                itemsAcumulados[item.concepto] = item.valor;
+            }
+        });
+    }
+    
+    document.getElementById('detalle-categoria-title').textContent = catInfo.icono + ' ' + catInfo.nombre + ' - Acumulado hasta ' + MESES_NOMBRES[mesActual];
+    
+    const contenido = document.getElementById('detalle-categoria-contenido');
+    contenido.innerHTML = '';
+    
+    const lista = document.createElement('div');
+    lista.className = 'detalle-categoria-lista';
+    
+    let totalAcumulado = 0;
+    
+    // Ordenar por valor descendente
+    const itemsOrdenados = Object.entries(itemsAcumulados).sort((a, b) => b[1] - a[1]);
+    
+    itemsOrdenados.forEach(([concepto, valor]) => {
+        totalAcumulado += valor;
+        
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'detalle-categoria-item';
+        
+        const nombreSpan = document.createElement('span');
+        nombreSpan.className = 'nombre';
+        nombreSpan.textContent = concepto;
+        
+        const valorSpan = document.createElement('span');
+        valorSpan.className = 'valor';
+        valorSpan.textContent = formatearMoneda(valor);
+        
+        itemDiv.appendChild(nombreSpan);
+        itemDiv.appendChild(valorSpan);
+        lista.appendChild(itemDiv);
+    });
+    
+    const totalDiv = document.createElement('div');
+    totalDiv.style.cssText = 'margin-top:15px;padding:15px;background:#f3f4f6;border-radius:8px;font-weight:bold;font-size:1.2em;text-align:center;';
+    
+    const totalSpan = document.createElement('span');
+    totalSpan.style.color = esIngreso ? '#10b981' : '#ef4444';
+    totalSpan.textContent = 'Total Acumulado: ' + formatearMoneda(totalAcumulado);
+    
+    totalDiv.appendChild(totalSpan);
+    
+    contenido.appendChild(lista);
+    contenido.appendChild(totalDiv);
+    
+    document.getElementById('modal-detalle-categoria').style.display = 'block';
+}
+
+        
+        function cerrarModalDetalle() {
+            document.getElementById('modal-detalle-categoria').style.display = 'none';
+        }
+        
+        function abrirModalConfig() {
+            document.getElementById('saldo-inicial-input').value = datos.saldoInicial;
+            const inc = datos.incrementos || { ingresos: 1, gastos: 2 };
+            document.getElementById('incremento-ingresos-input').value = inc.ingresos;
+            document.getElementById('incremento-gastos-input').value = inc.gastos;
+            document.getElementById('modal-config').style.display = 'block';
+        }
+        
+        function cerrarModalConfig() {
+            document.getElementById('modal-config').style.display = 'none';
+        }
+        
+        function guardarConfiguracion() {
+            const saldoInicial = parseFloat(document.getElementById('saldo-inicial-input').value) || 0;
+            datos.saldoInicial = saldoInicial;
+            const pIngresos = parseFloat(document.getElementById('incremento-ingresos-input').value);
+            const pGastos = parseFloat(document.getElementById('incremento-gastos-input').value);
+            datos.incrementos = {
+                ingresos: isNaN(pIngresos) ? 1 : pIngresos,
+                gastos: isNaN(pGastos) ? 2 : pGastos
+            };
+            guardarDatos();
+            actualizarTodo();
+            actualizarResumenAnual();
+            cerrarModalConfig();
+            mostrarNotificacion('✅ Configuración guardada', 'exito');
+        }
+        
+        function abrirResumenGlobal() {
+            construirResumenGlobal();
+            document.getElementById('modal-resumen-global').style.display = 'block';
+        }
+
+        function cerrarResumenGlobal() {
+            document.getElementById('modal-resumen-global').style.display = 'none';
+        }
+
+        function construirResumenGlobal() {
+            // Recopilar todos los años con datos
+            const anos = [];
+            for (let y = 2024; y <= 2040; y++) {
+                const raw = localStorage.getItem('finanzasPersonales_' + y);
+                if (raw) anos.push({ ano: y, datos: JSON.parse(raw) });
+            }
+
+            const contenido = document.getElementById('resumen-global-contenido');
+            if (anos.length === 0) {
+                contenido.innerHTML = '<p style="text-align:center;color:#6b7280;padding:40px;">No hay datos guardados en ningún año.</p>';
+                return;
+            }
+
+            let totalIngresos = 0, totalGastos = 0;
+            let filas = '';
+            // saldoEncadenado: el saldo 31 Dic calculado del año anterior se propaga como saldo 1 Ene del siguiente
+            let saldoEncadenado = null;
+
+            anos.forEach(({ ano, datos: d }) => {
+                // El saldo 1 Ene es el 31 Dic calculado del año anterior; para el primer año usamos su saldoInicial guardado
+                const saldoInicio = saldoEncadenado !== null ? saldoEncadenado : (d.saldoInicial || 0);
+
+                // Calcular ingresos y gastos del año mes a mes
+                let ingAno = 0, gasAno = 0;
+                for (let m = 0; m < 12; m++) {
+                    let ing = 0, gas = 0;
+                    const cerrado = d.mesesCerrados && d.mesesCerrados[m];
+                    if (cerrado && cerrado.snapshot) {
+                        ing = cerrado.snapshot.ingresosTotal || 0;
+                        gas = cerrado.snapshot.gastosTotal || 0;
+                    } else {
+                        d.ingresosFijos.forEach(item => {
+                            if (item.frecuencia === 'mensual') ing += item.valor;
+                            else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(m)) ing += item.valor;
+                        });
+                        (d.ingresosBonus || []).forEach(item => {
+                            if (item.frecuencia === 'mensual') ing += item.valor;
+                            else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(m)) ing += item.valor;
+                        });
+                        d.meses[m].ingresosExtras.forEach(item => ing += item.valor);
+                        d.gastosFijos.forEach(item => {
+                            if (item.frecuencia === 'mensual') gas += item.valor;
+                            else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(m)) gas += item.valor;
+                        });
+                        (d.gastosVacaciones || []).forEach(item => {
+                            if (item.frecuencia === 'mensual') gas += item.valor;
+                            else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(m)) gas += item.valor;
+                        });
+                        d.meses[m].gastosExtras.forEach(item => gas += item.valor);
+                        (d.meses[m].gastosVacacionesExtras || []).forEach(item => gas += item.valor);
+                        (d.extrasRecurrentes || []).forEach(item => {
+                            const inicio = item.anoInicio * 12 + item.mesInicio;
+                            const fin = item.anoFin * 12 + item.mesFin;
+                            const actual = ano * 12 + m;
+                            if (actual >= inicio && actual <= fin) {
+                                if (item.tipo === 'ingresos') ing += item.valor;
+                                else gas += item.valor;
+                            }
+                        });
+                    }
+                    ingAno += ing;
+                    gasAno += gas;
+                }
+
+                // Saldo 31 Dic = Saldo 1 Ene + ingresos - gastos del año
+                const saldoFinal = saldoInicio + ingAno - gasAno;
+                // Propagar al año siguiente
+                saldoEncadenado = saldoFinal;
+
+                // Diferencia del año = saldo final 31 dic - saldo inicial 1 ene
+                const diferencia = saldoFinal - saldoInicio;
+                totalIngresos += ingAno;
+                totalGastos += gasAno;
+
+                const difBg    = '#f1f5f9';
+                const difColor = diferencia >= 0 ? '#059669' : '#dc2626';
+                const siColor  = saldoInicio >= 0 ? '#059669' : '#dc2626';
+                const sfColor  = saldoFinal >= 0 ? '#059669' : '#dc2626';
+                filas += `<tr style="border-bottom:1px solid #e5e7eb;">
+                    <td style="padding:10px 14px;font-weight:800;color:#1e3a8a;font-size:1.08em;text-align:center;">${ano}</td>
+                    <td style="padding:10px 14px;text-align:center;font-weight:700;color:${siColor};font-size:0.97em;">${formatearMoneda(saldoInicio)}</td>
+                    <td style="padding:10px 14px;text-align:center;"><span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#dcfce7;color:#15803d;font-weight:700;font-size:0.95em;">${formatearMoneda(ingAno)}</span></td>
+                    <td style="padding:10px 14px;text-align:center;"><span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#fee2e2;color:#b91c1c;font-weight:700;font-size:0.95em;">${formatearMoneda(gasAno)}</span></td>
+                    <td style="padding:10px 14px;text-align:center;"><span style="display:inline-block;padding:4px 14px;border-radius:20px;background:${difBg};color:${difColor};font-weight:800;font-size:0.95em;">${diferencia >= 0 ? '+' : ''}${formatearMoneda(diferencia)}</span></td>
+                    <td style="padding:10px 14px;text-align:center;font-weight:800;color:${sfColor};font-size:0.97em;">${formatearMoneda(saldoFinal)}</td>
+                </tr>`;
+            });
+
+            const saldoPrimerAno = anos.length > 0 ? (anos[0].datos.saldoInicial || 0) : 0;
+            const saldoUltimoAno = saldoEncadenado !== null ? saldoEncadenado : 0;
+            const balTotal = saldoUltimoAno - saldoPrimerAno;
+            contenido.innerHTML = `
+                <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:20px;justify-content:center;">
+                    <div style="background:#dcfce7;border-radius:10px;padding:14px 22px;text-align:center;min-width:130px;">
+                        <div style="font-size:0.78em;font-weight:700;color:#065f46;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">💰 Ingresos totales</div>
+                        <div style="font-size:1.4em;font-weight:800;color:#059669;">${formatearMoneda(totalIngresos)}</div>
+                    </div>
+                    <div style="background:#fee2e2;border-radius:10px;padding:14px 22px;text-align:center;min-width:130px;">
+                        <div style="font-size:0.78em;font-weight:700;color:#991b1b;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">💸 Gastos totales</div>
+                        <div style="font-size:1.4em;font-weight:800;color:#dc2626;">${formatearMoneda(totalGastos)}</div>
+                    </div>
+                    <div style="background:#f1f5f9;border-radius:10px;padding:14px 22px;text-align:center;min-width:130px;">
+                        <div style="font-size:0.78em;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">📊 Balance global</div>
+                        <div style="font-size:1.4em;font-weight:800;color:${balTotal>=0?'#059669':'#dc2626'};">${balTotal>=0?'+':''}${formatearMoneda(balTotal)}</div>
+                    </div>
+                </div>
+                <div style="overflow-x:auto;">
+                <table style="width:100%;border-collapse:collapse;font-size:0.92em;">
+                    <thead>
+                        <tr style="background:#1e3a8a;">
+                            <th style="padding:10px 14px;color:white;text-align:center;font-weight:700;">Año</th>
+                            <th style="padding:10px 14px;color:white;text-align:center;font-weight:700;">Saldo 1 Ene</th>
+                            <th style="padding:10px 14px;color:white;text-align:center;font-weight:700;">Ingresos</th>
+                            <th style="padding:10px 14px;color:white;text-align:center;font-weight:700;">Gastos</th>
+                            <th style="padding:10px 14px;color:white;text-align:center;font-weight:700;background:#1e40af;">Diferencia año</th>
+                            <th style="padding:10px 14px;color:white;text-align:center;font-weight:700;">Saldo 31 Dic</th>
+                        </tr>
+                    </thead>
+                    <tbody>${filas}</tbody>
+                </table>
+                </div>
+                <p style="margin-top:12px;font-size:0.8em;color:#6b7280;text-align:center;">
+                    💡 <strong>Diferencia año</strong> = Saldo 31 Dic − Saldo 1 Ene &nbsp;|&nbsp; <strong>Saldo 1 Ene</strong> = Saldo 31 Dic del año anterior
+                </p>`;
+        }
+
+        function exportarDatos() {
+            const exportPayload = Object.assign({}, datos, {
+                _exportadoEn: new Date().toISOString()
+            });
+            const datosJSON = JSON.stringify(exportPayload, null, 2);
+            const blob = new Blob([datosJSON], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'finanzas-datos.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            mostrarNotificacion('✅ Datos exportados correctamente', 'exito');
+        }
+        
+        function importarDatos(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const datosImportados = JSON.parse(e.target.result);
+                    
+                    if (!datosImportados.ingresosFijos || !datosImportados.gastosFijos || !datosImportados.meses) {
+                        throw new Error('Formato de archivo inválido');
+                    }
+                    
+                    if (!datosImportados.gastosVacaciones) {
+                        datosImportados.gastosVacaciones = [];
+                    }
+                    if (!datosImportados.ingresosBonus) {
+                        datosImportados.ingresosBonus = [];
+                    }
+                    
+                    if (!datosImportados.saldoInicial) {
+                        datosImportados.saldoInicial = 3052;
+                    }
+                    
+                    datosImportados.meses.forEach(mes => {
+                        if (!mes.gastosVacacionesExtras) {
+                            mes.gastosVacacionesExtras = [];
+                        }
+                    });
+                    
+                    if (!datosImportados.extrasRecurrentes) datosImportados.extrasRecurrentes = [];
+                    if (!datosImportados.mesesCerrados) datosImportados.mesesCerrados = [];
+                    
+                    datos = datosImportados;
+                    guardarDatos();
+                    actualizarTodo();
+                    actualizarResumenAnual();
+                    actualizarCategorias();
+                    mostrarNotificacion('✅ Datos importados correctamente', 'exito');
+                } catch (error) {
+                    mostrarNotificacion('❌ Error al importar: ' + error.message, 'error');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+        
+        function normalizarDatos(d) {
+            if (!d.gastosVacaciones) d.gastosVacaciones = [];
+            if (d.ingresosBonus === undefined || d.ingresosBonus === null) d.ingresosBonus = [];
+            if (!d.incrementos) d.incrementos = { ingresos: 1, gastos: 2 };
+            if (!d.saldoInicial) d.saldoInicial = 3052;
+            if (!d.extrasRecurrentes) d.extrasRecurrentes = [];
+            if (!d.mesesCerrados) d.mesesCerrados = {};
+            d.meses.forEach(mes => { if (!mes.gastosVacacionesExtras) mes.gastosVacacionesExtras = []; });
+        }
+
+        function mostrarFuenteDatos(fuente, fechaISO) {
+            const el = document.getElementById('datos-fuente-info');
+            if (!el) return;
+            let texto = '';
+            if (fuente === 'servidor') {
+                const fecha = fechaISO ? new Date(fechaISO) : null;
+                const fechaStr = fecha ? fecha.toLocaleDateString('es-ES', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '—';
+                texto = '&#9729; Datos del servidor · Exportados el ' + fechaStr;
+                el.style.color = 'rgba(255,255,255,0.38)';
+            } else {
+                texto = '&#128274; Datos locales · Sin conexión al servidor';
+                el.style.color = '#f59e0b';
+            }
+            el.innerHTML = texto;
+        }
+
+        async function cargarDatos() {
+            // Migración datos antiguos
+            const datosViejos = localStorage.getItem('finanzasPersonales2');
+            const datosNuevos = localStorage.getItem('finanzasPersonales_2026');
+            if (datosViejos && !datosNuevos) {
+                localStorage.setItem('finanzasPersonales_2026', datosViejos);
+                mostrarNotificacion('✅ Datos migrados a sistema multi-año', 'exito');
+            }
+
+            anoActual = 2026;
+            document.getElementById('ano-select').value = 2026;
+
+            const hoy = new Date();
+            mesActual = hoy.getMonth();
+            document.getElementById('mes-select').value = mesActual;
+
+            // Intentar cargar desde el servidor primero
+            let cargadoDesdeServidor = false;
+            try {
+                const resp = await fetch('finanzas-datos.json?_=' + Date.now());
+                if (resp.ok) {
+                    const datosServidor = await resp.json();
+                    normalizarDatos(datosServidor);
+                    // Distribuir en localStorage por año
+                    datos = datosServidor;
+                    guardarDatos();
+                    mostrarFuenteDatos('servidor', datosServidor._exportadoEn || null);
+                    cargadoDesdeServidor = true;
+                }
+            } catch(e) { /* sin servidor, continuar con local */ }
+
+            if (!cargadoDesdeServidor) {
+                const datosGuardados = localStorage.getItem('finanzasPersonales_2026');
+                if (datosGuardados) {
+                    datos = JSON.parse(datosGuardados);
+                    normalizarDatos(datos);
+                }
+                mostrarFuenteDatos('local', null);
+            }
+
+            actualizarTodo();
+            actualizarResumenAnual();
+            actualizarCategorias();
+            cerrarMesesPasadosAutomaticamente();
+        }
+        
+        let anoActual = 2026;
+
+        function guardarDatos() {
+            localStorage.setItem('finanzasPersonales_' + anoActual, JSON.stringify(datos));
+        }
+
+        function crearDatosVaciosAno() {
+            const d = {
+                saldoInicial: 0,
+                ingresosFijos: [],
+                ingresosBonus: [],
+                gastosFijos: [],
+                gastosVacaciones: [],
+                meses: [],
+                incrementos: { ingresos: 1, gastos: 2 }
+            };
+            for (let i = 0; i < 12; i++) {
+                d.meses.push({ ingresosExtras: [], gastosExtras: [], gastosVacacionesExtras: [] });
+            }
+            return d;
+        }
+
+        function calcularBalanceAcumuladoDeDatos(d, hastaMes) {
+            let acumulado = d.saldoInicial;
+            for (let i = 0; i <= hastaMes; i++) {
+                let ingresos = 0, gastos = 0;
+                d.ingresosFijos.forEach(item => {
+                    if (item.frecuencia === 'mensual') ingresos += item.valor;
+                    else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(i)) ingresos += item.valor;
+                });
+                (d.ingresosBonus || []).forEach(item => {
+                    if (item.frecuencia === 'mensual') ingresos += item.valor;
+                    else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(i)) ingresos += item.valor;
+                });
+                d.meses[i].ingresosExtras.forEach(item => ingresos += item.valor);
+                // Extras recurrentes con fecha fin
+                (d.extrasRecurrentes || []).forEach(item => {
+                    // For year-specific calculation, use the current anoActual context
+                    const inicio = item.anoInicio * 12 + item.mesInicio;
+                    const fin = item.anoFin * 12 + item.mesFin;
+                    const actual = anoActual * 12 + i;
+                    if (actual >= inicio && actual <= fin) {
+                        if (item.tipo === 'ingresos') ingresos += item.valor;
+                        else gastos += item.valor; 
+                    }
+                });
+                d.gastosFijos.forEach(item => {
+                    if (item.frecuencia === 'mensual') gastos += item.valor;
+                    else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(i)) gastos += item.valor;
+                });
+                (d.gastosVacaciones || []).forEach(item => {
+                    if (item.frecuencia === 'mensual') gastos += item.valor;
+                    else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(i)) gastos += item.valor;
+                });
+                d.meses[i].gastosExtras.forEach(item => gastos += item.valor);
+                (d.meses[i].gastosVacacionesExtras || []).forEach(item => gastos += item.valor);
+                acumulado += (ingresos - gastos);
+            }
+            return acumulado;
+        }
+
+        function generarDatosAnoSiguiente(datosBase) {
+            // Calcular saldo final de diciembre del año base ANTES de modificar nada
+            const saldoFinalAnoBase = Math.round(calcularBalanceAcumuladoDeDatos(datosBase, 11));
+
+            const nuevo = JSON.parse(JSON.stringify(datosBase)); // deep copy
+
+            const pctIngresos = 1 + ((datosBase.incrementos ? datosBase.incrementos.ingresos : 1) / 100);
+            const pctGastos   = 1 + ((datosBase.incrementos ? datosBase.incrementos.gastos   : 2) / 100);
+
+            // Ingresos fijos
+            nuevo.ingresosFijos = nuevo.ingresosFijos.map(item => ({
+                ...item,
+                valor: Math.round(item.valor * pctIngresos * 100) / 100
+            }));
+
+            // Extras y Bonus ingresos
+            nuevo.ingresosBonus = (nuevo.ingresosBonus || []).map(item => ({
+                ...item,
+                valor: Math.round(item.valor * pctIngresos * 100) / 100
+            }));
+
+            // Gastos fijos: excepto ING
+            nuevo.gastosFijos = nuevo.gastosFijos.map(item => {
+                if (item.concepto && item.concepto.toUpperCase().includes('ING')) {
+                    return item;
+                }
+                return { ...item, valor: Math.round(item.valor * pctGastos * 100) / 100 };
+            });
+
+            // Gastos vacaciones
+            nuevo.gastosVacaciones = nuevo.gastosVacaciones.map(item => ({
+                ...item,
+                valor: Math.round(item.valor * pctGastos * 100) / 100
+            }));
+
+            // Extras del mes: NO se pasan al año siguiente (son puntuales)
+            nuevo.meses = nuevo.meses.map(() => ({
+                ingresosExtras: [],
+                gastosExtras: [],
+                gastosVacacionesExtras: []
+            }));
+
+            // El saldo inicial del nuevo año = saldo acumulado al final del año anterior
+            nuevo.saldoInicial = saldoFinalAnoBase;
+
+            return nuevo;
+        }
+
+        function regenerarAnoDesdeAnterior() {
+            const anoAnterior = anoActual - 1;
+            const guardadoAnterior = localStorage.getItem('finanzasPersonales_' + anoAnterior);
+            if (!guardadoAnterior) {
+                mostrarNotificacion('❌ No hay datos de ' + anoAnterior + ' para regenerar', 'error');
+                return;
+            }
+            if (!confirm('¿Regenerar ' + anoActual + ' desde ' + anoAnterior + '?\n\nSe perderán los datos actuales de ' + anoActual + '.')) return;
+            const datosAnterior = JSON.parse(guardadoAnterior);
+            datos = generarDatosAnoSiguiente(datosAnterior);
+            guardarDatos();
+            actualizarTodo();
+            actualizarResumenAnual();
+            actualizarCategorias();
+            mostrarNotificacion('✅ ' + anoActual + ' regenerado desde ' + anoAnterior, 'exito');
+        }
+
+        function regenerarTodosLosAnos() {
+            // Encontrar el primer año con datos
+            const ANOS = [];
+            for (let y = 2024; y <= 2040; y++) {
+                if (localStorage.getItem('finanzasPersonales_' + y)) ANOS.push(y);
+            }
+            if (ANOS.length < 2) {
+                mostrarNotificacion('❌ Necesitas al menos 2 años con datos para regenerar en cadena', 'error');
+                return;
+            }
+
+            const primerAno = ANOS[0];
+            const ultimoAno = ANOS[ANOS.length - 1];
+
+            if (!confirm(
+                '🔄 REGENERACIÓN EN CADENA\n\n' +
+                'Se regenerarán todos los años desde ' + (primerAno + 1) + ' hasta ' + ultimoAno + '\n' +
+                'usando como base siempre el año anterior con sus % de incremento.\n\n' +
+                '⚠️ Los extras puntuales de cada mes se perderán.\n' +
+                'Los extras recurrentes (con fecha fin) se conservan.\n\n' +
+                '¿Continuar?'
+            )) return;
+
+            // Guardar año actual antes de tocar nada
+            guardarDatos();
+
+            let regenerados = [];
+            for (let i = 1; i < ANOS.length; i++) {
+                const anoBase = ANOS[i - 1];
+                const anoTarget = ANOS[i];
+                const rawBase = localStorage.getItem('finanzasPersonales_' + anoBase);
+                if (!rawBase) continue;
+                const datosBase = JSON.parse(rawBase);
+
+                // Temporalmente ajustamos anoActual para que calcularBalanceAcumuladoDeDatos
+                // use el año correcto en los extras recurrentes
+                const anoGuardado = anoActual;
+                anoActual = anoBase;
+                const nuevoDatos = generarDatosAnoSiguiente(datosBase);
+                anoActual = anoGuardado;
+
+                // Conservar extrasRecurrentes del año destino si ya los tiene
+                const rawTarget = localStorage.getItem('finanzasPersonales_' + anoTarget);
+                if (rawTarget) {
+                    const datosTarget = JSON.parse(rawTarget);
+                    if (datosTarget.extrasRecurrentes && datosTarget.extrasRecurrentes.length > 0) {
+                        nuevoDatos.extrasRecurrentes = datosTarget.extrasRecurrentes;
+                    }
+                }
+
+                localStorage.setItem('finanzasPersonales_' + anoTarget, JSON.stringify(nuevoDatos));
+                regenerados.push(anoTarget);
+            }
+
+            // Recargar el año que estaba activo
+            const rawActual = localStorage.getItem('finanzasPersonales_' + anoActual);
+            if (rawActual) {
+                datos = JSON.parse(rawActual);
+                if (!datos.extrasRecurrentes) datos.extrasRecurrentes = [];
+            }
+
+            actualizarTodo();
+            actualizarResumenAnual();
+            actualizarCategorias();
+            mostrarNotificacion('✅ Regenerados: ' + regenerados.join(', '), 'exito');
+        }
+
+        function cambiarAno() {
+            // Guardar año actual antes de cambiar
+            guardarDatos();
+
+            const nuevoAno = parseInt(document.getElementById('ano-select').value);
+
+            // Cargar datos del nuevo año si existen
+            const guardado = localStorage.getItem('finanzasPersonales_' + nuevoAno);
+            if (guardado) {
+                anoActual = nuevoAno;
+                datos = JSON.parse(guardado);
+                if (!datos.gastosVacaciones) datos.gastosVacaciones = [];
+                if (datos.ingresosBonus === undefined || datos.ingresosBonus === null) datos.ingresosBonus = [];
+                if (!datos.incrementos) datos.incrementos = { ingresos: 1, gastos: 2 };
+                if (!datos.saldoInicial) datos.saldoInicial = 0;
+                datos.meses.forEach(mes => {
+                    if (!mes.gastosVacacionesExtras) mes.gastosVacacionesExtras = [];
+                });
+            } else {
+                // Año nuevo: copiar del año anterior con incrementos
+                const anoAnterior = nuevoAno - 1;
+                const guardadoAnterior = localStorage.getItem('finanzasPersonales_' + anoAnterior);
+                if (guardadoAnterior) {
+                    const datosAnterior = JSON.parse(guardadoAnterior);
+                    anoActual = nuevoAno;
+                    datos = generarDatosAnoSiguiente(datosAnterior);
+                    guardarDatos();
+                    mostrarNotificacion('✅ Datos de ' + nuevoAno + ' generados desde ' + anoAnterior + ' (+1% ingresos, +2% gastos)', 'exito');
+                } else {
+                    // No hay datos del año anterior tampoco, empezar vacío
+                    anoActual = nuevoAno;
+                    datos = crearDatosVaciosAno();
+                    guardarDatos();
+                    mostrarNotificacion('⚠️ No hay datos del año anterior. Empezando desde cero para ' + nuevoAno, 'aviso');
+                }
+            }
+
+            actualizarTodo();
+            actualizarResumenAnual();
+            actualizarCategorias();
+        }
+        
+        function cambiarMes() {
+            mesActual = parseInt(document.getElementById('mes-select').value);
+            actualizarTodo();
+            actualizarResumenAnual();
+            actualizarCategorias();
+        }
+        
+        function extraRecurrenteAplicaEnMes(item, ano, mes) {
+            const inicio = item.anoInicio * 12 + item.mesInicio;
+            const fin = item.anoFin * 12 + item.mesFin;
+            const actual = ano * 12 + mes;
+            return actual >= inicio && actual <= fin;
+        }
+
+        function calcularTotalesMes(numMes) {
+            // Si el mes está cerrado, usar snapshot fijo
+            const cerrado = datos.mesesCerrados && datos.mesesCerrados[numMes];
+            if (cerrado && cerrado.snapshot) {
+                return cerrado.snapshot;
+            }
+
+            let ingresosFijos = 0;
+            let gastosFijos = 0;
+            let gastosVacaciones = 0;
+            
+            datos.ingresosFijos.forEach(item => {
+                if (item.frecuencia === 'mensual') {
+                    ingresosFijos += item.valor;
+                } else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) {
+                    ingresosFijos += item.valor;
+                }
+            });
+
+            datos.gastosFijos.forEach(item => {
+                if (item.frecuencia === 'mensual') {
+                    gastosFijos += item.valor;
+                } else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) {
+                    gastosFijos += item.valor;
+                }
+            });
+            
+            datos.gastosVacaciones.forEach(item => {
+                if (item.frecuencia === 'mensual') {
+                    gastosVacaciones += item.valor;
+                } else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) {
+                    gastosVacaciones += item.valor;
+                }
+            });
+            
+            const ingresosExtras = datos.meses[numMes].ingresosExtras.reduce((sum, item) => sum + item.valor, 0);
+            const gastosExtras = datos.meses[numMes].gastosExtras.reduce((sum, item) => sum + item.valor, 0);
+            const gastosVacacionesExtras = datos.meses[numMes].gastosVacacionesExtras.reduce((sum, item) => sum + item.valor, 0);
+            
+            // Extras recurrentes con fecha de fin
+            let ingresosRecurrentes = 0;
+            let gastosRecurrentes = 0;
+            (datos.extrasRecurrentes || []).forEach(item => {
+                if (extraRecurrenteAplicaEnMes(item, anoActual, numMes)) {
+                    if (item.tipo === 'ingresos') ingresosRecurrentes += item.valor;
+                    else gastosRecurrentes += item.valor;
+                }
+            });
+            
+            const ingresosBonus = (datos.ingresosBonus || []).reduce((sum, item) => {
+                if (item.frecuencia === 'mensual') return sum + item.valor;
+                if (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) return sum + item.valor;
+                return sum;
+            }, 0);
+
+            return {
+                ingresosFijos,
+                ingresosBonus,
+                gastosFijos,
+                gastosVacaciones,
+                ingresosExtras: ingresosExtras + ingresosRecurrentes,
+                gastosExtras: gastosExtras + gastosRecurrentes,
+                gastosVacacionesExtras,
+                ingresosTotal: ingresosFijos + ingresosBonus + ingresosExtras + ingresosRecurrentes,
+                gastosTotal: gastosFijos + gastosVacaciones + gastosExtras + gastosRecurrentes + gastosVacacionesExtras
+            };
+        }
+        
+        function calcularSaldoInicioRealDelAno(ano) {
+            // Encadena desde el primer año con datos hasta el año pedido,
+            // para obtener el saldo real 1 Ene (= 31 Dic calculado del año anterior).
+            let saldoEncadenado = null;
+            for (let y = 2024; y <= ano; y++) {
+                const raw = localStorage.getItem('finanzasPersonales_' + y);
+                if (!raw) continue;
+                const d = JSON.parse(raw);
+                const saldoInicio = saldoEncadenado !== null ? saldoEncadenado : (d.saldoInicial || 0);
+                if (y === ano) return saldoInicio;
+                let ingAno = 0, gasAno = 0;
+                for (let m = 0; m < 12; m++) {
+                    const cerrado = d.mesesCerrados && d.mesesCerrados[m];
+                    if (cerrado && cerrado.snapshot) {
+                        ingAno += cerrado.snapshot.ingresosTotal || 0;
+                        gasAno += cerrado.snapshot.gastosTotal || 0;
+                    } else {
+                        d.ingresosFijos.forEach(item => {
+                            if (item.frecuencia === 'mensual') ingAno += item.valor;
+                            else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(m)) ingAno += item.valor;
+                        });
+                        (d.ingresosBonus || []).forEach(item => {
+                            if (item.frecuencia === 'mensual') ingAno += item.valor;
+                            else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(m)) ingAno += item.valor;
+                        });
+                        d.meses[m].ingresosExtras.forEach(item => ingAno += item.valor);
+                        d.gastosFijos.forEach(item => {
+                            if (item.frecuencia === 'mensual') gasAno += item.valor;
+                            else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(m)) gasAno += item.valor;
+                        });
+                        (d.gastosVacaciones || []).forEach(item => {
+                            if (item.frecuencia === 'mensual') gasAno += item.valor;
+                            else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(m)) gasAno += item.valor;
+                        });
+                        d.meses[m].gastosExtras.forEach(item => gasAno += item.valor);
+                        (d.meses[m].gastosVacacionesExtras || []).forEach(item => gasAno += item.valor);
+                        (d.extrasRecurrentes || []).forEach(item => {
+                            const inicio = item.anoInicio * 12 + item.mesInicio;
+                            const fin = item.anoFin * 12 + item.mesFin;
+                            const actual = y * 12 + m;
+                            if (actual >= inicio && actual <= fin) {
+                                if (item.tipo === 'ingresos') ingAno += item.valor;
+                                else gasAno += item.valor;
+                            }
+                        });
+                    }
+                }
+                saldoEncadenado = saldoInicio + ingAno - gasAno;
+            }
+            return saldoEncadenado !== null ? saldoEncadenado : (datos.saldoInicial || 0);
+        }
+
+        function calcularBalanceAcumulado(hastaMes) {
+            let acumulado = calcularSaldoInicioRealDelAno(anoActual);
+            
+            for (let i = 0; i <= hastaMes; i++) {
+                const totales = calcularTotalesMes(i);
+                const balanceMes = totales.ingresosTotal - totales.gastosTotal;
+                acumulado += balanceMes;
+            }
+            
+            return acumulado;
+        }
+        
+        function esMesCerrado(numMes) {
+            return !!(datos.mesesCerrados && datos.mesesCerrados[numMes]);
+        }
+
+        function generarSnapshot(numMes) {
+            // Temporarily remove the snapshot to force live calculation
+            const backup = datos.mesesCerrados[numMes];
+            delete datos.mesesCerrados[numMes];
+            const totales = calcularTotalesMes(numMes);
+            const balanceAcumulado = calcularBalanceAcumulado(numMes);
+            if (backup) datos.mesesCerrados[numMes] = backup;
+            return { totales, balanceAcumulado };
+        }
+
+        function cerrarMes(numMes, silencioso) {
+            if (!datos.mesesCerrados) datos.mesesCerrados = {};
+            const { totales, balanceAcumulado } = generarSnapshot(numMes);
+            datos.mesesCerrados[numMes] = {
+                cerradoEn: new Date().toISOString(),
+                snapshot: totales,
+                balanceAcumulado: balanceAcumulado
+            };
+            guardarDatos();
+            if (!silencioso) {
+                mostrarNotificacion('🔒 ' + MESES_NOMBRES[numMes] + ' cerrado', 'exito');
+            }
+        }
+
+        function cerrarMesManual() {
+            if (esMesCerrado(mesActual)) {
+                mostrarNotificacion('ℹ️ Este mes ya está cerrado', 'error');
+                return;
+            }
+            if (!confirm('¿Cerrar ' + MESES_NOMBRES[mesActual] + '?\n\nLos datos quedarán fijos. Podrás editarlos pero los cambios también serán fijos.')) return;
+            cerrarMes(mesActual, false);
+            actualizarTodo();
+            actualizarResumenAnual();
+        }
+
+        function reabrirMes() {
+            if (!confirm('¿Reabrir ' + MESES_NOMBRES[mesActual] + '?\n\nLos datos volverán a calcularse en vivo desde tus datos actuales.')) return;
+            delete datos.mesesCerrados[mesActual];
+            guardarDatos();
+            mostrarNotificacion('🔓 ' + MESES_NOMBRES[mesActual] + ' reabierto', 'exito');
+            actualizarTodo();
+            actualizarResumenAnual();
+        }
+
+        function cerrarMesesPasadosAutomaticamente() {
+            const hoy = new Date();
+            const mesReal = hoy.getMonth();
+            const anoReal = hoy.getFullYear();
+            if (anoReal !== anoActual) return; // Solo aplica al año actual
+            let huboCierres = false;
+            for (let i = 0; i < mesReal; i++) {
+                if (!esMesCerrado(i)) {
+                    cerrarMes(i, true);
+                    huboCierres = true;
+                }
+            }
+            if (huboCierres) {
+                mostrarNotificacion('🔒 Meses anteriores cerrados automáticamente', 'exito');
+            }
+        }
+
+        function actualizarBannerMesCerrado() {
+            const infoDiv = document.getElementById('mes-cerrado-info');
+            const btnCerrar = document.getElementById('btn-cerrar-mes');
+            const titulo = document.getElementById('balance-titulo');
+
+            if (esMesCerrado(mesActual)) {
+                const info = datos.mesesCerrados[mesActual];
+                const fecha = info.cerradoEn ? new Date(info.cerradoEn).toLocaleDateString('es-ES') : '';
+                document.getElementById('mes-cerrado-fecha').textContent = '🔒 Cerrado el ' + fecha;
+                infoDiv.style.display = 'flex';
+                btnCerrar.style.display = 'none';
+                titulo.textContent = '💵 Balance  🔒';
+            } else {
+                infoDiv.style.display = 'none';
+                btnCerrar.style.display = 'block';
+                titulo.textContent = '💵 Balance';
+            }
+        }
+
+        function actualizarTodo() {
+            const totales = calcularTotalesMes(mesActual);
+            
+            document.getElementById('ingresos-fijos-display').textContent = formatearMoneda(totales.ingresosFijos);
+            document.getElementById('ingresos-bonus-display').textContent = formatearMoneda(totales.ingresosBonus || 0);
+            document.getElementById('ingresos-extras-display').textContent = formatearMoneda(totales.ingresosExtras);
+            document.getElementById('ingresos-total-display').textContent = formatearMoneda(totales.ingresosTotal);
+            
+            document.getElementById('gastos-fijos-display').textContent = formatearMoneda(totales.gastosFijos);
+            document.getElementById('gastos-vacaciones-display').textContent = formatearMoneda(totales.gastosVacaciones + totales.gastosVacacionesExtras);
+            document.getElementById('gastos-extras-display').textContent = formatearMoneda(totales.gastosExtras);
+            document.getElementById('gastos-total-display').textContent = formatearMoneda(totales.gastosTotal);
+            
+            const balanceMes = totales.ingresosTotal - totales.gastosTotal;
+            const balanceAcumulado = calcularBalanceAcumulado(mesActual);
+            
+            const balanceDisplay = document.getElementById('balance-display');
+            balanceDisplay.textContent = formatearMoneda(balanceAcumulado);
+            balanceDisplay.className = 'amount';
+            if (balanceAcumulado > 0) balanceDisplay.classList.add('positive');
+            else if (balanceAcumulado < 0) balanceDisplay.classList.add('negative');
+            else balanceDisplay.classList.add('neutral');
+            
+            const balanceMesDisplay = document.getElementById('balance-mes');
+            balanceMesDisplay.textContent = formatearMoneda(balanceMes);
+            balanceMesDisplay.className = balanceMes >= 0 ? 'positivo' : 'negativo';
+            
+            const balanceAcumuladoDisplay = document.getElementById('balance-acumulado');
+            balanceAcumuladoDisplay.textContent = formatearMoneda(balanceAcumulado);
+            balanceAcumuladoDisplay.className = balanceAcumulado >= 0 ? 'positivo' : 'negativo';
+            
+            // % de crecimiento/decrecimiento vs saldo inicial del año (solo la variación, no el total)
+            const crecimiento = datos.saldoInicial > 0
+                ? ((balanceAcumulado - datos.saldoInicial) / datos.saldoInicial) * 100
+                : 0;
+            const progressFill = document.getElementById('progress-fill');
+            const crecimientoAbs = Math.abs(crecimiento);
+            progressFill.style.width = Math.min(100, crecimientoAbs) + '%';
+            progressFill.style.background = crecimiento >= 0
+                ? 'linear-gradient(90deg, #10b981, #059669)'
+                : 'linear-gradient(90deg, #ef4444, #dc2626)';
+            progressFill.textContent = (crecimiento >= 0 ? '+' : '') + Math.round(crecimiento) + '%';
+            
+            actualizarEstadisticas(totales);
+            actualizarDiasRestantes();
+            actualizarCategorias();
+            actualizarBannerMesCerrado();
+        }
+        
+        function actualizarEstadisticas(totales) {
+            const tasaAhorro = totales.ingresosTotal > 0 ? ((totales.ingresosTotal - totales.gastosTotal) / totales.ingresosTotal * 100) : 0;
+            document.getElementById('tasa-ahorro').textContent = tasaAhorro.toFixed(1) + '%';
+            
+            const promedioDiario = totales.gastosTotal / 30;
+            document.getElementById('promedio-diario').textContent = formatearMoneda(promedioDiario);
+            
+            const proyeccion = totales.ingresosTotal - totales.gastosTotal;
+            document.getElementById('proyeccion').textContent = formatearMoneda(proyeccion);
+        }
+        
+        function actualizarDiasRestantes() {
+            const hoy = new Date();
+            const ultimoDia = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0);
+            const diasRestantes = ultimoDia.getDate() - hoy.getDate();
+            document.getElementById('dias-restantes').textContent = diasRestantes;
+        }
+        
+        function actualizarResumenAnual() {
+    const resumenContainer = document.querySelector('.resumen-anual');
+    
+    // Limpiar todo el contenido
+    resumenContainer.innerHTML = '<h2>📅 Resumen Anual - Todos los Meses</h2>';
+    
+    // Calcular primer mes en negativo y todos los meses negativos
+    let primerMesNegativo = null;
+    let mesesNegativos = [];
+    
+    for (let i = 0; i < 12; i++) {
+        const balanceAcumulado = calcularBalanceAcumulado(i);
+        if (balanceAcumulado < 0) {
+            if (primerMesNegativo === null) {
+                primerMesNegativo = { mes: i, balance: balanceAcumulado };
+            }
+            mesesNegativos.push({ mes: i, balance: balanceAcumulado });
+        }
+    }
+    
+    // Mostrar alerta de meses negativos si existe
+    if (primerMesNegativo !== null) {
+        const alertaDiv = document.createElement('div');
+        alertaDiv.style.cssText = 'background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); border-left: 6px solid #dc2626; border-radius: 12px; padding: 25px 30px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2);';
+        
+        const titulo = document.createElement('div');
+        titulo.style.cssText = 'font-size: 1.5em; font-weight: bold; color: #991b1b; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;';
+        titulo.innerHTML = '<span style="font-size: 1.3em;">⚠️</span> PRIMER MES EN NEGATIVO: <span style="color: #dc2626;">' + MESES_NOMBRES[primerMesNegativo.mes] + ' ' + formatearMoneda(primerMesNegativo.balance) + '</span>';
+        
+        alertaDiv.appendChild(titulo);
+        
+        if (mesesNegativos.length > 1) {
+            const subtitulo = document.createElement('div');
+            subtitulo.style.cssText = 'font-size: 1em; color: #7f1d1d; padding-top: 12px; border-top: 1px solid #fca5a5;';
+            
+            const listaMeses = mesesNegativos.map(m => '<strong>' + MESES_NOMBRES[m.mes] + '</strong> ' + formatearMoneda(m.balance)).join(' • ');
+            subtitulo.innerHTML = '<span style="font-weight: 600;">📉 Todos los meses en negativo:</span> ' + listaMeses;
+            
+            alertaDiv.appendChild(subtitulo);
+        }
+        
+        resumenContainer.appendChild(alertaDiv);
+    } else {
+        // Mensaje positivo si no hay meses negativos
+        const alertaPositiva = document.createElement('div');
+        alertaPositiva.style.cssText = 'background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); border-left: 6px solid #059669; border-radius: 12px; padding: 25px 30px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);';
+        
+        const titulo = document.createElement('div');
+        titulo.style.cssText = 'font-size: 1.5em; font-weight: bold; color: #065f46; display: flex; align-items: center; gap: 10px;';
+        titulo.innerHTML = '<span style="font-size: 1.3em;">✅</span> ¡Excelente! Todos los meses en positivo';
+        
+        alertaPositiva.appendChild(titulo);
+        resumenContainer.appendChild(alertaPositiva);
+    }
+    
+    // Crear el grid de meses
+    const grid = document.createElement('div');
+    grid.className = 'meses-grid';
+    grid.id = 'meses-grid';
+    
+    // Generar las tarjetas de los meses
+    for (let i = 0; i < 12; i++) {
+        const totales = calcularTotalesMes(i);
+        const balanceMes = totales.ingresosTotal - totales.gastosTotal;
+        const balanceAcumulado = calcularBalanceAcumulado(i);
+        
+        const card = document.createElement('div');
+        card.className = 'mes-card' + (i === mesActual ? ' activo' : '');
+        card.onclick = function() {
+            mesActual = i;
+            document.getElementById('mes-select').value = i;
+            actualizarTodo();
+            actualizarResumenAnual();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+        
+        const mesNombre = document.createElement('div');
+        mesNombre.className = 'mes-nombre';
+        const esCerrado = esMesCerrado(i);
+        mesNombre.textContent = (esCerrado ? '🔒 ' : '') + MESES_NOMBRES[i];
+        
+        const datoIngresos = document.createElement('div');
+        datoIngresos.className = 'mes-dato';
+        const labelIngresos = document.createElement('span');
+        labelIngresos.textContent = 'Ingresos:';
+        const valorIngresos = document.createElement('span');
+        valorIngresos.style.color = '#10b981';
+        valorIngresos.textContent = formatearMoneda(totales.ingresosTotal);
+        datoIngresos.appendChild(labelIngresos);
+        datoIngresos.appendChild(valorIngresos);
+        
+        const datoGastos = document.createElement('div');
+        datoGastos.className = 'mes-dato';
+        const labelGastos = document.createElement('span');
+        labelGastos.textContent = 'Gastos:';
+        const valorGastos = document.createElement('span');
+        valorGastos.style.color = '#ef4444';
+        valorGastos.textContent = formatearMoneda(totales.gastosTotal);
+        datoGastos.appendChild(labelGastos);
+        datoGastos.appendChild(valorGastos);
+        
+        const mesBalance = document.createElement('div');
+        mesBalance.className = 'mes-balance ' + (balanceMes >= 0 ? 'positivo' : 'negativo');
+        mesBalance.textContent = 'Balance: ' + formatearMoneda(balanceMes);
+        
+        const mesAcumulado = document.createElement('div');
+        mesAcumulado.className = 'mes-acumulado';
+        mesAcumulado.textContent = 'Acumulado: ' + formatearMoneda(balanceAcumulado);
+        mesAcumulado.style.fontWeight = 'bold';
+        mesAcumulado.style.color = balanceAcumulado >= 0 ? '#10b981' : '#ef4444';
+        
+        card.appendChild(mesNombre);
+        card.appendChild(datoIngresos);
+        card.appendChild(datoGastos);
+        card.appendChild(mesBalance);
+        card.appendChild(mesAcumulado);
+        
+        grid.appendChild(card);
+    }
+    
+    resumenContainer.appendChild(grid);
+}
+
+
+        
+        function toggleFechaFin() {
+            const checked = document.getElementById('tiene-fecha-fin').checked;
+            document.getElementById('fecha-fin-inputs').style.display = checked ? 'flex' : 'none';
+        }
+        
+        function crearSelectorMeses() {
+            const container = document.getElementById('meses-selector');
+            container.innerHTML = '';
+            
+            for (let i = 0; i < 12; i++) {
+                const div = document.createElement('div');
+                div.className = 'mes-checkbox';
+                
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = 'mes-' + i;
+                checkbox.value = i;
+                
+                const label = document.createElement('label');
+                label.htmlFor = 'mes-' + i;
+                label.textContent = MESES_CORTOS[i];
+                label.style.cursor = 'pointer';
+                
+                div.appendChild(checkbox);
+                div.appendChild(label);
+                container.appendChild(div);
+            }
+        }
+        
+        document.getElementById('frecuencia-input').addEventListener('change', function() {
+            const container = document.getElementById('meses-selector-container');
+            if (this.value === 'anual') {
+                container.style.display = 'block';
+                crearSelectorMeses();
+            } else {
+                container.style.display = 'none';
+            }
+        });
+        
+        function abrirModalFijos(tipo) {
+            tipoActual = tipo;
+            modalTipo = 'fijos';
+            itemEditandoIndex = -1;
+            document.getElementById('modal-title').textContent = tipo === 'ingresos' ? '📈 Ingresos Fijos' : '📉 Gastos Fijos';
+            document.getElementById('modal-desglose').style.display = 'block';
+            document.getElementById('frecuencia-input').value = 'mensual';
+            document.getElementById('frecuencia-input').style.display = 'block';
+            document.getElementById('meses-selector-container').style.display = 'none';
+            document.getElementById('fecha-fin-container').style.display = 'none';
+            
+            if (tipo === 'gastos') {
+                document.getElementById('categoria-selector-container').style.display = 'block';
+                document.getElementById('categoria-input').value = 'fijos';
+            } else {
+                document.getElementById('categoria-selector-container').style.display = 'none';
+            }
+            
+            mostrarDesglose();
+        }
+        
+        function abrirModalExtras(tipo) {
+            tipoActual = tipo;
+            modalTipo = 'extras';
+            itemEditandoIndex = -1;
+            document.getElementById('modal-title').textContent = tipo === 'ingresos' ? 
+                '📈 Ingresos Extras - ' + MESES_NOMBRES[mesActual] : 
+                '📉 Gastos Extras - ' + MESES_NOMBRES[mesActual];
+            document.getElementById('modal-desglose').style.display = 'block';
+            document.getElementById('frecuencia-input').value = 'puntual';
+            document.getElementById('frecuencia-input').style.display = 'none';
+            document.getElementById('meses-selector-container').style.display = 'none';
+            document.getElementById('categoria-selector-container').style.display = 'none';
+            document.getElementById('fecha-fin-container').style.display = 'block';
+            document.getElementById('tiene-fecha-fin').checked = false;
+            document.getElementById('fecha-fin-inputs').style.display = 'none';
+            // Set default end date selectors to current month/year
+            document.getElementById('fin-mes-input').value = mesActual;
+            document.getElementById('fin-ano-input').value = anoActual;
+            mostrarDesglose();
+        }
+        
+        function abrirModalIngresosBonus() {
+            tipoActual = 'ingresos';
+            modalTipo = 'ingresos-bonus';
+            itemEditandoIndex = -1;
+            document.getElementById('modal-title').textContent = '🎁 Extras y Bonus - Ingresos';
+            document.getElementById('modal-desglose').style.display = 'block';
+            document.getElementById('frecuencia-input').value = 'mensual';
+            document.getElementById('frecuencia-input').style.display = 'block';
+            document.getElementById('meses-selector-container').style.display = 'none';
+            document.getElementById('categoria-selector-container').style.display = 'none';
+            document.getElementById('fecha-fin-container').style.display = 'none';
+            mostrarDesglose();
+        }
+
+        function abrirModalVacaciones() {
+            tipoActual = 'gastos';
+            modalTipo = 'vacaciones';
+            itemEditandoIndex = -1;
+            document.getElementById('modal-title').textContent = '🏖️ Gastos de Vacaciones';
+            document.getElementById('modal-desglose').style.display = 'block';
+            document.getElementById('frecuencia-input').value = 'mensual';
+            document.getElementById('frecuencia-input').style.display = 'block';
+            document.getElementById('meses-selector-container').style.display = 'none';
+            document.getElementById('categoria-selector-container').style.display = 'none';
+            document.getElementById('fecha-fin-container').style.display = 'none';
+            mostrarDesglose();
+        }
+        
+        function abrirModalVacacionesExtras() {
+            tipoActual = 'gastos';
+            modalTipo = 'vacaciones-extras';
+            itemEditandoIndex = -1;
+            document.getElementById('modal-title').textContent = '🌴 Extras Vacaciones - ' + MESES_NOMBRES[mesActual];
+            document.getElementById('modal-desglose').style.display = 'block';
+            document.getElementById('frecuencia-input').value = 'puntual';
+            document.getElementById('frecuencia-input').style.display = 'none';
+            document.getElementById('meses-selector-container').style.display = 'none';
+            document.getElementById('categoria-selector-container').style.display = 'none';
+            document.getElementById('fecha-fin-container').style.display = 'none';
+            mostrarDesglose();
+        }
+        
+        function cerrarModal() {
+            document.getElementById('modal-desglose').style.display = 'none';
+            document.getElementById('concepto-input').value = '';
+            document.getElementById('valor-input').value = '';
+            document.getElementById('frecuencia-input').style.display = 'block';
+            document.getElementById('meses-selector-container').style.display = 'none';
+            document.getElementById('categoria-selector-container').style.display = 'none';
+            document.getElementById('fecha-fin-container').style.display = 'none';
+            document.getElementById('fecha-fin-inputs').style.display = 'none';
+            document.getElementById('tiene-fecha-fin').checked = false;
+            itemEditandoIndex = -1;
+        }
+        
+        function obtenerArrayActual() {
+            if (modalTipo === 'ingresos-bonus') {
+                return datos.ingresosBonus || [];
+            } else if (modalTipo === 'fijos') {
+                if (tipoActual === 'ingresos') {
+                    return datos.ingresosFijos;
+                } else {
+                    const categoria = document.getElementById('categoria-input').value;
+                    return categoria === 'fijos' ? datos.gastosFijos : datos.gastosVacaciones;
+                }
+            } else if (modalTipo === 'vacaciones') {
+                return datos.gastosVacaciones;
+            } else if (modalTipo === 'vacaciones-extras') {
+                return datos.meses[mesActual].gastosVacacionesExtras;
+            } else {
+                return tipoActual === 'ingresos' ? 
+                    datos.meses[mesActual].ingresosExtras : 
+                    datos.meses[mesActual].gastosExtras;
+            }
+        }
+        
+        function editarItem(index) {
+            itemEditandoIndex = index;
+            itemEditandoRecurrente = false;
+            const item = obtenerArrayActual()[index];
+            
+            document.getElementById('concepto-input').value = item.concepto;
+            document.getElementById('valor-input').value = item.valor;
+            
+            if (item.frecuencia) {
+                document.getElementById('frecuencia-input').value = item.frecuencia;
+                
+                if (item.frecuencia === 'anual' && item.meses) {
+                    document.getElementById('meses-selector-container').style.display = 'block';
+                    crearSelectorMeses();
+                    
+                    item.meses.forEach(m => {
+                        const checkbox = document.getElementById('mes-' + m);
+                        if (checkbox) checkbox.checked = true;
+                    });
+                }
+            }
+            
+            mostrarNotificacion('✏️ Editando: ' + item.concepto, 'exito');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        function mostrarDesglose() {
+            const lista = document.getElementById('desglose-lista');
+            lista.innerHTML = '';
+            const desglose = obtenerArrayActual();
+            const clase = tipoActual === 'ingresos' ? 'ingreso' : 'gasto';
+            
+            // Show recurrentes section if in extras mode
+            if (modalTipo === 'extras') {
+                const recurrentesMes = (datos.extrasRecurrentes || [])
+                    .map((item, idx) => ({ item, idx }))
+                    .filter(({ item }) => item.tipo === tipoActual && extraRecurrenteAplicaEnMes(item, anoActual, mesActual));
+                
+                if (recurrentesMes.length > 0) {
+                    const secTitle = document.createElement('div');
+                    secTitle.style.cssText = 'font-weight:bold;color:#7c3aed;margin-bottom:8px;padding:8px;background:#f5f3ff;border-radius:8px;font-size:0.95em;';
+                    secTitle.textContent = '📅 Extras con fecha de fin (recurrentes)';
+                    lista.appendChild(secTitle);
+                    
+                    recurrentesMes.forEach(({ item, idx }) => {
+                        const div = document.createElement('div');
+                        div.className = 'desglose-item ' + clase;
+                        div.style.borderLeftColor = '#7c3aed';
+                        
+                        const leftDiv = document.createElement('div');
+                        leftDiv.style.flex = '1';
+                        
+                        const conceptoSpan = document.createElement('span');
+                        conceptoSpan.textContent = item.concepto;
+                        leftDiv.appendChild(conceptoSpan);
+                        
+                        const infoFin = document.createElement('div');
+                        infoFin.className = 'info-frecuencia';
+                        infoFin.textContent = '📅 Hasta ' + MESES_NOMBRES[item.mesFin] + ' ' + item.anoFin + '  (inicio: ' + MESES_NOMBRES[item.mesInicio] + ' ' + item.anoInicio + ')';
+                        leftDiv.appendChild(infoFin);
+                        
+                        const rightDiv = document.createElement('div');
+                        rightDiv.style.display = 'flex';
+                        rightDiv.style.alignItems = 'center';
+                        
+                        const valorSpan = document.createElement('span');
+                        valorSpan.className = 'valor';
+                        valorSpan.style.color = '#7c3aed';
+                        valorSpan.textContent = formatearMoneda(item.valor);
+                        
+                        const editBtn = document.createElement('button');
+                        editBtn.className = 'edit-item-btn';
+                        editBtn.textContent = '✏️';
+                        editBtn.onclick = (function(i) { return function(e) { 
+                            e.stopPropagation();
+                            editarRecurrente(i); 
+                        }; })(idx);
+                        
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.className = 'delete-btn';
+                        deleteBtn.textContent = '🗑️';
+                        deleteBtn.onclick = (function(i) { return function(e) { 
+                            e.stopPropagation();
+                            eliminarRecurrente(i); 
+                        }; })(idx);
+                        
+                        rightDiv.appendChild(valorSpan);
+                        rightDiv.appendChild(editBtn);
+                        rightDiv.appendChild(deleteBtn);
+                        
+                        div.appendChild(leftDiv);
+                        div.appendChild(rightDiv);
+                        lista.appendChild(div);
+                    });
+                    
+                    const sep = document.createElement('div');
+                    sep.style.cssText = 'font-weight:bold;color:#374151;margin:12px 0 8px;padding:8px;background:#f9fafb;border-radius:8px;font-size:0.95em;';
+                    sep.textContent = '📌 Extras puntuales (solo este mes)';
+                    lista.appendChild(sep);
+                }
+            }
+            
+            desglose.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'desglose-item ' + clase;
+                
+                const leftDiv = document.createElement('div');
+                leftDiv.style.flex = '1';
+                
+                const conceptoSpan = document.createElement('span');
+                conceptoSpan.textContent = item.concepto;
+                leftDiv.appendChild(conceptoSpan);
+                
+                if (item.frecuencia) {
+                    const infoFrecuencia = document.createElement('div');
+                    infoFrecuencia.className = 'info-frecuencia';
+                    if (item.frecuencia === 'mensual') {
+                        infoFrecuencia.textContent = '📅 Todos los meses';
+                    } else if (item.frecuencia === 'anual' && item.meses) {
+                        const mesesTexto = item.meses.map(m => MESES_CORTOS[m]).join(', ');
+                        infoFrecuencia.textContent = '📆 ' + mesesTexto;
+                    } else if (item.frecuencia === 'puntual') {
+                        infoFrecuencia.textContent = '📍 Solo ' + MESES_NOMBRES[mesActual];
+                    }
+                    leftDiv.appendChild(infoFrecuencia);
+                }
+                
+                const rightDiv = document.createElement('div');
+                rightDiv.style.display = 'flex';
+                rightDiv.style.alignItems = 'center';
+                
+                const valorSpan = document.createElement('span');
+                valorSpan.className = 'valor';
+                valorSpan.textContent = formatearMoneda(item.valor);
+                
+                const editBtn = document.createElement('button');
+                editBtn.className = 'edit-item-btn';
+                editBtn.textContent = '✏️';
+                editBtn.onclick = function(e) { 
+                    e.stopPropagation();
+                    editarItem(index); 
+                };
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.textContent = '🗑️';
+                deleteBtn.onclick = function(e) { 
+                    e.stopPropagation();
+                    eliminarItem(index); 
+                };
+                
+                rightDiv.appendChild(valorSpan);
+                rightDiv.appendChild(editBtn);
+                rightDiv.appendChild(deleteBtn);
+                
+                div.appendChild(leftDiv);
+                div.appendChild(rightDiv);
+                lista.appendChild(div);
+            });
+            
+            const total = desglose.reduce((sum, item) => sum + item.valor, 0);
+            const totalDiv = document.createElement('div');
+            totalDiv.style.cssText = 'margin-top:15px;padding:15px;background:#f3f4f6;border-radius:8px;font-weight:bold;font-size:1.2em;text-align:center;';
+            
+            const totalText = document.createElement('span');
+            totalText.textContent = 'Total: ';
+            
+            const totalValor = document.createElement('span');
+            totalValor.style.color = tipoActual === 'ingresos' ? '#10b981' : '#ef4444';
+            totalValor.textContent = formatearMoneda(total);
+            
+            totalDiv.appendChild(totalText);
+            totalDiv.appendChild(totalValor);
+            lista.appendChild(totalDiv);
+        }
+        
+        function agregarItem() {
+            const concepto = document.getElementById('concepto-input').value.trim();
+            const valor = parseFloat(document.getElementById('valor-input').value) || 0;
+            const frecuencia = document.getElementById('frecuencia-input').value;
+            
+            if (concepto && valor > 0) {
+                // Check if this is an extra with fecha fin
+                if (modalTipo === 'extras' && document.getElementById('tiene-fecha-fin').checked) {
+                    const finMes = parseInt(document.getElementById('fin-mes-input').value);
+                    const finAno = parseInt(document.getElementById('fin-ano-input').value);
+                    
+                    // Validate end date is >= start date
+                    const inicio = anoActual * 12 + mesActual;
+                    const fin = finAno * 12 + finMes;
+                    if (fin < inicio) {
+                        mostrarNotificacion('❌ La fecha de fin debe ser igual o posterior al mes actual', 'error');
+                        return;
+                    }
+                    
+                    const recurrente = {
+                        concepto: concepto,
+                        valor: valor,
+                        tipo: tipoActual,
+                        anoInicio: anoActual,
+                        mesInicio: mesActual,
+                        anoFin: finAno,
+                        mesFin: finMes
+                    };
+                    
+                    if (!datos.extrasRecurrentes) datos.extrasRecurrentes = [];
+                    
+                    if (itemEditandoIndex >= 0 && itemEditandoRecurrente) {
+                        datos.extrasRecurrentes[itemEditandoIndex] = recurrente;
+                        mostrarNotificacion('✅ Extra recurrente actualizado', 'exito');
+                    } else {
+                        datos.extrasRecurrentes.push(recurrente);
+                        mostrarNotificacion('✅ Extra recurrente añadido hasta ' + MESES_NOMBRES[finMes] + ' ' + finAno, 'exito');
+                    }
+                    
+                    itemEditandoIndex = -1;
+                    itemEditandoRecurrente = false;
+                    document.getElementById('concepto-input').value = '';
+                    document.getElementById('valor-input').value = '';
+                    document.getElementById('tiene-fecha-fin').checked = false;
+                    document.getElementById('fecha-fin-inputs').style.display = 'none';
+                    mostrarDesglose();
+                    guardarDatos();
+                    actualizarTodo();
+                    actualizarResumenAnual();
+                    return;
+                }
+                
+                const item = { concepto: concepto, valor: valor };
+                
+                if (modalTipo === 'fijos' || modalTipo === 'vacaciones' || modalTipo === 'ingresos-bonus') {
+                    item.frecuencia = frecuencia;
+                    
+                    if (frecuencia === 'anual') {
+                        const mesesSeleccionados = [];
+                        for (let i = 0; i < 12; i++) {
+                            const checkbox = document.getElementById('mes-' + i);
+                            if (checkbox && checkbox.checked) {
+                                mesesSeleccionados.push(i);
+                            }
+                        }
+                        
+                        if (mesesSeleccionados.length === 0) {
+                            mostrarNotificacion('❌ Selecciona al menos un mes', 'error');
+                            return;
+                        }
+                        
+                        item.meses = mesesSeleccionados;
+                    }
+                }
+                
+                if (itemEditandoIndex >= 0) {
+                    obtenerArrayActual()[itemEditandoIndex] = item;
+                    mostrarNotificacion('✅ Item actualizado', 'exito');
+                    itemEditandoIndex = -1;
+                } else {
+                    obtenerArrayActual().push(item);
+                    mostrarNotificacion('✅ Item agregado', 'exito');
+                }
+                
+                document.getElementById('concepto-input').value = '';
+                document.getElementById('valor-input').value = '';
+                document.getElementById('meses-selector-container').style.display = 'none';
+                mostrarDesglose();
+                guardarDatos();
+                actualizarTodo();
+                actualizarResumenAnual();
+            }
+        }
+        
+        function eliminarRecurrente(index) {
+            if (confirm('¿Eliminar este extra recurrente? Se quitará de todos los meses.')) {
+                datos.extrasRecurrentes.splice(index, 1);
+                mostrarDesglose();
+                guardarDatos();
+                actualizarTodo();
+                actualizarResumenAnual();
+                mostrarNotificacion('✅ Extra recurrente eliminado', 'exito');
+            }
+        }
+        
+        function editarRecurrente(index) {
+            const item = datos.extrasRecurrentes[index];
+            itemEditandoIndex = index;
+            itemEditandoRecurrente = true;
+            
+            document.getElementById('concepto-input').value = item.concepto;
+            document.getElementById('valor-input').value = item.valor;
+            document.getElementById('tiene-fecha-fin').checked = true;
+            document.getElementById('fecha-fin-inputs').style.display = 'flex';
+            document.getElementById('fin-mes-input').value = item.mesFin;
+            document.getElementById('fin-ano-input').value = item.anoFin;
+            
+            mostrarNotificacion('✏️ Editando extra recurrente: ' + item.concepto, 'exito');
+        }
+        
+        function eliminarItem(index) {
+            if (confirm('¿Seguro que quieres eliminar este item?')) {
+                obtenerArrayActual().splice(index, 1);
+                mostrarDesglose();
+                guardarDatos();
+                actualizarTodo();
+                actualizarResumenAnual();
+                mostrarNotificacion('✅ Item eliminado', 'exito');
+            }
+        }
+        
+        function guardarDesglose() {
+            actualizarTodo();
+            actualizarResumenAnual();
+            guardarDatos();
+            // Si el mes está cerrado, actualizar el snapshot con los cambios
+            if (esMesCerrado(mesActual)) {
+                cerrarMes(mesActual, true);
+                mostrarNotificacion('🔒 Cambios guardados y snapshot actualizado', 'exito');
+            }
+            cerrarModal();
+        }
+        
+        window.onclick = function(event) {
+            const modal = document.getElementById('modal-desglose');
+            const modalConfig = document.getElementById('modal-config');
+            const modalDetalle = document.getElementById('modal-detalle-categoria');
+            if (event.target == modal) cerrarModal();
+            if (event.target == modalConfig) cerrarModalConfig();
+            if (event.target == modalDetalle) cerrarModalDetalle();
+        }
+        
+        document.getElementById('valor-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') agregarItem();
+        });
+        
+        document.getElementById('concepto-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') document.getElementById('valor-input').focus();
+        });
+        
+        cargarDatos();
+    </script>
+
+    <!-- Modal Desglose Anual -->
+    <div id="modal-desglose-anual" class="modal" style="z-index:1100;display:none;" onclick="cerrarDesgloseAnual()">
+        <div class="modal-content" style="max-width:900px;max-height:90vh;padding:0;overflow:hidden;display:flex;flex-direction:column;" onclick="event.stopPropagation()">
+            <div style="padding:20px 25px 15px;border-bottom:2px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+                <h2 id="desglose-anual-titulo" style="margin:0;color:#1e3a8a;font-size:1.3em;">📋 Desglose Anual</h2>
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <input type="text" id="desglose-buscador" placeholder="🔍 Buscar concepto..." oninput="filtrarDesglose()" style="width:200px;padding:8px 12px;border:2px solid #e5e7eb;border-radius:8px;font-size:0.9em;margin:0;">
+                    <span onclick="cerrarDesgloseAnual()" style="float:none;font-size:28px;cursor:pointer;line-height:1;">&times;</span>
+                </div>
+            </div>
+            <div id="desglose-anual-resumen" style="padding:12px 25px;background:#f8faff;border-bottom:1px solid #e5e7eb;display:flex;gap:20px;flex-wrap:wrap;flex-shrink:0;font-size:0.88em;"></div>
+            <div id="desglose-anual-contenido" style="overflow-y:auto;padding:20px 25px;flex:1;"></div>
+        </div>
+    </div>
+
+    <script>
+        let desgloseAnualLineas = [];
+
+        function abrirDesgloseAnual() {
+            document.getElementById('modal-desglose-anual').style.display = 'block';
+            document.getElementById('desglose-buscador').value = '';
+            document.getElementById('desglose-anual-titulo').textContent = '📋 Desglose Anual ' + anoActual;
+            construirDesgloseAnual();
+        }
+
+        function cerrarDesgloseAnual() {
+            document.getElementById('modal-desglose-anual').style.display = 'none';
+        }
+
+        function construirDesgloseAnual() {
+            desgloseAnualLineas = [];
+            // Usar el saldo real encadenado desde el primer año, no el guardado en localStorage
+            let acumulado = calcularSaldoInicioRealDelAno(anoActual);
+            let totalIngresos = 0, totalGastos = 0;
+
+            for (let m = 0; m < 12; m++) {
+                const totMes = calcularTotalesMes(m);
+                const lineas = [];
+
+                // Ingresos fijos
+                datos.ingresosFijos.forEach(item => {
+                    const aplica = item.frecuencia === 'mensual' || (item.frecuencia === 'anual' && item.meses && item.meses.includes(m));
+                    if (aplica) lineas.push({ concepto: item.concepto, tipo: 'Ingreso fijo', valor: item.valor });
+                });
+
+                // Extras y Bonus
+                (datos.ingresosBonus || []).forEach(item => {
+                    const aplica = item.frecuencia === 'mensual' || (item.frecuencia === 'anual' && item.meses && item.meses.includes(m));
+                    if (aplica) lineas.push({ concepto: item.concepto, tipo: 'Extras/Bonus', valor: item.valor });
+                });
+
+                // Extras recurrentes ingresos
+                (datos.extrasRecurrentes || []).forEach(item => {
+                    if (item.tipo === 'ingresos' && extraRecurrenteAplicaEnMes(item, anoActual, m))
+                        lineas.push({ concepto: item.concepto + ' (hasta ' + MESES_CORTOS[item.mesFin] + ' ' + item.anoFin + ')', tipo: 'Ingreso recurrente', valor: item.valor });
+                });
+
+                // Ingresos extras puntuales del mes
+                if (!esMesCerrado(m)) {
+                    (datos.meses[m].ingresosExtras || []).forEach(item =>
+                        lineas.push({ concepto: item.concepto, tipo: 'Ingreso extra', valor: item.valor }));
+                } else {
+                    const snap = datos.mesesCerrados[m].snapshot;
+                    // Recalculate recurrentes for this month to subtract from snapshot extras
+                    let recIngMes = 0;
+                    (datos.extrasRecurrentes || []).forEach(item => {
+                        if (item.tipo === 'ingresos' && extraRecurrenteAplicaEnMes(item, anoActual, m)) recIngMes += item.valor;
+                    });
+                    const extPunt = (snap.ingresosExtras || 0) - recIngMes;
+                    if (extPunt > 0) lineas.push({ concepto: '(Extras puntuales de ingresos)', tipo: 'Ingreso extra', valor: extPunt });
+                }
+
+                // Gastos fijos
+                datos.gastosFijos.forEach(item => {
+                    const aplica = item.frecuencia === 'mensual' || (item.frecuencia === 'anual' && item.meses && item.meses.includes(m));
+                    if (aplica) lineas.push({ concepto: item.concepto, tipo: 'Gasto fijo', valor: -item.valor });
+                });
+
+                // Gastos vacaciones
+                (datos.gastosVacaciones || []).forEach(item => {
+                    const aplica = item.frecuencia === 'mensual' || (item.frecuencia === 'anual' && item.meses && item.meses.includes(m));
+                    if (aplica) lineas.push({ concepto: item.concepto, tipo: 'Vacaciones', valor: -item.valor });
+                });
+
+                // Extras recurrentes gastos
+                (datos.extrasRecurrentes || []).forEach(item => {
+                    if (item.tipo === 'gastos' && extraRecurrenteAplicaEnMes(item, anoActual, m))
+                        lineas.push({ concepto: item.concepto + ' (hasta ' + MESES_CORTOS[item.mesFin] + ' ' + item.anoFin + ')', tipo: 'Gasto recurrente', valor: -item.valor });
+                });
+
+                // Gastos extras puntuales del mes
+                if (!esMesCerrado(m)) {
+                    (datos.meses[m].gastosExtras || []).forEach(item =>
+                        lineas.push({ concepto: item.concepto, tipo: 'Gasto extra', valor: -item.valor }));
+                    (datos.meses[m].gastosVacacionesExtras || []).forEach(item =>
+                        lineas.push({ concepto: item.concepto, tipo: 'Extra vacaciones', valor: -item.valor }));
+                } else {
+                    const snap = datos.mesesCerrados[m].snapshot;
+                    let recGasMes = 0;
+                    (datos.extrasRecurrentes || []).forEach(item => {
+                        if (item.tipo === 'gastos' && extraRecurrenteAplicaEnMes(item, anoActual, m)) recGasMes += item.valor;
+                    });
+                    const extPunt = (snap.gastosExtras || 0) - recGasMes;
+                    if (extPunt > 0) lineas.push({ concepto: '(Extras puntuales de gastos)', tipo: 'Gasto extra', valor: -extPunt });
+                    if ((snap.gastosVacacionesExtras || 0) > 0) lineas.push({ concepto: '(Extras vacaciones)', tipo: 'Extra vacaciones', valor: -(snap.gastosVacacionesExtras) });
+                }
+
+                const balanceMes = totMes.ingresosTotal - totMes.gastosTotal;
+                acumulado += balanceMes;
+                totalIngresos += totMes.ingresosTotal;
+                totalGastos += totMes.gastosTotal;
+
+                desgloseAnualLineas.push({ mes: m, lineas, balanceMes, acumulado, cerrado: esMesCerrado(m) });
+            }
+
+            const balTotal = totalIngresos - totalGastos;
+            const saldoInicioAno = datos.saldoInicial;
+            const saldoFinAno = acumulado; // acumulado = saldoInicial + suma balances
+            const diferenciaAno = saldoFinAno - saldoInicioAno; // = balTotal
+            document.getElementById('desglose-anual-resumen').innerHTML = `
+                <span>💰 Ingresos: <strong style="color:#059669">${formatearMoneda(totalIngresos)}</strong></span>
+                <span>💸 Gastos: <strong style="color:#dc2626">${formatearMoneda(totalGastos)}</strong></span>
+                <span>📊 Diferencia año (31 Dic − 1 Ene): <strong style="color:${diferenciaAno>=0?'#059669':'#dc2626'}">${diferenciaAno>=0?'+':''}${formatearMoneda(diferenciaAno)}</strong></span>
+                <span>🏦 Saldo 31 Dic: <strong style="color:${saldoFinAno>=0?'#059669':'#dc2626'}">${formatearMoneda(saldoFinAno)}</strong></span>
+            `;
+
+            renderizarDesgloseAnual('');
+        }
+
+        function renderizarDesgloseAnual(filtro) {
+            const f = filtro.toLowerCase().trim();
+            let html = '';
+            let saldoCorrente = calcularSaldoInicioRealDelAno(anoActual); // saldo real 1 Ene encadenado desde año anterior
+
+            desgloseAnualLineas.forEach(({ mes, lineas, balanceMes, acumulado, cerrado }) => {
+                const lineasFiltradas = f ? lineas.filter(l => l.concepto.toLowerCase().includes(f) || l.tipo.toLowerCase().includes(f)) : lineas;
+                if (f && lineasFiltradas.length === 0) {
+                    // Aunque filtremos, el saldo debe avanzar
+                    saldoCorrente = acumulado;
+                    return;
+                }
+
+                const saldoInicioMes = saldoCorrente;
+                const balColor = balanceMes >= 0 ? '#059669' : '#dc2626';
+                const balBg    = balanceMes >= 0 ? '#dcfce7' : '#fee2e2';
+
+                html += `<div style="margin-bottom:32px;">
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;justify-content:center;">
+                        <h3 style="margin:0;color:#1e3a8a;font-size:1.05em;">${cerrado ? '🔒 ' : ''}${MESES_NOMBRES[mes]}</h3>
+                        <span style="font-size:0.82em;background:#f1f5f9;border-radius:20px;padding:3px 12px;color:#475569;">Inicio: <strong>${formatearMoneda(saldoInicioMes)}</strong></span>
+                        <span style="font-size:0.82em;background:${balBg};border-radius:20px;padding:3px 12px;">Balance mes: <strong style="color:${balColor}">${formatearMoneda(balanceMes)}</strong></span>
+                    </div>
+                    <table style="width:100%;border-collapse:collapse;font-size:0.88em;margin:0 auto;">
+                        <thead>
+                            <tr style="background:#1e3a8a;">
+                                <th style="text-align:left;padding:9px 12px;color:white;font-weight:600;width:38%;">Concepto</th>
+                                <th style="text-align:center;padding:9px 12px;color:white;font-weight:600;width:22%;">Tipo</th>
+                                <th style="text-align:right;padding:9px 12px;color:white;font-weight:600;width:18%;">Importe</th>
+                                <th style="text-align:right;padding:9px 12px;color:white;font-weight:600;width:22%;">Saldo</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+
+                // Fila de saldo inicial del mes
+                html += `<tr style="background:#f8faff;border-bottom:1px solid #e5e7eb;">
+                    <td style="padding:7px 12px;color:#6b7280;font-style:italic;">Saldo inicio de mes</td>
+                    <td style="padding:7px 12px;text-align:center;">—</td>
+                    <td style="padding:7px 12px;text-align:right;">—</td>
+                    <td style="padding:7px 12px;text-align:right;font-weight:700;color:#374151;">${formatearMoneda(saldoInicioMes)}</td>
+                </tr>`;
+
+                lineasFiltradas.forEach(l => {
+                    saldoCorrente += l.valor;
+                    const esIng  = l.valor > 0;
+                    const color  = esIng ? '#059669' : '#dc2626';
+                    const sColor = saldoCorrente >= 0 ? '#1e3a8a' : '#dc2626';
+                    const badge  = esIng
+                        ? `<span style="background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:10px;font-size:0.8em;white-space:nowrap;">${l.tipo}</span>`
+                        : `<span style="background:#fee2e2;color:#b91c1c;padding:2px 8px;border-radius:10px;font-size:0.8em;white-space:nowrap;">${l.tipo}</span>`;
+                    html += `<tr style="border-bottom:1px solid #f1f5f9;">
+                        <td style="padding:7px 12px;">${l.concepto}</td>
+                        <td style="padding:7px 12px;text-align:center;">${badge}</td>
+                        <td style="padding:7px 12px;text-align:right;font-weight:700;color:${color};">${esIng?'+':''}${formatearMoneda(Math.abs(l.valor))}</td>
+                        <td style="padding:7px 12px;text-align:right;font-weight:600;color:${sColor};">${formatearMoneda(saldoCorrente)}</td>
+                    </tr>`;
+                });
+
+                // Fila final resaltada — saldo 31 de diciembre del mes
+                const saldoFinalMes = acumulado; // el acumulado ya calculado en construirDesgloseAnual
+                const sfColor = saldoFinalMes >= 0 ? '#059669' : '#dc2626';
+                html += `<tr style="background:${saldoFinalMes>=0?'#dcfce7':'#fee2e2'};border-top:2px solid ${saldoFinalMes>=0?'#10b981':'#ef4444'};">
+                    <td style="padding:10px 12px;font-weight:800;color:#1e3a8a;" colspan="2">🏁 Saldo a 31 de ${MESES_NOMBRES[mes]}</td>
+                    <td style="padding:10px 12px;text-align:right;font-weight:700;color:${balColor};">${balanceMes>=0?'+':''}${formatearMoneda(balanceMes)}</td>
+                    <td style="padding:10px 12px;text-align:right;font-weight:900;font-size:1.08em;color:${sfColor};">${formatearMoneda(saldoFinalMes)}</td>
+                </tr>`;
+
+                // Sincronizar saldoCorrente con el acumulado real (por si hay diferencia de redondeo)
+                saldoCorrente = saldoFinalMes;
+
+                if (lineasFiltradas.length === 0 && !f) {
+                    html = html.replace(/<tbody>[\s\S]*?$/, '<tbody><tr><td colspan="4" style="padding:12px;color:#9ca3af;text-align:center;font-style:italic;">Sin movimientos este mes</td></tr>');
+                }
+
+                html += `</tbody></table></div>`;
+            });
+
+            if (!html) html = `<p style="text-align:center;color:#9ca3af;padding:40px 20px;">No se encontraron resultados para "<strong>${filtro}</strong>"</p>`;
+            document.getElementById('desglose-anual-contenido').innerHTML = html;
+        }
+
+        function filtrarDesglose() {
+            renderizarDesgloseAnual(document.getElementById('desglose-buscador').value);
+        }
+
+        function exportarGastosExcel() {
+            const wb = XLSX.utils.book_new();
+            const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+            // ── Hoja 1: Resumen por mes (columnas = meses) ──────────────────
+            // Recopilar todos los conceptos de gasto únicos
+            const conceptosSet = new Set();
+            const datosPorMes = [];
+
+            for (let m = 0; m < 12; m++) {
+                const filas = [];
+                const totMes = calcularTotalesMes(m);
+
+                const addGasto = (concepto, importe) => {
+                    conceptosSet.add(concepto);
+                    filas.push({ concepto, importe });
+                };
+
+                // Gastos fijos
+                datos.gastosFijos.forEach(item => {
+                    const aplica = item.frecuencia === 'mensual' ||
+                        (item.frecuencia === 'anual' && item.meses && item.meses.includes(m));
+                    if (aplica) addGasto(item.concepto, item.valor);
+                });
+
+                // Vacaciones fijas
+                datos.gastosVacaciones.forEach(item => {
+                    const aplica = item.frecuencia === 'mensual' ||
+                        (item.frecuencia === 'anual' && item.meses && item.meses.includes(m));
+                    if (aplica) addGasto(item.concepto + ' (vac)', item.valor);
+                });
+
+                // Extras recurrentes gastos
+                (datos.extrasRecurrentes || []).forEach(item => {
+                    if (item.tipo === 'gastos' && extraRecurrenteAplicaEnMes(item, anoActual, m))
+                        addGasto(item.concepto + ' (rec)', item.valor);
+                });
+
+                // Extras puntuales
+                if (!esMesCerrado(m)) {
+                    datos.meses[m].gastosExtras.forEach(item => addGasto(item.concepto, item.valor));
+                    datos.meses[m].gastosVacacionesExtras.forEach(item => addGasto(item.concepto + ' (vac)', item.valor));
+                } else {
+                    const snap = datos.mesesCerrados[m].snapshot;
+                    let recGas = 0;
+                    (datos.extrasRecurrentes || []).forEach(item => {
+                        if (item.tipo === 'gastos' && extraRecurrenteAplicaEnMes(item, anoActual, m)) recGas += item.valor;
+                    });
+                    const extPunt = (snap.gastosExtras || 0) - recGas;
+                    if (extPunt > 0) addGasto('(Extras puntuales)', extPunt);
+                    if ((snap.gastosVacacionesExtras || 0) > 0) addGasto('(Extras vacaciones)', snap.gastosVacacionesExtras);
+                }
+
+                datosPorMes.push(filas);
+            }
+
+            const conceptos = Array.from(conceptosSet).sort();
+
+            // Cabeceras: Concepto | Ene Importe | Feb Importe | ...
+            const header = ['Concepto'];
+            MESES.forEach(m => header.push(m));
+            header.push('TOTAL AÑO');
+
+            const wsData = [header];
+
+            conceptos.forEach(concepto => {
+                const fila = [concepto];
+                let totalConcepto = 0;
+                for (let m = 0; m < 12; m++) {
+                    const item = datosPorMes[m].find(f => f.concepto === concepto);
+                    const val = item ? item.importe : 0;
+                    fila.push(val || '');
+                    totalConcepto += val || 0;
+                }
+                fila.push(totalConcepto);
+                wsData.push(fila);
+            });
+
+            // Fila total por mes
+            const filaTotales = ['TOTAL MES'];
+            let granTotal = 0;
+            for (let m = 0; m < 12; m++) {
+                const tot = datosPorMes[m].reduce((s, f) => s + f.importe, 0);
+                filaTotales.push(tot);
+                granTotal += tot;
+            }
+            filaTotales.push(granTotal);
+            wsData.push([]);
+            wsData.push(filaTotales);
+
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+            // Anchos de columna
+            ws['!cols'] = [{ wch: 32 }, ...Array(13).fill({ wch: 14 })];
+
+            // Estilos básicos de cabecera (negrita en fila 1 y columna totales)
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            for (let C = range.s.c; C <= range.e.c; C++) {
+                const cell = ws[XLSX.utils.encode_cell({ r: 0, c: C })];
+                if (cell) cell.s = { font: { bold: true }, fill: { fgColor: { rgb: '1E3A8A' } }, font: { bold: true, color: { rgb: 'FFFFFF' } } };
+            }
+            // Fila totales al final
+            const lastRow = wsData.length - 1;
+            for (let C = range.s.c; C <= range.e.c; C++) {
+                const cell = ws[XLSX.utils.encode_cell({ r: lastRow, c: C })];
+                if (cell) cell.s = { font: { bold: true }, fill: { fgColor: { rgb: 'FEF9C3' } } };
+            }
+
+            XLSX.utils.book_append_sheet(wb, ws, 'Gastos ' + anoActual);
+
+            // ── Hoja 2: Detalle mes a mes (una hoja por mes) ──────────────
+            for (let m = 0; m < 12; m++) {
+                const wsDetData = [['Concepto', 'Tipo', 'Importe (€)']];
+                const filas = datosPorMes[m];
+                filas.forEach(f => {
+                    // Inferir tipo
+                    let tipo = 'Gasto fijo';
+                    if (f.concepto.includes('(vac)')) tipo = 'Vacaciones';
+                    else if (f.concepto.includes('(rec)')) tipo = 'Recurrente';
+                    else if (f.concepto.startsWith('(')) tipo = 'Extra puntual';
+                    else {
+                        const esFijo = datos.gastosFijos.some(g => g.concepto === f.concepto);
+                        if (!esFijo) tipo = 'Extra puntual';
+                    }
+                    wsDetData.push([f.concepto.replace(' (vac)', '').replace(' (rec)', ''), tipo, f.importe]);
+                });
+                if (filas.length > 0) {
+                    const totalMes = filas.reduce((s, f) => s + f.importe, 0);
+                    wsDetData.push([]);
+                    wsDetData.push(['TOTAL', '', totalMes]);
+                }
+                const wsDet = XLSX.utils.aoa_to_sheet(wsDetData);
+                wsDet['!cols'] = [{ wch: 30 }, { wch: 18 }, { wch: 14 }];
+                XLSX.utils.book_append_sheet(wb, wsDet, MESES[m].substring(0, 3));
+            }
+
+            XLSX.writeFile(wb, 'Gastos_' + anoActual + '.xlsx');
+            mostrarNotificacion('✅ Excel de gastos descargado', 'exito');
+        }
+    </script>
+</body>
+</html>
