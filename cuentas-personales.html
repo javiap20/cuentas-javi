@@ -328,6 +328,7 @@
             color: rgba(255,255,255,0.9);
             border-bottom: 2px solid #4f46e5;
             padding-bottom: 10px;
+            font-size: 1.05em;
         }
         .meses-grid {
             display: grid;
@@ -393,7 +394,7 @@
         
         .categoria-total .label {
             font-size: 0.85em;
-            color: rgba(255,255,255,0.5);
+            color: #6b7280;
             margin-bottom: 5px;
         }
         
@@ -408,6 +409,12 @@
         
         .categoria-total.gastos-cat .valor {
             color: #ef4444;
+        }
+
+        .categoria-total .cat-acumulado {
+            font-size: 0.85em;
+            color: #6b7280;
+            margin-top: 4px;
         }
         
         .categorias-grid {
@@ -469,14 +476,9 @@
         }
         
         .categoria-card .cat-acumulado {
-            font-size: 0.85em;
-            color: rgba(255,255,255,0.75);
+            font-size: 0.78em;
+            color: #6b7280;
             margin-bottom: 8px;
-        }
-        .categoria-total .cat-acumulado {
-            font-size: 0.9em;
-            color: rgba(255,255,255,0.65);
-            margin-top: 4px;
         }
         
         .categoria-card .btn-ver-detalle {
@@ -561,14 +563,271 @@
                 grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
             }
         }
-    </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+        #modal-alcance-edicion .modal-content {
+            max-width: 500px;
+        }
+        #modal-alcance-edicion button:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            transition: all 0.2s;
+        }
+        
+        #modal-ver-todo-mes .modal-content {
+            max-width: 1000px;
+        }
+        
+        .item-todo-mes {
+            padding: 15px;
+            margin-bottom: 10px;
+            background: white;
+            border-radius: 10px;
+            border-left: 4px solid #ccc;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .item-todo-mes:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateX(5px);
+        }
+        
+        .item-todo-mes.ingreso {
+            border-left-color: #4caf50;
+            background: linear-gradient(90deg, #f1f8f4 0%, white 100%);
+        }
+        
+        .item-todo-mes.gasto {
+            border-left-color: #f44336;
+            background: linear-gradient(90deg, #fef5f5 0%, white 100%);
+        }
+        
+        .item-todo-mes .concepto {
+            flex: 1;
+            font-weight: 600;
+            font-size: 15px;
+        }
+        
+        .item-todo-mes .tipo-badge {
+            font-size: 11px;
+            padding: 4px 10px;
+            background: #e0e0e0;
+            border-radius: 12px;
+            margin-left: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .item-todo-mes .valor {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0 15px;
+            min-width: 100px;
+            text-align: right;
+        }
+        
+        .item-todo-mes .acciones {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .item-todo-mes button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .item-todo-mes button:hover {
+            transform: scale(1.1);
+        }
+
+    
+        /* ========== DRAG & DROP ========== */
+        .item-todo-mes {
+            cursor: grab;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        .item-todo-mes:active {
+            cursor: grabbing;
+        }
+        .item-todo-mes.dragging {
+            opacity: 0.5;
+            background: #e3f2fd !important;
+            transform: scale(1.02);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .item-todo-mes.drag-over {
+            border-top: 3px solid #7c3aed !important;
+            margin-top: -3px;
+        }
+        .drag-handle {
+            cursor: grab;
+            padding: 0 6px;
+            color: #999;
+            font-size: 14px;
+        }
+        .drag-handle:hover {
+            color: #7c3aed;
+        }
+        .orden-info {
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* ========== MODAL COMPACTO ========== */
+        #modal-ver-todo-mes .modal-content {
+            padding: 15px !important;
+            padding-top: 50px !important;
+        }
+        #modal-ver-todo-mes h3 {
+            font-size: 16px !important;
+            margin-bottom: 12px !important;
+        }
+        #modal-ver-todo-mes [style*="grid-template-columns: 1fr 1fr 1fr"] > div {
+            padding: 10px !important;
+        }
+        #modal-ver-todo-mes [style*="font-size: 28px"] {
+            font-size: 18px !important;
+        }
+        #modal-ver-todo-mes [style*="font-size: 13px"] {
+            font-size: 11px !important;
+        }
+        #modal-ver-todo-mes #buscar-todo-mes {
+            padding: 8px !important;
+            font-size: 13px !important;
+        }
+        #modal-ver-todo-mes .orden-info {
+            padding: 5px 10px !important;
+            font-size: 11px !important;
+            margin-bottom: 10px !important;
+        }
+        #modal-ver-todo-mes .item-todo-mes {
+            padding: 8px 12px !important;
+            font-size: 12px !important;
+            margin-bottom: 4px !important;
+        }
+        #modal-ver-todo-mes .item-todo-mes .concepto {
+            font-size: 12px !important;
+        }
+        #modal-ver-todo-mes .item-todo-mes .valor {
+            font-size: 12px !important;
+            font-weight: 600 !important;
+        }
+        #modal-ver-todo-mes .item-todo-mes .tipo-badge {
+            font-size: 9px !important;
+            padding: 2px 6px !important;
+        }
+        #modal-ver-todo-mes .item-todo-mes .acciones button {
+            font-size: 12px !important;
+            padding: 3px 6px !important;
+        }
+        #modal-ver-todo-mes .drag-handle {
+            font-size: 14px !important;
+            padding: 0 6px !important;
+        }
+
+        /* ========== BOTÓN CERRAR FIJO ========== */
+        #modal-ver-todo-mes .btn-cerrar-fijo {
+            position: sticky !important;
+            top: 0;
+            float: right;
+            margin-top: -40px;
+            margin-right: -5px;
+            z-index: 10001 !important;
+            background: #64748b !important;
+            color: white !important;
+            border: none !important;
+            width: 28px !important;
+            height: 28px !important;
+            padding: 0 !important;
+            border-radius: 50% !important;
+            font-size: 14px !important;
+            font-weight: bold !important;
+            cursor: pointer !important;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2) !important;
+            transition: all 0.2s ease !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        #modal-ver-todo-mes .btn-cerrar-fijo:hover {
+            background: #ef4444 !important;
+            transform: scale(1.1) !important;
+        }
+
+        /* ========== EDICIÓN INLINE ========== */
+        .item-todo-mes.editando {
+            background: #fff3cd !important;
+            border: 2px solid #ffc107 !important;
+            padding: 12px !important;
+        }
+        .item-todo-mes .edit-inline-form {
+            display: none;
+            width: 100%;
+            gap: 8px;
+            align-items: center;
+            margin-top: 8px;
+        }
+        .item-todo-mes.editando .edit-inline-form {
+            display: flex;
+        }
+        .item-todo-mes.editando .contenido-normal {
+            display: none;
+        }
+        .edit-inline-form input {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 12px;
+        }
+        .edit-inline-form input[type="text"] {
+            flex: 1;
+            min-width: 120px;
+        }
+        .edit-inline-form input[type="number"] {
+            width: 80px;
+        }
+        .edit-inline-form .btn-guardar-inline {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+        .edit-inline-form .btn-cancelar-inline {
+            background: #999;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+
+        </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
 </head>
 <body>
     <!-- TOP BAR -->
     <nav class="topbar">
         <div class="topbar-logo">
-            💰 <span>Finanzas</span>Personales
+            💰 <span>Finanzas</span>JaviAp
         </div>
         <div class="topbar-actions">
             <button class="tb-btn" onclick="exportarGastosExcel()" style="background:#16a34a;border-color:#16a34a;color:white;">📊 Excel Gastos</button>
@@ -789,7 +1048,7 @@
             <div id="form-container">
                 <div class="add-item-form">
                     <input type="text" id="concepto-input" placeholder="Concepto">
-                    <input type="number" id="valor-input" placeholder="€" step="1">
+                    <input type="text" id="valor-input" placeholder="€" step="1" onblur="calcularSiEsFormula()">
                     <select id="frecuencia-input">
                         <option value="mensual">Mensual (todos)</option>
                         <option value="anual">Anual (elegir meses)</option>
@@ -866,19 +1125,22 @@
         };
         
         const CATEGORIAS_GASTOS = {
-    'alquiler': { nombre: 'Alquiler', icono: '🏠', conceptos: ['Casa Madrid', 'Casa Majadahonda', 'Alquiler', 'alquiler'] },
-    'parking': { nombre: 'Parking', icono: '🅿️', conceptos: ['Parking', 'parking'] },
-    'coche': { nombre: 'Coche', icono: '🚗', conceptos: ['Gasolina', 'gasolina', 'Seguro Coche', 'Revisión Coche', 'Numerito Coche', 'ITV', 'itv', 'Taller', 'taller'] },
-    'suministros': { nombre: 'Suministros', icono: '⚡', conceptos: ['Agua', 'agua', 'Luz', 'luz', 'Gas', 'gas'] },
-    'gastos_casa': { nombre: 'Gastos Casa', icono: '🏡', conceptos: ['Móvil', 'movil', 'Limpieza', 'limpieza', 'Seguro Madrid', 'Pelo', 'pelo'] },
-    'comida': { nombre: 'Comida', icono: '🍽️', conceptos: ['Comida', 'comida'] },
-    'salir': { nombre: 'Salir', icono: '🎉', conceptos: ['Salir', 'salir', 'Restaurante', 'restaurante', 'Cena', 'cena'] },
-    'vacaciones': { nombre: 'Vacaciones', icono: '✈️', conceptos: ['Sky', 'SemSanta', 'Semana Santa', 'Verano', 'Fin de Año'] },
-    'ocio': { nombre: 'Ocio', icono: '🎮', conceptos: ['Lotería', 'loteria', 'Tele', 'tele', 'YouTube', 'youtube', 'Spotify', 'spotify', 'Cloud', 'cloud'] },
-    'deporte': { nombre: 'Deporte', icono: '⚽', conceptos: ['Gym', 'gym', 'Pádel', 'padel', 'Deporte', 'deporte'] },
-    'niños': { nombre: 'Niños', icono: '👶', conceptos: ['Regalo Navidad', 'Cumple Niños', 'Regalo', 'regalo', 'Niños', 'niños'] },
-    'ing': { nombre: 'ING', icono: '💰', conceptos: ['ING'] },
-    'gastos_extras': { nombre: 'Gastos Extras', icono: '📦', conceptos: [] }
+    'alquiler':      { nombre: 'Alquiler',      icono: '🏠', conceptos: ['Casa Madrid', 'Casa Majadahonda', 'Alquiler', 'alquiler'] },
+    'parking':       { nombre: 'Parking',        icono: '🅿️', conceptos: ['Parking', 'parking'] },
+    'coche':         { nombre: 'Coche',          icono: '🚗', conceptos: ['Gasolina', 'gasolina', 'Seguro Coche', 'Revisión Coche', 'Numerito Coche', 'ITV', 'itv', 'Taller', 'taller'] },
+    'suministros':   { nombre: 'Suministros',   icono: '⚡', conceptos: ['Agua', 'agua', 'Luz', 'luz', 'Gas', 'gas'] },
+    'gastos_casa':   { nombre: 'Gastos Casa',   icono: '🏡', conceptos: ['Móvil', 'movil', 'Limpieza', 'limpieza', 'Seguro Madrid'] },
+    'comida':        { nombre: 'Comida',         icono: '🍽️', conceptos: ['Comida', 'comida'] },
+    'salir':         { nombre: 'Salir',          icono: '🎉', conceptos: ['Salir', 'salir', 'Restaurante', 'restaurante', 'Cena', 'cena'] },
+    'vacaciones':    { nombre: 'Vacaciones',     icono: '✈️', conceptos: ['Vacaciones', 'vacaciones', 'Semana Santa', 'SemSanta', 'Verano', 'Fin de Año', 'Fin Año', 'Esquí', 'esqui', 'Sky'] },
+    'ocio':          { nombre: 'Ocio',           icono: '🎮', conceptos: ['Lotería', 'loteria', 'Tele', 'tele', 'YouTube', 'youtube', 'Spotify', 'spotify', 'Cloud', 'cloud'] },
+    'deporte':       { nombre: 'Deporte',        icono: '⚽', conceptos: ['Gym', 'gym', 'Pádel', 'padel', 'Deporte', 'deporte'] },
+    'belleza':       { nombre: 'Belleza',        icono: '💅', conceptos: ['Pelo', 'pelo', 'Peluquería', 'peluqueria', 'Estética', 'estetica', 'Estetic', 'Baño', 'baño'] },
+    'salud':         { nombre: 'Salud',          icono: '💊', conceptos: ['Farmacia', 'farmacia', 'Médico', 'medico', 'Dentista', 'dentista', 'Salud', 'salud'] },
+    'trabajo':       { nombre: 'Trabajo',        icono: '💼', conceptos: ['Trabajo', 'trabajo'] },
+    'niños':         { nombre: 'Niños',          icono: '👶', conceptos: ['Regalo Navidad', 'Cumple Niños', 'Regalo Cumpleaños', 'Regalo', 'regalo', 'Niños', 'niños'] },
+    'ing':           { nombre: 'ING',            icono: '💰', conceptos: ['ING'] },
+    'gastos_extras': { nombre: 'Otros',          icono: '📦', conceptos: ['Otros', 'otros'] }
 };
 
         
@@ -907,6 +1169,13 @@
         let modalTipo = '';
         let itemEditandoIndex = -1;
         let itemEditandoRecurrente = false;
+
+        let editandoConcepto = '';
+        let editandoValorNuevo = 0;
+        let editandoFrecuenciaNueva = '';
+        let editandoMesesNuevos = [];
+        let mesVerTodo = 0; // Para saber qué mes estamos viendo
+
         
         function formatearMoneda(valor) {
             const entero = Math.round(valor);
@@ -1812,28 +2081,36 @@
             let ingresosFijos = 0;
             let gastosFijos = 0;
             let gastosVacaciones = 0;
-            
-            datos.ingresosFijos.forEach(item => {
+
+            const overrides = datos.meses[numMes].overrides || {};
+
+            datos.ingresosFijos.forEach((item, idx) => {
+                const ov = overrides['ingresosFijos_' + idx];
+                const valor = ov ? ov.valor : item.valor;
                 if (item.frecuencia === 'mensual') {
-                    ingresosFijos += item.valor;
+                    ingresosFijos += valor;
                 } else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) {
-                    ingresosFijos += item.valor;
+                    ingresosFijos += valor;
                 }
             });
 
-            datos.gastosFijos.forEach(item => {
+            datos.gastosFijos.forEach((item, idx) => {
+                const ov = overrides['gastosFijos_' + idx];
+                const valor = ov ? ov.valor : item.valor;
                 if (item.frecuencia === 'mensual') {
-                    gastosFijos += item.valor;
+                    gastosFijos += valor;
                 } else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) {
-                    gastosFijos += item.valor;
+                    gastosFijos += valor;
                 }
             });
             
-            datos.gastosVacaciones.forEach(item => {
+            datos.gastosVacaciones.forEach((item, idx) => {
+                const ov = overrides['gastosVacaciones_' + idx];
+                const valor = ov ? ov.valor : item.valor;
                 if (item.frecuencia === 'mensual') {
-                    gastosVacaciones += item.valor;
+                    gastosVacaciones += valor;
                 } else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) {
-                    gastosVacaciones += item.valor;
+                    gastosVacaciones += valor;
                 }
             });
             
@@ -1851,9 +2128,11 @@
                 }
             });
             
-            const ingresosBonus = (datos.ingresosBonus || []).reduce((sum, item) => {
-                if (item.frecuencia === 'mensual') return sum + item.valor;
-                if (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) return sum + item.valor;
+            const ingresosBonus = (datos.ingresosBonus || []).reduce((sum, item, idx) => {
+                const ov = overrides['ingresosBonus_' + idx];
+                const valor = ov ? ov.valor : item.valor;
+                if (item.frecuencia === 'mensual') return sum + valor;
+                if (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) return sum + valor;
                 return sum;
             }, 0);
 
@@ -2202,6 +2481,19 @@
         card.appendChild(mesBalance);
         card.appendChild(mesAcumulado);
         
+
+        
+        // Añadir botón "Ver Todo el Mes"
+        const btnVerTodo = document.createElement('button');
+        btnVerTodo.className = 'tb-btn';
+        btnVerTodo.style.cssText = 'background: #9c27b0; border-color: #9c27b0; color: white; width: 100%; margin-top: 10px; padding: 8px;';
+        btnVerTodo.textContent = '📋 Ver Todo';
+        btnVerTodo.onclick = function(e) {
+            e.stopPropagation(); // Evitar que se active el onclick del card
+            abrirModalVerTodoMes(i);
+        };
+        card.appendChild(btnVerTodo);
+        
         grid.appendChild(card);
     }
     
@@ -2548,7 +2840,7 @@
             const valor = parseFloat(document.getElementById('valor-input').value) || 0;
             const frecuencia = document.getElementById('frecuencia-input').value;
             
-            if (concepto && valor > 0) {
+            if (concepto && valor >= 0) {
                 // Check if this is an extra with fecha fin
                 if (modalTipo === 'extras' && document.getElementById('tiene-fecha-fin').checked) {
                     const finMes = parseInt(document.getElementById('fin-mes-input').value);
@@ -2619,6 +2911,21 @@
                 }
                 
                 if (itemEditandoIndex >= 0) {
+                    // Si es un gasto fijo, ingreso fijo o bonus, mostrar modal de alcance
+                    if (modalTipo === 'fijos' || modalTipo === 'vacaciones' || modalTipo === 'ingresos-fijos' || modalTipo === 'ingresos-bonus') {
+                        editandoConcepto = item.concepto;
+                        editandoValorNuevo = item.valor;
+                        editandoFrecuenciaNueva = item.frecuencia || '';
+                        editandoMesesNuevos = item.meses || [];
+                        
+                        document.getElementById('alcance-concepto-nombre').textContent = item.concepto;
+                        document.getElementById('alcance-mes-nombre').textContent = MESES_NOMBRES[mesActual];
+                        document.getElementById('alcance-mes-nombre2').textContent = MESES_NOMBRES[mesActual];
+                        document.getElementById('modal-alcance-edicion').style.display = 'flex';
+                        return;
+                    }
+                    
+                    // Para otros tipos, comportamiento normal
                     obtenerArrayActual()[itemEditandoIndex] = item;
                     mostrarNotificacion('✅ Item actualizado', 'exito');
                     itemEditandoIndex = -1;
@@ -2920,45 +3227,54 @@
             renderizarDesgloseAnual(document.getElementById('desglose-buscador').value);
         }
 
-        function exportarGastosExcel() {
-            const wb = XLSX.utils.book_new();
-            const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+        async function exportarGastosExcel() {
+            const MESES       = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+            const MESES_CORTO = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 
-            // ── Hoja 1: Resumen por mes (columnas = meses) ──────────────────
-            // Recopilar todos los conceptos de gasto únicos
+            const C_HDR_BG  = 'FF1E3A8A';
+            const C_HDR_FG  = 'FFFFFFFF';
+            const C_TOT_BG  = 'FFFEF08A';
+            const C_TOT_FG  = 'FF1E3A8A';
+            const C_TANO_BG = 'FFDBEAFE';
+            const C_TANO_TOT= 'FFFDE047';
+            const C_ALT     = 'FFEFF6FF';
+            const C_SEP     = 'FFF8FAFC';
+            const C_WHITE   = 'FFFFFFFF';
+            const FMT_EURO  = '#,##0;-#,##0;""';
+            const FONT_NAME = 'Segoe UI';
+
+            const fHdr  = { name: FONT_NAME, size: 10, bold: true, color: { argb: C_HDR_FG } };
+            const fTot  = { name: FONT_NAME, size: 10, bold: true, color: { argb: C_TOT_FG } };
+            const fTAno = { name: FONT_NAME, size: 11, bold: true, color: { argb: C_TOT_FG } };
+            const fNorm = { name: FONT_NAME, size: 10 };
+            const fBold = { name: FONT_NAME, size: 10, bold: true, color: { argb: C_TOT_FG } };
+
+            const fillSolid = argb => ({ type: 'pattern', pattern: 'solid', fgColor: { argb } });
+            const alignC = { horizontal: 'center', vertical: 'middle' };
+            const alignL = { horizontal: 'left',   vertical: 'middle' };
+
+            // ── Recopilar datos ───────────────────────────────────────────
             const conceptosSet = new Set();
-            const datosPorMes = [];
+            const datosPorMes  = [];
 
             for (let m = 0; m < 12; m++) {
                 const filas = [];
-                const totMes = calcularTotalesMes(m);
+                const addGasto = (concepto, importe) => { conceptosSet.add(concepto); filas.push({ concepto, importe }); };
 
-                const addGasto = (concepto, importe) => {
-                    conceptosSet.add(concepto);
-                    filas.push({ concepto, importe });
-                };
-
-                // Gastos fijos
                 datos.gastosFijos.forEach(item => {
                     const aplica = item.frecuencia === 'mensual' ||
                         (item.frecuencia === 'anual' && item.meses && item.meses.includes(m));
                     if (aplica) addGasto(item.concepto, item.valor);
                 });
-
-                // Vacaciones fijas
                 datos.gastosVacaciones.forEach(item => {
                     const aplica = item.frecuencia === 'mensual' ||
                         (item.frecuencia === 'anual' && item.meses && item.meses.includes(m));
                     if (aplica) addGasto(item.concepto + ' (vac)', item.valor);
                 });
-
-                // Extras recurrentes gastos
                 (datos.extrasRecurrentes || []).forEach(item => {
                     if (item.tipo === 'gastos' && extraRecurrenteAplicaEnMes(item, anoActual, m))
                         addGasto(item.concepto + ' (rec)', item.valor);
                 });
-
-                // Extras puntuales
                 if (!esMesCerrado(m)) {
                     datos.meses[m].gastosExtras.forEach(item => addGasto(item.concepto, item.valor));
                     datos.meses[m].gastosVacacionesExtras.forEach(item => addGasto(item.concepto + ' (vac)', item.valor));
@@ -2972,93 +3288,1130 @@
                     if (extPunt > 0) addGasto('(Extras puntuales)', extPunt);
                     if ((snap.gastosVacacionesExtras || 0) > 0) addGasto('(Extras vacaciones)', snap.gastosVacacionesExtras);
                 }
-
                 datosPorMes.push(filas);
             }
 
             const conceptos = Array.from(conceptosSet).sort();
 
-            // Cabeceras: Concepto | Ene Importe | Feb Importe | ...
-            const header = ['Concepto'];
-            MESES.forEach(m => header.push(m));
-            header.push('TOTAL AÑO');
+            // ── Crear workbook ────────────────────────────────────────────
+            const wb = new ExcelJS.Workbook();
+            wb.creator = 'FinanzasPersonales';
 
-            const wsData = [header];
+            // ── HOJA RESUMEN ──────────────────────────────────────────────
+            const wsR = wb.addWorksheet('Gastos ' + anoActual, { views: [{ showGridLines: false }] });
+            wsR.columns = [
+                { width: 3 }, { width: 32 },
+                ...MESES.map(() => ({ width: 10 })),
+                { width: 0.65 }, { width: 13 },
+            ];
 
-            conceptos.forEach(concepto => {
-                const fila = [concepto];
-                let totalConcepto = 0;
-                for (let m = 0; m < 12; m++) {
-                    const item = datosPorMes[m].find(f => f.concepto === concepto);
-                    const val = item ? item.importe : 0;
-                    fila.push(val || '');
-                    totalConcepto += val || 0;
-                }
-                fila.push(totalConcepto);
-                wsData.push(fila);
+            // Cabecera
+            const hdrRow = wsR.addRow([null, 'Concepto', ...MESES, null, 'TOTAL AÑO']);
+            hdrRow.height = 22;
+            hdrRow.eachCell((cell, colN) => {
+                if (colN < 2) return;
+                if (colN === 15) { cell.fill = fillSolid(C_WHITE); return; }
+                cell.fill = fillSolid(C_HDR_BG); cell.font = fHdr;
+                cell.alignment = colN === 2 ? alignL : alignC;
             });
 
-            // Fila total por mes
-            const filaTotales = ['TOTAL MES'];
-            let granTotal = 0;
-            for (let m = 0; m < 12; m++) {
-                const tot = datosPorMes[m].reduce((s, f) => s + f.importe, 0);
-                filaTotales.push(tot);
-                granTotal += tot;
-            }
-            filaTotales.push(granTotal);
-            wsData.push([]);
-            wsData.push(filaTotales);
+            // Sep top
+            const sepTop = wsR.addRow([]);
+            sepTop.height = 6;
+            for (let c = 2; c <= 16; c++) wsR.getCell(sepTop.number, c).fill = fillSolid(C_SEP);
 
-            const ws = XLSX.utils.aoa_to_sheet(wsData);
-
-            // Anchos de columna
-            ws['!cols'] = [{ wch: 32 }, ...Array(13).fill({ wch: 14 })];
-
-            // Estilos básicos de cabecera (negrita en fila 1 y columna totales)
-            const range = XLSX.utils.decode_range(ws['!ref']);
-            for (let C = range.s.c; C <= range.e.c; C++) {
-                const cell = ws[XLSX.utils.encode_cell({ r: 0, c: C })];
-                if (cell) cell.s = { font: { bold: true }, fill: { fgColor: { rgb: '1E3A8A' } }, font: { bold: true, color: { rgb: 'FFFFFF' } } };
-            }
-            // Fila totales al final
-            const lastRow = wsData.length - 1;
-            for (let C = range.s.c; C <= range.e.c; C++) {
-                const cell = ws[XLSX.utils.encode_cell({ r: lastRow, c: C })];
-                if (cell) cell.s = { font: { bold: true }, fill: { fgColor: { rgb: 'FEF9C3' } } };
-            }
-
-            XLSX.utils.book_append_sheet(wb, ws, 'Gastos ' + anoActual);
-
-            // ── Hoja 2: Detalle mes a mes (una hoja por mes) ──────────────
-            for (let m = 0; m < 12; m++) {
-                const wsDetData = [['Concepto', 'Tipo', 'Importe (€)']];
-                const filas = datosPorMes[m];
-                filas.forEach(f => {
-                    // Inferir tipo
-                    let tipo = 'Gasto fijo';
-                    if (f.concepto.includes('(vac)')) tipo = 'Vacaciones';
-                    else if (f.concepto.includes('(rec)')) tipo = 'Recurrente';
-                    else if (f.concepto.startsWith('(')) tipo = 'Extra puntual';
-                    else {
-                        const esFijo = datos.gastosFijos.some(g => g.concepto === f.concepto);
-                        if (!esFijo) tipo = 'Extra puntual';
-                    }
-                    wsDetData.push([f.concepto.replace(' (vac)', '').replace(' (rec)', ''), tipo, f.importe]);
-                });
-                if (filas.length > 0) {
-                    const totalMes = filas.reduce((s, f) => s + f.importe, 0);
-                    wsDetData.push([]);
-                    wsDetData.push(['TOTAL', '', totalMes]);
+            // Conceptos
+            conceptos.forEach((concepto, i) => {
+                const isAlt = i % 2 === 1;
+                let totalConcepto = 0;
+                const rowVals = [null, concepto];
+                for (let m = 0; m < 12; m++) {
+                    const item = datosPorMes[m].find(f => f.concepto === concepto);
+                    const val = item ? item.importe : null;
+                    rowVals.push(val);
+                    totalConcepto += val || 0;
                 }
-                const wsDet = XLSX.utils.aoa_to_sheet(wsDetData);
-                wsDet['!cols'] = [{ wch: 30 }, { wch: 18 }, { wch: 14 }];
-                XLSX.utils.book_append_sheet(wb, wsDet, MESES[m].substring(0, 3));
+                rowVals.push(null); rowVals.push(totalConcepto);
+                const row = wsR.addRow(rowVals);
+                row.eachCell((cell, colN) => {
+                    if (colN < 2) return;
+                    cell.font = fNorm;
+                    if (colN === 15) { cell.fill = fillSolid(C_WHITE); }
+                    else if (colN === 16) { cell.fill = fillSolid(C_TANO_BG); cell.font = fBold; cell.alignment = alignC; cell.numFmt = FMT_EURO; }
+                    else { cell.fill = fillSolid(isAlt ? C_ALT : C_WHITE); cell.alignment = colN === 2 ? alignL : alignC; if (colN > 2) cell.numFmt = FMT_EURO; }
+                });
+            });
+
+            // Sep bot
+            const sepBot = wsR.addRow([]);
+            sepBot.height = 6;
+            for (let c = 2; c <= 16; c++) wsR.getCell(sepBot.number, c).fill = fillSolid(C_SEP);
+
+            // Total mes
+            let granTotal = 0;
+            const totVals = [null, 'TOTAL MES'];
+            for (let m = 0; m < 12; m++) {
+                const t = datosPorMes[m].reduce((s, f) => s + f.importe, 0);
+                totVals.push(t); granTotal += t;
+            }
+            totVals.push(null); totVals.push(granTotal);
+            const totRow = wsR.addRow(totVals);
+            totRow.height = 20;
+            totRow.eachCell((cell, colN) => {
+                if (colN < 2) return;
+                if (colN === 15) { cell.fill = fillSolid(C_WHITE); }
+                else if (colN === 16) { cell.fill = fillSolid(C_TANO_TOT); cell.font = fTAno; cell.alignment = alignC; cell.numFmt = FMT_EURO; }
+                else { cell.fill = fillSolid(C_TOT_BG); cell.font = fTot; cell.alignment = colN === 2 ? alignL : alignC; if (colN > 2) cell.numFmt = FMT_EURO; }
+            });
+
+            // ── HOJAS DE MES ──────────────────────────────────────────────
+            for (let m = 0; m < 12; m++) {
+                const filas = datosPorMes[m];
+                if (filas.length === 0) continue;
+                const wsM = wb.addWorksheet(MESES_CORTO[m], { views: [{ showGridLines: false }] });
+                wsM.columns = [{ width: 3 }, { width: 32 }, { width: 16 }, { width: 13 }];
+
+                const mHdr = wsM.addRow([null, 'Concepto', 'Tipo', 'Importe (€)']);
+                mHdr.height = 22;
+                mHdr.eachCell((cell, colN) => {
+                    if (colN < 2) return;
+                    cell.fill = fillSolid(C_HDR_BG); cell.font = fHdr;
+                    cell.alignment = colN === 2 ? alignL : alignC;
+                });
+
+                const mSepTop = wsM.addRow([]);
+                mSepTop.height = 6;
+                for (let c = 2; c <= 4; c++) wsM.getCell(mSepTop.number, c).fill = fillSolid(C_SEP);
+
+                filas.forEach((f, i) => {
+                    const isAlt = i % 2 === 1;
+                    let tipo = 'Gasto fijo';
+                    if (f.concepto.includes('(vac)'))      tipo = 'Vacaciones';
+                    else if (f.concepto.includes('(rec)')) tipo = 'Recurrente';
+                    else if (f.concepto.startsWith('('))   tipo = 'Extra puntual';
+                    else if (!datos.gastosFijos.some(g => g.concepto === f.concepto)) tipo = 'Extra puntual';
+                    const row = wsM.addRow([null, f.concepto.replace(' (vac)','').replace(' (rec)',''), tipo, f.importe]);
+                    row.eachCell((cell, colN) => {
+                        if (colN < 2) return;
+                        cell.font = fNorm; cell.fill = fillSolid(isAlt ? C_ALT : C_WHITE);
+                        cell.alignment = colN <= 3 ? alignL : alignC;
+                        if (colN === 4) cell.numFmt = FMT_EURO;
+                    });
+                });
+
+                const mSepBot = wsM.addRow([]);
+                mSepBot.height = 6;
+                for (let c = 2; c <= 4; c++) wsM.getCell(mSepBot.number, c).fill = fillSolid(C_SEP);
+
+                const totalMes = filas.reduce((s, f) => s + f.importe, 0);
+                const mTot = wsM.addRow([null, 'TOTAL', '', totalMes]);
+                mTot.height = 20;
+                mTot.eachCell((cell, colN) => {
+                    if (colN < 2) return;
+                    cell.fill = fillSolid(C_TOT_BG); cell.font = fTot;
+                    cell.alignment = colN <= 3 ? alignL : alignC;
+                    if (colN === 4) cell.numFmt = FMT_EURO;
+                });
             }
 
-            XLSX.writeFile(wb, 'Gastos_' + anoActual + '.xlsx');
+            // ── Descargar ─────────────────────────────────────────────────
+            const buffer = await wb.xlsx.writeBuffer();
+            const blob   = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url    = URL.createObjectURL(blob);
+            const a      = document.createElement('a');
+            a.href = url; a.download = 'Gastos_' + anoActual + '.xlsx';
+            a.click(); URL.revokeObjectURL(url);
             mostrarNotificacion('✅ Excel de gastos descargado', 'exito');
         }
+    
+        // ============================================
+        // FUNCIONES DE EDICIÓN SELECTIVA
+        // ============================================
+        
+        function cerrarModalAlcance() {
+            document.getElementById('modal-alcance-edicion').style.display = 'none';
+            itemEditandoIndex = -1;
+            editandoConcepto = '';
+            editandoValorNuevo = 0;
+        }
+
+        function aplicarEdicionConAlcance(alcance) {
+            if (alcance === 'solo-mes') {
+                const mesData = datos.meses[mesActual];
+                
+                let arrayExtras;
+                if (modalTipo === 'fijos' && tipoActual === 'gastos') {
+                    arrayExtras = mesData.gastosExtras;
+                } else if ((modalTipo === 'fijos' && tipoActual === 'ingresos') || modalTipo === 'ingresos-fijos' || modalTipo === 'ingresos-bonus') {
+                    arrayExtras = mesData.ingresosExtras;
+                } else if (modalTipo === 'vacaciones') {
+                    arrayExtras = mesData.gastosVacacionesExtras;
+                }
+                
+                const itemFijo = obtenerArrayActual()[itemEditandoIndex];
+                let valorBase = 0;
+                
+                if (itemFijo.frecuencia === 'mensual') {
+                    valorBase = itemFijo.valor;
+                } else if (itemFijo.frecuencia === 'anual' && itemFijo.meses && itemFijo.meses.includes(mesActual)) {
+                    valorBase = itemFijo.valor;
+                }
+                
+                const diferencia = editandoValorNuevo - valorBase;
+                
+                const extraExistente = arrayExtras.findIndex(e => e.concepto === editandoConcepto);
+                
+                if (extraExistente >= 0) {
+                    arrayExtras[extraExistente].valor = diferencia;
+                } else {
+                    arrayExtras.push({
+                        concepto: editandoConcepto,
+                        valor: diferencia
+                    });
+                }
+                
+                mostrarNotificacion('✅ Actualizado solo para ' + MESES_NOMBRES[mesActual] + ' (valor real: ' + editandoValorNuevo + '€)', 'exito');
+            } else if (alcance === 'todos-abiertos') {
+                const item = {
+                    concepto: editandoConcepto,
+                    valor: editandoValorNuevo,
+                    frecuencia: editandoFrecuenciaNueva
+                };
+                
+                if (editandoFrecuenciaNueva === 'anual') {
+                    item.meses = editandoMesesNuevos;
+                }
+                
+                obtenerArrayActual()[itemEditandoIndex] = item;
+                mostrarNotificacion('✅ Actualizado en todos los meses abiertos', 'exito');
+            }
+            
+            document.getElementById('modal-alcance-edicion').style.display = 'none';
+            itemEditandoIndex = -1;
+            editandoConcepto = '';
+            editandoValorNuevo = 0;
+            
+            document.getElementById('concepto-input').value = '';
+            document.getElementById('valor-input').value = '';
+            
+            guardarDatos();
+            actualizarTodo();
+            actualizarResumenAnual();
+        }
+        
+        // ============================================
+        // FUNCIÓN CALCULADORA
+        // ============================================
+        
+        function calcularSiEsFormula() {
+            const input = document.getElementById('valor-input');
+            const valor = input.value.trim();
+            
+            if (valor.match(/[\+\-\*\/]/)) {
+                try {
+                    const resultado = Function('"use strict"; return (' + valor + ')')();
+                    if (!isNaN(resultado) && isFinite(resultado)) {
+                        input.value = Math.round(resultado * 100) / 100;
+                        mostrarNotificacion('🧮 Calculado: ' + valor + ' = ' + input.value + '€', 'exito');
+                    }
+                } catch (e) {
+                    console.log('Error al calcular:', e);
+                }
+            }
+        }
+        
+        // ============================================
+        // FUNCIONES VER TODO EL MES
+        // ============================================
+        
+        function abrirModalVerTodoMes(numMes) {
+            mesVerTodo = numMes;
+            window.mesActualVerTodo = numMes;
+            mesActual = numMes;
+            
+            document.getElementById('ver-todo-mes-nombre').textContent = MESES_NOMBRES[numMes] + ' ' + anoActual;
+            
+            recopilarYMostrarTodosMes(numMes);
+            
+            document.getElementById('modal-ver-todo-mes').style.display = 'flex';
+        }
+        
+        function cerrarModalVerTodo() {
+            document.getElementById('modal-ver-todo-mes').style.display = 'none';
+            document.getElementById('buscar-todo-mes').value = '';
+        }
+        
+        function recopilarYMostrarTodosMes(numMes) {
+            const items = [];
+            let totalIngresos = 0;
+            let totalGastos = 0;
+            
+            // Recopilar ingresos fijos
+            const overridesMes = datos.meses[numMes].overrides || {};
+
+            datos.ingresosFijos.forEach((item, idx) => {
+                let aplica = false;
+                
+                if (item.frecuencia === 'mensual') {
+                    aplica = true;
+                } else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) {
+                    aplica = true;
+                }
+                
+                if (aplica) {
+                    const ov = overridesMes['ingresosFijos_' + idx];
+                    if (ov && ov.eliminado) return; // oculto: eliminado solo este mes
+                    const valor = ov ? ov.valor : item.valor;
+                    const concepto = ov ? ov.concepto : item.concepto;
+                    items.push({
+                        concepto: concepto,
+                        valor: valor,
+                        tipo: 'ingreso',
+                        categoria: 'Ingreso Fijo',
+                        fuente: 'ingresosFijos',
+                        index: idx,
+                        editable: true,
+                        tieneOverride: !!ov
+                    });
+                    totalIngresos += valor;
+                }
+            });
+            
+            // Recopilar gastos fijos
+            datos.gastosFijos.forEach((item, idx) => {
+                let aplica = false;
+                
+                if (item.frecuencia === 'mensual') {
+                    aplica = true;
+                } else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) {
+                    aplica = true;
+                }
+                
+                if (aplica) {
+                    const ov = overridesMes['gastosFijos_' + idx];
+                    if (ov && ov.eliminado) return; // oculto: eliminado solo este mes
+                    const valor = ov ? ov.valor : item.valor;
+                    const concepto = ov ? ov.concepto : item.concepto;
+                    items.push({
+                        concepto: concepto,
+                        valor: valor,
+                        tipo: 'gasto',
+                        categoria: 'Gasto Fijo',
+                        fuente: 'gastosFijos',
+                        index: idx,
+                        editable: true,
+                        tieneOverride: !!ov
+                    });
+                    totalGastos += valor;
+                }
+            });
+            
+            // Recopilar vacaciones fijas
+            datos.gastosVacaciones.forEach((item, idx) => {
+                let aplica = false;
+                
+                if (item.frecuencia === 'mensual') {
+                    aplica = true;
+                } else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) {
+                    aplica = true;
+                }
+                
+                if (aplica) {
+                    const ov = overridesMes['gastosVacaciones_' + idx];
+                    if (ov && ov.eliminado) return; // oculto: eliminado solo este mes
+                    const valor = ov ? ov.valor : item.valor;
+                    const concepto = ov ? ov.concepto : item.concepto;
+                    items.push({
+                        concepto: concepto,
+                        valor: valor,
+                        tipo: 'gasto',
+                        categoria: 'Vacaciones',
+                        fuente: 'gastosVacaciones',
+                        index: idx,
+                        editable: true,
+                        tieneOverride: !!ov
+                    });
+                    totalGastos += valor;
+                }
+            });
+            
+            // Recopilar bonus
+            datos.ingresosBonus.forEach((item, idx) => {
+                let aplica = false;
+                
+                if (item.frecuencia === 'mensual') {
+                    aplica = true;
+                } else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) {
+                    aplica = true;
+                }
+                
+                if (aplica) {
+                    const ov = overridesMes['ingresosBonus_' + idx];
+                    if (ov && ov.eliminado) return; // oculto: eliminado solo este mes
+                    const valor = ov ? ov.valor : item.valor;
+                    const concepto = ov ? ov.concepto : item.concepto;
+                    items.push({
+                        concepto: concepto,
+                        valor: valor,
+                        tipo: 'ingreso',
+                        categoria: 'Bonus',
+                        fuente: 'ingresosBonus',
+                        index: idx,
+                        editable: true,
+                        tieneOverride: !!ov
+                    });
+                    totalIngresos += valor;
+                }
+            });
+            
+            // Recopilar extras del mes
+            const mesData = datos.meses[numMes];
+            
+            mesData.ingresosExtras.forEach((item, idx) => {
+                items.push({
+                    concepto: item.concepto,
+                    valor: item.valor,
+                    tipo: 'ingreso',
+                    categoria: 'Extra',
+                    fuente: 'ingresosExtras',
+                    index: idx,
+                    editable: true
+                });
+                totalIngresos += item.valor;
+            });
+            
+            mesData.gastosExtras.forEach((item, idx) => {
+                items.push({
+                    concepto: item.concepto,
+                    valor: item.valor,
+                    tipo: 'gasto',
+                    categoria: 'Extra',
+                    fuente: 'gastosExtras',
+                    index: idx,
+                    editable: true
+                });
+                totalGastos += item.valor;
+            });
+            
+            mesData.gastosVacacionesExtras.forEach((item, idx) => {
+                items.push({
+                    concepto: item.concepto,
+                    valor: item.valor,
+                    tipo: 'gasto',
+                    categoria: 'Vacaciones Extra',
+                    fuente: 'gastosVacacionesExtras',
+                    index: idx,
+                    editable: true
+                });
+                totalGastos += item.valor;
+            });
+            
+            // Recopilar extras recurrentes
+            if (datos.extrasRecurrentes) {
+                datos.extrasRecurrentes.forEach((item, idx) => {
+                    if (extraRecurrenteAplicaEnMes(item, anoActual, numMes)) {
+                        items.push({
+                            concepto: item.concepto,
+                            valor: item.valor,
+                            tipo: item.tipo,
+                            categoria: 'Recurrente',
+                            fuente: 'extrasRecurrentes',
+                            index: idx,
+                            editable: false
+                        });
+                        
+                        if (item.tipo === 'ingresos') {
+                            totalIngresos += item.valor;
+                        } else {
+                            totalGastos += item.valor;
+                        }
+                    }
+                });
+            }
+            
+            // Actualizar totales
+            document.getElementById('total-ingresos-todo').textContent = formatearMoneda(totalIngresos);
+            document.getElementById('total-gastos-todo').textContent = formatearMoneda(totalGastos);
+            document.getElementById('balance-todo').textContent = formatearMoneda(totalIngresos - totalGastos);
+            
+            // Renderizar lista
+            renderizarListaTodoMes(items);
+        }
+        
+        function renderizarListaTodoMes(items) {
+            const lista = document.getElementById('lista-todo-mes');
+            lista.innerHTML = '';
+            
+            if (items.length === 0) {
+                lista.innerHTML = '<div style="text-align: center; padding: 40px; color: #999;">No hay movimientos en este mes</div>';
+                return;
+            }
+            
+            // Usar orden personalizado si existe, sino ordenar por defecto
+            if (!window.ordenPersonalizado || !window.ordenPersonalizado[window.mesActualVerTodo]) {
+                items.sort((a, b) => {
+                    if (a.tipo !== b.tipo) return a.tipo === 'ingreso' ? -1 : 1;
+                    return a.concepto.localeCompare(b.concepto);
+                });
+            } else {
+                const orden = window.ordenPersonalizado[window.mesActualVerTodo];
+                items.sort((a, b) => {
+                    const keyA = a.concepto + '_' + a.tipo;
+                    const keyB = b.concepto + '_' + b.tipo;
+                    const idxA = orden.indexOf(keyA);
+                    const idxB = orden.indexOf(keyB);
+                    if (idxA === -1 && idxB === -1) return 0;
+                    if (idxA === -1) return 1;
+                    if (idxB === -1) return -1;
+                    return idxA - idxB;
+                });
+            }
+            
+            // Mensaje informativo
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'orden-info';
+            infoDiv.innerHTML = '✋ <span>Arrastra las líneas para reordenarlas</span><button onclick="resetearOrden()" style="margin-left:auto; background:#fff; color:#7c3aed; border:none; padding:5px 10px; border-radius:5px; cursor:pointer; font-size:11px;">↺ Restablecer</button>';
+            lista.appendChild(infoDiv);
+            
+            items.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'item-todo-mes ' + item.tipo;
+                div.setAttribute('data-concepto', item.concepto.toLowerCase());
+                div.setAttribute('data-key', item.concepto + '_' + item.tipo);
+                div.setAttribute('draggable', 'true');
+                
+                // Eventos Drag & Drop
+                div.addEventListener('dragstart', handleDragStart);
+                div.addEventListener('dragend', handleDragEnd);
+                div.addEventListener('dragover', handleDragOver);
+                div.addEventListener('dragenter', handleDragEnter);
+                div.addEventListener('dragleave', handleDragLeave);
+                div.addEventListener('drop', handleDrop);
+                
+                const leftDiv = document.createElement('div');
+                leftDiv.style.display = 'flex';
+                leftDiv.style.alignItems = 'center';
+                leftDiv.style.flex = '1';
+                
+                const dragHandle = document.createElement('span');
+                dragHandle.className = 'drag-handle';
+                dragHandle.innerHTML = '⋮⋮';
+                dragHandle.title = 'Arrastra para reordenar';
+                leftDiv.appendChild(dragHandle);
+                
+                const conceptoSpan = document.createElement('span');
+                conceptoSpan.className = 'concepto';
+                conceptoSpan.textContent = item.concepto;
+                leftDiv.appendChild(conceptoSpan);
+                
+                const badge = document.createElement('span');
+                badge.className = 'tipo-badge';
+                badge.textContent = item.categoria;
+                leftDiv.appendChild(badge);
+
+                // Indicador de override (solo este mes)
+                if (item.tieneOverride) {
+                    const ovBadge = document.createElement('span');
+                    ovBadge.title = 'Valor modificado solo para este mes. Clic para restaurar el valor global.';
+                    ovBadge.style.cssText = 'margin-left:6px; background:#f59e0b; color:#fff; font-size:10px; font-weight:700; padding:2px 7px; border-radius:12px; cursor:pointer; white-space:nowrap;';
+                    ovBadge.textContent = '✏️ solo este mes';
+                    ovBadge.onclick = (e) => {
+                        e.stopPropagation();
+                        if (confirm('¿Restaurar el valor global para "' + item.concepto + '" en este mes?')) {
+                            const key = item.fuente + '_' + item.index;
+                            if (datos.meses[mesVerTodo].overrides) {
+                                delete datos.meses[mesVerTodo].overrides[key];
+                            }
+                            guardarDatos();
+                            actualizarTodo();
+                            actualizarResumenAnual();
+                            abrirModalVerTodoMes(mesVerTodo);
+                            mostrarNotificacion('↩️ Valor global restaurado', 'exito');
+                        }
+                    };
+                    leftDiv.appendChild(ovBadge);
+                }
+                
+                const valorSpan = document.createElement('span');
+                valorSpan.className = 'valor';
+                valorSpan.style.color = item.tipo === 'ingreso' ? '#2e7d32' : '#c62828';
+                valorSpan.textContent = formatearMoneda(item.valor);
+                
+                const accionesDiv = document.createElement('div');
+                accionesDiv.className = 'acciones';
+                
+                const editBtn = document.createElement('button');
+                editBtn.className = 'btn-editar';
+                editBtn.textContent = '✏️';
+                editBtn.title = 'Editar';
+                editBtn.onclick = (e) => { e.stopPropagation(); editarItemInline(div, item); };
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'btn-eliminar';
+                deleteBtn.textContent = '🗑️';
+                deleteBtn.title = 'Eliminar';
+                deleteBtn.onclick = () => eliminarItemDesdeTodoMes(item);
+                
+                accionesDiv.appendChild(editBtn);
+                accionesDiv.appendChild(deleteBtn);
+                
+                div.appendChild(leftDiv);
+                div.appendChild(valorSpan);
+                div.appendChild(accionesDiv);
+                
+                lista.appendChild(div);
+            });
+        }
+        
+        // ========== VARIABLES GLOBALES ==========
+        let draggedElement = null;
+        window.ordenPersonalizado = window.ordenPersonalizado || {};
+        window.mesActualVerTodo = null;
+        
+        // ========== FUNCIONES DRAG & DROP ==========
+        function handleDragStart(e) {
+            draggedElement = this;
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', this.getAttribute('data-key'));
+        }
+        
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+            document.querySelectorAll('.item-todo-mes').forEach(item => {
+                item.classList.remove('drag-over');
+            });
+        }
+        
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        }
+        
+        function handleDragEnter(e) {
+            e.preventDefault();
+            if (this !== draggedElement && this.classList.contains('item-todo-mes')) {
+                this.classList.add('drag-over');
+            }
+        }
+        
+        function handleDragLeave(e) {
+            this.classList.remove('drag-over');
+        }
+        
+        function handleDrop(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            if (this !== draggedElement && this.classList.contains('item-todo-mes')) {
+                const lista = document.getElementById('lista-todo-mes');
+                const items = Array.from(lista.querySelectorAll('.item-todo-mes'));
+                const draggedIdx = items.indexOf(draggedElement);
+                const targetIdx = items.indexOf(this);
+                
+                if (draggedIdx < targetIdx) {
+                    this.parentNode.insertBefore(draggedElement, this.nextSibling);
+                } else {
+                    this.parentNode.insertBefore(draggedElement, this);
+                }
+                
+                guardarOrdenPersonalizado();
+            }
+            
+            this.classList.remove('drag-over');
+        }
+        
+        function guardarOrdenPersonalizado() {
+            const lista = document.getElementById('lista-todo-mes');
+            const items = Array.from(lista.querySelectorAll('.item-todo-mes'));
+            const orden = items.map(item => item.getAttribute('data-key')).filter(k => k);
+            
+            if (window.mesActualVerTodo !== null) {
+                window.ordenPersonalizado[window.mesActualVerTodo] = orden;
+                try {
+                    localStorage.setItem('ordenMovimientos', JSON.stringify(window.ordenPersonalizado));
+                } catch(e) {}
+            }
+        }
+        
+        function resetearOrden() {
+            if (window.mesActualVerTodo !== null && window.ordenPersonalizado) {
+                delete window.ordenPersonalizado[window.mesActualVerTodo];
+                try {
+                    localStorage.setItem('ordenMovimientos', JSON.stringify(window.ordenPersonalizado));
+                } catch(e) {}
+                abrirModalVerTodoMes(window.mesActualVerTodo);
+            }
+        }
+        
+        // Cargar orden guardado al iniciar
+        try {
+            const ordenGuardado = localStorage.getItem('ordenMovimientos');
+            if (ordenGuardado) {
+                window.ordenPersonalizado = JSON.parse(ordenGuardado);
+            }
+        } catch(e) {}
+        
+        // ========== FUNCIONES EDICIÓN INLINE ==========
+        function editarItemInline(divElement, item) {
+            // Quitar edición de otros items
+            document.querySelectorAll('.item-todo-mes.editando').forEach(div => {
+                div.classList.remove('editando');
+                const form = div.querySelector('.edit-inline-form');
+                if (form) form.remove();
+            });
+            
+            // Marcar este item como editando
+            divElement.classList.add('editando');
+            
+            // Crear formulario inline
+            const form = document.createElement('div');
+            form.className = 'edit-inline-form';
+            
+            const inputConcepto = document.createElement('input');
+            inputConcepto.type = 'text';
+            inputConcepto.className = 'edit-concepto';
+            inputConcepto.value = item.concepto;
+            inputConcepto.placeholder = 'Concepto';
+            
+            const inputValor = document.createElement('input');
+            inputValor.type = 'number';
+            inputValor.className = 'edit-valor';
+            inputValor.value = item.valor;
+            inputValor.placeholder = 'Valor';
+            inputValor.step = '0.01';
+            
+            const btnGuardar = document.createElement('button');
+            btnGuardar.className = 'btn-guardar-inline';
+            btnGuardar.textContent = '✓';
+            btnGuardar.title = 'Guardar';
+            btnGuardar.onclick = (e) => {
+                e.stopPropagation();
+                guardarEdicionInline(item, inputConcepto.value.trim(), parseFloat(inputValor.value));
+            };
+            
+            const btnCancelar = document.createElement('button');
+            btnCancelar.className = 'btn-cancelar-inline';
+            btnCancelar.textContent = '✕';
+            btnCancelar.title = 'Cancelar';
+            btnCancelar.onclick = (e) => {
+                e.stopPropagation();
+                divElement.classList.remove('editando');
+                form.remove();
+            };
+            
+            form.appendChild(inputConcepto);
+            form.appendChild(inputValor);
+            form.appendChild(btnGuardar);
+            form.appendChild(btnCancelar);
+            divElement.appendChild(form);
+            
+            inputConcepto.focus();
+        }
+        
+        // Almacena temporalmente los datos de edición pendiente para los fijos
+        let _edicionPendiente = null;
+
+        function guardarEdicionInline(item, nuevoConcepto, nuevoValor) {
+            if (!nuevoConcepto || isNaN(nuevoValor)) {
+                mostrarNotificacion('❌ Completa todos los campos', 'error');
+                return;
+            }
+
+            const esFijo = ['ingresosFijos', 'gastosFijos', 'gastosVacaciones', 'ingresosBonus', 'extrasRecurrentes'].includes(item.fuente);
+
+            if (esFijo) {
+                // Guardar datos pendientes y mostrar modal de alcance
+                _edicionPendiente = { item, nuevoConcepto, nuevoValor };
+                const nombresMes = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+                document.getElementById('inline-alcance-concepto-nombre').textContent = item.concepto + ' → "' + nuevoConcepto + '" / ' + nuevoValor + '€';
+                document.getElementById('inline-alcance-mes-nombre').textContent = nombresMes[mesVerTodo];
+                document.getElementById('modal-alcance-edicion-inline').style.display = 'flex';
+                return;
+            }
+
+            // Ítems que no son fijos: guardar directamente en el mes
+            aplicarEdicionDirecta(item, nuevoConcepto, nuevoValor);
+        }
+
+        function aplicarEdicionDirecta(item, nuevoConcepto, nuevoValor) {
+            if (item.fuente === 'ingresosExtras') {
+                datos.meses[mesVerTodo].ingresosExtras[item.index].concepto = nuevoConcepto;
+                datos.meses[mesVerTodo].ingresosExtras[item.index].valor = nuevoValor;
+            } else if (item.fuente === 'gastosExtras') {
+                datos.meses[mesVerTodo].gastosExtras[item.index].concepto = nuevoConcepto;
+                datos.meses[mesVerTodo].gastosExtras[item.index].valor = nuevoValor;
+            } else if (item.fuente === 'gastosVacacionesExtras') {
+                datos.meses[mesVerTodo].gastosVacacionesExtras[item.index].concepto = nuevoConcepto;
+                datos.meses[mesVerTodo].gastosVacacionesExtras[item.index].valor = nuevoValor;
+            }
+            guardarDatos();
+            actualizarTodo();
+            actualizarResumenAnual();
+            abrirModalVerTodoMes(mesVerTodo);
+            mostrarNotificacion('✅ ' + nuevoConcepto + ' actualizado', 'exito');
+        }
+
+        function aplicarEdicionInlineConAlcance(alcance) {
+            cerrarModalAlcanceInline();
+            if (!_edicionPendiente) return;
+            const { item, nuevoConcepto, nuevoValor } = _edicionPendiente;
+            _edicionPendiente = null;
+
+            if (alcance === 'solo-mes') {
+                // Guardar override solo para este mes
+                if (!datos.meses[mesVerTodo].overrides) datos.meses[mesVerTodo].overrides = {};
+                const key = item.fuente + '_' + item.index;
+                datos.meses[mesVerTodo].overrides[key] = { concepto: nuevoConcepto, valor: nuevoValor };
+                mostrarNotificacion('✅ ' + nuevoConcepto + ' actualizado solo para este mes', 'exito');
+            } else {
+                // Actualizar el array global (todos los meses)
+                if (item.fuente === 'ingresosFijos') {
+                    datos.ingresosFijos[item.index].concepto = nuevoConcepto;
+                    datos.ingresosFijos[item.index].valor = nuevoValor;
+                } else if (item.fuente === 'gastosFijos') {
+                    datos.gastosFijos[item.index].concepto = nuevoConcepto;
+                    datos.gastosFijos[item.index].valor = nuevoValor;
+                } else if (item.fuente === 'gastosVacaciones') {
+                    datos.gastosVacaciones[item.index].concepto = nuevoConcepto;
+                    datos.gastosVacaciones[item.index].valor = nuevoValor;
+                } else if (item.fuente === 'ingresosBonus') {
+                    datos.ingresosBonus[item.index].concepto = nuevoConcepto;
+                    datos.ingresosBonus[item.index].valor = nuevoValor;
+                } else if (item.fuente === 'extrasRecurrentes') {
+                    datos.extrasRecurrentes[item.index].concepto = nuevoConcepto;
+                    datos.extrasRecurrentes[item.index].valor = nuevoValor;
+                }
+                mostrarNotificacion('✅ ' + nuevoConcepto + ' actualizado en todos los meses', 'exito');
+            }
+
+            guardarDatos();
+            actualizarTodo();
+            actualizarResumenAnual();
+            abrirModalVerTodoMes(mesVerTodo);
+        }
+
+        function cerrarModalAlcanceInline() {
+            document.getElementById('modal-alcance-edicion-inline').style.display = 'none';
+        }
+
+        
+        function editarItemDesdeTodoMes(item) {
+            cerrarModalVerTodo();
+            
+            if (item.fuente === 'ingresosFijos') {
+                abrirModalFijos('ingresos');
+                itemEditandoIndex = item.index;
+                const itemData = datos.ingresosFijos[item.index];
+                document.getElementById('concepto-input').value = itemData.concepto;
+                document.getElementById('valor-input').value = itemData.valor;
+                if (itemData.frecuencia) {
+                    document.getElementById('frecuencia-input').value = itemData.frecuencia;
+                }
+                mostrarNotificacion('✏️ Editando: ' + itemData.concepto, 'exito');
+            } else if (item.fuente === 'gastosFijos') {
+                abrirModalFijos('gastos');
+                itemEditandoIndex = item.index;
+                const itemData = datos.gastosFijos[item.index];
+                document.getElementById('concepto-input').value = itemData.concepto;
+                document.getElementById('valor-input').value = itemData.valor;
+                if (itemData.frecuencia) {
+                    document.getElementById('frecuencia-input').value = itemData.frecuencia;
+                }
+                mostrarNotificacion('✏️ Editando: ' + itemData.concepto, 'exito');
+            } else if (item.fuente === 'gastosVacaciones') {
+                abrirModalVacaciones();
+                itemEditandoIndex = item.index;
+                const itemData = datos.gastosVacaciones[item.index];
+                document.getElementById('concepto-input').value = itemData.concepto;
+                document.getElementById('valor-input').value = itemData.valor;
+                if (itemData.frecuencia) {
+                    document.getElementById('frecuencia-input').value = itemData.frecuencia;
+                }
+                mostrarNotificacion('✏️ Editando: ' + itemData.concepto, 'exito');
+            } else if (item.fuente === 'ingresosBonus') {
+                abrirModalIngresosBonus();
+                itemEditandoIndex = item.index;
+                const itemData = datos.ingresosBonus[item.index];
+                document.getElementById('concepto-input').value = itemData.concepto;
+                document.getElementById('valor-input').value = itemData.valor;
+                if (itemData.frecuencia) {
+                    document.getElementById('frecuencia-input').value = itemData.frecuencia;
+                }
+                mostrarNotificacion('✏️ Editando: ' + itemData.concepto, 'exito');
+            } else if (item.fuente === 'ingresosExtras') {
+                abrirModalExtras('ingresos');
+                itemEditandoIndex = item.index;
+                const itemData = datos.meses[mesVerTodo].ingresosExtras[item.index];
+                document.getElementById('concepto-input').value = itemData.concepto;
+                document.getElementById('valor-input').value = itemData.valor;
+                mostrarNotificacion('✏️ Editando: ' + itemData.concepto, 'exito');
+            } else if (item.fuente === 'gastosExtras') {
+                abrirModalExtras('gastos');
+                itemEditandoIndex = item.index;
+                const itemData = datos.meses[mesVerTodo].gastosExtras[item.index];
+                document.getElementById('concepto-input').value = itemData.concepto;
+                document.getElementById('valor-input').value = itemData.valor;
+                mostrarNotificacion('✏️ Editando: ' + itemData.concepto, 'exito');
+            } else if (item.fuente === 'gastosVacacionesExtras') {
+                abrirModalVacacionesExtras();
+                itemEditandoIndex = item.index;
+                const itemData = datos.meses[mesVerTodo].gastosVacacionesExtras[item.index];
+                document.getElementById('concepto-input').value = itemData.concepto;
+                document.getElementById('valor-input').value = itemData.valor;
+                mostrarNotificacion('✏️ Editando: ' + itemData.concepto, 'exito');
+            }
+        }
+        
+        let _eliminacionPendiente = null;
+
+        function eliminarItemDesdeTodoMes(item) {
+            const esFijo = ['ingresosFijos', 'gastosFijos', 'gastosVacaciones', 'ingresosBonus'].includes(item.fuente);
+
+            if (esFijo) {
+                _eliminacionPendiente = item;
+                const nombresMes = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+                document.getElementById('inline-eliminar-concepto-nombre').textContent = '"' + item.concepto + '"';
+                document.getElementById('inline-eliminar-mes-nombre').textContent = nombresMes[mesVerTodo];
+                document.getElementById('modal-eliminar-alcance-inline').style.display = 'flex';
+                return;
+            }
+
+            if (!confirm('\u00BFEliminar "' + item.concepto + '"?')) return;
+            _ejecutarEliminacionDirecta(item);
+        }
+
+        function _ejecutarEliminacionDirecta(item) {
+            const mesData = datos.meses[mesVerTodo];
+            if (item.fuente === 'extrasRecurrentes') {
+                datos.extrasRecurrentes.splice(item.index, 1);
+                mostrarNotificacion('\uD83D\uDDD1\uFE0F Extra recurrente eliminado', 'exito');
+            } else if (item.fuente === 'ingresosExtras') {
+                mesData.ingresosExtras.splice(item.index, 1);
+                mostrarNotificacion('\uD83D\uDDD1\uFE0F Ingreso extra eliminado', 'exito');
+            } else if (item.fuente === 'gastosExtras') {
+                mesData.gastosExtras.splice(item.index, 1);
+                mostrarNotificacion('\uD83D\uDDD1\uFE0F Gasto extra eliminado', 'exito');
+            } else if (item.fuente === 'gastosVacacionesExtras') {
+                mesData.gastosVacacionesExtras.splice(item.index, 1);
+                mostrarNotificacion('\uD83D\uDDD1\uFE0F Vacaci\u00F3n extra eliminada', 'exito');
+            }
+            guardarDatos();
+            actualizarTodo();
+            actualizarResumenAnual();
+            recopilarYMostrarTodosMes(mesVerTodo);
+        }
+
+        function aplicarEliminacionInlineConAlcance(alcance) {
+            document.getElementById('modal-eliminar-alcance-inline').style.display = 'none';
+            if (!_eliminacionPendiente) return;
+            const item = _eliminacionPendiente;
+            _eliminacionPendiente = null;
+
+            if (alcance === 'solo-mes') {
+                if (!datos.meses[mesVerTodo].overrides) datos.meses[mesVerTodo].overrides = {};
+                const key = item.fuente + '_' + item.index;
+                datos.meses[mesVerTodo].overrides[key] = { concepto: item.concepto, valor: 0, eliminado: true };
+                mostrarNotificacion('\uD83D\uDDD1\uFE0F "' + item.concepto + '" eliminado solo para este mes', 'exito');
+            } else {
+                if (item.fuente === 'ingresosFijos') {
+                    datos.ingresosFijos.splice(item.index, 1);
+                    mostrarNotificacion('\uD83D\uDDD1\uFE0F Ingreso fijo eliminado de todos los meses', 'exito');
+                } else if (item.fuente === 'gastosFijos') {
+                    datos.gastosFijos.splice(item.index, 1);
+                    mostrarNotificacion('\uD83D\uDDD1\uFE0F Gasto fijo eliminado de todos los meses', 'exito');
+                } else if (item.fuente === 'gastosVacaciones') {
+                    datos.gastosVacaciones.splice(item.index, 1);
+                    mostrarNotificacion('\uD83D\uDDD1\uFE0F Vacaci\u00F3n fija eliminada de todos los meses', 'exito');
+                } else if (item.fuente === 'ingresosBonus') {
+                    datos.ingresosBonus.splice(item.index, 1);
+                    mostrarNotificacion('\uD83D\uDDD1\uFE0F Bonus eliminado de todos los meses', 'exito');
+                }
+            }
+
+            guardarDatos();
+            actualizarTodo();
+            actualizarResumenAnual();
+            recopilarYMostrarTodosMes(mesVerTodo);
+        }
+
+        function cerrarModalEliminarAlcanceInline() {
+            document.getElementById('modal-eliminar-alcance-inline').style.display = 'none';
+            _eliminacionPendiente = null;
+        }
+
+        function filtrarTodoMes() {
+            const busqueda = document.getElementById('buscar-todo-mes').value.toLowerCase();
+            const items = document.querySelectorAll('.item-todo-mes');
+            let visibles = 0;
+            let ocultos = 0;
+            
+            items.forEach(item => {
+                const concepto = item.getAttribute('data-concepto');
+                if (concepto.includes(busqueda)) {
+                    item.style.display = 'flex';
+                    visibles++;
+                } else {
+                    item.style.display = 'none';
+                    ocultos++;
+                }
+            });
+            
+            const resultadosSpan = document.getElementById('resultados-todo-mes');
+            if (busqueda) {
+                resultadosSpan.textContent = visibles + ' resultado(s) encontrado(s)' + (ocultos > 0 ? ' • ' + ocultos + ' oculto(s)' : '');
+            } else {
+                resultadosSpan.textContent = 'Mostrando todos los movimientos (' + visibles + ')';
+            }
+        }
+
     </script>
-</body>
+
+        <!-- Modal Alcance Edición -->
+        <div id="modal-alcance-edicion" class="modal">
+            <div class="modal-content">
+                <h3>🎯 ¿Cómo aplicar el cambio?</h3>
+                <p style="margin-bottom: 20px; color: #666;">
+                    Estás editando: <strong id="alcance-concepto-nombre"></strong>
+                </p>
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <button onclick="aplicarEdicionConAlcance('solo-mes')" 
+                            style="padding: 15px; font-size: 16px; background: #2196F3; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                        🎯 Solo este mes (<span id="alcance-mes-nombre"></span>)
+                    </button>
+                    <button onclick="aplicarEdicionConAlcance('todos-abiertos')" 
+                            style="padding: 15px; font-size: 16px; background: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                        🔄 Todos los meses abiertos (desde <span id="alcance-mes-nombre2"></span>)
+                    </button>
+                    <button onclick="cerrarModalAlcance()" 
+                            style="padding: 10px; font-size: 14px; background: #999; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                        ❌ Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Modal Alcance Edición INLINE (desde Ver Todo) -->
+        <div id="modal-alcance-edicion-inline" class="modal" style="z-index: 1100;">
+            <div class="modal-content" style="max-width: 500px;">
+                <h3>🎯 ¿Cómo aplicar el cambio?</h3>
+                <p style="margin-bottom: 20px; color: #666;">
+                    Editando: <strong id="inline-alcance-concepto-nombre"></strong>
+                </p>
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <button onclick="aplicarEdicionInlineConAlcance('solo-mes')" 
+                            style="padding: 15px; font-size: 16px; background: #2196F3; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                        🎯 Solo este mes (<span id="inline-alcance-mes-nombre"></span>)
+                    </button>
+                    <button onclick="aplicarEdicionInlineConAlcance('todos-abiertos')" 
+                            style="padding: 15px; font-size: 16px; background: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                        🌍 Todos los meses (valor global)
+                    </button>
+                    <button onclick="cerrarModalAlcanceInline(); _edicionPendiente = null;" 
+                            style="padding: 10px; font-size: 14px; background: #999; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                        ❌ Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Eliminar Alcance INLINE (desde Ver Todo) -->
+        <div id="modal-eliminar-alcance-inline" class="modal" style="z-index: 1100;">
+            <div class="modal-content" style="max-width: 480px;">
+                <h3>🗑️ ¿Cómo eliminar?</h3>
+                <p style="margin-bottom: 20px; color: #666;">
+                    Eliminando: <strong id="inline-eliminar-concepto-nombre"></strong>
+                </p>
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <button onclick="aplicarEliminacionInlineConAlcance('solo-mes')"
+                            style="padding: 15px; font-size: 16px; background: #f59e0b; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                        🎯 Solo este mes (<span id="inline-eliminar-mes-nombre"></span>)
+                    </button>
+                    <button onclick="aplicarEliminacionInlineConAlcance('todos')"
+                            style="padding: 15px; font-size: 16px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                        🌍 Todos los meses (eliminar definitivamente)
+                    </button>
+                    <button onclick="cerrarModalEliminarAlcanceInline()"
+                            style="padding: 10px; font-size: 14px; background: #999; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                        ❌ Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Ver Todo el Mes -->
+        <div id="modal-ver-todo-mes" class="modal">
+            <div class="modal-content" style="max-width: 1000px;">
+                <button class="btn-cerrar-fijo" onclick="cerrarModalVerTodo()" title="Cerrar">✕</button>
+
+                <h3 style="margin-bottom: 20px;">📋 <span id="ver-todo-mes-nombre"></span> - Todos los Movimientos</h3>
+                
+                <!-- Buscador -->
+                <div style="margin-bottom: 20px; padding: 12px; background: #f8f9fa; border-radius: 8px;">
+                    <input type="text" id="buscar-todo-mes" placeholder="🔍 Buscar concepto..." 
+                           style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 15px; box-sizing: border-box;"
+                           oninput="filtrarTodoMes()">
+                    <div style="margin-top: 10px; font-size: 13px; color: #666;">
+                        <span id="resultados-todo-mes"></span>
+                    </div>
+                </div>
+                
+                <!-- Totales -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 25px;">
+                    <div style="padding: 20px; background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <div style="font-size: 13px; color: #2e7d32; font-weight: 600; margin-bottom: 8px;">📈 INGRESOS</div>
+                        <div style="font-size: 28px; font-weight: bold; color: #1b5e20;" id="total-ingresos-todo">0€</div>
+                    </div>
+                    <div style="padding: 20px; background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%); border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <div style="font-size: 13px; color: #c62828; font-weight: 600; margin-bottom: 8px;">📉 GASTOS</div>
+                        <div style="font-size: 28px; font-weight: bold; color: #b71c1c;" id="total-gastos-todo">0€</div>
+                    </div>
+                    <div style="padding: 20px; background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <div style="font-size: 13px; color: #1565c0; font-weight: 600; margin-bottom: 8px;">💰 BALANCE</div>
+                        <div style="font-size: 28px; font-weight: bold; color: #0d47a1;" id="balance-todo">0€</div>
+                    </div>
+                </div>
+                
+                <!-- Lista de items -->
+                <div id="lista-todo-mes" style="max-height: 450px; overflow-y: auto; padding-right: 5px;">
+                    <!-- Se llenará dinámicamente -->
+                </div>
+                
+                <div style="margin-top: 25px; text-align: right; padding-top: 20px; border-top: 2px solid #eee;">
+                    <button onclick="cerrarModalVerTodo()" style="padding: 12px 30px; background: #666; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 600;">
+                        ✕ Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    
+    <script>
+        // Script para añadir botón "Ver Todo" a cada mes
+        window.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                const mesesCards = document.querySelectorAll('.mes-card');
+                mesesCards.forEach((card, idx) => {
+                    const accionesDiv = card.querySelector('.mes-acciones');
+                    if (accionesDiv && !accionesDiv.querySelector('.btn-ver-todo-mes')) {
+                        const btnVerTodo = document.createElement('button');
+                        btnVerTodo.className = 'tb-btn btn-ver-todo-mes';
+                        btnVerTodo.style.cssText = 'background: #9c27b0; border-color: #9c27b0; color: white; margin: 5px;';
+                        btnVerTodo.textContent = '📋 Ver Todo';
+                        btnVerTodo.onclick = function() { abrirModalVerTodoMes(idx); };
+                        
+                        // Insertar al principio de las acciones
+                        if (accionesDiv.firstChild) {
+                            accionesDiv.insertBefore(btnVerTodo, accionesDiv.firstChild);
+                        } else {
+                            accionesDiv.appendChild(btnVerTodo);
+                        }
+                    }
+                });
+            }, 500); // Esperar medio segundo para que se renderice todo
+        });
+
+    </script>
+    </body>
 </html>
