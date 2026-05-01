@@ -2,7 +2,7 @@
   "ingresosFijos": [
     {
       "concepto": "Nómina",
-      "valor": 2340,
+      "valor": 2318,
       "frecuencia": "mensual"
     }
   ],
@@ -27,21 +27,8 @@
     },
     {
       "concepto": "Luz",
-      "valor": 50,
+      "valor": 40,
       "frecuencia": "mensual"
-    },
-    {
-      "concepto": "Gas",
-      "valor": 65,
-      "frecuencia": "anual",
-      "meses": [
-        0,
-        2,
-        4,
-        6,
-        8,
-        10
-      ]
     },
     {
       "concepto": "Móvil",
@@ -50,7 +37,7 @@
     },
     {
       "concepto": "Limpieza",
-      "valor": 36,
+      "valor": 80,
       "frecuencia": "mensual"
     },
     {
@@ -60,7 +47,7 @@
     },
     {
       "concepto": "Gym",
-      "valor": 60,
+      "valor": 55,
       "frecuencia": "mensual"
     },
     {
@@ -90,11 +77,6 @@
       ]
     },
     {
-      "concepto": "Gasolina",
-      "valor": 70,
-      "frecuencia": "mensual"
-    },
-    {
       "concepto": "Spotify",
       "valor": 42,
       "frecuencia": "anual",
@@ -113,7 +95,7 @@
     },
     {
       "concepto": "Tele",
-      "valor": 20,
+      "valor": 15,
       "frecuencia": "anual",
       "meses": [
         0,
@@ -163,37 +145,196 @@
       ]
     },
     {
-      "concepto": "Regalo Cumpleaños",
-      "valor": 50,
-      "frecuencia": "anual",
-      "meses": [
-        1,
-        2,
-        8,
-        10
-      ]
-    },
-    {
       "concepto": "Comida",
-      "valor": 240,
+      "valor": 280,
       "frecuencia": "mensual"
     },
     {
       "concepto": "Salir",
-      "valor": 240,
+      "valor": 280,
       "frecuencia": "mensual"
     },
     {
       "concepto": "Otros",
       "valor": 100,
       "frecuencia": "mensual"
+    },
+    {
+      "concepto": "Farmacia",
+      "valor": 25,
+      "frecuencia": "mensual"
+    },
+    {
+      "concepto": "Cloud",
+      "valor": 1,
+      "frecuencia": "mensual"
+    },
+    {
+      "concepto": "Trabajo",
+      "valor": 15,
+      "frecuencia": "mensual"
+    },
+    {
+      "concepto": "Gasolina",
+      "valor": 70,
+      "frecuencia": "mensual"
     }
   ],
   "meses": [
     {
-      "ingresosExtras": [],
+      "ingresosExtras": [
+        {
+          "concepto": "Bonus",
+          "valor": 837
+        }
+      ],
+      "gastosExtras": [
+        {
+          "concepto": "Parking",
+          "valor": 150
+        },
+        {
+          "concepto": "Regalo Cumpleaños",
+          "valor": 100
+        },
+        {
+          "concepto": "Comida",
+          "valor": 24
+        },
+        {
+          "concepto": "Farmacia",
+          "valor": 31
+        },
+        {
+          "concepto": "Gas",
+          "valor": -65
+        },
+        {
+          "concepto": "Gasolina",
+          "valor": -5
+        },
+        {
+          "concepto": "Gym",
+          "valor": -5
+        },
+        {
+          "concepto": "Limpieza",
+          "valor": 44
+        },
+        {
+          "concepto": "Luz",
+          "valor": -5
+        },
+        {
+          "concepto": "Otros",
+          "valor": 60
+        },
+        {
+          "concepto": "Peluquería",
+          "valor": 5
+        },
+        {
+          "concepto": "Salir",
+          "valor": 153
+        },
+        {
+          "concepto": "Tele",
+          "valor": -5
+        },
+        {
+          "concepto": "Trabajo",
+          "valor": 23
+        },
+        {
+          "concepto": "Nómina",
+          "valor": 1
+        },
+        {
+          "concepto": "Regalo Navidad",
+          "valor": 150
+        },
+        {
+          "concepto": "Pádel",
+          "valor": -9
+        }
+      ],
+      "gastosVacacionesExtras": []
+    },
+    {
+      "ingresosExtras": [
+        {
+          "concepto": "Nómina",
+          "valor": -10
+        }
+      ],
+      "gastosExtras": [
+        {
+          "concepto": "Parking",
+          "valor": 150
+        },
+        {
+          "concepto": "Trabajo",
+          "valor": 144
+        },
+        {
+          "concepto": "Otros",
+          "valor": 353
+        }
+      ],
+      "gastosVacacionesExtras": [
+        {
+          "concepto": "Vacaciones",
+          "valor": 1041
+        }
+      ]
+    },
+    {
+      "ingresosExtras": [
+        {
+          "concepto": "Nómina",
+          "valor": 10
+        }
+      ],
       "gastosExtras": [],
       "gastosVacacionesExtras": []
+    },
+    {
+      "ingresosExtras": [
+        {
+          "concepto": "Nómina",
+          "valor": 12
+        }
+      ],
+      "gastosExtras": [
+        {
+          "concepto": "Gasolina",
+          "valor": 26
+        },
+        {
+          "concepto": "Cloud",
+          "valor": -1
+        }
+      ],
+      "gastosVacacionesExtras": [
+        {
+          "concepto": "Semana Santa",
+          "valor": -900
+        },
+        {
+          "concepto": "Vacaciones",
+          "valor": 777
+        }
+      ]
+    },
+    {
+      "ingresosExtras": [],
+      "gastosExtras": [],
+      "gastosVacacionesExtras": [
+        {
+          "concepto": "Vacaciones",
+          "valor": 1300
+        }
+      ]
     },
     {
       "ingresosExtras": [],
@@ -203,7 +344,12 @@
     {
       "ingresosExtras": [],
       "gastosExtras": [],
-      "gastosVacacionesExtras": []
+      "gastosVacacionesExtras": [
+        {
+          "concepto": "Verano 1",
+          "valor": -2000
+        }
+      ]
     },
     {
       "ingresosExtras": [],
@@ -213,27 +359,12 @@
     {
       "ingresosExtras": [],
       "gastosExtras": [],
-      "gastosVacacionesExtras": []
-    },
-    {
-      "ingresosExtras": [],
-      "gastosExtras": [],
-      "gastosVacacionesExtras": []
-    },
-    {
-      "ingresosExtras": [],
-      "gastosExtras": [],
-      "gastosVacacionesExtras": []
-    },
-    {
-      "ingresosExtras": [],
-      "gastosExtras": [],
-      "gastosVacacionesExtras": []
-    },
-    {
-      "ingresosExtras": [],
-      "gastosExtras": [],
-      "gastosVacacionesExtras": []
+      "gastosVacacionesExtras": [
+        {
+          "concepto": "Verano 2",
+          "valor": -400
+        }
+      ]
     },
     {
       "ingresosExtras": [],
@@ -252,14 +383,6 @@
     }
   ],
   "gastosVacaciones": [
-    {
-      "concepto": "Esquí",
-      "valor": 800,
-      "frecuencia": "anual",
-      "meses": [
-        1
-      ]
-    },
     {
       "concepto": "Semana Santa",
       "valor": 900,
@@ -292,6 +415,14 @@
         0,
         11
       ]
+    },
+    {
+      "concepto": "Esquí",
+      "valor": 800,
+      "frecuencia": "anual",
+      "meses": [
+        1
+      ]
     }
   ],
   "saldoInicial": 3052,
@@ -322,7 +453,7 @@
   "extrasRecurrentes": [
     {
       "concepto": "ING",
-      "valor": 371,
+      "valor": 378,
       "tipo": "gastos",
       "anoInicio": 2026,
       "mesInicio": 3,
@@ -337,69 +468,150 @@
       "mesInicio": 0,
       "anoFin": 2027,
       "mesFin": 9
+    },
+    {
+      "concepto": "Lotería",
+      "valor": 20,
+      "tipo": "ingresos",
+      "anoInicio": 2026,
+      "mesInicio": 0,
+      "anoFin": 2026,
+      "mesFin": 0
+    },
+    {
+      "concepto": "Baño",
+      "valor": 144,
+      "tipo": "gastos",
+      "anoInicio": 2026,
+      "mesInicio": 1,
+      "anoFin": 2026,
+      "mesFin": 1
+    },
+    {
+      "concepto": "Trabajo",
+      "valor": 84,
+      "tipo": "ingresos",
+      "anoInicio": 2026,
+      "mesInicio": 1,
+      "anoFin": 2026,
+      "mesFin": 1
+    },
+    {
+      "concepto": "Cloud",
+      "valor": 1,
+      "tipo": "gastos",
+      "anoInicio": 2026,
+      "mesInicio": 1,
+      "anoFin": 2026,
+      "mesFin": 1
+    },
+    {
+      "concepto": "Vacaciones",
+      "valor": 96,
+      "tipo": "gastos",
+      "anoInicio": 2026,
+      "mesInicio": 2,
+      "anoFin": 2026,
+      "mesFin": 2
+    },
+    {
+      "concepto": "Estética",
+      "valor": 649,
+      "tipo": "gastos",
+      "anoInicio": 2026,
+      "mesInicio": 3,
+      "anoFin": 2026,
+      "mesFin": 3
+    },
+    {
+      "concepto": "Pelo",
+      "valor": 439,
+      "tipo": "gastos",
+      "anoInicio": 2026,
+      "mesInicio": 3,
+      "anoFin": 2026,
+      "mesFin": 3
+    },
+    {
+      "concepto": "Estética",
+      "valor": 420,
+      "tipo": "gastos",
+      "anoInicio": 2026,
+      "mesInicio": 4,
+      "anoFin": 2026,
+      "mesFin": 4
+    },
+    {
+      "concepto": "ING",
+      "valor": 2000,
+      "tipo": "ingresos",
+      "anoInicio": 2026,
+      "mesInicio": 4,
+      "anoFin": 2026,
+      "mesFin": 4
     }
   ],
   "mesesCerrados": {
     "0": {
-      "cerradoEn": "2026-05-01T08:16:30.661Z",
+      "cerradoEn": "2026-05-01T12:20:51.565Z",
       "snapshot": {
         "ingresosFijos": 2340,
         "ingresosBonus": 1450,
-        "gastosFijos": 2367,
-        "gastosVacaciones": 400,
-        "ingresosExtras": 0,
-        "gastosExtras": 150,
+        "gastosFijos": 2437,
+        "gastosVacaciones": 0,
+        "ingresosExtras": 857,
+        "gastosExtras": 797,
         "gastosVacacionesExtras": 0,
-        "ingresosTotal": 3790,
-        "gastosTotal": 2917
+        "ingresosTotal": 4647,
+        "gastosTotal": 3234
       },
-      "balanceAcumulado": 3925
+      "balanceAcumulado": 4465
     },
     "1": {
-      "cerradoEn": "2026-05-01T08:16:26.261Z",
+      "cerradoEn": "2026-05-01T13:50:02.341Z",
       "snapshot": {
         "ingresosFijos": 2340,
         "ingresosBonus": 0,
-        "gastosFijos": 2325,
-        "gastosVacaciones": 800,
-        "ingresosExtras": 0,
-        "gastosExtras": 150,
-        "gastosVacacionesExtras": 0,
-        "ingresosTotal": 2340,
-        "gastosTotal": 3275
+        "gastosFijos": 2348,
+        "gastosVacaciones": 0,
+        "ingresosExtras": 74,
+        "gastosExtras": 942,
+        "gastosVacacionesExtras": 1041,
+        "ingresosTotal": 2414,
+        "gastosTotal": 4331
       },
-      "balanceAcumulado": 2990
+      "balanceAcumulado": 2548
     },
     "2": {
-      "cerradoEn": "2026-05-01T08:16:39.206Z",
+      "cerradoEn": "2026-05-01T14:12:14.117Z",
       "snapshot": {
-        "ingresosFijos": 2340,
+        "ingresosFijos": 2318,
         "ingresosBonus": 2538,
-        "gastosFijos": 2355,
+        "gastosFijos": 2519,
         "gastosVacaciones": 0,
-        "ingresosExtras": 0,
-        "gastosExtras": 150,
+        "ingresosExtras": 10,
+        "gastosExtras": 246,
         "gastosVacacionesExtras": 0,
-        "ingresosTotal": 4878,
-        "gastosTotal": 2505
+        "ingresosTotal": 4866,
+        "gastosTotal": 2765
       },
-      "balanceAcumulado": 5363
+      "balanceAcumulado": 4649
     },
     "3": {
-      "cerradoEn": "2026-05-01T08:16:46.684Z",
+      "cerradoEn": "2026-05-01T14:43:41.437Z",
       "snapshot": {
-        "ingresosFijos": 2340,
+        "ingresosFijos": 2318,
         "ingresosBonus": 0,
-        "gastosFijos": 2295,
+        "gastosFijos": 2619,
         "gastosVacaciones": 900,
-        "ingresosExtras": 0,
-        "gastosExtras": 521,
-        "gastosVacacionesExtras": 0,
-        "ingresosTotal": 2340,
-        "gastosTotal": 3716
+        "ingresosExtras": 12,
+        "gastosExtras": 1641,
+        "gastosVacacionesExtras": -123,
+        "ingresosTotal": 2330,
+        "gastosTotal": 5037
       },
-      "balanceAcumulado": 3987
+      "balanceAcumulado": 1942
     }
   },
-  "_exportadoEn": "2026-05-01T08:47:53.900Z"
+  "_exportadoEn": "2026-05-01T15:09:18.891Z"
 }
