@@ -537,9 +537,23 @@
       }
     },
     {
-      "ingresosExtras": [],
+      "ingresosExtras": [
+        {
+          "concepto": "ING",
+          "valor": 2000
+        },
+        {
+          "concepto": "Mamá",
+          "valor": 200
+        }
+      ],
       "gastosExtras": [],
-      "gastosVacacionesExtras": []
+      "gastosVacacionesExtras": [
+        {
+          "concepto": "Vacaciones",
+          "valor": 1300
+        }
+      ]
     },
     {
       "ingresosExtras": [],
@@ -549,7 +563,14 @@
     {
       "ingresosExtras": [],
       "gastosExtras": [],
-      "gastosVacacionesExtras": []
+      "gastosVacacionesExtras": [],
+      "overrides": {
+        "gastosVacaciones_2": {
+          "concepto": "Verano 1",
+          "valor": 0,
+          "eliminado": true
+        }
+      }
     },
     {
       "ingresosExtras": [],
@@ -559,7 +580,13 @@
     {
       "ingresosExtras": [],
       "gastosExtras": [],
-      "gastosVacacionesExtras": []
+      "gastosVacacionesExtras": [],
+      "overrides": {
+        "gastosVacaciones_3": {
+          "concepto": "Verano 2",
+          "valor": 1000
+        }
+      }
     },
     {
       "ingresosExtras": [],
@@ -736,5 +763,5 @@
       "balanceAcumulado": 1942
     }
   },
-  "_exportadoEn": "2026-05-02T10:23:39.782Z"
+  "_exportadoEn": "2026-05-02T16:55:35.990Z"
 }
