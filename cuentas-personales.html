@@ -860,6 +860,7 @@
             <div class="controls-actions">
                 <button class="act-btn" onclick="abrirResumenGlobal()">&#127757; Resumen Global</button>
                 <button class="act-btn" onclick="abrirDesgloseAnual()">&#128203; Desglose Anual</button>
+                <button class="act-btn" onclick="abrirSimulador()" style="background:#7c3aed;border-color:#7c3aed;">&#129514; Simular</button>
             </div>
         </div>
         
@@ -930,6 +931,10 @@
                     <div>
                         <span>Balance acumulado:</span>
                         <span id="balance-acumulado" class="positivo">0€</span>
+                    </div>
+                    <div>
+                        <span>📅 Proyección 31 Dic:</span>
+                        <span id="balance-proyeccion-fin" class="positivo">0€</span>
                     </div>
                 </div>
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;margin-bottom:5px;">
@@ -2652,6 +2657,12 @@
             const balanceAcumuladoDisplay = document.getElementById('balance-acumulado');
             balanceAcumuladoDisplay.textContent = formatearMoneda(balanceAcumulado);
             balanceAcumuladoDisplay.className = balanceAcumulado >= 0 ? 'positivo' : 'negativo';
+
+            // Proyección 31 Dic: meses cerrados con snapshot + meses abiertos con previsión
+            const proyeccionFinAno = calcularBalanceAcumulado(11);
+            const proyDisplay = document.getElementById('balance-proyeccion-fin');
+            proyDisplay.textContent = formatearMoneda(proyeccionFinAno);
+            proyDisplay.className = proyeccionFinAno >= 0 ? 'positivo' : 'negativo';
             
             // % de crecimiento/decrecimiento respecto al saldo inicial de este año
             const saldoInicioEsteAno = calcularSaldoInicioRealDelAno(anoActual);
@@ -2741,25 +2752,48 @@
             mesesNegativos.push({ mes: i, balance: balanceAcumulado });
         }
     }
+
+    // Calcular categoría culpable del primer mes negativo
+    function calcularCategoriasCulpables(numMes) {
+        const cats = calcularCategorias(numMes);
+        // Ordenar categorías de gastos por total descendente
+        return Object.entries(cats.gastos)
+            .filter(([, v]) => v.total > 0)
+            .sort((a, b) => b[1].total - a[1].total)
+            .slice(0, 3)
+            .map(([key, v]) => ({ nombre: CATEGORIAS_GASTOS[key].icono + ' ' + CATEGORIAS_GASTOS[key].nombre, total: v.total }));
+    }
     
     // Mostrar alerta de meses negativos si existe
     if (primerMesNegativo !== null) {
         const alertaDiv = document.createElement('div');
-        alertaDiv.style.cssText = 'background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); border-left: 6px solid #dc2626; border-radius: 12px; padding: 25px 30px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2);';
+        alertaDiv.style.cssText = 'background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); border-left: 6px solid #dc2626; border-radius: 12px; padding: 20px 24px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2);';
         
         const titulo = document.createElement('div');
-        titulo.style.cssText = 'font-size: 1.5em; font-weight: bold; color: #991b1b; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;';
-        titulo.innerHTML = '<span style="font-size: 1.3em;">⚠️</span> PRIMER MES EN NEGATIVO: <span style="color: #dc2626;">' + MESES_NOMBRES[primerMesNegativo.mes] + ' ' + formatearMoneda(primerMesNegativo.balance) + '</span>';
-        
+        titulo.style.cssText = 'font-size: 1.2em; font-weight: bold; color: #991b1b; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; flex-wrap:wrap;';
+        titulo.innerHTML = '<span>⚠️</span> PRIMER MES EN NEGATIVO: <span style="color: #dc2626;">' + MESES_NOMBRES[primerMesNegativo.mes] + ' · ' + formatearMoneda(primerMesNegativo.balance) + '</span>';
         alertaDiv.appendChild(titulo);
+
+        // Categorías culpables
+        const culpables = calcularCategoriasCulpables(primerMesNegativo.mes);
+        if (culpables.length > 0) {
+            const culpDiv = document.createElement('div');
+            culpDiv.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;';
+            culpables.forEach((c, i) => {
+                const tag = document.createElement('span');
+                const bg = i === 0 ? '#dc2626' : i === 1 ? '#f97316' : '#f59e0b';
+                tag.style.cssText = `background:${bg};color:white;font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;display:flex;align-items:center;gap:4px;`;
+                tag.innerHTML = (i === 0 ? '🎯 Principal: ' : '') + c.nombre + ' <strong>' + formatearMoneda(c.total) + '</strong>';
+                culpDiv.appendChild(tag);
+            });
+            alertaDiv.appendChild(culpDiv);
+        }
         
         if (mesesNegativos.length > 1) {
             const subtitulo = document.createElement('div');
-            subtitulo.style.cssText = 'font-size: 1em; color: #7f1d1d; padding-top: 12px; border-top: 1px solid #fca5a5;';
-            
-            const listaMeses = mesesNegativos.map(m => '<strong>' + MESES_NOMBRES[m.mes] + '</strong> ' + formatearMoneda(m.balance)).join(' • ');
+            subtitulo.style.cssText = 'font-size: 0.9em; color: #7f1d1d; padding-top: 10px; border-top: 1px solid #fca5a5;';
+            const listaMeses = mesesNegativos.map(m => '<strong>' + MESES_NOMBRES[m.mes] + '</strong> ' + formatearMoneda(m.balance)).join(' · ');
             subtitulo.innerHTML = '<span style="font-weight: 600;">📉 Todos los meses en negativo:</span> ' + listaMeses;
-            
             alertaDiv.appendChild(subtitulo);
         }
         
@@ -5004,31 +5038,368 @@
         </div>
     </div>
 
-    <script>
-        // Script para añadir botón "Ver Todo" a cada mes
-        window.addEventListener('DOMContentLoaded', function() {
-            setTimeout(function() {
-                const mesesCards = document.querySelectorAll('.mes-card');
-                mesesCards.forEach((card, idx) => {
-                    const accionesDiv = card.querySelector('.mes-acciones');
-                    if (accionesDiv && !accionesDiv.querySelector('.btn-ver-todo-mes')) {
-                        const btnVerTodo = document.createElement('button');
-                        btnVerTodo.className = 'tb-btn btn-ver-todo-mes';
-                        btnVerTodo.style.cssText = 'background: #9c27b0; border-color: #9c27b0; color: white; margin: 5px;';
-                        btnVerTodo.textContent = '📋 Ver Todo';
-                        btnVerTodo.onclick = function() { abrirModalVerTodoMes(idx); };
-                        
-                        // Insertar al principio de las acciones
-                        if (accionesDiv.firstChild) {
-                            accionesDiv.insertBefore(btnVerTodo, accionesDiv.firstChild);
-                        } else {
-                            accionesDiv.appendChild(btnVerTodo);
-                        }
-                    }
-                });
-            }, 500); // Esperar medio segundo para que se renderice todo
-        });
 
-    </script>
+    <!-- MODAL SIMULADOR -->
+<div id="modal-simulador" class="modal" style="z-index:1300; display:none; align-items:flex-start; justify-content:center; padding-top:0; overflow-y:auto;">
+    <div style="width:100%; max-width:1000px; min-height:100vh; display:flex; flex-direction:column; background:#0f2337; border-radius:0 0 18px 18px; box-shadow:0 8px 40px rgba(0,0,0,0.7);">
+        <div style="background:linear-gradient(135deg,#0c4a6e,#0369a1); padding:14px 22px; flex-shrink:0; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; position:sticky; top:0; z-index:10;">
+            <div>
+                <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                    <span style="font-size:1.4em;">&#129514;</span>
+                    <h2 style="margin:0; color:white; font-size:1.1em; font-weight:800;">Simulador anual &mdash; <span id="sim-ano-label" style="color:#7dd3fc;"></span></h2>
+                    <span style="background:rgba(255,200,0,0.2); color:#fde68a; font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px; border:1px solid rgba(253,230,138,0.3);">&#9888; nada se guarda</span>
+                </div>
+                <p style="margin:3px 0 0 38px; color:#bae6fd; font-size:0.8em;">Cambia ingresos, gastos o vacaciones del ano y compara el resultado al instante.</p>
+            </div>
+            <button onclick="cerrarSimulador()" style="background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.2); color:white; padding:7px 16px; border-radius:8px; font-weight:700; cursor:pointer; font-size:13px; margin:0; width:auto;">&times; Cerrar</button>
+        </div>
+        <div style="padding:14px 20px; background:#0a1929; border-bottom:1px solid rgba(255,255,255,0.07); flex-shrink:0;">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+                <div>
+                    <div style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.35); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:8px;">Datos actuales</div>
+                    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px;" id="sim-kpis-actual"></div>
+                </div>
+                <div>
+                    <div style="font-size:10px; font-weight:700; color:#38bdf8; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:8px;">Datos simulados</div>
+                    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px;" id="sim-kpis-sim"></div>
+                </div>
+            </div>
+        </div>
+        <div id="sim-body-grid" style="display:grid; grid-template-columns:620px 1fr; flex:1; min-height:400px;">
+            <div style="overflow-y:auto; padding:14px 16px; background:#0a1929; border-right:1px solid rgba(255,255,255,0.07); -webkit-overflow-scrolling:touch;">
+                <div style="font-size:10px; font-weight:700; color:#38bdf8; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:10px;">Edita cualquier importe del año</div>
+                <div id="sim-inputs"></div>
+            </div>
+            <div style="overflow-y:auto; padding:14px 16px; -webkit-overflow-scrolling:touch; background:#0f2337;">
+                <div style="font-size:10px; font-weight:700; color:#38bdf8; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:10px;">Impacto mes a mes</div>
+                <div id="sim-meses-grid" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:8px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@media (max-width: 1000px) {
+    #sim-body-grid { grid-template-columns: 1fr !important; }
+}
+@media (max-width: 600px) {
+    #sim-inputs { grid-template-columns: 1fr !important; }
+}
+</style>
+
+<script>
+var simDatos = null;
+
+function abrirSimulador() {
+    simDatos = JSON.parse(JSON.stringify(datos));
+    simExtras = [];
+    document.getElementById('sim-ano-label').textContent = anoActual;
+    document.getElementById('modal-simulador').style.display = 'flex';
+    construirInputsSimulador();
+    recalcularSimulador();
+}
+
+function cerrarSimulador() {
+    document.getElementById('modal-simulador').style.display = 'none';
+    simDatos = null;
+}
+
+function resetearSimulador() {
+    simDatos = JSON.parse(JSON.stringify(datos));
+    simExtras = [];
+    construirInputsSimulador();
+    recalcularSimulador();
+}
+
+function construirInputsSimulador() {
+    var cont = document.getElementById('sim-inputs');
+    cont.innerHTML = '';
+    cont.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:0 18px;';
+
+    function seccion(titulo, color) {
+        var d = document.createElement('div');
+        d.style.cssText = 'grid-column:1/-1;font-size:10px;font-weight:800;color:' + color + ';text-transform:uppercase;letter-spacing:0.08em;margin:12px 0 5px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.06);';
+        d.textContent = titulo;
+        cont.appendChild(d);
+    }
+
+    function inputRow(label, valor, subLabel, onChange) {
+        var row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:5px;';
+        var leftDiv = document.createElement('div');
+        leftDiv.style.cssText = 'flex:1;min-width:0;';
+        var lbl = document.createElement('div');
+        lbl.style.cssText = 'font-size:11px;color:rgba(255,255,255,0.82);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+        lbl.textContent = label;
+        lbl.title = label;
+        leftDiv.appendChild(lbl);
+        if (subLabel) {
+            var sub = document.createElement('div');
+            sub.style.cssText = 'font-size:9px;color:rgba(255,255,255,0.27);margin-top:1px;';
+            sub.textContent = subLabel;
+            leftDiv.appendChild(sub);
+        }
+        var inp = document.createElement('input');
+        inp.type = 'number';
+        inp.value = Math.round(valor);
+        inp.step = '1';
+        inp.style.cssText = 'width:76px;padding:5px 7px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);border-radius:6px;color:white;font-size:12px;font-weight:700;text-align:right;flex-shrink:0;';
+        inp.addEventListener('input', (function(cb) { return function() { cb(parseFloat(inp.value) || 0); recalcularSimulador(); }; })(onChange));
+        row.appendChild(leftDiv);
+        row.appendChild(inp);
+        cont.appendChild(row);
+    }
+
+    function freqSub(item) {
+        if (item.frecuencia === 'mensual') return 'mensual (x12)';
+        if (item.frecuencia === 'anual' && item.meses) return 'meses: ' + item.meses.map(function(x) { return MESES_CORTOS[x]; }).join(', ');
+        return 'puntual';
+    }
+
+    if (simDatos.ingresosFijos.length > 0) {
+        seccion('Ingresos fijos', '#34d399');
+        simDatos.ingresosFijos.forEach(function(item, i) {
+            (function(idx) { inputRow(item.concepto, item.valor, freqSub(item), function(v) { simDatos.ingresosFijos[idx].valor = v; }); })(i);
+        });
+    }
+    if ((simDatos.ingresosBonus || []).length > 0) {
+        seccion('Bonus / Extras fijos', '#60a5fa');
+        (simDatos.ingresosBonus || []).forEach(function(item, i) {
+            (function(idx) { inputRow(item.concepto, item.valor, freqSub(item), function(v) { simDatos.ingresosBonus[idx].valor = v; }); })(i);
+        });
+    }
+    if (simDatos.gastosFijos.length > 0) {
+        seccion('Gastos fijos', '#f87171');
+        simDatos.gastosFijos.forEach(function(item, i) {
+            (function(idx) { inputRow(item.concepto, item.valor, freqSub(item), function(v) { simDatos.gastosFijos[idx].valor = v; }); })(i);
+        });
+    }
+    if ((simDatos.gastosVacaciones || []).length > 0) {
+        seccion('Vacaciones', '#fb923c');
+        (simDatos.gastosVacaciones || []).forEach(function(item, i) {
+            (function(idx) { inputRow(item.concepto, item.valor, freqSub(item), function(v) { simDatos.gastosVacaciones[idx].valor = v; }); })(i);
+        });
+    }
+    var recEsteAno = (simDatos.extrasRecurrentes || []).filter(function(item) {
+        return item.anoInicio <= anoActual && item.anoFin >= anoActual;
+    });
+    if (recEsteAno.length > 0) {
+        seccion('Extras recurrentes', '#c4b5fd');
+        (simDatos.extrasRecurrentes || []).forEach(function(item, i) {
+            if (!(item.anoInicio <= anoActual && item.anoFin >= anoActual)) return;
+            var sub = (item.tipo === 'ingresos' ? 'ingreso' : 'gasto') + ' hasta ' + MESES_CORTOS[item.mesFin] + ' ' + item.anoFin;
+            (function(idx) { inputRow(item.concepto, item.valor, sub, function(v) { simDatos.extrasRecurrentes[idx].valor = v; }); })(i);
+        });
+    }
+
+    // ── Extras puntuales de simulación ──
+    seccion('➕ Gastos / Ingresos extra puntuales', '#fbbf24');
+
+    var extraSimRow = document.createElement('div');
+    extraSimRow.style.cssText = 'grid-column:1/-1;display:flex;gap:5px;align-items:center;margin-bottom:8px;flex-wrap:wrap;';
+    extraSimRow.innerHTML =
+        '<select id="sim-extra-mes" style="padding:5px 4px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:white;font-size:11px;">' +
+        ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'].map(function(m,i){ return '<option value="'+i+'">'+m+'</option>'; }).join('') +
+        '</select>' +
+        '<select id="sim-extra-tipo" style="padding:5px 4px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:white;font-size:11px;">' +
+        '<option value="gasto">Gasto</option><option value="ingreso">Ingreso</option>' +
+        '</select>' +
+        '<input id="sim-extra-concepto" type="text" placeholder="Ej: Portátil nuevo" style="flex:1;min-width:100px;padding:5px 7px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:white;font-size:11px;">' +
+        '<input id="sim-extra-valor" type="number" placeholder="€" step="1" min="0" style="width:75px;padding:5px 7px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:white;font-size:11px;text-align:right;">' +
+        '<button onclick="agregarExtraSimulacion()" style="padding:5px 12px;background:#f59e0b;border:none;border-radius:6px;color:white;font-size:14px;font-weight:800;cursor:pointer;margin:0;flex-shrink:0;">+</button>';
+    cont.appendChild(extraSimRow);
+
+    var listaExtras = document.createElement('div');
+    listaExtras.id = 'sim-extras-lista';
+    listaExtras.style.cssText = 'grid-column:1/-1;';
+    cont.appendChild(listaExtras);
+    renderizarExtrasSimulacion();
+
+    var nota = document.createElement('div');
+    nota.style.cssText = 'grid-column:1/-1;margin-top:14px;padding:8px 10px;background:rgba(255,255,255,0.04);border-radius:8px;font-size:10px;color:rgba(255,255,255,0.25);line-height:1.6;';
+    nota.textContent = 'Los extras puntuales reales de cada mes se incluyen automáticamente en los cálculos.';
+    cont.appendChild(nota);
+
+    var btnReset = document.createElement('button');
+    btnReset.style.cssText = 'grid-column:1/-1;width:100%;margin-top:10px;padding:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.45);border-radius:8px;cursor:pointer;font-size:11px;font-weight:600;';
+    btnReset.textContent = 'Restaurar valores originales';
+    btnReset.onclick = resetearSimulador;
+    cont.appendChild(btnReset);
+}
+
+function calcularTotalesMesSim(m) {
+    var ingTotal = 0, gasTotal = 0;
+    simDatos.ingresosFijos.forEach(function(item) {
+        if (item.frecuencia === 'mensual') ingTotal += item.valor;
+        else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(m)) ingTotal += item.valor;
+    });
+    (simDatos.ingresosBonus || []).forEach(function(item) {
+        if (item.frecuencia === 'mensual') ingTotal += item.valor;
+        else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(m)) ingTotal += item.valor;
+    });
+    ingTotal += simDatos.meses[m].ingresosExtras.reduce(function(s,x){ return s+x.valor; }, 0);
+    (simDatos.extrasRecurrentes || []).forEach(function(item) {
+        if (item.tipo === 'ingresos' && extraRecurrenteAplicaEnMes(item, anoActual, m)) ingTotal += item.valor;
+    });
+    simDatos.gastosFijos.forEach(function(item) {
+        if (item.frecuencia === 'mensual') gasTotal += item.valor;
+        else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(m)) gasTotal += item.valor;
+    });
+    (simDatos.gastosVacaciones || []).forEach(function(item) {
+        if (item.frecuencia === 'mensual') gasTotal += item.valor;
+        else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(m)) gasTotal += item.valor;
+    });
+    gasTotal += simDatos.meses[m].gastosExtras.reduce(function(s,x){ return s+x.valor; }, 0);
+    gasTotal += simDatos.meses[m].gastosVacacionesExtras.reduce(function(s,x){ return s+x.valor; }, 0);
+    (simDatos.extrasRecurrentes || []).forEach(function(item) {
+        if (item.tipo === 'gastos' && extraRecurrenteAplicaEnMes(item, anoActual, m)) gasTotal += item.valor;
+    });
+    // Extras puntuales añadidos en la simulación
+    (simExtras || []).forEach(function(e) {
+        if (e.mes === m) {
+            if (e.tipo === 'ingreso') ingTotal += e.valor;
+            else gasTotal += e.valor;
+        }
+    });
+    return { ingTotal: ingTotal, gasTotal: gasTotal };
+}
+
+var simExtras = []; // { mes, tipo, concepto, valor }
+
+function agregarExtraSimulacion() {
+    var mes = parseInt(document.getElementById('sim-extra-mes').value);
+    var tipo = document.getElementById('sim-extra-tipo').value;
+    var concepto = document.getElementById('sim-extra-concepto').value.trim();
+    var valor = parseFloat(document.getElementById('sim-extra-valor').value) || 0;
+    if (!concepto || valor <= 0) {
+        // pequeño flash en el input
+        var inp = document.getElementById('sim-extra-valor');
+        inp.style.borderColor = '#f87171';
+        setTimeout(function(){ inp.style.borderColor = 'rgba(255,255,255,0.15)'; }, 1000);
+        return;
+    }
+    simExtras.push({ mes: mes, tipo: tipo, concepto: concepto, valor: valor });
+    document.getElementById('sim-extra-concepto').value = '';
+    document.getElementById('sim-extra-valor').value = '';
+    renderizarExtrasSimulacion();
+    recalcularSimulador();
+}
+
+function renderizarExtrasSimulacion() {
+    var lista = document.getElementById('sim-extras-lista');
+    if (!lista) return;
+    lista.innerHTML = '';
+    if (simExtras.length === 0) {
+        var vacio = document.createElement('div');
+        vacio.style.cssText = 'font-size:10px;color:rgba(255,255,255,0.2);font-style:italic;padding:3px 0 6px;';
+        vacio.textContent = 'Sin extras añadidos. Usa el formulario para simular gastos o ingresos puntuales.';
+        lista.appendChild(vacio);
+        return;
+    }
+    simExtras.forEach(function(e, i) {
+        var row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;gap:6px;margin-bottom:3px;padding:5px 8px;background:rgba(245,158,11,0.1);border-radius:6px;border-left:3px solid #f59e0b;';
+        row.innerHTML =
+            '<span style="font-size:10px;color:rgba(255,255,255,0.5);flex-shrink:0;min-width:26px;">'+
+            ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][e.mes]+'</span>'+
+            '<span style="font-size:10px;color:'+(e.tipo==='gasto'?'#f87171':'#34d399')+';flex-shrink:0;">'+(e.tipo==='gasto'?'▼ Gasto':'▲ Ingreso')+'</span>'+
+            '<span style="font-size:11px;color:white;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+e.concepto+'">'+e.concepto+'</span>'+
+            '<span style="font-size:11px;font-weight:700;color:'+(e.tipo==='gasto'?'#f87171':'#34d399')+';flex-shrink:0;">'+formatearMoneda(e.valor)+'</span>'+
+            '<button onclick="eliminarExtraSimulacion('+i+')" style="background:rgba(239,68,68,0.25);border:none;color:#fca5a5;border-radius:4px;padding:2px 7px;cursor:pointer;font-size:11px;margin:0;flex-shrink:0;">✕</button>';
+        lista.appendChild(row);
+    });
+}
+
+function eliminarExtraSimulacion(i) {
+    simExtras.splice(i, 1);
+    renderizarExtrasSimulacion();
+    recalcularSimulador();
+}
+
+function recalcularSimulador() {
+    if (!simDatos) return;
+    // Ambos (actual y simulado) parten del mismo saldo real encadenado (saldo 1 Ene del año actual)
+    var saldoInicio = calcularSaldoInicioRealDelAno(anoActual);
+
+    // ── Datos ACTUALES (del dashboard real) ──
+    var actIng = 0, actGas = 0, actAcum = saldoInicio;
+    for (var m = 0; m < 12; m++) {
+        var t = calcularTotalesMes(m);
+        actIng += t.ingresosTotal;
+        actGas += t.gastosTotal;
+        actAcum += t.ingresosTotal - t.gastosTotal;
+    }
+
+    // ── Datos SIMULADOS ──
+    var simIng = 0, simGas = 0, simAcum = saldoInicio;  // mismo punto de partida
+    var resultados = [];
+    for (var ms = 0; ms < 12; ms++) {
+        var ts = calcularTotalesMesSim(ms);
+        simIng += ts.ingTotal;
+        simGas += ts.gasTotal;
+        simAcum += ts.ingTotal - ts.gasTotal;
+        resultados.push({ mes: ms, ingTotal: ts.ingTotal, gasTotal: ts.gasTotal, balance: ts.ingTotal - ts.gasTotal, acumulado: simAcum });
+    }
+
+    function kpiBox(label, valor, color, bg) {
+        return '<div style="background:' + bg + ';border-radius:8px;padding:9px 10px;border:1px solid rgba(255,255,255,0.07);">' +
+            '<div style="font-size:9px;font-weight:700;color:' + color + ';text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px;">' + label + '</div>' +
+            '<div style="font-size:1.1em;font-weight:800;color:white;">' + valor + '</div></div>';
+    }
+    document.getElementById('sim-kpis-actual').innerHTML =
+        kpiBox('Ingresos', formatearMoneda(actIng), '#34d399', 'rgba(16,185,129,0.1)') +
+        kpiBox('Gastos', formatearMoneda(actGas), '#f87171', 'rgba(239,68,68,0.1)') +
+        kpiBox('Saldo 31 Dic', formatearMoneda(actAcum), actAcum >= 0 ? '#34d399' : '#f87171', actAcum >= 0 ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.15)');
+
+    var difIng = simIng - actIng;
+    var difGas = simGas - actGas;
+    var difAcum = simAcum - actAcum;
+
+    function difTag(dif) {
+        if (Math.abs(dif) < 1) return '';
+        return '<div style="font-size:9px;color:' + (dif > 0 ? '#34d399' : '#f87171') + ';font-weight:700;margin-top:2px;">' + (dif > 0 ? '+' : '') + formatearMoneda(dif) + '</div>';
+    }
+    function kpiBoxSim(label, valor, difValor, color, bg) {
+        return '<div style="background:' + bg + ';border-radius:8px;padding:9px 10px;border:1px solid rgba(56,189,248,0.2);">' +
+            '<div style="font-size:9px;font-weight:700;color:' + color + ';text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px;">' + label + '</div>' +
+            '<div style="font-size:1.1em;font-weight:800;color:white;">' + valor + '</div>' +
+            difTag(difValor) + '</div>';
+    }
+    document.getElementById('sim-kpis-sim').innerHTML =
+        kpiBoxSim('Ingresos', formatearMoneda(simIng), difIng, '#38bdf8', 'rgba(56,189,248,0.1)') +
+        kpiBoxSim('Gastos', formatearMoneda(simGas), -difGas, '#38bdf8', 'rgba(56,189,248,0.1)') +
+        kpiBoxSim('Saldo 31 Dic', formatearMoneda(simAcum), difAcum, simAcum >= 0 ? '#34d399' : '#f87171', simAcum >= 0 ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.2)');
+
+    var primerNeg = null;
+    for (var rr = 0; rr < resultados.length; rr++) {
+        if (resultados[rr].acumulado < 0) { primerNeg = resultados[rr]; break; }
+    }
+    var alertaVieja = document.getElementById('sim-alerta');
+    if (alertaVieja) alertaVieja.remove();
+    var grid = document.getElementById('sim-meses-grid');
+    if (primerNeg) {
+        var al = document.createElement('div');
+        al.id = 'sim-alerta';
+        al.style.cssText = 'background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.5);border-radius:8px;padding:8px 12px;margin-bottom:10px;color:#fca5a5;font-size:12px;font-weight:600;';
+        al.innerHTML = 'Primer mes en negativo: <strong style="color:#f87171">' + MESES_NOMBRES[primerNeg.mes] + ' ' + formatearMoneda(primerNeg.acumulado) + '</strong>';
+        grid.before(al);
+    }
+    grid.innerHTML = '';
+    resultados.forEach(function(r) {
+        var esNeg = r.acumulado < 0;
+        var balPos = r.balance >= 0;
+        var card = document.createElement('div');
+        card.style.cssText = 'background:' + (esNeg ? 'rgba(239,68,68,0.12)' : 'rgba(255,255,255,0.04)') +
+            ';border:1px solid ' + (esNeg ? 'rgba(239,68,68,0.4)' : 'rgba(255,255,255,0.08)') + ';border-radius:9px;padding:9px 11px;';
+        card.innerHTML =
+            '<div style="font-weight:800;color:' + (esNeg ? '#f87171' : '#7dd3fc') + ';font-size:12px;margin-bottom:5px;">' + MESES_NOMBRES[r.mes] + '</div>' +
+            '<div style="display:flex;justify-content:space-between;font-size:10px;color:rgba(255,255,255,0.5);margin-bottom:1px;"><span>Ingresos</span><span style="color:#34d399;font-weight:600;">' + formatearMoneda(r.ingTotal) + '</span></div>' +
+            '<div style="display:flex;justify-content:space-between;font-size:10px;color:rgba(255,255,255,0.5);margin-bottom:5px;"><span>Gastos</span><span style="color:#f87171;font-weight:600;">' + formatearMoneda(r.gasTotal) + '</span></div>' +
+            '<div style="font-size:11px;font-weight:700;color:' + (balPos ? '#34d399' : '#f87171') + ';">' + (balPos ? '+' : '') + formatearMoneda(r.balance) + '</div>' +
+            '<div style="font-size:10px;color:' + (r.acumulado >= 0 ? 'rgba(255,255,255,0.38)' : '#f87171') + ';margin-top:2px;font-weight:600;">Acum: ' + formatearMoneda(r.acumulado) + '</div>';
+        grid.appendChild(card);
+    });
+}
+</script>
     </body>
 </html>
