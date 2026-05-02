@@ -91,92 +91,101 @@
         {
           "concepto": "Seguro Caldera",
           "valor": 138
-        },
-        {
-          "concepto": "Luz",
-          "valor": -10
-        },
-        {
-          "concepto": "Agua",
-          "valor": -8
-        },
-        {
-          "concepto": "Gas Madrid",
-          "valor": -8
-        },
-        {
-          "concepto": "Parking Madrid",
-          "valor": -150
         }
       ],
-      "gastosVacacionesExtras": []
+      "gastosVacacionesExtras": [],
+      "overrides": {
+        "gastosFijos_4": {
+          "concepto": "Gas Madrid",
+          "valor": 92
+        },
+        "gastosFijos_1": {
+          "concepto": "Luz",
+          "valor": 30
+        },
+        "gastosFijos_5": {
+          "concepto": "Parking Madrid",
+          "valor": 0,
+          "eliminado": true
+        },
+        "gastosFijos_2": {
+          "concepto": "Agua",
+          "valor": 27
+        }
+      }
     },
     {
       "ingresosExtras": [],
-      "gastosExtras": [
-        {
-          "concepto": "Luz",
-          "valor": -5
-        },
-        {
+      "gastosExtras": [],
+      "gastosVacacionesExtras": [],
+      "overrides": {
+        "gastosFijos_3": {
           "concepto": "Gas Majadahonda",
-          "valor": -100
+          "valor": 0,
+          "eliminado": true
         },
-        {
+        "gastosFijos_1": {
+          "concepto": "Luz",
+          "valor": 35
+        },
+        "gastosFijos_5": {
           "concepto": "Parking Madrid",
-          "valor": -150
+          "valor": 0,
+          "eliminado": true
         }
-      ],
-      "gastosVacacionesExtras": []
+      }
     },
     {
-      "ingresosExtras": [
-        {
-          "concepto": "Suministros",
-          "valor": 13
-        }
-      ],
+      "ingresosExtras": [],
       "gastosExtras": [
         {
           "concepto": "Seguro Majadahonda",
           "valor": 170
         },
         {
-          "concepto": "Luz",
-          "valor": -13
-        },
-        {
           "concepto": "Gas Majadahonda",
           "valor": 219
-        },
-        {
-          "concepto": "Agua",
-          "valor": -14
-        },
-        {
-          "concepto": "Gas Madrid",
-          "valor": -15
-        },
-        {
-          "concepto": "Parking Madrid",
-          "valor": -150
         }
       ],
-      "gastosVacacionesExtras": []
+      "gastosVacacionesExtras": [],
+      "overrides": {
+        "gastosFijos_1": {
+          "concepto": "Luz",
+          "valor": 27
+        },
+        "gastosFijos_2": {
+          "concepto": "Agua",
+          "valor": 21
+        },
+        "gastosFijos_4": {
+          "concepto": "Gas Madrid",
+          "valor": 85
+        },
+        "ingresosBonus_0": {
+          "concepto": "Suministros",
+          "valor": 303
+        },
+        "gastosFijos_5": {
+          "concepto": "Parking Madrid",
+          "valor": 0,
+          "eliminado": true
+        }
+      }
     },
     {
       "ingresosExtras": [],
-      "gastosExtras": [
-        {
+      "gastosExtras": [],
+      "gastosVacacionesExtras": [],
+      "overrides": {
+        "gastosFijos_1": {
           "concepto": "Luz",
-          "valor": -19
+          "valor": 21
         },
-        {
+        "gastosFijos_3": {
           "concepto": "Gas Majadahonda",
-          "valor": -38
+          "valor": 62
         }
-      ],
-      "gastosVacacionesExtras": []
+      }
     },
     {
       "ingresosExtras": [],
@@ -231,65 +240,234 @@
   "extrasRecurrentes": [],
   "mesesCerrados": {
     "0": {
-      "cerradoEn": "2026-05-01T09:57:30.200Z",
+      "cerradoEn": "2026-05-02T10:43:28.117Z",
       "snapshot": {
         "ingresosFijos": 880,
         "ingresosBonus": 0,
-        "gastosFijos": 925,
+        "gastosFijos": 749,
         "gastosVacaciones": 0,
         "ingresosExtras": 0,
-        "gastosExtras": -38,
+        "gastosExtras": 138,
         "gastosVacacionesExtras": 0,
         "ingresosTotal": 880,
         "gastosTotal": 887
       },
-      "balanceAcumulado": 45
+      "balanceAcumulado": 45,
+      "snapshotItems": [
+        {
+          "fuente": "ingresosFijos",
+          "idx": 0,
+          "concepto": "Alquiler",
+          "valor": 880,
+          "eliminado": false
+        },
+        {
+          "fuente": "gastosFijos",
+          "idx": 0,
+          "concepto": "Casa Majadahonda",
+          "valor": 600,
+          "eliminado": false
+        },
+        {
+          "fuente": "gastosFijos",
+          "idx": 1,
+          "concepto": "Luz",
+          "valor": 30,
+          "eliminado": false
+        },
+        {
+          "fuente": "gastosFijos",
+          "idx": 2,
+          "concepto": "Agua",
+          "valor": 27,
+          "eliminado": false
+        },
+        {
+          "fuente": "gastosFijos",
+          "idx": 4,
+          "concepto": "Gas Madrid",
+          "valor": 92,
+          "eliminado": false
+        },
+        {
+          "fuente": "gastosFijos",
+          "idx": 5,
+          "concepto": "Parking Madrid",
+          "valor": 0,
+          "eliminado": true
+        }
+      ]
     },
     "1": {
-      "cerradoEn": "2026-05-01T09:59:24.560Z",
+      "cerradoEn": "2026-05-02T10:44:22.549Z",
       "snapshot": {
         "ingresosFijos": 880,
         "ingresosBonus": 0,
-        "gastosFijos": 890,
+        "gastosFijos": 635,
         "gastosVacaciones": 0,
         "ingresosExtras": 0,
-        "gastosExtras": -255,
+        "gastosExtras": 0,
         "gastosVacacionesExtras": 0,
         "ingresosTotal": 880,
         "gastosTotal": 635
       },
-      "balanceAcumulado": 290
+      "balanceAcumulado": 290,
+      "snapshotItems": [
+        {
+          "fuente": "ingresosFijos",
+          "idx": 0,
+          "concepto": "Alquiler",
+          "valor": 880,
+          "eliminado": false
+        },
+        {
+          "fuente": "gastosFijos",
+          "idx": 0,
+          "concepto": "Casa Majadahonda",
+          "valor": 600,
+          "eliminado": false
+        },
+        {
+          "fuente": "gastosFijos",
+          "idx": 1,
+          "concepto": "Luz",
+          "valor": 35,
+          "eliminado": false
+        },
+        {
+          "fuente": "gastosFijos",
+          "idx": 3,
+          "concepto": "Gas Majadahonda",
+          "valor": 0,
+          "eliminado": true
+        },
+        {
+          "fuente": "gastosFijos",
+          "idx": 5,
+          "concepto": "Parking Madrid",
+          "valor": 0,
+          "eliminado": true
+        }
+      ]
     },
     "2": {
-      "cerradoEn": "2026-05-01T10:07:02.135Z",
+      "cerradoEn": "2026-05-02T10:46:30.692Z",
       "snapshot": {
         "ingresosFijos": 880,
-        "ingresosBonus": 290,
-        "gastosFijos": 925,
+        "ingresosBonus": 303,
+        "gastosFijos": 733,
         "gastosVacaciones": 0,
-        "ingresosExtras": 13,
-        "gastosExtras": 197,
+        "ingresosExtras": 0,
+        "gastosExtras": 389,
         "gastosVacacionesExtras": 0,
         "ingresosTotal": 1183,
         "gastosTotal": 1122
       },
-      "balanceAcumulado": 351
+      "balanceAcumulado": 351,
+      "snapshotItems": [
+        {
+          "fuente": "ingresosFijos",
+          "idx": 0,
+          "concepto": "Alquiler",
+          "valor": 880,
+          "eliminado": false
+        },
+        {
+          "fuente": "ingresosBonus",
+          "idx": 0,
+          "concepto": "Suministros",
+          "valor": 303,
+          "eliminado": false
+        },
+        {
+          "fuente": "gastosFijos",
+          "idx": 0,
+          "concepto": "Casa Majadahonda",
+          "valor": 600,
+          "eliminado": false
+        },
+        {
+          "fuente": "gastosFijos",
+          "idx": 1,
+          "concepto": "Luz",
+          "valor": 27,
+          "eliminado": false
+        },
+        {
+          "fuente": "gastosFijos",
+          "idx": 2,
+          "concepto": "Agua",
+          "valor": 21,
+          "eliminado": false
+        },
+        {
+          "fuente": "gastosFijos",
+          "idx": 4,
+          "concepto": "Gas Madrid",
+          "valor": 85,
+          "eliminado": false
+        },
+        {
+          "fuente": "gastosFijos",
+          "idx": 5,
+          "concepto": "Parking Madrid",
+          "valor": 0,
+          "eliminado": true
+        }
+      ]
     },
     "3": {
-      "cerradoEn": "2026-05-01T10:08:00.904Z",
+      "cerradoEn": "2026-05-02T10:47:28.196Z",
       "snapshot": {
         "ingresosFijos": 880,
         "ingresosBonus": 0,
-        "gastosFijos": 890,
+        "gastosFijos": 833,
         "gastosVacaciones": 0,
         "ingresosExtras": 0,
-        "gastosExtras": -57,
+        "gastosExtras": 0,
         "gastosVacacionesExtras": 0,
         "ingresosTotal": 880,
         "gastosTotal": 833
       },
-      "balanceAcumulado": 398
+      "balanceAcumulado": 398,
+      "snapshotItems": [
+        {
+          "fuente": "ingresosFijos",
+          "idx": 0,
+          "concepto": "Alquiler",
+          "valor": 880,
+          "eliminado": false
+        },
+        {
+          "fuente": "gastosFijos",
+          "idx": 0,
+          "concepto": "Casa Majadahonda",
+          "valor": 600,
+          "eliminado": false
+        },
+        {
+          "fuente": "gastosFijos",
+          "idx": 1,
+          "concepto": "Luz",
+          "valor": 21,
+          "eliminado": false
+        },
+        {
+          "fuente": "gastosFijos",
+          "idx": 3,
+          "concepto": "Gas Majadahonda",
+          "valor": 62,
+          "eliminado": false
+        },
+        {
+          "fuente": "gastosFijos",
+          "idx": 5,
+          "concepto": "Parking Madrid",
+          "valor": 150,
+          "eliminado": false
+        }
+      ]
     }
   },
-  "_exportadoEn": "2026-05-01T10:08:20.072Z"
+  "_exportadoEn": "2026-05-02T10:47:33.053Z"
 }
