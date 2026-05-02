@@ -210,6 +210,7 @@
         .botones-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
         input[type="text"] { width: calc(40% - 5px); padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; margin-right: 5px; }
+        .add-item-form input[type="text"] { width: auto !important; margin-right: 0 !important; }
         input[type="number"] { padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; }
         input[type="file"] { display: none; }
         button { padding: 12px 24px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1em; font-weight: bold; transition: background 0.3s; width: 100%; margin-top: 10px; }
@@ -268,9 +269,11 @@
         .config-form input, .config-form select { width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 1.1em; margin-bottom: 15px; }
         .config-form .help-text { font-size: 0.9em; color: #6b7280; margin-top: -10px; margin-bottom: 15px; }
         
-        .add-item-form { display: flex; gap: 5px; margin-top: 15px; flex-wrap: wrap; }
-        .add-item-form input[type="number"] { width: calc(20% - 5px); margin: 0; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; }
-        .add-item-form select { width: calc(25% - 5px); margin: 0; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; background: white; }
+        .add-item-form { display: flex; gap: 6px; margin-top: 12px; flex-wrap: nowrap; align-items: center; }
+        .add-item-form input[type="text"] { flex: 2; min-width: 0; margin: 0 !important; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; width: auto !important; }
+        .add-item-form input[type="number"], .add-item-form input[type="text"]#valor-input { flex: 1; min-width: 0; margin: 0; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; width: auto !important; }
+        .add-item-form select { flex: 1.4; min-width: 0; margin: 0; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; background: white; width: auto !important; }
+        .add-item-form .add-btn { flex: 0 0 42px; width: 42px !important; margin: 0; padding: 10px; }
         
         .meses-selector {
             display: grid;
@@ -686,58 +689,51 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            flex-wrap: nowrap;
+            white-space: nowrap;
+            overflow: hidden;
         }
 
         /* ========== MODAL COMPACTO ========== */
         #modal-ver-todo-mes .modal-content {
             padding: 15px !important;
             padding-top: 50px !important;
+            max-height: 90vh !important;
+            overflow-y: auto !important;
         }
         #modal-ver-todo-mes h3 {
-            font-size: 16px !important;
-            margin-bottom: 12px !important;
-        }
-        #modal-ver-todo-mes [style*="grid-template-columns: 1fr 1fr 1fr"] > div {
-            padding: 10px !important;
-        }
-        #modal-ver-todo-mes [style*="font-size: 28px"] {
-            font-size: 18px !important;
-        }
-        #modal-ver-todo-mes [style*="font-size: 13px"] {
-            font-size: 11px !important;
-        }
-        #modal-ver-todo-mes #buscar-todo-mes {
-            padding: 8px !important;
-            font-size: 13px !important;
+            font-size: 17px !important;
+            margin-bottom: 10px !important;
         }
         #modal-ver-todo-mes .orden-info {
             padding: 5px 10px !important;
             font-size: 11px !important;
-            margin-bottom: 10px !important;
+            margin-bottom: 8px !important;
         }
         #modal-ver-todo-mes .item-todo-mes {
             padding: 8px 12px !important;
-            font-size: 12px !important;
+            font-size: 15px !important;
             margin-bottom: 4px !important;
         }
         #modal-ver-todo-mes .item-todo-mes .concepto {
-            font-size: 12px !important;
+            font-size: 15px !important;
         }
         #modal-ver-todo-mes .item-todo-mes .valor {
-            font-size: 12px !important;
-            font-weight: 600 !important;
+            font-size: 15px !important;
+            font-weight: 700 !important;
+            min-width: 80px !important;
         }
         #modal-ver-todo-mes .item-todo-mes .tipo-badge {
-            font-size: 9px !important;
-            padding: 2px 6px !important;
+            font-size: 10px !important;
+            padding: 2px 7px !important;
         }
         #modal-ver-todo-mes .item-todo-mes .acciones button {
-            font-size: 12px !important;
-            padding: 3px 6px !important;
+            font-size: 14px !important;
+            padding: 4px 7px !important;
         }
         #modal-ver-todo-mes .drag-handle {
-            font-size: 14px !important;
-            padding: 0 6px !important;
+            font-size: 15px !important;
+            padding: 0 7px !important;
         }
 
         /* ========== BOTÓN CERRAR FIJO ========== */
@@ -888,7 +884,7 @@
                         <span id="ingresos-total-display">0€</span>
                     </div>
                 </div>
-                <div class="botones-grid">
+                <div id="botones-ingresos" class="botones-grid">
                     <button class="edit-btn" onclick="abrirModalFijos('ingresos')">✏️ Editar Ingresos Fijos</button>
                     <button class="vacaciones-btn" onclick="abrirModalIngresosBonus()">🎁 Extras y Bonus</button>
                     <button class="extras-btn" onclick="abrirModalExtras('ingresos')">➕ Extras del Mes</button>
@@ -915,7 +911,7 @@
                         <span id="gastos-total-display">0€</span>
                     </div>
                 </div>
-                <div class="botones-grid">
+                <div id="botones-gastos" class="botones-grid">
                     <button class="edit-btn" onclick="abrirModalFijos('gastos')">✏️ Editar Gastos Fijos</button>
                     <button class="extras-btn" onclick="abrirModalExtras('gastos')">➕ Extras del Mes</button>
                     <button class="vacaciones-btn" onclick="abrirModalVacaciones()">🏖️ Editar Vacaciones</button>
@@ -936,7 +932,11 @@
                         <span id="balance-acumulado" class="positivo">0€</span>
                     </div>
                 </div>
-                <div class="progress-bar">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;margin-bottom:5px;">
+                    <span style="font-size:0.75em;color:rgba(255,255,255,0.45);font-weight:700;text-transform:uppercase;letter-spacing:0.06em;">Variación vs inicio de año</span>
+                    <span id="progress-label-detalle" style="font-size:0.75em;color:rgba(255,255,255,0.35);"></span>
+                </div>
+                <div class="progress-bar" id="progress-bar-container">
                     <div class="progress-fill" id="progress-fill" style="width: 0%">0%</div>
                 </div>
                 <!-- Estado mes: cerrado o botón cerrar -->
@@ -1055,6 +1055,9 @@
                         <option value="puntual">Puntual (solo este mes)</option>
                     </select>
                     <button class="add-btn" onclick="agregarItem()">+</button>
+                </div>
+                <div style="margin-top:10px;">
+                    <input type="text" id="buscador-desglose" placeholder="🔍 Buscar en la lista..." oninput="filtrarListaModal()" style="width:100%; padding:8px 12px; border:2px solid #e5e7eb; border-radius:8px; font-size:0.9em; box-sizing:border-box; margin:0;">
                 </div>
                 
                 <div id="categoria-selector-container" style="display: none;">
@@ -1208,46 +1211,42 @@
             const ingresosCateg = {};
             const gastosCateg = {};
             
-            for (const key in CATEGORIAS_INGRESOS) {
-                ingresosCateg[key] = { total: 0, items: [] };
-            }
-            for (const key in CATEGORIAS_GASTOS) {
-                gastosCateg[key] = { total: 0, items: [] };
-            }
-            
-            datos.ingresosFijos.forEach(item => {
-                let aplicar = false;
-                if (item.frecuencia === 'mensual') {
-                    aplicar = true;
-                } else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) {
-                    aplicar = true;
-                }
-                
-                if (aplicar) {
-                    const cat = clasificarConcepto(item.concepto, true);
-                    if (cat && ingresosCateg[cat]) {
-                        ingresosCateg[cat].total += item.valor;
-                        ingresosCateg[cat].items.push({ concepto: item.concepto, valor: item.valor });
-                    }
-                }
-            });
-            
-            (datos.ingresosBonus || []).forEach(item => {
-                let aplicar = false;
-                if (item.frecuencia === 'mensual') {
-                    aplicar = true;
-                } else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) {
-                    aplicar = true;
-                }
-                if (aplicar) {
-                    const cat = clasificarConcepto(item.concepto, true);
-                    if (cat && ingresosCateg[cat]) {
-                        ingresosCateg[cat].total += item.valor;
-                        ingresosCateg[cat].items.push({ concepto: item.concepto, valor: item.valor });
-                    }
+            for (const key in CATEGORIAS_INGRESOS) ingresosCateg[key] = { total: 0, items: [] };
+            for (const key in CATEGORIAS_GASTOS)   gastosCateg[key]   = { total: 0, items: [] };
+
+            const overrides = datos.meses[numMes].overrides || {};
+
+            // Ingresos fijos (con overrides y eliminados)
+            datos.ingresosFijos.forEach((item, idx) => {
+                const aplica = item.frecuencia === 'mensual' || (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes));
+                if (!aplica) return;
+                const ov = overrides['ingresosFijos_' + idx];
+                if (ov && ov.eliminado) return;
+                const valor = ov ? ov.valor : item.valor;
+                const concepto = ov ? ov.concepto : item.concepto;
+                const cat = clasificarConcepto(concepto, true);
+                if (cat && ingresosCateg[cat]) {
+                    ingresosCateg[cat].total += valor;
+                    ingresosCateg[cat].items.push({ concepto, valor });
                 }
             });
 
+            // Bonus (con overrides y eliminados)
+            (datos.ingresosBonus || []).forEach((item, idx) => {
+                const aplica = item.frecuencia === 'mensual' || (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes));
+                if (!aplica) return;
+                const ov = overrides['ingresosBonus_' + idx];
+                if (ov && ov.eliminado) return;
+                const valor = ov ? ov.valor : item.valor;
+                const concepto = ov ? ov.concepto : item.concepto;
+                const cat = clasificarConcepto(concepto, true);
+                if (cat && ingresosCateg[cat]) {
+                    ingresosCateg[cat].total += valor;
+                    ingresosCateg[cat].items.push({ concepto, valor });
+                }
+            });
+
+            // Ingresos extras puntuales
             datos.meses[numMes].ingresosExtras.forEach(item => {
                 const cat = clasificarConcepto(item.concepto, true);
                 if (cat && ingresosCateg[cat]) {
@@ -1255,38 +1254,45 @@
                     ingresosCateg[cat].items.push({ concepto: item.concepto, valor: item.valor });
                 }
             });
-            
-            datos.gastosFijos.forEach(item => {
-                let aplicar = false;
-                if (item.frecuencia === 'mensual') {
-                    aplicar = true;
-                } else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) {
-                    aplicar = true;
-                }
-                
-                if (aplicar) {
-                    const cat = clasificarConcepto(item.concepto, false);
-                    if (cat && gastosCateg[cat]) {
-                        gastosCateg[cat].total += item.valor;
-                        gastosCateg[cat].items.push({ concepto: item.concepto, valor: item.valor });
-                    }
+
+            // Extras recurrentes ingresos
+            (datos.extrasRecurrentes || []).forEach(item => {
+                if (item.tipo !== 'ingresos' || !extraRecurrenteAplicaEnMes(item, anoActual, numMes)) return;
+                const cat = clasificarConcepto(item.concepto, true);
+                if (cat && ingresosCateg[cat]) {
+                    ingresosCateg[cat].total += item.valor;
+                    ingresosCateg[cat].items.push({ concepto: item.concepto, valor: item.valor });
                 }
             });
-            
-            datos.gastosVacaciones.forEach(item => {
-                let aplicar = false;
-                if (item.frecuencia === 'mensual') {
-                    aplicar = true;
-                } else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) {
-                    aplicar = true;
-                }
-                
-                if (aplicar) {
-                    gastosCateg['vacaciones'].total += item.valor;
-                    gastosCateg['vacaciones'].items.push({ concepto: item.concepto, valor: item.valor });
+
+            // Gastos fijos (con overrides y eliminados)
+            datos.gastosFijos.forEach((item, idx) => {
+                const aplica = item.frecuencia === 'mensual' || (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes));
+                if (!aplica) return;
+                const ov = overrides['gastosFijos_' + idx];
+                if (ov && ov.eliminado) return;
+                const valor = ov ? ov.valor : item.valor;
+                const concepto = ov ? ov.concepto : item.concepto;
+                const cat = clasificarConcepto(concepto, false);
+                if (cat && gastosCateg[cat]) {
+                    gastosCateg[cat].total += valor;
+                    gastosCateg[cat].items.push({ concepto, valor });
                 }
             });
-            
+
+            // Vacaciones fijas (con overrides y eliminados)
+            (datos.gastosVacaciones || []).forEach((item, idx) => {
+                const aplica = item.frecuencia === 'mensual' || (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes));
+                if (!aplica) return;
+                const ov = overrides['gastosVacaciones_' + idx];
+                if (ov && ov.eliminado) return;
+                const valor = ov ? ov.valor : item.valor;
+                const concepto = ov ? ov.concepto : item.concepto;
+                gastosCateg['vacaciones'].total += valor;
+                gastosCateg['vacaciones'].items.push({ concepto, valor });
+            });
+
+            // Gastos extras puntuales
             datos.meses[numMes].gastosExtras.forEach(item => {
                 const cat = clasificarConcepto(item.concepto, false);
                 if (cat && gastosCateg[cat]) {
@@ -1294,21 +1300,18 @@
                     gastosCateg[cat].items.push({ concepto: item.concepto, valor: item.valor });
                 }
             });
-            
+
+            // Extras vacaciones puntuales
             datos.meses[numMes].gastosVacacionesExtras.forEach(item => {
                 gastosCateg['vacaciones'].total += item.valor;
                 gastosCateg['vacaciones'].items.push({ concepto: item.concepto, valor: item.valor });
             });
 
-            // Extras recurrentes (con fecha fin)
+            // Extras recurrentes gastos
             (datos.extrasRecurrentes || []).forEach(item => {
-                if (!extraRecurrenteAplicaEnMes(item, anoActual, numMes)) return;
-                if (item.tipo === 'ingresos') {
-                    const cat = clasificarConcepto(item.concepto, true);
-                    ingresosCateg[cat].total += item.valor;
-                    ingresosCateg[cat].items.push({ concepto: item.concepto, valor: item.valor });
-                } else {
-                    const cat = clasificarConcepto(item.concepto, false);
+                if (item.tipo !== 'gastos' || !extraRecurrenteAplicaEnMes(item, anoActual, numMes)) return;
+                const cat = clasificarConcepto(item.concepto, false);
+                if (cat && gastosCateg[cat]) {
                     gastosCateg[cat].total += item.valor;
                     gastosCateg[cat].items.push({ concepto: item.concepto, valor: item.valor });
                 }
@@ -2224,16 +2227,43 @@
             const totales = calcularTotalesMes(numMes);
             const balanceAcumulado = calcularBalanceAcumulado(numMes);
             if (backup) datos.mesesCerrados[numMes] = backup;
-            return { totales, balanceAcumulado };
+
+            // Capturar snapshot detallado ítem a ítem (para comparar al reabrir)
+            const overrides = datos.meses[numMes].overrides || {};
+            const snapshotItems = [];
+
+            const capturar = (arr, fuente) => {
+                arr.forEach((item, idx) => {
+                    const aplica = item.frecuencia === 'mensual' ||
+                        (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes));
+                    if (!aplica) return;
+                    const ov = overrides[fuente + '_' + idx];
+                    if (ov && ov.eliminado) {
+                        snapshotItems.push({ fuente, idx, concepto: item.concepto, valor: 0, eliminado: true });
+                        return;
+                    }
+                    const valor = ov ? ov.valor : item.valor;
+                    const concepto = ov ? ov.concepto : item.concepto;
+                    snapshotItems.push({ fuente, idx, concepto, valor, eliminado: false });
+                });
+            };
+
+            capturar(datos.ingresosFijos, 'ingresosFijos');
+            capturar(datos.ingresosBonus || [], 'ingresosBonus');
+            capturar(datos.gastosFijos, 'gastosFijos');
+            capturar(datos.gastosVacaciones || [], 'gastosVacaciones');
+
+            return { totales, balanceAcumulado, snapshotItems };
         }
 
         function cerrarMes(numMes, silencioso) {
             if (!datos.mesesCerrados) datos.mesesCerrados = {};
-            const { totales, balanceAcumulado } = generarSnapshot(numMes);
+            const { totales, balanceAcumulado, snapshotItems } = generarSnapshot(numMes);
             datos.mesesCerrados[numMes] = {
                 cerradoEn: new Date().toISOString(),
                 snapshot: totales,
-                balanceAcumulado: balanceAcumulado
+                balanceAcumulado: balanceAcumulado,
+                snapshotItems: snapshotItems   // ← detalle ítem a ítem
             };
             guardarDatos();
             if (!silencioso) {
@@ -2253,35 +2283,311 @@
         }
 
         function reabrirMes() {
-            if (!confirm('¿Reabrir ' + MESES_NOMBRES[mesActual] + '?\n\nLos datos volverán a calcularse en vivo desde tus datos actuales.')) return;
-            delete datos.mesesCerrados[mesActual];
+            const numMes = mesActual;
+            const cerrado = datos.mesesCerrados && datos.mesesCerrados[numMes];
+            if (!cerrado) return;
+
+            // Si no hay snapshotItems (mes cerrado con versión antigua), reabrir directo
+            if (!cerrado.snapshotItems || cerrado.snapshotItems.length === 0) {
+                if (!confirm('¿Reabrir ' + MESES_NOMBRES[numMes] + '?\n\nLos datos se calcularán en vivo desde los valores actuales.')) return;
+                delete datos.mesesCerrados[numMes];
+                guardarDatos();
+                mostrarNotificacion('🔓 ' + MESES_NOMBRES[numMes] + ' reabierto', 'exito');
+                actualizarTodo();
+                actualizarResumenAnual();
+                return;
+            }
+
+            // Detectar diferencias entre snapshot guardado y estado live actual
+            const overrides = datos.meses[numMes].overrides || {};
+            const diferencias = [];
+
+            const fuentes = [
+                { clave: 'ingresosFijos', arr: datos.ingresosFijos, tipo: 'ingreso', label: 'Ingreso fijo' },
+                { clave: 'ingresosBonus', arr: datos.ingresosBonus || [], tipo: 'ingreso', label: 'Bonus' },
+                { clave: 'gastosFijos', arr: datos.gastosFijos, tipo: 'gasto', label: 'Gasto fijo' },
+                { clave: 'gastosVacaciones', arr: datos.gastosVacaciones || [], tipo: 'gasto', label: 'Vacaciones' },
+            ];
+
+            fuentes.forEach(({ clave, arr, tipo, label }) => {
+                arr.forEach((item, idx) => {
+                    const aplica = item.frecuencia === 'mensual' ||
+                        (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes));
+                    if (!aplica) return;
+
+                    // Valor vivo (sin override, porque queremos comparar con el fijo global actual)
+                    const valorLive = item.valor;
+                    const conceptoLive = item.concepto;
+
+                    // Valor en snapshot
+                    const snap = cerrado.snapshotItems.find(s => s.fuente === clave && s.idx === idx);
+                    const valorSnap = snap ? snap.valor : null;
+                    const conceptoSnap = snap ? snap.concepto : null;
+                    const eliminadoSnap = snap ? snap.eliminado : false;
+
+                    // El valor que se mostrará al reabrir (live con overrides del mes)
+                    const ovActual = overrides[clave + '_' + idx];
+                    const valorEfectivo = ovActual ? ovActual.valor : valorLive;
+                    const conceptoEfectivo = ovActual ? ovActual.concepto : conceptoLive;
+
+                    if (snap === undefined) {
+                        // Ítem nuevo que no existía cuando se cerró — preguntar si añadir
+                        diferencias.push({
+                            fuente: clave, idx, tipo, label,
+                            concepto: conceptoLive,
+                            valorSnap: null, valorLive: valorLive,
+                            descripcion: '➕ NUEVO',
+                            colorBadge: '#7c3aed',
+                            textoSnap: '(no existía)',
+                            textoLive: conceptoLive + ': ' + formatearMoneda(valorLive),
+                        });
+                        return;
+                    }
+
+                    if (eliminadoSnap && !ovActual) {
+                        // Estaba eliminado en el snapshot pero ahora existe → preguntar
+                        diferencias.push({
+                            fuente: clave, idx, tipo, label,
+                            concepto: conceptoLive,
+                            valorSnap: 0, valorLive: valorLive,
+                            descripcion: '♻️ RESTAURADO',
+                            colorBadge: '#0891b2',
+                            textoSnap: '(eliminado en el cierre)',
+                            textoLive: conceptoLive + ': ' + formatearMoneda(valorLive),
+                        });
+                        return;
+                    }
+
+                    const mismoConcepto = conceptoSnap === conceptoEfectivo;
+                    const mismoValor = Math.abs((valorSnap || 0) - valorEfectivo) < 0.005;
+
+                    if (!mismoValor || !mismoConcepto) {
+                        diferencias.push({
+                            fuente: clave, idx, tipo, label,
+                            concepto: conceptoEfectivo,
+                            valorSnap: valorSnap,
+                            valorLive: valorLive,
+                            valorEfectivo: valorEfectivo,
+                            conceptoSnap: conceptoSnap,
+                            descripcion: '✏️ MODIFICADO',
+                            colorBadge: '#d97706',
+                            textoSnap: (conceptoSnap || '?') + ': ' + formatearMoneda(valorSnap || 0),
+                            textoLive: conceptoLive + ' (global): ' + formatearMoneda(valorLive),
+                        });
+                    }
+                });
+
+                // Ítems que estaban en el snapshot pero ya no existen en el array
+                cerrado.snapshotItems
+                    .filter(s => s.fuente === clave && !s.eliminado)
+                    .forEach(snap => {
+                        if (snap.idx >= arr.length) {
+                            diferencias.push({
+                                fuente: clave, idx: snap.idx, tipo, label,
+                                concepto: snap.concepto,
+                                valorSnap: snap.valor, valorLive: null,
+                                descripcion: '🗑️ ELIMINADO GLOBALMENTE',
+                                colorBadge: '#ef4444',
+                                textoSnap: snap.concepto + ': ' + formatearMoneda(snap.valor),
+                                textoLive: '(ya no existe en los fijos globales)',
+                            });
+                        }
+                    });
+            });
+
+            if (diferencias.length === 0) {
+                // Sin cambios: reabrir directamente
+                delete datos.mesesCerrados[numMes];
+                guardarDatos();
+                mostrarNotificacion('🔓 ' + MESES_NOMBRES[numMes] + ' reabierto (sin cambios detectados)', 'exito');
+                actualizarTodo();
+                actualizarResumenAnual();
+                return;
+            }
+
+            // Mostrar modal de diferencias
+            abrirModalReapertura(numMes, diferencias);
+        }
+
+        // ── MODAL DE REAPERTURA ─────────────────────────────────────────────
+        let _reaperturaMes = null;
+        let _reaperturaDiferencias = [];
+        let _reaperturaDecisiones = {}; // { idx_fuente: 'mantener'|'aplicar' }
+
+        function abrirModalReapertura(numMes, diferencias) {
+            _reaperturaMes = numMes;
+            _reaperturaDiferencias = diferencias;
+            _reaperturaDecisiones = {};
+
+            // Inicializar todas en "mantener" (valor del snapshot)
+            diferencias.forEach((d, i) => { _reaperturaDecisiones[i] = 'mantener'; });
+
+            const lista = document.getElementById('reapertura-lista');
+            lista.innerHTML = '';
+
+            diferencias.forEach((d, i) => {
+                const row = document.createElement('div');
+                row.style.cssText = 'background:#f8fafc;border-radius:12px;padding:14px 16px;margin-bottom:10px;border:1px solid #e2e8f0;';
+
+                const header = document.createElement('div');
+                header.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;';
+
+                const badge = document.createElement('span');
+                badge.style.cssText = `background:${d.colorBadge};color:white;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap;`;
+                badge.textContent = d.descripcion;
+
+                const label = document.createElement('span');
+                label.style.cssText = 'font-size:12px;color:#64748b;background:#e2e8f0;padding:2px 8px;border-radius:10px;';
+                label.textContent = d.label;
+
+                const concepto = document.createElement('strong');
+                concepto.style.cssText = 'font-size:14px;color:#1e293b;flex:1;';
+                concepto.textContent = d.concepto;
+
+                header.appendChild(badge);
+                header.appendChild(label);
+                header.appendChild(concepto);
+
+                // Comparativa
+                const comp = document.createElement('div');
+                comp.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;';
+
+                const boxSnap = document.createElement('div');
+                boxSnap.style.cssText = 'background:#fef3c7;border-radius:8px;padding:8px 12px;border-left:3px solid #f59e0b;';
+                boxSnap.innerHTML = '<div style="font-size:10px;font-weight:700;color:#92400e;text-transform:uppercase;margin-bottom:3px;">📌 Guardado al cerrar</div><div style="font-size:13px;font-weight:600;color:#78350f;">' + d.textoSnap + '</div>';
+
+                const boxLive = document.createElement('div');
+                boxLive.style.cssText = 'background:#eff6ff;border-radius:8px;padding:8px 12px;border-left:3px solid #3b82f6;';
+                boxLive.innerHTML = '<div style="font-size:10px;font-weight:700;color:#1e40af;text-transform:uppercase;margin-bottom:3px;">🔄 Valor actual global</div><div style="font-size:13px;font-weight:600;color:#1e3a8a;">' + d.textoLive + '</div>';
+
+                comp.appendChild(boxSnap);
+                comp.appendChild(boxLive);
+
+                // Botones de decisión
+                const btns = document.createElement('div');
+                btns.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:8px;';
+
+                const btnMantener = document.createElement('button');
+                btnMantener.id = 'reapertura-mantener-' + i;
+                btnMantener.style.cssText = 'padding:10px;border-radius:8px;border:2px solid #f59e0b;background:#fef3c7;color:#92400e;font-weight:700;font-size:13px;cursor:pointer;transition:all 0.2s;';
+                btnMantener.innerHTML = '📌 Mantener valor guardado';
+                btnMantener.onclick = () => seleccionarDecision(i, 'mantener');
+
+                const btnAplicar = document.createElement('button');
+                btnAplicar.id = 'reapertura-aplicar-' + i;
+                btnAplicar.style.cssText = 'padding:10px;border-radius:8px;border:2px solid #94a3b8;background:#f1f5f9;color:#475569;font-weight:700;font-size:13px;cursor:pointer;transition:all 0.2s;';
+                btnAplicar.innerHTML = '🔄 Usar valor actual global';
+                btnAplicar.onclick = () => seleccionarDecision(i, 'aplicar');
+
+                btns.appendChild(btnMantener);
+                btns.appendChild(btnAplicar);
+
+                row.appendChild(header);
+                row.appendChild(comp);
+                row.appendChild(btns);
+                lista.appendChild(row);
+
+                // Marcar "mantener" como seleccionado por defecto
+                seleccionarDecision(i, 'mantener');
+            });
+
+            document.getElementById('reapertura-mes-nombre').textContent = MESES_NOMBRES[numMes] + ' ' + anoActual;
+            document.getElementById('reapertura-num-cambios').textContent = diferencias.length + ' cambio' + (diferencias.length !== 1 ? 's' : '') + ' detectado' + (diferencias.length !== 1 ? 's' : '');
+            document.getElementById('modal-reapertura').style.display = 'flex';
+        }
+
+        function seleccionarDecision(idx, decision) {
+            _reaperturaDecisiones[idx] = decision;
+            const btnM = document.getElementById('reapertura-mantener-' + idx);
+            const btnA = document.getElementById('reapertura-aplicar-' + idx);
+            if (!btnM || !btnA) return;
+            if (decision === 'mantener') {
+                btnM.style.cssText = 'padding:10px;border-radius:8px;border:2px solid #f59e0b;background:#f59e0b;color:white;font-weight:700;font-size:13px;cursor:pointer;box-shadow:0 2px 8px rgba(245,158,11,0.4);';
+                btnA.style.cssText = 'padding:10px;border-radius:8px;border:2px solid #94a3b8;background:#f1f5f9;color:#475569;font-weight:700;font-size:13px;cursor:pointer;';
+            } else {
+                btnM.style.cssText = 'padding:10px;border-radius:8px;border:2px solid #94a3b8;background:#f1f5f9;color:#475569;font-weight:700;font-size:13px;cursor:pointer;';
+                btnA.style.cssText = 'padding:10px;border-radius:8px;border:2px solid #3b82f6;background:#3b82f6;color:white;font-weight:700;font-size:13px;cursor:pointer;box-shadow:0 2px 8px rgba(59,130,246,0.4);';
+            }
+        }
+
+        function reaperturaSeleccionarTodo(decision) {
+            _reaperturaDiferencias.forEach((_, i) => seleccionarDecision(i, decision));
+        }
+
+        function confirmarReapertura() {
+            const numMes = _reaperturaMes;
+            if (numMes === null) return;
+
+            // Aplicar decisiones como overrides
+            if (!datos.meses[numMes].overrides) datos.meses[numMes].overrides = {};
+            const overrides = datos.meses[numMes].overrides;
+
+            _reaperturaDiferencias.forEach((d, i) => {
+                const decision = _reaperturaDecisiones[i];
+                const key = d.fuente + '_' + d.idx;
+
+                if (decision === 'mantener') {
+                    // Guardar override con el valor del snapshot para protegerlo
+                    if (d.valorSnap === null) {
+                        // Ítem nuevo que no existía: marcarlo como eliminado para este mes
+                        overrides[key] = { concepto: d.concepto, valor: 0, eliminado: true };
+                    } else if (d.valorSnap === 0 && d.descripcion.includes('RESTAURADO')) {
+                        overrides[key] = { concepto: d.concepto, valor: 0, eliminado: true };
+                    } else {
+                        overrides[key] = { concepto: d.conceptoSnap || d.concepto, valor: d.valorSnap || 0 };
+                    }
+                } else {
+                    // Aplicar: usar el valor live global → eliminar override para ese ítem
+                    delete overrides[key];
+                }
+            });
+
+            // Eliminar el snapshot → el mes queda abierto
+            delete datos.mesesCerrados[numMes];
             guardarDatos();
-            mostrarNotificacion('🔓 ' + MESES_NOMBRES[mesActual] + ' reabierto', 'exito');
+
+            document.getElementById('modal-reapertura').style.display = 'none';
+            _reaperturaMes = null;
+
+            mostrarNotificacion('🔓 ' + MESES_NOMBRES[numMes] + ' reabierto con tus decisiones aplicadas', 'exito');
             actualizarTodo();
             actualizarResumenAnual();
         }
 
+        function cancelarReapertura() {
+            document.getElementById('modal-reapertura').style.display = 'none';
+            _reaperturaMes = null;
+        }
+
+        // ── BARRERA DE PROTECCIÓN ────────────────────────────────────────
+        // Un mes está protegido si está CERRADO.
+        // Si el usuario lo reabre conscientemente (🔓 Reabrir), puede editarlo.
+        // Los meses abiertos (aunque sean pasados) son editables.
+        function esMesPasado(numMes, numAno) {
+            // Solo bloquea si el mes está cerrado en el año activo
+            if (numAno === anoActual && esMesCerrado(numMes)) return true;
+            return false;
+        }
+        // ─────────────────────────────────────────────────────────────────
+
         function cerrarMesesPasadosAutomaticamente() {
-            const hoy = new Date();
-            const mesReal = hoy.getMonth();
-            const anoReal = hoy.getFullYear();
-            if (anoReal !== anoActual) return; // Solo aplica al año actual
-            let huboCierres = false;
-            for (let i = 0; i < mesReal; i++) {
-                if (!esMesCerrado(i)) {
-                    cerrarMes(i, true);
-                    huboCierres = true;
-                }
-            }
-            if (huboCierres) {
-                mostrarNotificacion('🔒 Meses anteriores cerrados automáticamente', 'exito');
-            }
+            // Ya no cierra meses automáticamente al cargar.
+            // Los meses pasados solo se cierran cuando el usuario lo hace manualmente.
+            // Esto evita que cualquier cambio en fijos contamine datos de meses pasados.
         }
 
         function actualizarBannerMesCerrado() {
             const infoDiv = document.getElementById('mes-cerrado-info');
             const btnCerrar = document.getElementById('btn-cerrar-mes');
             const titulo = document.getElementById('balance-titulo');
+            const botonesIngresos = document.getElementById('botones-ingresos');
+            const botonesGastos = document.getElementById('botones-gastos');
+
+            // Quitar aviso previo en cards si existía
+            ['aviso-cerrado-ingresos','aviso-cerrado-gastos'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.remove();
+            });
 
             if (esMesCerrado(mesActual)) {
                 const info = datos.mesesCerrados[mesActual];
@@ -2290,10 +2596,29 @@
                 infoDiv.style.display = 'flex';
                 btnCerrar.style.display = 'none';
                 titulo.textContent = '💵 Balance  🔒';
+
+                // Ocultar botones de edición
+                botonesIngresos.style.display = 'none';
+                botonesGastos.style.display = 'none';
+
+                // Añadir aviso compacto en cada card
+                const avisoHtml = (id) => {
+                    const div = document.createElement('div');
+                    div.id = id;
+                    div.style.cssText = 'margin-top:12px;padding:10px 14px;background:rgba(30,58,138,0.15);border:1px solid rgba(30,58,138,0.3);border-radius:10px;text-align:center;color:#818cf8;font-size:0.82em;font-weight:600;letter-spacing:0.02em;';
+                    div.textContent = '🔒 Mes cerrado — usa Reabrir para editar';
+                    return div;
+                };
+                botonesIngresos.parentElement.appendChild(avisoHtml('aviso-cerrado-ingresos'));
+                botonesGastos.parentElement.appendChild(avisoHtml('aviso-cerrado-gastos'));
             } else {
                 infoDiv.style.display = 'none';
                 btnCerrar.style.display = 'block';
                 titulo.textContent = '💵 Balance';
+
+                // Mostrar botones de edición
+                botonesIngresos.style.display = 'grid';
+                botonesGastos.style.display = 'grid';
             }
         }
 
@@ -2328,17 +2653,50 @@
             balanceAcumuladoDisplay.textContent = formatearMoneda(balanceAcumulado);
             balanceAcumuladoDisplay.className = balanceAcumulado >= 0 ? 'positivo' : 'negativo';
             
-            // % de crecimiento/decrecimiento vs saldo inicial del año (solo la variación, no el total)
-            const crecimiento = datos.saldoInicial > 0
-                ? ((balanceAcumulado - datos.saldoInicial) / datos.saldoInicial) * 100
-                : 0;
+            // % de crecimiento/decrecimiento respecto al saldo inicial de este año
+            const saldoInicioEsteAno = calcularSaldoInicioRealDelAno(anoActual);
             const progressFill = document.getElementById('progress-fill');
-            const crecimientoAbs = Math.abs(crecimiento);
-            progressFill.style.width = Math.min(100, crecimientoAbs) + '%';
-            progressFill.style.background = crecimiento >= 0
-                ? 'linear-gradient(90deg, #10b981, #059669)'
-                : 'linear-gradient(90deg, #ef4444, #dc2626)';
-            progressFill.textContent = (crecimiento >= 0 ? '+' : '') + Math.round(crecimiento) + '%';
+            const progressBar = document.getElementById('progress-bar-container');
+
+            if (saldoInicioEsteAno !== 0) {
+                // Variación = saldo acumulado actual vs saldo con el que empezó el año
+                const variacion = balanceAcumulado - saldoInicioEsteAno;
+                const pct = (variacion / Math.abs(saldoInicioEsteAno)) * 100;
+                const pctRedondeado = Math.round(pct * 10) / 10;
+                const positivo = pct >= 0;
+
+                // Ancho de la barra: escala 0-50% de variación → 0-100% de barra (para que se vea bien)
+                const anchoBarra = Math.min(100, Math.abs(pct) * 2);
+                progressFill.style.width = anchoBarra + '%';
+                progressFill.style.background = positivo
+                    ? 'linear-gradient(90deg, #10b981, #059669)'
+                    : 'linear-gradient(90deg, #ef4444, #dc2626)';
+                progressFill.style.justifyContent = 'center';
+
+                const signo = positivo ? '+' : '';
+                const varTexto = positivo
+                    ? '+' + formatearMoneda(variacion)
+                    : '−' + formatearMoneda(Math.abs(variacion));
+                progressFill.textContent = signo + pctRedondeado + '%';
+
+                // Label detalle
+                const labelDetalle = document.getElementById('progress-label-detalle');
+                if (labelDetalle) labelDetalle.textContent = formatearMoneda(saldoInicioEsteAno) + ' → ' + formatearMoneda(balanceAcumulado);
+
+                // Tooltip en el contenedor
+                if (progressBar) progressBar.title =
+                    'Inicio año: ' + formatearMoneda(saldoInicioEsteAno) +
+                    ' → Ahora: ' + formatearMoneda(balanceAcumulado) +
+                    ' (' + varTexto + ')';
+            } else {
+                // Saldo inicial 0: mostrar variación absoluta
+                progressFill.style.width = '100%';
+                progressFill.style.background = balanceAcumulado >= 0
+                    ? 'linear-gradient(90deg, #10b981, #059669)'
+                    : 'linear-gradient(90deg, #ef4444, #dc2626)';
+                progressFill.textContent = formatearMoneda(balanceAcumulado);
+                if (progressBar) progressBar.title = 'Saldo inicial 0 — variación absoluta';
+            }
             
             actualizarEstadisticas(totales);
             actualizarDiasRestantes();
@@ -2629,6 +2987,7 @@
             document.getElementById('modal-desglose').style.display = 'none';
             document.getElementById('concepto-input').value = '';
             document.getElementById('valor-input').value = '';
+            document.getElementById('buscador-desglose').value = '';
             document.getElementById('frecuencia-input').style.display = 'block';
             document.getElementById('meses-selector-container').style.display = 'none';
             document.getElementById('categoria-selector-container').style.display = 'none';
@@ -2685,6 +3044,18 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
         
+        function filtrarListaModal() {
+            const busqueda = document.getElementById('buscador-desglose').value.toLowerCase().trim();
+            const items = document.querySelectorAll('#desglose-lista .desglose-item');
+            items.forEach(item => {
+                const texto = item.textContent.toLowerCase();
+                item.style.display = texto.includes(busqueda) ? 'flex' : 'none';
+            });
+            // Mantener visible el div de total
+            const totalDiv = document.querySelector('#desglose-lista div[style*="margin-top:15px"]');
+            if (totalDiv) totalDiv.style.display = 'flex';
+        }
+
         function mostrarDesglose() {
             const lista = document.getElementById('desglose-lista');
             lista.innerHTML = '';
@@ -2761,16 +3132,150 @@
                 }
             }
             
+            let dragSrcIdx = null;
+
+            // ── Agrupar por categoría si hay categorías disponibles ──
+            const esGasto = tipoActual === 'gastos';
+            const catMap = esGasto ? CATEGORIAS_GASTOS : CATEGORIAS_INGRESOS;
+
+            // Construir grupos manteniendo el orden original de los items
+            const grupos = {}; // { catKey: { info, items: [{item, index}] } }
+            const ordenGrupos = [];
+
             desglose.forEach((item, index) => {
+                const catKey = clasificarConcepto(item.concepto, !esGasto);
+                if (!grupos[catKey]) {
+                    grupos[catKey] = { info: catMap[catKey], items: [] };
+                    ordenGrupos.push(catKey);
+                }
+                grupos[catKey].items.push({ item, index });
+            });
+
+            // Si solo hay un grupo (o no hay categorías), no mostrar títulos
+            const mostrarTitulos = ordenGrupos.length > 1;
+
+            let dragSrcGrupo = null;
+
+            ordenGrupos.forEach(catKey => {
+                const grupo = grupos[catKey];
+
+                // Contenedor del grupo completo (título + items) — draggable
+                const grupoDiv = document.createElement('div');
+                grupoDiv.dataset.catkey = catKey;
+                grupoDiv.style.cssText = 'margin-bottom:4px;';
+
+                if (mostrarTitulos) {
+                    const titulo = document.createElement('div');
+                    titulo.style.cssText = 'display:flex; align-items:center; gap:6px; margin:10px 0 4px; padding:5px 10px; background:#cbd5e1; border-radius:6px; border-left:4px solid #4f46e5; font-size:0.82em; font-weight:700; color:#1e293b; text-transform:uppercase; letter-spacing:0.05em; cursor:grab; user-select:none;';
+                    titulo.draggable = true;
+                    titulo.innerHTML = '⋮⋮ &nbsp;' + (grupo.info ? grupo.info.icono + ' ' + grupo.info.nombre : '📦 Otros');
+                    titulo.title = 'Arrastra para mover el grupo completo';
+
+                    titulo.addEventListener('dragstart', function(e) {
+                        dragSrcGrupo = catKey;
+                        grupoDiv.style.opacity = '0.45';
+                        e.dataTransfer.effectAllowed = 'move';
+                        e.dataTransfer.setData('text/plain', catKey);
+                    });
+                    titulo.addEventListener('dragend', function() {
+                        grupoDiv.style.opacity = '';
+                        document.querySelectorAll('#desglose-lista [data-catkey]').forEach(el => el.style.borderTop = '');
+                    });
+                    grupoDiv.addEventListener('dragover', function(e) {
+                        e.preventDefault();
+                        if (dragSrcGrupo && dragSrcGrupo !== catKey) {
+                            document.querySelectorAll('#desglose-lista [data-catkey]').forEach(el => el.style.borderTop = '');
+                            this.style.borderTop = '3px solid #7c3aed';
+                        }
+                    });
+                    grupoDiv.addEventListener('dragleave', function() {
+                        this.style.borderTop = '';
+                    });
+                    grupoDiv.addEventListener('drop', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        this.style.borderTop = '';
+                        if (!dragSrcGrupo || dragSrcGrupo === catKey) return;
+
+                        // Reordenar el array real moviendo todos los items del grupo src
+                        const arr = obtenerArrayActual();
+                        const srcItems = grupos[dragSrcGrupo].items.map(x => x.index).sort((a,b) => a-b);
+                        const tgtItems = grupos[catKey].items.map(x => x.index).sort((a,b) => a-b);
+                        const insertBefore = tgtItems[0]; // insertar antes del primer item del grupo destino
+
+                        // Extraer los items del grupo origen (en orden inverso para no romper índices)
+                        const extraidos = [];
+                        for (let i = srcItems.length - 1; i >= 0; i--) {
+                            extraidos.unshift(arr.splice(srcItems[i], 1)[0]);
+                        }
+                        // Recalcular posición de inserción tras los splices
+                        const newTgtItems = grupos[catKey].items.map(x => x.item);
+                        let insertIdx = arr.findIndex(x => x === newTgtItems[0]);
+                        if (insertIdx === -1) insertIdx = arr.length;
+                        arr.splice(insertIdx, 0, ...extraidos);
+
+                        guardarDatos();
+                        mostrarDesglose();
+                    });
+
+                    grupoDiv.appendChild(titulo);
+                }
+
+                grupo.items.forEach(({ item, index }) => {
                 const div = document.createElement('div');
                 div.className = 'desglose-item ' + clase;
-                
+                div.draggable = true;
+                div.dataset.idx = index;
+                div.style.cursor = 'grab';
+
+                // Eventos drag & drop
+                div.addEventListener('dragstart', function(e) {
+                    dragSrcIdx = parseInt(this.dataset.idx);
+                    this.style.opacity = '0.45';
+                    e.dataTransfer.effectAllowed = 'move';
+                });
+                div.addEventListener('dragend', function() {
+                    this.style.opacity = '';
+                    document.querySelectorAll('#desglose-lista .desglose-item').forEach(el => el.style.borderTop = '');
+                });
+                div.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    document.querySelectorAll('#desglose-lista .desglose-item').forEach(el => el.style.borderTop = '');
+                    this.style.borderTop = '3px solid #4f46e5';
+                });
+                div.addEventListener('dragleave', function() {
+                    this.style.borderTop = '';
+                });
+                div.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.style.borderTop = '';
+                    const targetIdx = parseInt(this.dataset.idx);
+                    if (dragSrcIdx === null || dragSrcIdx === targetIdx) return;
+                    const arr = obtenerArrayActual();
+                    const [moved] = arr.splice(dragSrcIdx, 1);
+                    arr.splice(targetIdx, 0, moved);
+                    guardarDatos();
+                    mostrarDesglose();
+                });
+
+                // Handle de arrastre
+                const handle = document.createElement('span');
+                handle.innerHTML = '⋮⋮';
+                handle.style.cssText = 'color:#aaa; font-size:13px; margin-right:8px; cursor:grab; user-select:none; flex-shrink:0;';
+                handle.title = 'Arrastra para reordenar';
+
                 const leftDiv = document.createElement('div');
-                leftDiv.style.flex = '1';
+                leftDiv.style.cssText = 'flex:1; display:flex; align-items:center; min-width:0;';
+                leftDiv.appendChild(handle);
                 
+                const textDiv = document.createElement('div');
+                textDiv.style.flex = '1';
+
                 const conceptoSpan = document.createElement('span');
                 conceptoSpan.textContent = item.concepto;
-                leftDiv.appendChild(conceptoSpan);
+                textDiv.appendChild(conceptoSpan);
                 
                 if (item.frecuencia) {
                     const infoFrecuencia = document.createElement('div');
@@ -2783,12 +3288,13 @@
                     } else if (item.frecuencia === 'puntual') {
                         infoFrecuencia.textContent = '📍 Solo ' + MESES_NOMBRES[mesActual];
                     }
-                    leftDiv.appendChild(infoFrecuencia);
+                    textDiv.appendChild(infoFrecuencia);
                 }
+
+                leftDiv.appendChild(textDiv);
                 
                 const rightDiv = document.createElement('div');
-                rightDiv.style.display = 'flex';
-                rightDiv.style.alignItems = 'center';
+                rightDiv.style.cssText = 'display:flex; align-items:center; flex-shrink:0;';
                 
                 const valorSpan = document.createElement('span');
                 valorSpan.className = 'valor';
@@ -2816,8 +3322,11 @@
                 
                 div.appendChild(leftDiv);
                 div.appendChild(rightDiv);
-                lista.appendChild(div);
-            });
+                grupoDiv.appendChild(div);
+                }); // fin grupo.items
+
+                lista.appendChild(grupoDiv);
+            }); // fin ordenGrupos
             
             const total = desglose.reduce((sum, item) => sum + item.valor, 0);
             const totalDiv = document.createElement('div');
@@ -2840,6 +3349,14 @@
             const valor = parseFloat(document.getElementById('valor-input').value) || 0;
             const frecuencia = document.getElementById('frecuencia-input').value;
             
+            // Bloquear cualquier escritura en meses pasados
+            if (modalTipo === 'extras' || modalTipo === 'vacaciones-extras') {
+                if (esMesPasado(mesActual, anoActual)) {
+                    mostrarNotificacion('🔒 Mes cerrado. Usa 🔓 Reabrir para poder añadir extras', 'error');
+                    return;
+                }
+            }
+
             if (concepto && valor >= 0) {
                 // Check if this is an extra with fecha fin
                 if (modalTipo === 'extras' && document.getElementById('tiene-fecha-fin').checked) {
@@ -2985,11 +3502,8 @@
             actualizarTodo();
             actualizarResumenAnual();
             guardarDatos();
-            // Si el mes está cerrado, actualizar el snapshot con los cambios
-            if (esMesCerrado(mesActual)) {
-                cerrarMes(mesActual, true);
-                mostrarNotificacion('🔒 Cambios guardados y snapshot actualizado', 'exito');
-            }
+            // Si el mes está abierto (incluso siendo pasado, el usuario lo reabrió): no hay snapshot que actualizar
+            // Si el mes está cerrado: esto no debería ocurrir (las barreras lo impiden), pero por seguridad no tocamos nada
             cerrarModal();
         }
         
@@ -3023,8 +3537,8 @@
                     <span onclick="cerrarDesgloseAnual()" style="float:none;font-size:28px;cursor:pointer;line-height:1;">&times;</span>
                 </div>
             </div>
-            <div id="desglose-anual-resumen" style="padding:12px 25px;background:#f8faff;border-bottom:1px solid #e5e7eb;display:flex;gap:20px;flex-wrap:wrap;flex-shrink:0;font-size:0.88em;"></div>
-            <div id="desglose-anual-contenido" style="overflow-y:auto;padding:20px 25px;flex:1;"></div>
+            <div id="desglose-anual-resumen" style="padding:12px 25px;background:#f8faff;border-bottom:1px solid #e5e7eb;flex-shrink:0;font-size:0.88em;"></div>
+            <div id="desglose-anual-contenido" style="overflow-y:auto;padding:20px 25px;flex:1;-webkit-overflow-scrolling:touch;"></div>
         </div>
     </div>
 
@@ -3044,100 +3558,153 @@
 
         function construirDesgloseAnual() {
             desgloseAnualLineas = [];
-            // Usar el saldo real encadenado desde el primer año, no el guardado en localStorage
             let acumulado = calcularSaldoInicioRealDelAno(anoActual);
             let totalIngresos = 0, totalGastos = 0;
 
             for (let m = 0; m < 12; m++) {
                 const totMes = calcularTotalesMes(m);
                 const lineas = [];
+                const overridesMes = datos.meses[m].overrides || {};
 
-                // Ingresos fijos
-                datos.ingresosFijos.forEach(item => {
+                // ── Misma lógica que recopilarYMostrarTodosMes ──
+
+                // Ingresos fijos (con overrides y eliminados)
+                datos.ingresosFijos.forEach((item, idx) => {
                     const aplica = item.frecuencia === 'mensual' || (item.frecuencia === 'anual' && item.meses && item.meses.includes(m));
-                    if (aplica) lineas.push({ concepto: item.concepto, tipo: 'Ingreso fijo', valor: item.valor });
+                    if (!aplica) return;
+                    const ov = overridesMes['ingresosFijos_' + idx];
+                    if (ov && ov.eliminado) return;
+                    const valor = ov ? ov.valor : item.valor;
+                    const concepto = ov ? ov.concepto : item.concepto;
+                    lineas.push({ concepto, tipo: 'Ingreso fijo', valor });
                 });
 
-                // Extras y Bonus
-                (datos.ingresosBonus || []).forEach(item => {
+                // Bonus (con overrides y eliminados)
+                (datos.ingresosBonus || []).forEach((item, idx) => {
                     const aplica = item.frecuencia === 'mensual' || (item.frecuencia === 'anual' && item.meses && item.meses.includes(m));
-                    if (aplica) lineas.push({ concepto: item.concepto, tipo: 'Extras/Bonus', valor: item.valor });
+                    if (!aplica) return;
+                    const ov = overridesMes['ingresosBonus_' + idx];
+                    if (ov && ov.eliminado) return;
+                    const valor = ov ? ov.valor : item.valor;
+                    const concepto = ov ? ov.concepto : item.concepto;
+                    lineas.push({ concepto, tipo: 'Bonus', valor });
+                });
+
+                // Ingresos extras puntuales
+                (datos.meses[m].ingresosExtras || []).forEach(item => {
+                    lineas.push({ concepto: item.concepto, tipo: 'Ingreso extra', valor: item.valor });
                 });
 
                 // Extras recurrentes ingresos
                 (datos.extrasRecurrentes || []).forEach(item => {
                     if (item.tipo === 'ingresos' && extraRecurrenteAplicaEnMes(item, anoActual, m))
-                        lineas.push({ concepto: item.concepto + ' (hasta ' + MESES_CORTOS[item.mesFin] + ' ' + item.anoFin + ')', tipo: 'Ingreso recurrente', valor: item.valor });
+                        lineas.push({ concepto: item.concepto, tipo: 'Recurrente', valor: item.valor });
                 });
 
-                // Ingresos extras puntuales del mes
-                if (!esMesCerrado(m)) {
-                    (datos.meses[m].ingresosExtras || []).forEach(item =>
-                        lineas.push({ concepto: item.concepto, tipo: 'Ingreso extra', valor: item.valor }));
-                } else {
-                    const snap = datos.mesesCerrados[m].snapshot;
-                    // Recalculate recurrentes for this month to subtract from snapshot extras
-                    let recIngMes = 0;
-                    (datos.extrasRecurrentes || []).forEach(item => {
-                        if (item.tipo === 'ingresos' && extraRecurrenteAplicaEnMes(item, anoActual, m)) recIngMes += item.valor;
-                    });
-                    const extPunt = (snap.ingresosExtras || 0) - recIngMes;
-                    if (extPunt > 0) lineas.push({ concepto: '(Extras puntuales de ingresos)', tipo: 'Ingreso extra', valor: extPunt });
-                }
-
-                // Gastos fijos
-                datos.gastosFijos.forEach(item => {
+                // Gastos fijos (con overrides y eliminados)
+                datos.gastosFijos.forEach((item, idx) => {
                     const aplica = item.frecuencia === 'mensual' || (item.frecuencia === 'anual' && item.meses && item.meses.includes(m));
-                    if (aplica) lineas.push({ concepto: item.concepto, tipo: 'Gasto fijo', valor: -item.valor });
+                    if (!aplica) return;
+                    const ov = overridesMes['gastosFijos_' + idx];
+                    if (ov && ov.eliminado) return;
+                    const valor = ov ? ov.valor : item.valor;
+                    const concepto = ov ? ov.concepto : item.concepto;
+                    lineas.push({ concepto, tipo: 'Gasto fijo', valor: -valor });
                 });
 
-                // Gastos vacaciones
-                (datos.gastosVacaciones || []).forEach(item => {
+                // Vacaciones fijas (con overrides y eliminados)
+                (datos.gastosVacaciones || []).forEach((item, idx) => {
                     const aplica = item.frecuencia === 'mensual' || (item.frecuencia === 'anual' && item.meses && item.meses.includes(m));
-                    if (aplica) lineas.push({ concepto: item.concepto, tipo: 'Vacaciones', valor: -item.valor });
+                    if (!aplica) return;
+                    const ov = overridesMes['gastosVacaciones_' + idx];
+                    if (ov && ov.eliminado) return;
+                    const valor = ov ? ov.valor : item.valor;
+                    const concepto = ov ? ov.concepto : item.concepto;
+                    lineas.push({ concepto, tipo: 'Vacaciones', valor: -valor });
+                });
+
+                // Gastos extras puntuales
+                (datos.meses[m].gastosExtras || []).forEach(item => {
+                    lineas.push({ concepto: item.concepto, tipo: 'Gasto extra', valor: -item.valor });
+                });
+
+                // Extras vacaciones puntuales
+                (datos.meses[m].gastosVacacionesExtras || []).forEach(item => {
+                    lineas.push({ concepto: item.concepto, tipo: 'Vacaciones Extra', valor: -item.valor });
                 });
 
                 // Extras recurrentes gastos
                 (datos.extrasRecurrentes || []).forEach(item => {
                     if (item.tipo === 'gastos' && extraRecurrenteAplicaEnMes(item, anoActual, m))
-                        lineas.push({ concepto: item.concepto + ' (hasta ' + MESES_CORTOS[item.mesFin] + ' ' + item.anoFin + ')', tipo: 'Gasto recurrente', valor: -item.valor });
+                        lineas.push({ concepto: item.concepto, tipo: 'Recurrente', valor: -item.valor });
                 });
-
-                // Gastos extras puntuales del mes
-                if (!esMesCerrado(m)) {
-                    (datos.meses[m].gastosExtras || []).forEach(item =>
-                        lineas.push({ concepto: item.concepto, tipo: 'Gasto extra', valor: -item.valor }));
-                    (datos.meses[m].gastosVacacionesExtras || []).forEach(item =>
-                        lineas.push({ concepto: item.concepto, tipo: 'Extra vacaciones', valor: -item.valor }));
-                } else {
-                    const snap = datos.mesesCerrados[m].snapshot;
-                    let recGasMes = 0;
-                    (datos.extrasRecurrentes || []).forEach(item => {
-                        if (item.tipo === 'gastos' && extraRecurrenteAplicaEnMes(item, anoActual, m)) recGasMes += item.valor;
-                    });
-                    const extPunt = (snap.gastosExtras || 0) - recGasMes;
-                    if (extPunt > 0) lineas.push({ concepto: '(Extras puntuales de gastos)', tipo: 'Gasto extra', valor: -extPunt });
-                    if ((snap.gastosVacacionesExtras || 0) > 0) lineas.push({ concepto: '(Extras vacaciones)', tipo: 'Extra vacaciones', valor: -(snap.gastosVacacionesExtras) });
-                }
 
                 const balanceMes = totMes.ingresosTotal - totMes.gastosTotal;
                 acumulado += balanceMes;
                 totalIngresos += totMes.ingresosTotal;
                 totalGastos += totMes.gastosTotal;
 
-                desgloseAnualLineas.push({ mes: m, lineas, balanceMes, acumulado, cerrado: esMesCerrado(m) });
+                desgloseAnualLineas.push({ mes: m, lineas, balanceMes, acumulado, cerrado: esMesCerrado(m), ingMes: totMes.ingresosTotal, gasMes: totMes.gastosTotal });
             }
 
             const balTotal = totalIngresos - totalGastos;
             const saldoInicioAno = datos.saldoInicial;
             const saldoFinAno = acumulado; // acumulado = saldoInicial + suma balances
             const diferenciaAno = saldoFinAno - saldoInicioAno; // = balTotal
+            // Tabla resumen 12 meses
+            let filasResumen = '';
+            let saldoResumen = calcularSaldoInicioRealDelAno(anoActual);
+            let peorMes = null; // { mes, balance }
+            desgloseAnualLineas.forEach(({ mes, ingMes, gasMes, balanceMes }) => {
+                const bal = balanceMes;
+                if (bal < 0 && (peorMes === null || bal < peorMes.balance)) peorMes = { mes, balance: bal };
+                const ingColor = '#059669';
+                const gasColor = '#dc2626';
+                const balColor2 = bal >= 0 ? '#059669' : '#dc2626';
+                const saldoFin = saldoResumen + bal;
+                const sfColor2 = saldoFin >= 0 ? '#059669' : '#dc2626';
+                filasResumen += `<tr style="border-bottom:1px solid #e5e7eb;">
+                    <td style="padding:6px 12px;font-weight:700;color:#1e3a8a;text-align:center;">${MESES_NOMBRES[mes]}</td>
+                    <td style="padding:6px 12px;text-align:center;color:${ingColor};font-weight:600;">${formatearMoneda(ingMes)}</td>
+                    <td style="padding:6px 12px;text-align:center;color:${gasColor};font-weight:600;">${formatearMoneda(gasMes)}</td>
+                    <td style="padding:6px 12px;text-align:center;font-weight:700;color:${balColor2};">${bal>=0?'+':''}${formatearMoneda(bal)}</td>
+                    <td style="padding:6px 12px;text-align:center;font-weight:700;color:${sfColor2};">${formatearMoneda(saldoFin)}</td>
+                </tr>`;
+                saldoResumen = saldoFin;
+            });
+            const peorTexto = peorMes
+                ? `<span style="margin-left:12px;background:#fee2e2;color:#b91c1c;border-radius:12px;padding:2px 10px;font-size:0.85em;font-weight:700;">⚠️ Peor mes: ${MESES_NOMBRES[peorMes.mes]} (${formatearMoneda(peorMes.balance)})</span>`
+                : `<span style="margin-left:12px;background:#dcfce7;color:#15803d;border-radius:12px;padding:2px 10px;font-size:0.85em;font-weight:700;">✅ Todos los meses positivos</span>`;
+
+            // ── Línea de stats: se queda FIJA en el panel superior ──
             document.getElementById('desglose-anual-resumen').innerHTML = `
-                <span>💰 Ingresos: <strong style="color:#059669">${formatearMoneda(totalIngresos)}</strong></span>
-                <span>💸 Gastos: <strong style="color:#dc2626">${formatearMoneda(totalGastos)}</strong></span>
-                <span>📊 Diferencia año (31 Dic − 1 Ene): <strong style="color:${diferenciaAno>=0?'#059669':'#dc2626'}">${diferenciaAno>=0?'+':''}${formatearMoneda(diferenciaAno)}</strong></span>
-                <span>🏦 Saldo 31 Dic: <strong style="color:${saldoFinAno>=0?'#059669':'#dc2626'}">${formatearMoneda(saldoFinAno)}</strong></span>
-            `;
+                <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+                    <span style="font-size:0.88em;">💰 Ingresos año: <strong style="color:#059669">${formatearMoneda(totalIngresos)}</strong></span>
+                    <span style="font-size:0.88em;">💸 Gastos año: <strong style="color:#dc2626">${formatearMoneda(totalGastos)}</strong></span>
+                    <span style="font-size:0.88em;">📊 Diferencia: <strong style="color:${diferenciaAno>=0?'#059669':'#dc2626'}">${diferenciaAno>=0?'+':''}${formatearMoneda(diferenciaAno)}</strong></span>
+                    <span style="font-size:0.88em;">🏦 Saldo 31 Dic: <strong style="color:${saldoFinAno>=0?'#059669':'#dc2626'}">${formatearMoneda(saldoFinAno)}</strong></span>
+                    ${peorTexto}
+                </div>`;
+
+            // ── Tabla resumen de meses: va al contenido SCROLLABLE, antes del desglose por mes ──
+            // Se guarda en variable global para que renderizarDesgloseAnual la inserte al principio
+            window._tablaResumenMesesHTML = `
+                <div style="background:#f0f4ff;border-radius:14px;padding:16px 20px;margin:0 0 28px 0;border:1px solid #c7d2fe;">
+                    <div style="overflow-x:auto;">
+                    <table style="width:100%;border-collapse:collapse;font-size:0.84em;">
+                        <thead>
+                            <tr style="background:#1e3a8a;color:white;">
+                                <th style="padding:7px 12px;text-align:center;font-weight:600;border-radius:6px 0 0 0;">Mes</th>
+                                <th style="padding:7px 12px;text-align:center;font-weight:600;">Ingresos</th>
+                                <th style="padding:7px 12px;text-align:center;font-weight:600;">Gastos</th>
+                                <th style="padding:7px 12px;text-align:center;font-weight:600;">Balance</th>
+                                <th style="padding:7px 12px;text-align:center;font-weight:600;border-radius:0 6px 0 0;">Saldo fin</th>
+                            </tr>
+                        </thead>
+                        <tbody>${filasResumen}</tbody>
+                    </table>
+                    </div>
+                </div>`;
 
             renderizarDesgloseAnual('');
         }
@@ -3159,11 +3726,23 @@
                 const balColor = balanceMes >= 0 ? '#059669' : '#dc2626';
                 const balBg    = balanceMes >= 0 ? '#dcfce7' : '#fee2e2';
 
+                // Calcular ingresos y gastos del mes desde las lineas
+                const ingMesH = desgloseAnualLineas.find(x => x.mes === mes)?.ingMes || 0;
+                const gasMesH = desgloseAnualLineas.find(x => x.mes === mes)?.gasMes || 0;
+                // Negativo más bajo dentro del mes (saldo más bajo durante el mes)
+                let saldoMin = saldoInicioMes;
+                let saldoTmp = saldoInicioMes;
+                lineas.forEach(l => { saldoTmp += l.valor; if (saldoTmp < saldoMin) saldoMin = saldoTmp; });
+                const minTexto = saldoMin < 0
+                    ? `<span style="font-size:0.78em;background:#fee2e2;color:#b91c1c;border-radius:20px;padding:2px 9px;font-weight:700;">⚠️ Mín: ${formatearMoneda(saldoMin)}</span>`
+                    : '';
                 html += `<div style="margin-bottom:32px;">
-                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;justify-content:center;">
-                        <h3 style="margin:0;color:#1e3a8a;font-size:1.05em;">${cerrado ? '🔒 ' : ''}${MESES_NOMBRES[mes]}</h3>
-                        <span style="font-size:0.82em;background:#f1f5f9;border-radius:20px;padding:3px 12px;color:#475569;">Inicio: <strong>${formatearMoneda(saldoInicioMes)}</strong></span>
-                        <span style="font-size:0.82em;background:${balBg};border-radius:20px;padding:3px 12px;">Balance mes: <strong style="color:${balColor}">${formatearMoneda(balanceMes)}</strong></span>
+                    <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;text-align:center;">
+                        <h3 style="margin:0;color:#1e3a8a;font-size:1.05em;min-width:90px;">${cerrado ? '🔒 ' : ''}${MESES_NOMBRES[mes]}</h3>
+                        <span style="font-size:0.78em;background:#dcfce7;border-radius:20px;padding:2px 9px;color:#065f46;">📈 <strong>${formatearMoneda(ingMesH)}</strong></span>
+                        <span style="font-size:0.78em;background:#fee2e2;border-radius:20px;padding:2px 9px;color:#991b1b;">📉 <strong>${formatearMoneda(gasMesH)}</strong></span>
+                        <span style="font-size:0.78em;background:${balBg};border-radius:20px;padding:2px 9px;">Balance: <strong style="color:${balColor}">${balanceMes>=0?'+':''}${formatearMoneda(balanceMes)}</strong></span>
+                        ${minTexto}
                     </div>
                     <table style="width:100%;border-collapse:collapse;font-size:0.88em;margin:0 auto;">
                         <thead>
@@ -3220,7 +3799,10 @@
             });
 
             if (!html) html = `<p style="text-align:center;color:#9ca3af;padding:40px 20px;">No se encontraron resultados para "<strong>${filtro}</strong>"</p>`;
-            document.getElementById('desglose-anual-contenido').innerHTML = html;
+
+            // Insertar tabla de meses al inicio del contenido scrollable (solo cuando no se filtra)
+            const tablaResumen = (!f && window._tablaResumenMesesHTML) ? window._tablaResumenMesesHTML : '';
+            document.getElementById('desglose-anual-contenido').innerHTML = tablaResumen + html;
         }
 
         function filtrarDesglose() {
@@ -3436,6 +4018,12 @@
         }
 
         function aplicarEdicionConAlcance(alcance) {
+            if (esMesPasado(mesActual, anoActual)) {
+                mostrarNotificacion('🔒 Mes cerrado. Usa 🔓 Reabrir para poder editarlo', 'error');
+                document.getElementById('modal-alcance-edicion').style.display = 'none';
+                itemEditandoIndex = -1;
+                return;
+            }
             if (alcance === 'solo-mes') {
                 const mesData = datos.meses[mesActual];
                 
@@ -3767,99 +4355,110 @@
                 });
             }
             
-            // Mensaje informativo
-            const infoDiv = document.createElement('div');
-            infoDiv.className = 'orden-info';
-            infoDiv.innerHTML = '✋ <span>Arrastra las líneas para reordenarlas</span><button onclick="resetearOrden()" style="margin-left:auto; background:#fff; color:#7c3aed; border:none; padding:5px 10px; border-radius:5px; cursor:pointer; font-size:11px;">↺ Restablecer</button>';
-            lista.appendChild(infoDiv);
-            
-            items.forEach((item, index) => {
+            // Contenedor de dos columnas (mitad y mitad del total de items)
+            const colsWrapper = document.createElement('div');
+            colsWrapper.style.cssText = 'display:grid; grid-template-columns:1fr 1fr; gap:12px; align-items:start;';
+
+            const colIzq = document.createElement('div');
+            const colDer = document.createElement('div');
+
+            colsWrapper.appendChild(colIzq);
+            colsWrapper.appendChild(colDer);
+            lista.appendChild(colsWrapper);
+
+            // Función auxiliar para construir un item
+            function crearItemDiv(item) {
                 const div = document.createElement('div');
                 div.className = 'item-todo-mes ' + item.tipo;
                 div.setAttribute('data-concepto', item.concepto.toLowerCase());
                 div.setAttribute('data-key', item.concepto + '_' + item.tipo);
                 div.setAttribute('draggable', 'true');
-                
-                // Eventos Drag & Drop
+
                 div.addEventListener('dragstart', handleDragStart);
                 div.addEventListener('dragend', handleDragEnd);
                 div.addEventListener('dragover', handleDragOver);
                 div.addEventListener('dragenter', handleDragEnter);
                 div.addEventListener('dragleave', handleDragLeave);
                 div.addEventListener('drop', handleDrop);
-                
+
                 const leftDiv = document.createElement('div');
-                leftDiv.style.display = 'flex';
-                leftDiv.style.alignItems = 'center';
-                leftDiv.style.flex = '1';
-                
+                leftDiv.style.cssText = 'display:flex; align-items:center; flex:1; min-width:0;';
+
                 const dragHandle = document.createElement('span');
                 dragHandle.className = 'drag-handle';
                 dragHandle.innerHTML = '⋮⋮';
                 dragHandle.title = 'Arrastra para reordenar';
                 leftDiv.appendChild(dragHandle);
-                
+
                 const conceptoSpan = document.createElement('span');
                 conceptoSpan.className = 'concepto';
                 conceptoSpan.textContent = item.concepto;
+                conceptoSpan.style.overflow = 'hidden';
+                conceptoSpan.style.textOverflow = 'ellipsis';
+                conceptoSpan.style.whiteSpace = 'nowrap';
                 leftDiv.appendChild(conceptoSpan);
-                
+
                 const badge = document.createElement('span');
                 badge.className = 'tipo-badge';
                 badge.textContent = item.categoria;
                 leftDiv.appendChild(badge);
 
-                // Indicador de override (solo este mes)
                 if (item.tieneOverride) {
                     const ovBadge = document.createElement('span');
                     ovBadge.title = 'Valor modificado solo para este mes. Clic para restaurar el valor global.';
-                    ovBadge.style.cssText = 'margin-left:6px; background:#f59e0b; color:#fff; font-size:10px; font-weight:700; padding:2px 7px; border-radius:12px; cursor:pointer; white-space:nowrap;';
+                    ovBadge.style.cssText = 'margin-left:4px; background:#f59e0b; color:#fff; font-size:9px; font-weight:700; padding:1px 5px; border-radius:10px; cursor:pointer; white-space:nowrap; flex-shrink:0;';
                     ovBadge.textContent = '✏️ solo este mes';
                     ovBadge.onclick = (e) => {
                         e.stopPropagation();
                         if (confirm('¿Restaurar el valor global para "' + item.concepto + '" en este mes?')) {
                             const key = item.fuente + '_' + item.index;
-                            if (datos.meses[mesVerTodo].overrides) {
-                                delete datos.meses[mesVerTodo].overrides[key];
-                            }
-                            guardarDatos();
-                            actualizarTodo();
-                            actualizarResumenAnual();
+                            if (datos.meses[mesVerTodo].overrides) delete datos.meses[mesVerTodo].overrides[key];
+                            guardarDatos(); actualizarTodo(); actualizarResumenAnual();
                             abrirModalVerTodoMes(mesVerTodo);
                             mostrarNotificacion('↩️ Valor global restaurado', 'exito');
                         }
                     };
                     leftDiv.appendChild(ovBadge);
                 }
-                
+
                 const valorSpan = document.createElement('span');
                 valorSpan.className = 'valor';
                 valorSpan.style.color = item.tipo === 'ingreso' ? '#2e7d32' : '#c62828';
                 valorSpan.textContent = formatearMoneda(item.valor);
-                
+
                 const accionesDiv = document.createElement('div');
                 accionesDiv.className = 'acciones';
-                
+
                 const editBtn = document.createElement('button');
                 editBtn.className = 'btn-editar';
                 editBtn.textContent = '✏️';
                 editBtn.title = 'Editar';
                 editBtn.onclick = (e) => { e.stopPropagation(); editarItemInline(div, item); };
-                
+
                 const deleteBtn = document.createElement('button');
                 deleteBtn.className = 'btn-eliminar';
                 deleteBtn.textContent = '🗑️';
                 deleteBtn.title = 'Eliminar';
                 deleteBtn.onclick = () => eliminarItemDesdeTodoMes(item);
-                
+
                 accionesDiv.appendChild(editBtn);
                 accionesDiv.appendChild(deleteBtn);
-                
+
                 div.appendChild(leftDiv);
                 div.appendChild(valorSpan);
                 div.appendChild(accionesDiv);
-                
-                lista.appendChild(div);
+                return div;
+            }
+
+            // Repartir en mitades iguales
+            const mitad = Math.ceil(items.length / 2);
+            items.forEach((item, idx) => {
+                const div = crearItemDiv(item);
+                if (idx < mitad) {
+                    colIzq.appendChild(div);
+                } else {
+                    colDer.appendChild(div);
+                }
             });
         }
         
@@ -4035,6 +4634,10 @@
         }
 
         function aplicarEdicionDirecta(item, nuevoConcepto, nuevoValor) {
+            if (esMesPasado(mesVerTodo, anoActual)) {
+                mostrarNotificacion('🔒 Mes cerrado. Usa 🔓 Reabrir para poder editarlo', 'error');
+                return;
+            }
             if (item.fuente === 'ingresosExtras') {
                 datos.meses[mesVerTodo].ingresosExtras[item.index].concepto = nuevoConcepto;
                 datos.meses[mesVerTodo].ingresosExtras[item.index].valor = nuevoValor;
@@ -4055,6 +4658,11 @@
         function aplicarEdicionInlineConAlcance(alcance) {
             cerrarModalAlcanceInline();
             if (!_edicionPendiente) return;
+            if (esMesPasado(mesVerTodo, anoActual)) {
+                mostrarNotificacion('🔒 Mes cerrado. Usa 🔓 Reabrir para poder editarlo', 'error');
+                _edicionPendiente = null;
+                return;
+            }
             const { item, nuevoConcepto, nuevoValor } = _edicionPendiente;
             _edicionPendiente = null;
 
@@ -4182,6 +4790,10 @@
         }
 
         function _ejecutarEliminacionDirecta(item) {
+            if (esMesPasado(mesVerTodo, anoActual)) {
+                mostrarNotificacion('🔒 Mes cerrado. Usa 🔓 Reabrir para poder editarlo', 'error');
+                return;
+            }
             const mesData = datos.meses[mesVerTodo];
             if (item.fuente === 'extrasRecurrentes') {
                 datos.extrasRecurrentes.splice(item.index, 1);
@@ -4207,6 +4819,10 @@
             if (!_eliminacionPendiente) return;
             const item = _eliminacionPendiente;
             _eliminacionPendiente = null;
+            if (esMesPasado(mesVerTodo, anoActual)) {
+                mostrarNotificacion('🔒 Mes cerrado. Usa 🔓 Reabrir para poder editarlo', 'error');
+                return;
+            }
 
             if (alcance === 'solo-mes') {
                 if (!datos.meses[mesVerTodo].overrides) datos.meses[mesVerTodo].overrides = {};
@@ -4243,26 +4859,10 @@
         function filtrarTodoMes() {
             const busqueda = document.getElementById('buscar-todo-mes').value.toLowerCase();
             const items = document.querySelectorAll('.item-todo-mes');
-            let visibles = 0;
-            let ocultos = 0;
-            
             items.forEach(item => {
-                const concepto = item.getAttribute('data-concepto');
-                if (concepto.includes(busqueda)) {
-                    item.style.display = 'flex';
-                    visibles++;
-                } else {
-                    item.style.display = 'none';
-                    ocultos++;
-                }
+                const concepto = item.getAttribute('data-concepto') || '';
+                item.style.display = concepto.includes(busqueda) ? 'flex' : 'none';
             });
-            
-            const resultadosSpan = document.getElementById('resultados-todo-mes');
-            if (busqueda) {
-                resultadosSpan.textContent = visibles + ' resultado(s) encontrado(s)' + (ocultos > 0 ? ' • ' + ocultos + ' oculto(s)' : '');
-            } else {
-                resultadosSpan.textContent = 'Mostrando todos los movimientos (' + visibles + ')';
-            }
         }
 
     </script>
@@ -4342,51 +4942,68 @@
 
         <!-- Modal Ver Todo el Mes -->
         <div id="modal-ver-todo-mes" class="modal">
-            <div class="modal-content" style="max-width: 1000px;">
+            <div class="modal-content" style="max-width: 1240px;">
                 <button class="btn-cerrar-fijo" onclick="cerrarModalVerTodo()" title="Cerrar">✕</button>
 
-                <h3 style="margin-bottom: 20px;">📋 <span id="ver-todo-mes-nombre"></span> - Todos los Movimientos</h3>
-                
-                <!-- Buscador -->
-                <div style="margin-bottom: 20px; padding: 12px; background: #f8f9fa; border-radius: 8px;">
-                    <input type="text" id="buscar-todo-mes" placeholder="🔍 Buscar concepto..." 
-                           style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 15px; box-sizing: border-box;"
-                           oninput="filtrarTodoMes()">
-                    <div style="margin-top: 10px; font-size: 13px; color: #666;">
-                        <span id="resultados-todo-mes"></span>
+                <h3 style="margin-bottom: 10px;">📋 <span id="ver-todo-mes-nombre"></span> - Todos los Movimientos</h3>
+
+                <!-- Buscador oculto (necesario para filtrarTodoMes()) -->
+                <input type="text" id="buscar-todo-mes" style="display:none;" oninput="filtrarTodoMes()">
+                <span id="resultados-todo-mes" style="display:none;"></span>
+
+                <!-- Totales compactos en una línea -->
+                <div style="display:flex; gap:10px; margin-bottom:12px;">
+                    <div style="flex:1; display:flex; align-items:center; justify-content:center; gap:8px; padding:7px 12px; background:#e8f5e9; border-radius:8px; border:1px solid #a5d6a7;">
+                        <span style="font-size:13px; color:#2e7d32; font-weight:700;">📈 Ingresos</span>
+                        <span style="font-size:17px; font-weight:800; color:#1b5e20;" id="total-ingresos-todo">0€</span>
                     </div>
-                </div>
-                
-                <!-- Totales -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 25px;">
-                    <div style="padding: 20px; background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                        <div style="font-size: 13px; color: #2e7d32; font-weight: 600; margin-bottom: 8px;">📈 INGRESOS</div>
-                        <div style="font-size: 28px; font-weight: bold; color: #1b5e20;" id="total-ingresos-todo">0€</div>
+                    <div style="flex:1; display:flex; align-items:center; justify-content:center; gap:8px; padding:7px 12px; background:#ffebee; border-radius:8px; border:1px solid #ef9a9a;">
+                        <span style="font-size:13px; color:#c62828; font-weight:700;">📉 Gastos</span>
+                        <span style="font-size:17px; font-weight:800; color:#b71c1c;" id="total-gastos-todo">0€</span>
                     </div>
-                    <div style="padding: 20px; background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%); border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                        <div style="font-size: 13px; color: #c62828; font-weight: 600; margin-bottom: 8px;">📉 GASTOS</div>
-                        <div style="font-size: 28px; font-weight: bold; color: #b71c1c;" id="total-gastos-todo">0€</div>
-                    </div>
-                    <div style="padding: 20px; background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                        <div style="font-size: 13px; color: #1565c0; font-weight: 600; margin-bottom: 8px;">💰 BALANCE</div>
-                        <div style="font-size: 28px; font-weight: bold; color: #0d47a1;" id="balance-todo">0€</div>
+                    <div style="flex:1; display:flex; align-items:center; justify-content:center; gap:8px; padding:7px 12px; background:#e3f2fd; border-radius:8px; border:1px solid #90caf9;">
+                        <span style="font-size:13px; color:#1565c0; font-weight:700;">💰 Balance</span>
+                        <span style="font-size:17px; font-weight:800; color:#0d47a1;" id="balance-todo">0€</span>
                     </div>
                 </div>
                 
                 <!-- Lista de items -->
-                <div id="lista-todo-mes" style="max-height: 450px; overflow-y: auto; padding-right: 5px;">
+                <div id="lista-todo-mes" style="padding-right: 5px;">
                     <!-- Se llenará dinámicamente -->
                 </div>
                 
-                <div style="margin-top: 25px; text-align: right; padding-top: 20px; border-top: 2px solid #eee;">
-                    <button onclick="cerrarModalVerTodo()" style="padding: 12px 30px; background: #666; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 600;">
-                        ✕ Cerrar
-                    </button>
-                </div>
             </div>
         </div>
 
     
+    <!-- ══════════ MODAL REAPERTURA MES ══════════ -->
+    <div id="modal-reapertura" class="modal" style="z-index:1200;align-items:center;justify-content:center;">
+        <div class="modal-content" style="max-width:680px;max-height:92vh;display:flex;flex-direction:column;padding:0;overflow:hidden;border-radius:18px;">
+            <!-- Cabecera fija -->
+            <div style="background:linear-gradient(135deg,#1e3a8a,#2563eb);padding:20px 24px;flex-shrink:0;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                    <h2 style="margin:0;color:white;font-size:1.2em;">🔓 Reabrir: <span id="reapertura-mes-nombre" style="color:#93c5fd;"></span></h2>
+                    <button onclick="cancelarReapertura()" style="background:rgba(255,255,255,0.15);border:none;color:white;width:32px;height:32px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;margin:0;">✕</button>
+                </div>
+                <p style="margin:0;color:#bfdbfe;font-size:0.87em;">Se detectaron cambios desde que cerraste el mes. Decide qué mantener y qué actualizar.</p>
+                <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+                    <span id="reapertura-num-cambios" style="background:rgba(255,255,255,0.2);color:white;font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;"></span>
+                    <div style="display:flex;gap:8px;">
+                        <button onclick="reaperturaSeleccionarTodo('mantener')" style="background:#f59e0b;border:none;color:white;font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;cursor:pointer;margin:0;">📌 Mantener todo</button>
+                        <button onclick="reaperturaSeleccionarTodo('aplicar')" style="background:#3b82f6;border:none;color:white;font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;cursor:pointer;margin:0;">🔄 Aplicar todo</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Lista scrollable -->
+            <div id="reapertura-lista" style="overflow-y:auto;padding:14px 18px;flex:1;-webkit-overflow-scrolling:touch;background:#f8fafc;"></div>
+            <!-- Footer fijo -->
+            <div style="padding:14px 18px;border-top:2px solid #e2e8f0;display:flex;gap:10px;flex-shrink:0;background:white;">
+                <button onclick="cancelarReapertura()" style="flex:1;padding:13px;border-radius:10px;border:2px solid #cbd5e1;background:white;color:#64748b;font-weight:700;font-size:14px;cursor:pointer;margin:0;">❌ Cancelar</button>
+                <button onclick="confirmarReapertura()" style="flex:2;padding:13px;border-radius:10px;border:none;background:linear-gradient(135deg,#059669,#10b981);color:white;font-weight:800;font-size:14px;cursor:pointer;margin:0;box-shadow:0 3px 12px rgba(16,185,129,0.35);">✅ Confirmar y reabrir</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Script para añadir botón "Ver Todo" a cada mes
         window.addEventListener('DOMContentLoaded', function() {
