@@ -27,7 +27,7 @@
     },
     {
       "concepto": "Luz",
-      "valor": 40,
+      "valor": 45,
       "frecuencia": "mensual"
     },
     {
@@ -75,6 +75,11 @@
       "meses": [
         4
       ]
+    },
+    {
+      "concepto": "Cloud",
+      "valor": 1,
+      "frecuencia": "mensual"
     },
     {
       "concepto": "Spotify",
@@ -137,14 +142,6 @@
       ]
     },
     {
-      "concepto": "Regalo Navidad",
-      "valor": 200,
-      "frecuencia": "anual",
-      "meses": [
-        11
-      ]
-    },
-    {
       "concepto": "Comida",
       "valor": 280,
       "frecuencia": "mensual"
@@ -162,11 +159,6 @@
     {
       "concepto": "Farmacia",
       "valor": 25,
-      "frecuencia": "mensual"
-    },
-    {
-      "concepto": "Cloud",
-      "valor": 1,
       "frecuencia": "mensual"
     },
     {
@@ -220,6 +212,10 @@
         {
           "concepto": "Regalo Navidad Niños",
           "valor": 150
+        },
+        {
+          "concepto": "Comida",
+          "valor": 265
         }
       ],
       "gastosVacacionesExtras": [],
@@ -277,6 +273,16 @@
         "gastosFijos_23": {
           "concepto": "Gasolina",
           "valor": 65
+        },
+        "gastosFijos_9": {
+          "concepto": "Cloud",
+          "valor": 0,
+          "eliminado": true
+        },
+        "gastosVacaciones_4": {
+          "concepto": "Fin Año",
+          "valor": 0,
+          "eliminado": true
         }
       }
     },
@@ -299,6 +305,10 @@
         {
           "concepto": "Baño",
           "valor": 144
+        },
+        {
+          "concepto": "Comida",
+          "valor": 227
         }
       ],
       "gastosVacacionesExtras": [],
@@ -347,6 +357,19 @@
         "gastosVacaciones_4": {
           "concepto": "Vacaciones",
           "valor": 1042
+        },
+        "gastosFijos_2": {
+          "concepto": "Luz",
+          "valor": 40
+        },
+        "gastosFijos_21": {
+          "concepto": "Farmacia",
+          "valor": 0,
+          "eliminado": true
+        },
+        "gastosVacaciones_0": {
+          "concepto": "Vacaciones",
+          "valor": 1042
         }
       }
     },
@@ -356,6 +379,10 @@
         {
           "concepto": "Multa tráfico",
           "valor": 50
+        },
+        {
+          "concepto": "Comida",
+          "valor": 125
         }
       ],
       "gastosVacacionesExtras": [
@@ -410,6 +437,11 @@
           "concepto": "Cumple Niños",
           "valor": 0,
           "eliminado": true
+        },
+        "gastosFijos_21": {
+          "concepto": "Farmacia",
+          "valor": 0,
+          "eliminado": true
         }
       }
     },
@@ -423,6 +455,14 @@
         {
           "concepto": "Pelo",
           "valor": 439
+        },
+        {
+          "concepto": "Comida",
+          "valor": 428
+        },
+        {
+          "concepto": "ING",
+          "valor": 7
         }
       ],
       "gastosVacacionesExtras": [],
@@ -484,6 +524,15 @@
           "concepto": "Peluquería",
           "valor": 0,
           "eliminado": true
+        },
+        "gastosVacaciones_1": {
+          "concepto": "Semana Santa",
+          "valor": 777
+        },
+        "gastosFijos_9": {
+          "concepto": "Cloud",
+          "valor": 0,
+          "eliminado": true
         }
       }
     },
@@ -530,6 +579,14 @@
   ],
   "gastosVacaciones": [
     {
+      "concepto": "Esquí",
+      "valor": 800,
+      "frecuencia": "anual",
+      "meses": [
+        1
+      ]
+    },
+    {
       "concepto": "Semana Santa",
       "valor": 900,
       "frecuencia": "anual",
@@ -560,14 +617,6 @@
       "meses": [
         0,
         11
-      ]
-    },
-    {
-      "concepto": "Esquí",
-      "valor": 800,
-      "frecuencia": "anual",
-      "meses": [
-        1
       ]
     }
   ],
@@ -627,65 +676,65 @@
   ],
   "mesesCerrados": {
     "0": {
-      "cerradoEn": "2026-05-01T22:04:07.843Z",
+      "cerradoEn": "2026-05-02T08:24:26.894Z",
       "snapshot": {
         "ingresosFijos": 2341,
         "ingresosBonus": 2286,
-        "gastosFijos": 2835,
+        "gastosFijos": 2419,
         "gastosVacaciones": 0,
         "ingresosExtras": 20,
-        "gastosExtras": 550,
+        "gastosExtras": 815,
         "gastosVacacionesExtras": 0,
         "ingresosTotal": 4647,
-        "gastosTotal": 3385
+        "gastosTotal": 3234
       },
-      "balanceAcumulado": 4314
+      "balanceAcumulado": 4465
     },
     "1": {
-      "cerradoEn": "2026-05-01T22:28:18.747Z",
+      "cerradoEn": "2026-05-02T08:31:54.929Z",
       "snapshot": {
         "ingresosFijos": 2330,
         "ingresosBonus": 0,
-        "gastosFijos": 2695,
+        "gastosFijos": 2468,
         "gastosVacaciones": 1042,
         "ingresosExtras": 84,
-        "gastosExtras": 594,
+        "gastosExtras": 821,
         "gastosVacacionesExtras": 0,
         "ingresosTotal": 2414,
         "gastosTotal": 4331
       },
-      "balanceAcumulado": 2397
+      "balanceAcumulado": 2548
     },
     "2": {
-      "cerradoEn": "2026-05-01T22:20:35.669Z",
+      "cerradoEn": "2026-05-02T08:35:34.150Z",
       "snapshot": {
         "ingresosFijos": 2328,
         "ingresosBonus": 2538,
-        "gastosFijos": 2469,
+        "gastosFijos": 2344,
         "gastosVacaciones": 0,
         "ingresosExtras": 0,
-        "gastosExtras": 200,
+        "gastosExtras": 325,
         "gastosVacacionesExtras": 96,
         "ingresosTotal": 4866,
         "gastosTotal": 2765
       },
-      "balanceAcumulado": 4498
+      "balanceAcumulado": 4649
     },
     "3": {
-      "cerradoEn": "2026-05-01T22:33:41.419Z",
+      "cerradoEn": "2026-05-02T08:43:26.717Z",
       "snapshot": {
         "ingresosFijos": 2330,
         "ingresosBonus": 0,
-        "gastosFijos": 2644,
+        "gastosFijos": 2216,
         "gastosVacaciones": 777,
         "ingresosExtras": 0,
-        "gastosExtras": 1616,
+        "gastosExtras": 2044,
         "gastosVacacionesExtras": 0,
         "ingresosTotal": 2330,
         "gastosTotal": 5037
       },
-      "balanceAcumulado": 1791
+      "balanceAcumulado": 1942
     }
   },
-  "_exportadoEn": "2026-05-01T22:43:49.931Z"
+  "_exportadoEn": "2026-05-02T10:23:39.782Z"
 }
