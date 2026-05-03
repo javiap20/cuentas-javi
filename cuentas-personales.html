@@ -579,6 +579,31 @@
         #modal-ver-todo-mes .modal-content {
             max-width: 1000px;
         }
+        /* Franjas laterales internas del modal Ver Todo para scroll táctil seguro */
+        #modal-ver-todo-mes .modal-content {
+            position: relative;
+        }
+        #modal-ver-todo-mes .inner-scroll-rail {
+            position: sticky;
+            top: 0;
+            width: 44px;
+            min-height: 100%;
+            flex-shrink: 0;
+            touch-action: pan-y !important;
+            pointer-events: auto;
+            z-index: 5;
+        }
+        #modal-ver-todo-mes .modal-inner-wrap {
+            display: flex;
+            gap: 0;
+        }
+        #modal-ver-todo-mes .modal-inner-content {
+            flex: 1;
+            min-width: 0;
+        }
+        @media (max-width: 600px) {
+            #modal-ver-todo-mes .inner-scroll-rail { width: 32px; }
+        }
         
         .item-todo-mes {
             padding: 15px;
@@ -5140,10 +5165,17 @@
                         <span style="font-size:17px; font-weight:800; color:#0d47a1;" id="balance-todo">0€</span>
                     </div>
                 </div>
-                
-                <!-- Lista de items -->
-                <div id="lista-todo-mes" style="padding-right: 5px;">
-                    <!-- Se llenará dinámicamente -->
+
+                <!-- Wrap con franjas laterales para scroll táctil seguro en iPad -->
+                <div class="modal-inner-wrap">
+                    <div class="inner-scroll-rail"></div>
+                    <div class="modal-inner-content">
+                        <!-- Lista de items -->
+                        <div id="lista-todo-mes" style="padding-right: 5px;">
+                            <!-- Se llenará dinámicamente -->
+                        </div>
+                    </div>
+                    <div class="inner-scroll-rail"></div>
                 </div>
                 
             </div>
