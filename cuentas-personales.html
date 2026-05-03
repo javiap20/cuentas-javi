@@ -4671,25 +4671,20 @@
                 return;
             }
             
-            // Usar orden personalizado del mes, o el maestro como fallback, o alfabético por defecto
-            const ordenMes = window.ordenPersonalizado && window.ordenPersonalizado[window.mesActualVerTodo];
-            const ordenFallback = window.ordenMaestro;
+            // Aplicar orden maestro global si existe, si no orden por defecto
+            const orden = window.ordenMaestro;
 
-            if (!ordenMes && !ordenFallback) {
-                // Sin ningún orden guardado: orden por defecto (ingresos primero, luego alfabético)
+            if (!orden || orden.length === 0) {
                 items.sort((a, b) => {
                     if (a.tipo !== b.tipo) return a.tipo === 'ingreso' ? -1 : 1;
                     return a.concepto.localeCompare(b.concepto);
                 });
             } else {
-                // Usar el orden del mes si existe, si no el maestro global
-                const orden = ordenMes || ordenFallback;
                 items.sort((a, b) => {
                     const keyA = a.concepto + '_' + a.tipo;
                     const keyB = b.concepto + '_' + b.tipo;
                     const idxA = orden.indexOf(keyA);
                     const idxB = orden.indexOf(keyB);
-                    // Elementos no encontrados en el orden van al final
                     if (idxA === -1 && idxB === -1) return 0;
                     if (idxA === -1) return 1;
                     if (idxB === -1) return -1;
@@ -4894,13 +4889,12 @@
         }
         
         function guardarOrdenPersonalizado() {
-            // Leer columna izquierda y derecha por separado y entrelazarlas fila a fila
             const lista = document.getElementById('lista-todo-mes');
             const colsWrapper = lista.querySelector('div[style*="grid-template-columns"]');
             let orden = [];
 
             if (colsWrapper) {
-                const cols = colsWrapper.children; // [colIzq, colDer]
+                const cols = colsWrapper.children;
                 const izq = Array.from(cols[0] ? cols[0].querySelectorAll('.item-todo-mes') : []);
                 const der = Array.from(cols[1] ? cols[1].querySelectorAll('.item-todo-mes') : []);
                 const maxLen = Math.max(izq.length, der.length);
@@ -4915,37 +4909,25 @@
 
             orden = orden.filter(k => k);
 
-            if (window.mesActualVerTodo !== null) {
-                // Guardar orden específico de este mes
-                window.ordenPersonalizado[window.mesActualVerTodo] = orden;
-
-                // Guardar también como orden MAESTRO global (solo los conceptos-tipo, sin mes)
-                // El orden maestro se usa como fallback para todos los meses
-                window.ordenMaestro = orden;
-
-                try {
-                    localStorage.setItem('ordenMovimientos', JSON.stringify(window.ordenPersonalizado));
-                    localStorage.setItem('ordenMaestro', JSON.stringify(window.ordenMaestro));
-                } catch(e) {}
-            }
+            // Guardar SOLO como orden maestro global (aplica a todos los meses)
+            window.ordenMaestro = orden;
+            try {
+                localStorage.setItem('ordenMaestro', JSON.stringify(orden));
+            } catch(e) {}
         }
         
         function resetearOrden() {
-            if (window.mesActualVerTodo !== null && window.ordenPersonalizado) {
-                delete window.ordenPersonalizado[window.mesActualVerTodo];
-                try {
-                    localStorage.setItem('ordenMovimientos', JSON.stringify(window.ordenPersonalizado));
-                } catch(e) {}
+            window.ordenMaestro = null;
+            try {
+                localStorage.removeItem('ordenMaestro');
+            } catch(e) {}
+            if (window.mesActualVerTodo !== null) {
                 abrirModalVerTodoMes(window.mesActualVerTodo);
             }
         }
         
-        // Cargar orden guardado al iniciar
+        // Cargar orden maestro guardado al iniciar
         try {
-            const ordenGuardado = localStorage.getItem('ordenMovimientos');
-            if (ordenGuardado) {
-                window.ordenPersonalizado = JSON.parse(ordenGuardado);
-            }
             const maestroGuardado = localStorage.getItem('ordenMaestro');
             if (maestroGuardado) {
                 window.ordenMaestro = JSON.parse(maestroGuardado);
