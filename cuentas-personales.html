@@ -1949,6 +1949,16 @@
         let anoActual = 2026;
 
         function guardarDatos() {
+            // Si el mes activo está reabierto (abierto=true), regenerar su snapshot
+            // con los valores actuales ANTES de guardar — así el snapshot siempre
+            // refleja lo que el usuario ha editado, nunca se actualiza solo.
+            if (datos.mesesCerrados && datos.mesesCerrados[mesActual] && datos.mesesCerrados[mesActual].abierto) {
+                const { totales, balanceAcumulado, snapshotItems } = generarSnapshot(mesActual);
+                datos.mesesCerrados[mesActual].snapshot = totales;
+                datos.mesesCerrados[mesActual].balanceAcumulado = balanceAcumulado;
+                datos.mesesCerrados[mesActual].snapshotItems = snapshotItems;
+                datos.mesesCerrados[mesActual].cerradoEn = datos.mesesCerrados[mesActual].cerradoEn; // conservar fecha original
+            }
             localStorage.setItem('finanzasPersonales_' + anoActual, JSON.stringify(datos));
         }
 
@@ -2196,10 +2206,12 @@
         }
 
         function calcularTotalesMes(numMes) {
-            // Si el mes está cerrado, usar snapshot fijo
-            const cerrado = datos.mesesCerrados && datos.mesesCerrados[numMes];
-            if (cerrado && cerrado.snapshot) {
-                return cerrado.snapshot;
+            // Si el mes tiene snapshot (cerrado O reabierto), usar siempre ese snapshot.
+            // El snapshot solo cambia cuando el usuario edita algo manualmente (mes abierto)
+            // o al cerrar el mes (se genera uno nuevo).
+            const entrada = datos.mesesCerrados && datos.mesesCerrados[numMes];
+            if (entrada && entrada.snapshot) {
+                return entrada.snapshot;
             }
 
             let ingresosFijos = 0;
@@ -2339,6 +2351,12 @@
         }
         
         function esMesCerrado(numMes) {
+            const entrada = datos.mesesCerrados && datos.mesesCerrados[numMes];
+            if (!entrada) return false;
+            return !entrada.abierto; // abierto=true significa reabierto pero snapshot intacto
+        }
+
+        function esMesConSnapshot(numMes) {
             return !!(datos.mesesCerrados && datos.mesesCerrados[numMes]);
         }
 
@@ -2425,18 +2443,17 @@
 
         function reabrirMes() {
             const numMes = mesActual;
-            const cerrado = datos.mesesCerrados && datos.mesesCerrados[numMes];
-            if (!cerrado) return;
+            const entrada = datos.mesesCerrados && datos.mesesCerrados[numMes];
+            if (!entrada) return;
 
-            // Snapshot inmutable: al reabrir simplemente eliminamos el snapshot.
-            // El mes vuelve a modo "vivo" (se calcula en tiempo real).
-            // Cuando se vuelva a cerrar, se generará un snapshot fresco.
-            // No se compara nada ni se pregunta sobre cambios en fijos globales.
-            if (!confirm('¿Reabrir ' + MESES_NOMBRES[numMes] + ' ' + anoActual + '?\n\nEl mes pasará a modo edición. Los datos se calcularán en vivo.\nAl cerrarlo de nuevo se guardará un nuevo snapshot con los valores actuales.')) return;
+            // El snapshot se mantiene INTACTO al reabrir.
+            // Solo se marca el mes como "abierto" para permitir edición.
+            // El snapshot solo cambia cuando el usuario edita algo manualmente.
+            if (!confirm('¿Reabrir ' + MESES_NOMBRES[numMes] + ' ' + anoActual + '?\n\nLos datos del snapshot se mantienen intactos.\nSolo cambiarán si editas algo manualmente.')) return;
 
-            delete datos.mesesCerrados[numMes];
+            datos.mesesCerrados[numMes].abierto = true;
             guardarDatos();
-            mostrarNotificacion('🔓 ' + MESES_NOMBRES[numMes] + ' reabierto — ahora puedes editarlo libremente', 'exito');
+            mostrarNotificacion('🔓 ' + MESES_NOMBRES[numMes] + ' reabierto — snapshot intacto, edita lo que necesites', 'exito');
             actualizarTodo();
             actualizarResumenAnual();
         }
@@ -2473,19 +2490,19 @@
                 if (el) el.remove();
             });
 
-            if (esMesCerrado(mesActual)) {
-                const info = datos.mesesCerrados[mesActual];
-                const fecha = info.cerradoEn ? new Date(info.cerradoEn).toLocaleDateString('es-ES') : '';
+            const entradaMes = datos.mesesCerrados && datos.mesesCerrados[mesActual];
+            const estaCerrado = esMesCerrado(mesActual);
+            const estaReabierto = !!(entradaMes && entradaMes.abierto);
+
+            if (estaCerrado) {
+                // MES CERRADO: solo lectura, no se puede editar
+                const fecha = entradaMes.cerradoEn ? new Date(entradaMes.cerradoEn).toLocaleDateString('es-ES') : '';
                 document.getElementById('mes-cerrado-fecha').textContent = '🔒 Cerrado el ' + fecha;
                 infoDiv.style.display = 'flex';
                 btnCerrar.style.display = 'none';
                 titulo.textContent = '💵 Balance  🔒';
-
-                // Ocultar botones de edición
                 botonesIngresos.style.display = 'none';
                 botonesGastos.style.display = 'none';
-
-                // Añadir aviso compacto en cada card
                 const avisoHtml = (id) => {
                     const div = document.createElement('div');
                     div.id = id;
@@ -2495,12 +2512,20 @@
                 };
                 botonesIngresos.parentElement.appendChild(avisoHtml('aviso-cerrado-ingresos'));
                 botonesGastos.parentElement.appendChild(avisoHtml('aviso-cerrado-gastos'));
+            } else if (estaReabierto) {
+                // MES REABIERTO: editable, snapshot intacto hasta que el usuario edite algo
+                const fecha = entradaMes.cerradoEn ? new Date(entradaMes.cerradoEn).toLocaleDateString('es-ES') : '';
+                document.getElementById('mes-cerrado-fecha').textContent = '✏️ Reabierto (cerrado el ' + fecha + ')';
+                infoDiv.style.display = 'flex';
+                btnCerrar.style.display = 'block';
+                titulo.textContent = '💵 Balance  ✏️';
+                botonesIngresos.style.display = 'grid';
+                botonesGastos.style.display = 'grid';
             } else {
+                // MES ABIERTO normal
                 infoDiv.style.display = 'none';
                 btnCerrar.style.display = 'block';
                 titulo.textContent = '💵 Balance';
-
-                // Mostrar botones de edición
                 botonesIngresos.style.display = 'grid';
                 botonesGastos.style.display = 'grid';
             }
@@ -2714,7 +2739,8 @@
         const mesNombre = document.createElement('div');
         mesNombre.className = 'mes-nombre';
         const esCerrado = esMesCerrado(i);
-        mesNombre.textContent = (esCerrado ? '🔒 ' : '') + MESES_NOMBRES[i];
+        const esReabierto = !esCerrado && !!(datos.mesesCerrados && datos.mesesCerrados[i] && datos.mesesCerrados[i].abierto);
+        mesNombre.textContent = (esCerrado ? '🔒 ' : esReabierto ? '✏️ ' : '') + MESES_NOMBRES[i];
         
         const datoIngresos = document.createElement('div');
         datoIngresos.className = 'mes-dato';
