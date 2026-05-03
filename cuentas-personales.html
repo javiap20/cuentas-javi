@@ -670,6 +670,33 @@
             border-top: 3px solid #7c3aed !important;
             margin-top: -3px;
         }
+
+        /* ══ MODO EDICIÓN (drag) ══ */
+        body.modo-edicion-activo .drag-handle { opacity: 1; pointer-events: auto; }
+        body:not(.modo-edicion-activo) .drag-handle { opacity: 0.15; pointer-events: none; cursor: default; }
+        body:not(.modo-edicion-activo) [draggable="true"] { cursor: default !important; }
+        body:not(.modo-edicion-activo) [draggable="true"]:active { opacity: 1 !important; }
+
+        /* Botón modo edición */
+        #btn-modo-edicion { transition: background 0.2s, box-shadow 0.2s; }
+        #btn-modo-edicion.activo { background:#f59e0b !important; border-color:#d97706 !important; color:#1f2937 !important; box-shadow: 0 0 0 3px rgba(245,158,11,0.35); }
+
+        /* Márgenes laterales en tablet/móvil para scroll cómodo */
+        @media (max-width: 1100px) {
+            .container { padding-left: 52px !important; padding-right: 52px !important; }
+            .scroll-rail {
+                position: fixed; top: 0; bottom: 0; width: 44px; z-index: 10;
+                background: transparent;
+                touch-action: pan-y !important;
+                pointer-events: auto;
+            }
+            .scroll-rail.left  { left: 0; }
+            .scroll-rail.right { right: 0; }
+        }
+        @media (max-width: 600px) {
+            .container { padding-left: 40px !important; padding-right: 40px !important; }
+            .scroll-rail { width: 36px; }
+        }
         .drag-handle {
             cursor: grab;
             padding: 0 6px;
@@ -820,6 +847,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
 </head>
 <body>
+    <!-- Raíles de scroll táctil para iPad -->
+    <div class="scroll-rail left" id="scroll-rail-left"></div>
+    <div class="scroll-rail right" id="scroll-rail-right"></div>
     <!-- TOP BAR -->
     <nav class="topbar">
         <div class="topbar-logo">
@@ -832,6 +862,7 @@
             <button class="tb-btn primary" onclick="document.getElementById('file-input').click()">📤 Importar</button>
             <button class="tb-btn" id="btn-gist-sync" onclick="guardarEnGist(true)" style="background:#6366f1;border-color:#6366f1;display:none;" title="Guardar en Gist">☁️ Guardar Gist</button>
             <button class="tb-btn" onclick="abrirModalGistConfig()" style="background:#4f46e5;border-color:#4f46e5;">🔑 Gist</button>
+            <button class="tb-btn" id="btn-modo-edicion" onclick="toggleModoEdicion()" title="Activar para poder reordenar filas">✏️ Editar orden</button>
             <button class="tb-btn" onclick="abrirModalConfig()">⚙️ Config</button>
             <input type="file" id="file-input" accept=".json" onchange="importarDatos(event)" style="display:none;">
         </div>
@@ -1934,6 +1965,25 @@
                 el.style.color = '#f59e0b';
             }
             el.innerHTML = texto;
+        }
+
+        // ══════════════════════════════════════════════
+        //  MODO EDICIÓN (reordenar filas)
+        // ══════════════════════════════════════════════
+        var modoEdicionActivo = false;
+
+        function toggleModoEdicion() {
+            modoEdicionActivo = !modoEdicionActivo;
+            document.body.classList.toggle('modo-edicion-activo', modoEdicionActivo);
+            const btn = document.getElementById('btn-modo-edicion');
+            if (btn) {
+                btn.classList.toggle('activo', modoEdicionActivo);
+                btn.textContent = modoEdicionActivo ? '🔒 Salir edición' : '✏️ Editar orden';
+                btn.title = modoEdicionActivo ? 'Modo edición activo — puedes reordenar filas' : 'Activar para poder reordenar filas';
+            }
+            if (modoEdicionActivo) {
+                mostrarNotificacion('✏️ Modo edición activo — puedes reordenar filas', 'exito');
+            }
         }
 
         // ══════════════════════════════════════════════
@@ -5534,6 +5584,8 @@ function recalcularSimulador() {
         }
 
         document.addEventListener('touchstart', function(e) {
+            // Solo activar drag si el modo edición está activo
+            if (typeof modoEdicionActivo !== 'undefined' && !modoEdicionActivo) return;
             var target = e.target;
             var draggableEl = isDraggable(target) ? target : closest(target, '[draggable="true"]');
             if (!draggableEl) return;
