@@ -827,10 +827,12 @@
         </div>
         <div class="topbar-actions">
             <button class="tb-btn" onclick="exportarGastosExcel()" style="background:#16a34a;border-color:#16a34a;color:white;">📊 Excel Gastos</button>
-            <button class="tb-btn" onclick="regenerarAnoDesdeAnterior()">🔄 Regenerar año</button>
-            <button class="tb-btn purple" onclick="regenerarTodosLosAnos()">⚡ Regenerar todos</button>
+            <button class="tb-btn" id="btn-regenerar-ano" onclick="regenerarAnoDesdeAnterior()" style="display:none;">🔄 Regenerar año</button>
+            <button class="tb-btn purple" id="btn-regenerar-todos" onclick="regenerarTodosLosAnos()" style="display:none;">⚡ Regenerar todos</button>
             <button class="tb-btn success" onclick="exportarDatos()">📥 Exportar</button>
             <button class="tb-btn primary" onclick="document.getElementById('file-input').click()">📤 Importar</button>
+            <button class="tb-btn" id="btn-gist-sync" onclick="guardarEnGist(true)" style="background:#6366f1;border-color:#6366f1;display:none;" title="Guardar en Gist">☁️ Guardar Gist</button>
+            <button class="tb-btn" onclick="abrirModalGistConfig()" style="background:#4f46e5;border-color:#4f46e5;">🔑 Gist</button>
             <button class="tb-btn" onclick="abrirModalConfig()">⚙️ Config</button>
             <input type="file" id="file-input" accept=".json" onchange="importarDatos(event)" style="display:none;">
         </div>
@@ -1587,6 +1589,7 @@
             guardarDatos();
             actualizarTodo();
             actualizarResumenAnual();
+        actualizarBotonesRegenerar();
             cerrarModalConfig();
             mostrarNotificacion('✅ Configuración guardada', 'exito');
         }
@@ -1614,117 +1617,141 @@
                 return;
             }
 
+            // Función auxiliar para calcular totales de un mes (igual que calcularTotalesMes pero para datos externos)
+            function calcularTotalesMesExterno(d, numMes, ano) {
+                // Si el mes está cerrado, usar snapshot inmutable
+                const entrada = d.mesesCerrados && d.mesesCerrados[numMes];
+                if (entrada && entrada.snapshot) {
+                    return {
+                        ingresosTotal: entrada.snapshot.ingresosTotal || 0,
+                        gastosTotal: entrada.snapshot.gastosTotal || 0
+                    };
+                }
+
+                // Mes abierto: calcular en vivo
+                const overrides = (d.meses[numMes] && d.meses[numMes].overrides) || {};
+                
+                let ingresosFijos = 0;
+                let gastosFijos = 0;
+                let gastosVacaciones = 0;
+
+                (d.ingresosFijos || []).forEach((item, idx) => {
+                    const ov = overrides['ingresosFijos_' + idx];
+                    if (ov && ov.eliminado) return;
+                    const aplica = item.frecuencia === 'mensual' ||
+                        (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) ||
+                        (ov && ov.forzarEnMes);
+                    if (!aplica) return;
+                    ingresosFijos += ov ? ov.valor : item.valor;
+                });
+
+                (d.gastosFijos || []).forEach((item, idx) => {
+                    const ov = overrides['gastosFijos_' + idx];
+                    if (ov && ov.eliminado) return;
+                    const aplica = item.frecuencia === 'mensual' ||
+                        (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) ||
+                        (ov && ov.forzarEnMes);
+                    if (!aplica) return;
+                    gastosFijos += ov ? ov.valor : item.valor;
+                });
+
+                (d.gastosVacaciones || []).forEach((item, idx) => {
+                    const ov = overrides['gastosVacaciones_' + idx];
+                    if (ov && ov.eliminado) return;
+                    const aplica = item.frecuencia === 'mensual' ||
+                        (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) ||
+                        (ov && ov.forzarEnMes);
+                    if (!aplica) return;
+                    gastosVacaciones += ov ? ov.valor : item.valor;
+                });
+
+                const ingresosExtras = (d.meses[numMes].ingresosExtras || []).reduce((sum, item) => sum + item.valor, 0);
+                const gastosExtras = (d.meses[numMes].gastosExtras || []).reduce((sum, item) => sum + item.valor, 0);
+                const gastosVacacionesExtras = (d.meses[numMes].gastosVacacionesExtras || []).reduce((sum, item) => sum + item.valor, 0);
+
+                // Extras recurrentes
+                let ingresosRecurrentes = 0;
+                let gastosRecurrentes = 0;
+                (d.extrasRecurrentes || []).forEach(item => {
+                    const inicio = item.anoInicio * 12 + item.mesInicio;
+                    const fin = item.anoFin * 12 + item.mesFin;
+                    const actual = ano * 12 + numMes;
+                    if (actual >= inicio && actual <= fin) {
+                        if (item.tipo === 'ingresos') ingresosRecurrentes += item.valor;
+                        else gastosRecurrentes += item.valor;
+                    }
+                });
+
+                // Bonus
+                let ingresosBonus = 0;
+                (d.ingresosBonus || []).forEach((item, idx) => {
+                    const ov = overrides['ingresosBonus_' + idx];
+                    if (ov && ov.eliminado) return;
+                    const aplica = item.frecuencia === 'mensual' ||
+                        (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) ||
+                        (ov && ov.forzarEnMes);
+                    if (!aplica) return;
+                    ingresosBonus += ov ? ov.valor : item.valor;
+                });
+
+                return {
+                    ingresosTotal: ingresosFijos + ingresosBonus + ingresosExtras + ingresosRecurrentes,
+                    gastosTotal: gastosFijos + gastosVacaciones + gastosExtras + gastosRecurrentes + gastosVacacionesExtras
+                };
+            }
+
             let totalIngresos = 0, totalGastos = 0;
             let filas = '';
-            // saldoEncadenado: el saldo 31 Dic calculado del año anterior se propaga como saldo 1 Ene del siguiente
             let saldoEncadenado = null;
 
             anos.forEach(({ ano, datos: d }) => {
-                // El saldo 1 Ene es el 31 Dic calculado del año anterior; para el primer año usamos su saldoInicial guardado
                 const saldoInicio = saldoEncadenado !== null ? saldoEncadenado : (d.saldoInicial || 0);
 
-                // Calcular ingresos y gastos del año mes a mes
                 let ingAno = 0, gasAno = 0;
                 for (let m = 0; m < 12; m++) {
-                    let ing = 0, gas = 0;
-                    const cerrado = d.mesesCerrados && d.mesesCerrados[m];
-                    if (cerrado && cerrado.snapshot) {
-                        ing = cerrado.snapshot.ingresosTotal || 0;
-                        gas = cerrado.snapshot.gastosTotal || 0;
-                    } else {
-                        d.ingresosFijos.forEach(item => {
-                            if (item.frecuencia === 'mensual') ing += item.valor;
-                            else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(m)) ing += item.valor;
-                        });
-                        (d.ingresosBonus || []).forEach(item => {
-                            if (item.frecuencia === 'mensual') ing += item.valor;
-                            else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(m)) ing += item.valor;
-                        });
-                        d.meses[m].ingresosExtras.forEach(item => ing += item.valor);
-                        d.gastosFijos.forEach(item => {
-                            if (item.frecuencia === 'mensual') gas += item.valor;
-                            else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(m)) gas += item.valor;
-                        });
-                        (d.gastosVacaciones || []).forEach(item => {
-                            if (item.frecuencia === 'mensual') gas += item.valor;
-                            else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(m)) gas += item.valor;
-                        });
-                        d.meses[m].gastosExtras.forEach(item => gas += item.valor);
-                        (d.meses[m].gastosVacacionesExtras || []).forEach(item => gas += item.valor);
-                        (d.extrasRecurrentes || []).forEach(item => {
-                            const inicio = item.anoInicio * 12 + item.mesInicio;
-                            const fin = item.anoFin * 12 + item.mesFin;
-                            const actual = ano * 12 + m;
-                            if (actual >= inicio && actual <= fin) {
-                                if (item.tipo === 'ingresos') ing += item.valor;
-                                else gas += item.valor;
-                            }
-                        });
-                    }
-                    ingAno += ing;
-                    gasAno += gas;
+                    const totales = calcularTotalesMesExterno(d, m, ano);
+                    ingAno += totales.ingresosTotal;
+                    gasAno += totales.gastosTotal;
                 }
 
-                // Saldo 31 Dic = Saldo 1 Ene + ingresos - gastos del año
                 const saldoFinal = saldoInicio + ingAno - gasAno;
-                // Propagar al año siguiente
                 saldoEncadenado = saldoFinal;
 
-                // Diferencia del año = saldo final 31 dic - saldo inicial 1 ene
-                const diferencia = saldoFinal - saldoInicio;
+                const diff = ingAno - gasAno;
                 totalIngresos += ingAno;
                 totalGastos += gasAno;
 
-                const difBg    = '#f1f5f9';
-                const difColor = diferencia >= 0 ? '#059669' : '#dc2626';
-                const siColor  = saldoInicio >= 0 ? '#059669' : '#dc2626';
-                const sfColor  = saldoFinal >= 0 ? '#059669' : '#dc2626';
-                filas += `<tr style="border-bottom:1px solid #e5e7eb;">
-                    <td style="padding:10px 14px;font-weight:800;color:#1e3a8a;font-size:1.08em;text-align:center;">${ano}</td>
-                    <td style="padding:10px 14px;text-align:center;font-weight:700;color:${siColor};font-size:0.97em;">${formatearMoneda(saldoInicio)}</td>
-                    <td style="padding:10px 14px;text-align:center;"><span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#dcfce7;color:#15803d;font-weight:700;font-size:0.95em;">${formatearMoneda(ingAno)}</span></td>
-                    <td style="padding:10px 14px;text-align:center;"><span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#fee2e2;color:#b91c1c;font-weight:700;font-size:0.95em;">${formatearMoneda(gasAno)}</span></td>
-                    <td style="padding:10px 14px;text-align:center;"><span style="display:inline-block;padding:4px 14px;border-radius:20px;background:${difBg};color:${difColor};font-weight:800;font-size:0.95em;">${diferencia >= 0 ? '+' : ''}${formatearMoneda(diferencia)}</span></td>
-                    <td style="padding:10px 14px;text-align:center;font-weight:800;color:${sfColor};font-size:0.97em;">${formatearMoneda(saldoFinal)}</td>
-                </tr>`;
+                filas += '<tr>' +
+                    '<td style="font-weight:600;text-align:center;">' + ano + '</td>' +
+                    '<td style="color:#6b7280;text-align:center;">' + formatearMoneda(saldoInicio) + '</td>' +
+                    '<td style="color:#10b981;font-weight:600;text-align:center;">' + formatearMoneda(ingAno) + '</td>' +
+                    '<td style="color:#ef4444;font-weight:600;text-align:center;">' + formatearMoneda(gasAno) + '</td>' +
+                    '<td style="color:' + (diff >= 0 ? '#10b981' : '#ef4444') + ';font-weight:700;text-align:center;">' + formatearMoneda(diff) + '</td>' +
+                    '<td style="color:' + (saldoFinal >= 0 ? '#10b981' : '#ef4444') + ';font-weight:700;text-align:center;">' + formatearMoneda(saldoFinal) + '</td>' +
+                '</tr>';
             });
 
-            const saldoPrimerAno = anos.length > 0 ? (anos[0].datos.saldoInicial || 0) : 0;
-            const saldoUltimoAno = saldoEncadenado !== null ? saldoEncadenado : 0;
-            const balTotal = saldoUltimoAno - saldoPrimerAno;
-            contenido.innerHTML = `
-                <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:20px;justify-content:center;">
-                    <div style="background:#dcfce7;border-radius:10px;padding:14px 22px;text-align:center;min-width:130px;">
-                        <div style="font-size:0.78em;font-weight:700;color:#065f46;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">💰 Ingresos totales</div>
-                        <div style="font-size:1.4em;font-weight:800;color:#059669;">${formatearMoneda(totalIngresos)}</div>
-                    </div>
-                    <div style="background:#fee2e2;border-radius:10px;padding:14px 22px;text-align:center;min-width:130px;">
-                        <div style="font-size:0.78em;font-weight:700;color:#991b1b;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">💸 Gastos totales</div>
-                        <div style="font-size:1.4em;font-weight:800;color:#dc2626;">${formatearMoneda(totalGastos)}</div>
-                    </div>
-                    <div style="background:#f1f5f9;border-radius:10px;padding:14px 22px;text-align:center;min-width:130px;">
-                        <div style="font-size:0.78em;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">📊 Balance global</div>
-                        <div style="font-size:1.4em;font-weight:800;color:${balTotal>=0?'#059669':'#dc2626'};">${balTotal>=0?'+':''}${formatearMoneda(balTotal)}</div>
-                    </div>
-                </div>
-                <div style="overflow-x:auto;">
-                <table style="width:100%;border-collapse:collapse;font-size:0.92em;">
-                    <thead>
-                        <tr style="background:#1e3a8a;">
-                            <th style="padding:10px 14px;color:white;text-align:center;font-weight:700;">Año</th>
-                            <th style="padding:10px 14px;color:white;text-align:center;font-weight:700;">Saldo 1 Ene</th>
-                            <th style="padding:10px 14px;color:white;text-align:center;font-weight:700;">Ingresos</th>
-                            <th style="padding:10px 14px;color:white;text-align:center;font-weight:700;">Gastos</th>
-                            <th style="padding:10px 14px;color:white;text-align:center;font-weight:700;background:#1e40af;">Diferencia año</th>
-                            <th style="padding:10px 14px;color:white;text-align:center;font-weight:700;">Saldo 31 Dic</th>
-                        </tr>
-                    </thead>
-                    <tbody>${filas}</tbody>
-                </table>
-                </div>
-                <p style="margin-top:12px;font-size:0.8em;color:#6b7280;text-align:center;">
-                    💡 <strong>Diferencia año</strong> = Saldo 31 Dic − Saldo 1 Ene &nbsp;|&nbsp; <strong>Saldo 1 Ene</strong> = Saldo 31 Dic del año anterior
-                </p>`;
+            const diffTotal = totalIngresos - totalGastos;
+            contenido.innerHTML = 
+                '<table style="width:100%;border-collapse:collapse;font-size:14px;">' +
+                '<thead><tr style="background:#1e293b;color:white;">' +
+                '<th style="padding:12px 8px;text-align:center;">Año</th>' +
+                '<th style="padding:12px 8px;text-align:center;">Saldo 1 Ene</th>' +
+                '<th style="padding:12px 8px;text-align:center;">Ingresos</th>' +
+                '<th style="padding:12px 8px;text-align:center;">Gastos</th>' +
+                '<th style="padding:12px 8px;text-align:center;">Diferencia</th>' +
+                '<th style="padding:12px 8px;text-align:center;">Saldo 31 Dic</th>' +
+                '</tr></thead>' +
+                '<tbody>' + filas + '</tbody>' +
+                '<tfoot><tr style="background:#0f172a;color:white;font-weight:700;">' +
+                '<td style="padding:12px 8px;text-align:center;">TOTAL</td>' +
+                '<td></td>' +
+                '<td style="padding:12px 8px;text-align:center;color:#10b981;">' + formatearMoneda(totalIngresos) + '</td>' +
+                '<td style="padding:12px 8px;text-align:center;color:#ef4444;">' + formatearMoneda(totalGastos) + '</td>' +
+                '<td style="padding:12px 8px;text-align:center;color:' + (diffTotal >= 0 ? '#10b981' : '#ef4444') + ';">' + formatearMoneda(diffTotal) + '</td>' +
+                '<td></td>' +
+                '</tr></tfoot>' +
+                '</table>';
         }
 
         function exportarDatos() {
@@ -1888,18 +1915,148 @@
             const el = document.getElementById('datos-fuente-info');
             if (!el) return;
             let texto = '';
-            if (fuente === 'servidor') {
-                const fecha = fechaISO ? new Date(fechaISO) : null;
-                const fechaStr = fecha ? fecha.toLocaleDateString('es-ES', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '—';
-                texto = '&#9729; Datos del servidor · Exportados el ' + fechaStr;
+            const fechaStr = fechaISO
+                ? new Date(fechaISO).toLocaleString('es-ES', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' })
+                : '—';
+            if (fuente === 'gist') {
+                texto = '☁️ Datos del Gist · ' + fechaStr;
+                el.style.color = '#818cf8';
+            } else if (fuente === 'local-nuevo') {
+                texto = '💾 Datos locales (más recientes que el Gist) · ' + fechaStr + ' · Recuerda guardar en Gist';
+                el.style.color = '#f59e0b';
+            } else if (fuente === 'cargando') {
+                texto = '⏳ Conectando con Gist...';
+                el.style.color = 'rgba(255,255,255,0.38)';
+            } else if (fuente === 'servidor') {
+                texto = '☁️ Datos del servidor · ' + fechaStr;
                 el.style.color = 'rgba(255,255,255,0.38)';
             } else {
-                texto = '&#128274; Datos locales · Sin conexión al servidor';
+                texto = '🔒 Datos locales · Sin conexión al Gist';
                 el.style.color = '#f59e0b';
             }
             el.innerHTML = texto;
         }
 
+        // ══════════════════════════════════════════════
+        //  GIST SYNC
+        // ══════════════════════════════════════════════
+        const GIST_ID = '6eaad65a997877a68cebeb3fdc7ecf5b';
+        const GIST_FILENAME = 'finanzas-datos.json';
+
+        function gistToken() { return localStorage.getItem('gistToken') || ''; }
+        function gistConfigurado() { return !!gistToken(); }
+
+        function actualizarBtnGist() {
+            const btn = document.getElementById('btn-gist-sync');
+            if (btn) btn.style.display = gistConfigurado() ? '' : 'none';
+        }
+
+        async function cargarDesdeGist() {
+            // Carga pública (sin token) usando la API de Gist
+            try {
+                const resp = await fetch('https://api.github.com/gists/' + GIST_ID, {
+                    headers: gistConfigurado() ? { 'Authorization': 'token ' + gistToken() } : {}
+                });
+                if (!resp.ok) return null;
+                const gist = await resp.json();
+                const file = gist.files && gist.files[GIST_FILENAME];
+                if (!file) return null;
+                // Si el contenido está truncado, fetch al raw_url
+                let raw = file.content;
+                if (file.truncated) {
+                    const rr = await fetch(file.raw_url);
+                    raw = await rr.text();
+                }
+                return JSON.parse(raw);
+            } catch(e) { return null; }
+        }
+
+        async function guardarEnGist(manual) {
+            if (!gistConfigurado()) {
+                if (manual) mostrarNotificacion('⚠️ Configura primero el token Gist (botón 🔑 Gist)', 'error');
+                return false;
+            }
+            const payload = Object.assign({}, datos, { _exportadoEn: new Date().toISOString() });
+            try {
+                const resp = await fetch('https://api.github.com/gists/' + GIST_ID, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': 'token ' + gistToken(),
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ files: { [GIST_FILENAME]: { content: JSON.stringify(payload, null, 2) } } })
+                });
+                if (resp.ok) {
+                    localStorage.setItem('gistLastSaved', payload._exportadoEn);
+                    if (manual) mostrarNotificacion('☁️ Guardado en Gist correctamente', 'exito');
+                    mostrarFuenteDatos('gist', payload._exportadoEn);
+                    return true;
+                } else {
+                    if (manual) mostrarNotificacion('❌ Error al guardar en Gist (' + resp.status + ')', 'error');
+                    return false;
+                }
+            } catch(e) {
+                if (manual) mostrarNotificacion('❌ Sin conexión al guardar en Gist', 'error');
+                return false;
+            }
+        }
+
+        // Modal configuración Gist
+        function abrirModalGistConfig() {
+            let modal = document.getElementById('modal-gist-config');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'modal-gist-config';
+                modal.className = 'modal';
+                modal.style.display = 'flex';
+                modal.style.alignItems = 'center';
+                modal.style.justifyContent = 'center';
+                modal.innerHTML = `
+                <div class="modal-content" style="max-width:480px;">
+                    <span class="close" onclick="document.getElementById('modal-gist-config').style.display='none'">&times;</span>
+                    <h2 style="margin-bottom:16px;">🔑 Configuración Gist</h2>
+                    <p style="font-size:0.9em;color:#6b7280;margin-bottom:16px;">
+                        El token se guarda solo en este dispositivo (localStorage). Nunca se envía a ningún servidor salvo a la API de GitHub.
+                    </p>
+                    <label style="display:block;font-weight:700;margin-bottom:6px;color:#374151;">Personal Access Token de GitHub</label>
+                    <input id="gist-token-input" type="password" placeholder="ghp_..." style="width:100%;padding:10px;border:2px solid #d1d5db;border-radius:8px;font-size:1em;margin-bottom:12px;">
+                    <div style="display:flex;gap:10px;margin-top:4px;align-items:center;">
+                        <button onclick="guardarTokenGist()" style="flex:1;background:#4f46e5;color:white;border:none;padding:10px;border-radius:8px;cursor:pointer;font-weight:700;">Guardar token</button>
+                        <button onclick="borrarTokenGist()" style="flex:0 0 auto;width:auto;background:#ef4444;color:white;border:none;padding:10px 16px;border-radius:8px;cursor:pointer;font-weight:700;font-size:0.85em;white-space:nowrap;">Borrar</button>
+                    </div>
+                    <div id="gist-token-status" style="margin-top:12px;font-size:0.85em;"></div>
+                </div>`;
+                document.body.appendChild(modal);
+            }
+            const input = document.getElementById('gist-token-input');
+            input.value = gistToken();
+            const status = document.getElementById('gist-token-status');
+            status.innerHTML = gistConfigurado()
+                ? '<span style="color:#10b981;">✅ Token configurado en este dispositivo</span>'
+                : '<span style="color:#f59e0b;">⚠️ Sin token — solo lectura desde Gist</span>';
+            modal.style.display = 'flex';
+        }
+
+        function guardarTokenGist() {
+            const val = document.getElementById('gist-token-input').value.trim();
+            if (!val) { mostrarNotificacion('⚠️ Introduce un token', 'error'); return; }
+            localStorage.setItem('gistToken', val);
+            actualizarBtnGist();
+            document.getElementById('gist-token-status').innerHTML = '<span style="color:#10b981;">✅ Token guardado</span>';
+            mostrarNotificacion('✅ Token Gist guardado en este dispositivo', 'exito');
+        }
+
+        function borrarTokenGist() {
+            localStorage.removeItem('gistToken');
+            document.getElementById('gist-token-input').value = '';
+            document.getElementById('gist-token-status').innerHTML = '<span style="color:#f59e0b;">⚠️ Token eliminado</span>';
+            actualizarBtnGist();
+            mostrarNotificacion('🗑️ Token eliminado', 'exito');
+        }
+
+        // ══════════════════════════════════════════════
+        //  CARGA DE DATOS (Gist primero)
+        // ══════════════════════════════════════════════
         async function cargarDatos() {
             // Migración datos antiguos
             const datosViejos = localStorage.getItem('finanzasPersonales2');
@@ -1916,34 +2073,65 @@
             mesActual = hoy.getMonth();
             document.getElementById('mes-select').value = mesActual;
 
-            // Prioridad: localStorage siempre gana sobre el servidor.
-            // El JSON del servidor solo se usa si no hay datos locales todavía.
-            // Esto evita que una recarga de página sobreescriba cambios hechos en el navegador.
+            actualizarBtnGist();
+
             const datosLocales = localStorage.getItem('finanzasPersonales_2026');
 
-            if (datosLocales) {
-                // Tenemos datos locales → usarlos siempre, ignorar servidor
+            // ── Intentar cargar desde Gist primero ──
+            mostrarFuenteDatos('cargando', null);
+            const datosGist = await cargarDesdeGist();
+
+            if (datosGist) {
+                // Tenemos datos del Gist
+                if (datosLocales) {
+                    // Comparar fechas para ver cuál es más reciente
+                    const tsGist  = datosGist._exportadoEn  ? new Date(datosGist._exportadoEn).getTime()  : 0;
+                    const tsLocal = JSON.parse(datosLocales)._exportadoEn
+                        ? new Date(JSON.parse(datosLocales)._exportadoEn).getTime() : 0;
+
+                    if (tsLocal > tsGist) {
+                        // Local es más nuevo → preguntar
+                        const usar = confirm(
+                            '⚠️ Tus datos locales son más recientes que los del Gist.\n\n' +
+                            '• Local:  ' + (tsLocal ? new Date(tsLocal).toLocaleString('es-ES') : 'sin fecha') + '\n' +
+                            '• Gist:   ' + (tsGist  ? new Date(tsGist).toLocaleString('es-ES')  : 'sin fecha') + '\n\n' +
+                            '¿Cargar los datos LOCALES?\n' +
+                            '(Pulsa Cancelar para usar los del Gist y perder los cambios locales)'
+                        );
+                        if (usar) {
+                            datos = JSON.parse(datosLocales);
+                            normalizarDatos(datos);
+                            mostrarFuenteDatos('local-nuevo', JSON.parse(datosLocales)._exportadoEn || null);
+                            mostrarNotificacion('💾 Usando datos locales (más recientes). Recuerda guardar en Gist cuando termines.', 'exito');
+                        } else {
+                            datos = datosGist;
+                            normalizarDatos(datos);
+                            localStorage.setItem('finanzasPersonales_2026', JSON.stringify(datos));
+                            mostrarFuenteDatos('gist', datosGist._exportadoEn || null);
+                        }
+                    } else {
+                        // Gist es igual o más nuevo → usar Gist
+                        datos = datosGist;
+                        normalizarDatos(datos);
+                        localStorage.setItem('finanzasPersonales_2026', JSON.stringify(datos));
+                        mostrarFuenteDatos('gist', datosGist._exportadoEn || null);
+                    }
+                } else {
+                    // Sin datos locales → usar Gist directamente
+                    datos = datosGist;
+                    normalizarDatos(datos);
+                    localStorage.setItem('finanzasPersonales_2026', JSON.stringify(datos));
+                    mostrarFuenteDatos('gist', datosGist._exportadoEn || null);
+                }
+            } else if (datosLocales) {
+                // Sin Gist disponible → usar local
                 datos = JSON.parse(datosLocales);
                 normalizarDatos(datos);
                 mostrarFuenteDatos('local', null);
+                mostrarNotificacion('⚠️ No se pudo conectar al Gist. Usando datos locales.', 'error');
             } else {
-                // Sin datos locales → intentar cargar desde el servidor como punto de partida
-                let cargadoDesdeServidor = false;
-                try {
-                    const resp = await fetch('finanzas-datos.json?_=' + Date.now());
-                    if (resp.ok) {
-                        const datosServidor = await resp.json();
-                        normalizarDatos(datosServidor);
-                        datos = datosServidor;
-                        guardarDatos(); // guardar en local para próximas cargas
-                        mostrarFuenteDatos('servidor', datosServidor._exportadoEn || null);
-                        cargadoDesdeServidor = true;
-                    }
-                } catch(e) { /* sin servidor */ }
-
-                if (!cargadoDesdeServidor) {
-                    mostrarFuenteDatos('local', null);
-                }
+                // Sin nada → datos vacíos
+                mostrarFuenteDatos('local', null);
             }
 
             actualizarTodo();
@@ -1959,6 +2147,11 @@
             // Solo se genera/actualiza en cerrarMes() — cuando el usuario cierra el mes manualmente.
             // Un mes reabierto (abierto=true) mantiene su snapshot intacto hasta que se cierre de nuevo.
             localStorage.setItem('finanzasPersonales_' + anoActual, JSON.stringify(datos));
+            // Auto-guardar en Gist si está configurado (con debounce de 2s para no saturar la API)
+            if (gistConfigurado()) {
+                clearTimeout(window._gistSaveTimer);
+                window._gistSaveTimer = setTimeout(function() { guardarEnGist(false); }, 2000);
+            }
         }
 
         function crearDatosVaciosAno() {
@@ -2082,23 +2275,29 @@
         }
 
         function regenerarTodosLosAnos() {
-            // Encontrar el primer año con datos
+            // Solo regenerar desde el año actual en adelante
             const ANOS = [];
-            for (let y = 2024; y <= 2040; y++) {
-                if (localStorage.getItem('finanzasPersonales_' + y)) ANOS.push(y);
+            for (let y = anoActual; y <= 2040; y++) {
+                if (localStorage.getItem('finanzasPersonales_' + y) || y === anoActual) ANOS.push(y);
             }
-            if (ANOS.length < 2) {
-                mostrarNotificacion('❌ Necesitas al menos 2 años con datos para regenerar en cadena', 'error');
+            
+            // Necesitamos el año anterior como base
+            const anoBase = anoActual - 1;
+            const guardadoBase = localStorage.getItem('finanzasPersonales_' + anoBase);
+            if (!guardadoBase) {
+                mostrarNotificacion('❌ No hay datos de ' + anoBase + ' para usar como base', 'error');
                 return;
             }
 
-            const primerAno = ANOS[0];
-            const ultimoAno = ANOS[ANOS.length - 1];
+            if (ANOS.length < 1) {
+                mostrarNotificacion('❌ No hay años para regenerar', 'error');
+                return;
+            }
 
             if (!confirm(
                 '🔄 REGENERACIÓN EN CADENA\n\n' +
-                'Se regenerarán todos los años desde ' + (primerAno + 1) + ' hasta ' + ultimoAno + '\n' +
-                'usando como base siempre el año anterior con sus % de incremento.\n\n' +
+                'Se regenerarán todos los años desde ' + anoActual + ' en adelante\n' +
+                'usando como base ' + anoBase + ' y aplicando los % de incremento.\n\n' +
                 '⚠️ Los extras puntuales de cada mes se perderán.\n' +
                 'Los extras recurrentes (con fecha fin) se conservan.\n\n' +
                 '¿Continuar?'
@@ -2108,20 +2307,34 @@
             guardarDatos();
 
             let regenerados = [];
+            
+            // Primer año: regenerar desde anoBase
+            let datosBase = JSON.parse(guardadoBase);
+            let nuevoDatos = generarDatosAnoSiguiente(datosBase);
+            
+            // Conservar extrasRecurrentes si ya existían
+            const rawActual = localStorage.getItem('finanzasPersonales_' + anoActual);
+            if (rawActual) {
+                const datosActual = JSON.parse(rawActual);
+                if (datosActual.extrasRecurrentes && datosActual.extrasRecurrentes.length > 0) {
+                    nuevoDatos.extrasRecurrentes = datosActual.extrasRecurrentes;
+                }
+            }
+            
+            localStorage.setItem('finanzasPersonales_' + anoActual, JSON.stringify(nuevoDatos));
+            regenerados.push(anoActual);
+            
+            // Años siguientes: en cadena
             for (let i = 1; i < ANOS.length; i++) {
-                const anoBase = ANOS[i - 1];
                 const anoTarget = ANOS[i];
-                const rawBase = localStorage.getItem('finanzasPersonales_' + anoBase);
-                if (!rawBase) continue;
-                const datosBase = JSON.parse(rawBase);
-
-                // Temporalmente ajustamos anoActual para que calcularBalanceAcumuladoDeDatos
-                // use el año correcto en los extras recurrentes
-                const anoGuardado = anoActual;
-                anoActual = anoBase;
-                const nuevoDatos = generarDatosAnoSiguiente(datosBase);
-                anoActual = anoGuardado;
-
+                const anoAnterior = ANOS[i - 1];
+                
+                const rawAnterior = localStorage.getItem('finanzasPersonales_' + anoAnterior);
+                if (!rawAnterior) continue;
+                
+                datosBase = JSON.parse(rawAnterior);
+                nuevoDatos = generarDatosAnoSiguiente(datosBase);
+                
                 // Conservar extrasRecurrentes del año destino si ya los tiene
                 const rawTarget = localStorage.getItem('finanzasPersonales_' + anoTarget);
                 if (rawTarget) {
@@ -2130,15 +2343,15 @@
                         nuevoDatos.extrasRecurrentes = datosTarget.extrasRecurrentes;
                     }
                 }
-
+                
                 localStorage.setItem('finanzasPersonales_' + anoTarget, JSON.stringify(nuevoDatos));
                 regenerados.push(anoTarget);
             }
 
             // Recargar el año que estaba activo
-            const rawActual = localStorage.getItem('finanzasPersonales_' + anoActual);
-            if (rawActual) {
-                datos = JSON.parse(rawActual);
+            const rawRecargado = localStorage.getItem('finanzasPersonales_' + anoActual);
+            if (rawRecargado) {
+                datos = JSON.parse(rawRecargado);
                 if (!datos.extrasRecurrentes) datos.extrasRecurrentes = [];
             }
 
@@ -2188,6 +2401,7 @@
             actualizarTodo();
             actualizarResumenAnual();
             actualizarCategorias();
+            actualizarBotonesRegenerar();
         }
         
         function cambiarMes() {
@@ -2400,6 +2614,21 @@
             // Ya no cierra meses automáticamente al cargar.
             // Los meses pasados solo se cierran cuando el usuario lo hace manualmente.
             // Esto evita que cualquier cambio en fijos contamine datos de meses pasados.
+        }
+
+        
+        function actualizarBotonesRegenerar() {
+            const anoRealSistema = new Date().getFullYear();
+            const btnRegenerarAno = document.getElementById('btn-regenerar-ano');
+            const btnRegenerarTodos = document.getElementById('btn-regenerar-todos');
+            
+            if (anoActual > anoRealSistema) {
+                if (btnRegenerarAno) btnRegenerarAno.style.display = '';
+                if (btnRegenerarTodos) btnRegenerarTodos.style.display = '';
+            } else {
+                if (btnRegenerarAno) btnRegenerarAno.style.display = 'none';
+                if (btnRegenerarTodos) btnRegenerarTodos.style.display = 'none';
+            }
         }
 
         function actualizarBannerMesCerrado() {
@@ -5278,5 +5507,93 @@ function recalcularSimulador() {
     });
 }
 </script>
+
+    <!-- ── Soporte táctil para drag & drop en iPad/iOS ── -->
+    <script>
+    (function() {
+        var dragging = null;
+        var cloneEl = null;
+        var offsetX = 0, offsetY = 0;
+
+        function isDraggable(el) {
+            return el && (el.draggable || el.getAttribute('draggable') === 'true');
+        }
+
+        function closest(el, selector) {
+            while (el) {
+                if (el.matches && el.matches(selector)) return el;
+                el = el.parentElement;
+            }
+            return null;
+        }
+
+        function elementFromTouchPoint(touch) {
+            if (cloneEl) cloneEl.style.display = 'none';
+            var el = document.elementFromPoint(touch.clientX, touch.clientY);
+            if (cloneEl) cloneEl.style.display = '';
+            return el;
+        }
+
+        document.addEventListener('touchstart', function(e) {
+            var target = e.target;
+            var draggableEl = isDraggable(target) ? target : closest(target, '[draggable="true"]');
+            if (!draggableEl) return;
+
+            dragging = draggableEl;
+            var rect = dragging.getBoundingClientRect();
+            var touch = e.touches[0];
+            offsetX = touch.clientX - rect.left;
+            offsetY = touch.clientY - rect.top;
+
+            cloneEl = dragging.cloneNode(true);
+            cloneEl.style.cssText = 'position:fixed;z-index:9999;pointer-events:none;opacity:0.75;' +
+                'left:' + rect.left + 'px;top:' + rect.top + 'px;' +
+                'width:' + rect.width + 'px;height:' + rect.height + 'px;' +
+                'margin:0;box-shadow:0 8px 24px rgba(0,0,0,0.4);border-radius:8px;';
+            document.body.appendChild(cloneEl);
+
+            dragging.style.opacity = '0.4';
+            dragging.dispatchEvent(new DragEvent('dragstart', { bubbles: true }));
+        }, { passive: true });
+
+        document.addEventListener('touchmove', function(e) {
+            if (!dragging || !cloneEl) return;
+            var touch = e.touches[0];
+
+            cloneEl.style.left = (touch.clientX - offsetX) + 'px';
+            cloneEl.style.top  = (touch.clientY - offsetY) + 'px';
+
+            var below = elementFromTouchPoint(touch);
+            if (!below) return;
+
+            var dropTarget = isDraggable(below) ? below : closest(below, '[draggable="true"]');
+            if (dropTarget && dropTarget !== dragging) {
+                dropTarget.dispatchEvent(new DragEvent('dragover', { bubbles: true, cancelable: true }));
+                dropTarget.dispatchEvent(new DragEvent('dragenter', { bubbles: true, cancelable: true }));
+            }
+        }, { passive: true });
+
+        document.addEventListener('touchend', function(e) {
+            if (!dragging) return;
+
+            var touch = e.changedTouches[0];
+            var below = elementFromTouchPoint(touch);
+
+            if (below) {
+                var dropTarget = isDraggable(below) ? below : closest(below, '[draggable="true"]');
+                if (dropTarget && dropTarget !== dragging) {
+                    dropTarget.dispatchEvent(new DragEvent('dragleave', { bubbles: true }));
+                    dropTarget.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true }));
+                }
+            }
+
+            dragging.dispatchEvent(new DragEvent('dragend', { bubbles: true }));
+            dragging.style.opacity = '';
+
+            if (cloneEl) { cloneEl.remove(); cloneEl = null; }
+            dragging = null;
+        }, { passive: true });
+    })();
+    </script>
     </body>
 </html>
