@@ -947,7 +947,7 @@
                 <!-- Estado mes: cerrado o botón cerrar -->
                 <div id="mes-cerrado-info" style="display:none; margin-top:12px; background:#eef2ff; border-radius:8px; padding:10px 14px; display:none; align-items:center; justify-content:space-between; gap:8px;">
                     <span style="font-size:0.85em; color:#1e3a8a; font-weight:600;" id="mes-cerrado-fecha"></span>
-                    <button onclick="reabrirMes()" style="background:#1e3a8a;color:white;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-weight:bold;font-size:0.82em;width:auto;margin:0;">🔓 Reabrir</button>
+
                 </div>
                 <button id="btn-cerrar-mes" onclick="cerrarMesManual()" style="background:#1e3a8a;margin-top:12px;">🔒 Cerrar mes</button>
             </div>
@@ -2205,9 +2205,7 @@
         }
 
         function calcularTotalesMes(numMes) {
-            // Si el mes tiene snapshot (cerrado O reabierto), usar siempre ese snapshot.
-            // El snapshot solo cambia cuando el usuario edita algo manualmente (mes abierto)
-            // o al cerrar el mes (se genera uno nuevo).
+            // Si el mes está cerrado, usar snapshot inmutable
             const entrada = datos.mesesCerrados && datos.mesesCerrados[numMes];
             if (entrada && entrada.snapshot) {
                 return entrada.snapshot;
@@ -2350,82 +2348,25 @@
         }
         
         function esMesCerrado(numMes) {
-            const entrada = datos.mesesCerrados && datos.mesesCerrados[numMes];
-            if (!entrada) return false;
-            return !entrada.abierto; // abierto=true significa reabierto pero snapshot intacto
-        }
-
-        function esMesConSnapshot(numMes) {
             return !!(datos.mesesCerrados && datos.mesesCerrados[numMes]);
-        }
-
-        function generarSnapshot(numMes) {
-            // Temporarily remove the snapshot to force live calculation
-            const backup = datos.mesesCerrados[numMes];
-            delete datos.mesesCerrados[numMes];
-            const totales = calcularTotalesMes(numMes);
-            const balanceAcumulado = calcularBalanceAcumulado(numMes);
-            if (backup) datos.mesesCerrados[numMes] = backup;
-
-            // Capturar snapshot detallado ítem a ítem (para comparar al reabrir)
-            const overrides = datos.meses[numMes].overrides || {};
-            const snapshotItems = [];
-
-            const capturar = (arr, fuente) => {
-                arr.forEach((item, idx) => {
-                    const ov = overrides[fuente + '_' + idx];
-                    const aplica = item.frecuencia === 'mensual' ||
-                        (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) ||
-                        (ov && ov.forzarEnMes); // fijo anual añadido expresamente solo a este mes
-                    if (!aplica) return;
-                    if (ov && ov.eliminado) {
-                        snapshotItems.push({ fuente, idx, concepto: item.concepto, valor: 0, eliminado: true });
-                        return;
-                    }
-                    const valor = ov ? ov.valor : item.valor;
-                    const concepto = ov ? ov.concepto : item.concepto;
-                    snapshotItems.push({ fuente, idx, concepto, valor, eliminado: false });
-                });
-            };
-
-            capturar(datos.ingresosFijos, 'ingresosFijos');
-            capturar(datos.ingresosBonus || [], 'ingresosBonus');
-            capturar(datos.gastosFijos, 'gastosFijos');
-            capturar(datos.gastosVacaciones || [], 'gastosVacaciones');
-
-            // También guardar los extras puntuales del mes (estos son específicos de este mes)
-            datos.meses[numMes].ingresosExtras.forEach((item, idx) => {
-                snapshotItems.push({ fuente: 'ingresosExtras', idx, concepto: item.concepto, valor: item.valor, eliminado: false });
-            });
-            datos.meses[numMes].gastosExtras.forEach((item, idx) => {
-                snapshotItems.push({ fuente: 'gastosExtras', idx, concepto: item.concepto, valor: item.valor, eliminado: false });
-            });
-            datos.meses[numMes].gastosVacacionesExtras.forEach((item, idx) => {
-                snapshotItems.push({ fuente: 'gastosVacacionesExtras', idx, concepto: item.concepto, valor: item.valor, eliminado: false });
-            });
-
-            // Guardar también los extras recurrentes que aplican en este mes
-            (datos.extrasRecurrentes || []).forEach((item, idx) => {
-                if (extraRecurrenteAplicaEnMes(item, anoActual, numMes)) {
-                    snapshotItems.push({ fuente: 'extrasRecurrentes', idx, concepto: item.concepto, valor: item.valor, tipo: item.tipo, eliminado: false });
-                }
-            });
-
-            return { totales, balanceAcumulado, snapshotItems };
         }
 
         function cerrarMes(numMes, silencioso) {
             if (!datos.mesesCerrados) datos.mesesCerrados = {};
-            const { totales, balanceAcumulado, snapshotItems } = generarSnapshot(numMes);
+
+            // Calcular totales en vivo (el mes aún no está en mesesCerrados, así que
+            // calcularTotalesMes lo calcula desde los arrays reales — sin snapshot que interfiera)
+            const totales = calcularTotalesMes(numMes);
+            const balanceAcumulado = calcularBalanceAcumulado(numMes);
+
             datos.mesesCerrados[numMes] = {
                 cerradoEn: new Date().toISOString(),
                 snapshot: totales,
-                balanceAcumulado: balanceAcumulado,
-                snapshotItems: snapshotItems   // ← detalle ítem a ítem
+                balanceAcumulado: balanceAcumulado
             };
             guardarDatos();
             if (!silencioso) {
-                mostrarNotificacion('🔒 ' + MESES_NOMBRES[numMes] + ' cerrado', 'exito');
+                mostrarNotificacion('🔒 ' + MESES_NOMBRES[numMes] + ' cerrado definitivamente', 'exito');
             }
         }
 
@@ -2434,28 +2375,13 @@
                 mostrarNotificacion('ℹ️ Este mes ya está cerrado', 'error');
                 return;
             }
-            if (!confirm('¿Cerrar ' + MESES_NOMBRES[mesActual] + '?\n\nLos datos quedarán fijos. Podrás editarlos pero los cambios también serán fijos.')) return;
+            if (!confirm('¿Cerrar ' + MESES_NOMBRES[mesActual] + ' definitivamente?\n\n⚠️ Esta acción NO se puede deshacer.\nLos datos quedarán fijos para siempre.')) return;
             cerrarMes(mesActual, false);
             actualizarTodo();
             actualizarResumenAnual();
         }
 
-        function reabrirMes() {
-            const numMes = mesActual;
-            const entrada = datos.mesesCerrados && datos.mesesCerrados[numMes];
-            if (!entrada) return;
 
-            // El snapshot se mantiene INTACTO al reabrir.
-            // Solo se marca el mes como "abierto" para permitir edición.
-            // El snapshot solo cambia cuando el usuario edita algo manualmente.
-            if (!confirm('¿Reabrir ' + MESES_NOMBRES[numMes] + ' ' + anoActual + '?\n\nLos datos del snapshot se mantienen intactos.\nSolo cambiarán si editas algo manualmente.')) return;
-
-            datos.mesesCerrados[numMes].abierto = true;
-            guardarDatos();
-            mostrarNotificacion('🔓 ' + MESES_NOMBRES[numMes] + ' reabierto — snapshot intacto, edita lo que necesites', 'exito');
-            actualizarTodo();
-            actualizarResumenAnual();
-        }
 
 
 
@@ -2489,14 +2415,10 @@
                 if (el) el.remove();
             });
 
-            const entradaMes = datos.mesesCerrados && datos.mesesCerrados[mesActual];
-            const estaCerrado = esMesCerrado(mesActual);
-            const estaReabierto = !!(entradaMes && entradaMes.abierto);
-
-            if (estaCerrado) {
-                // MES CERRADO: solo lectura, no se puede editar
-                const fecha = entradaMes.cerradoEn ? new Date(entradaMes.cerradoEn).toLocaleDateString('es-ES') : '';
-                document.getElementById('mes-cerrado-fecha').textContent = '🔒 Cerrado el ' + fecha;
+            if (esMesCerrado(mesActual)) {
+                const info = datos.mesesCerrados[mesActual];
+                const fecha = info.cerradoEn ? new Date(info.cerradoEn).toLocaleDateString('es-ES') : '';
+                document.getElementById('mes-cerrado-fecha').textContent = '🔒 Cerrado definitivamente el ' + fecha;
                 infoDiv.style.display = 'flex';
                 btnCerrar.style.display = 'none';
                 titulo.textContent = '💵 Balance  🔒';
@@ -2506,22 +2428,12 @@
                     const div = document.createElement('div');
                     div.id = id;
                     div.style.cssText = 'margin-top:12px;padding:10px 14px;background:rgba(30,58,138,0.15);border:1px solid rgba(30,58,138,0.3);border-radius:10px;text-align:center;color:#818cf8;font-size:0.82em;font-weight:600;letter-spacing:0.02em;';
-                    div.textContent = '🔒 Mes cerrado — usa Reabrir para editar';
+                    div.textContent = '🔒 Mes cerrado — los datos son definitivos';
                     return div;
                 };
                 botonesIngresos.parentElement.appendChild(avisoHtml('aviso-cerrado-ingresos'));
                 botonesGastos.parentElement.appendChild(avisoHtml('aviso-cerrado-gastos'));
-            } else if (estaReabierto) {
-                // MES REABIERTO: editable, snapshot intacto hasta que el usuario edite algo
-                const fecha = entradaMes.cerradoEn ? new Date(entradaMes.cerradoEn).toLocaleDateString('es-ES') : '';
-                document.getElementById('mes-cerrado-fecha').textContent = '✏️ Reabierto (cerrado el ' + fecha + ')';
-                infoDiv.style.display = 'flex';
-                btnCerrar.style.display = 'block';
-                titulo.textContent = '💵 Balance  ✏️';
-                botonesIngresos.style.display = 'grid';
-                botonesGastos.style.display = 'grid';
             } else {
-                // MES ABIERTO normal
                 infoDiv.style.display = 'none';
                 btnCerrar.style.display = 'block';
                 titulo.textContent = '💵 Balance';
@@ -2738,8 +2650,7 @@
         const mesNombre = document.createElement('div');
         mesNombre.className = 'mes-nombre';
         const esCerrado = esMesCerrado(i);
-        const esReabierto = !esCerrado && !!(datos.mesesCerrados && datos.mesesCerrados[i] && datos.mesesCerrados[i].abierto);
-        mesNombre.textContent = (esCerrado ? '🔒 ' : esReabierto ? '✏️ ' : '') + MESES_NOMBRES[i];
+        mesNombre.textContent = (esCerrado ? '🔒 ' : '') + MESES_NOMBRES[i];
         
         const datoIngresos = document.createElement('div');
         datoIngresos.className = 'mes-dato';
@@ -3290,7 +3201,7 @@
             // Bloquear cualquier escritura en meses pasados
             if (modalTipo === 'extras' || modalTipo === 'vacaciones-extras') {
                 if (esMesPasado(mesActual, anoActual)) {
-                    mostrarNotificacion('🔒 Mes cerrado. Usa 🔓 Reabrir para poder añadir extras', 'error');
+                    mostrarNotificacion('🔒 Mes cerrado — los datos son definitivos', 'error');
                     return;
                 }
             }
@@ -3970,7 +3881,7 @@
 
         function aplicarEdicionConAlcance(alcance) {
             if (esMesPasado(mesActual, anoActual)) {
-                mostrarNotificacion('🔒 Mes cerrado. Usa 🔓 Reabrir para poder editarlo', 'error');
+                mostrarNotificacion('🔒 Mes cerrado — los datos son definitivos', 'error');
                 document.getElementById('modal-alcance-edicion').style.display = 'none';
                 itemEditandoIndex = -1;
                 return;
@@ -4616,7 +4527,7 @@
 
         function aplicarEdicionDirecta(item, nuevoConcepto, nuevoValor) {
             if (esMesPasado(mesVerTodo, anoActual)) {
-                mostrarNotificacion('🔒 Mes cerrado. Usa 🔓 Reabrir para poder editarlo', 'error');
+                mostrarNotificacion('🔒 Mes cerrado — los datos son definitivos', 'error');
                 return;
             }
             if (item.fuente === 'ingresosExtras') {
@@ -4640,7 +4551,7 @@
             cerrarModalAlcanceInline();
             if (!_edicionPendiente) return;
             if (esMesPasado(mesVerTodo, anoActual)) {
-                mostrarNotificacion('🔒 Mes cerrado. Usa 🔓 Reabrir para poder editarlo', 'error');
+                mostrarNotificacion('🔒 Mes cerrado — los datos son definitivos', 'error');
                 _edicionPendiente = null;
                 return;
             }
@@ -4786,7 +4697,7 @@
 
         function _ejecutarEliminacionDirecta(item) {
             if (esMesPasado(mesVerTodo, anoActual)) {
-                mostrarNotificacion('🔒 Mes cerrado. Usa 🔓 Reabrir para poder editarlo', 'error');
+                mostrarNotificacion('🔒 Mes cerrado — los datos son definitivos', 'error');
                 return;
             }
             const mesData = datos.meses[mesVerTodo];
@@ -4815,7 +4726,7 @@
             const item = _eliminacionPendiente;
             _eliminacionPendiente = null;
             if (esMesPasado(mesVerTodo, anoActual)) {
-                mostrarNotificacion('🔒 Mes cerrado. Usa 🔓 Reabrir para poder editarlo', 'error');
+                mostrarNotificacion('🔒 Mes cerrado — los datos son definitivos', 'error');
                 return;
             }
 
