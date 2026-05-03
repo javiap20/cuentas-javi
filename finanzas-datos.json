@@ -192,7 +192,7 @@
       "valor": 200,
       "frecuencia": "anual",
       "meses": [
-        11
+        0
       ]
     }
   ],
@@ -208,10 +208,6 @@
         {
           "concepto": "Cumpleaños Niños",
           "valor": 100
-        },
-        {
-          "concepto": "Regalo Navidad Niños",
-          "valor": 150
         }
       ],
       "gastosVacacionesExtras": [],
@@ -294,18 +290,6 @@
         },
         {
           "concepto": "Baño",
-          "valor": 144
-        },
-        {
-          "concepto": "Cumple Niños",
-          "valor": 50
-        },
-        {
-          "concepto": "Peluquería",
-          "valor": 26
-        },
-        {
-          "concepto": "Trabajo",
           "valor": 144
         }
       ],
@@ -503,10 +487,40 @@
       }
     },
     {
-      "ingresosExtras": [],
-      "gastosExtras": [],
-      "gastosVacacionesExtras": [],
-      "overrides": {}
+      "ingresosExtras": [
+        {
+          "concepto": "Mamá",
+          "valor": 200
+        },
+        {
+          "concepto": "ING - Préstamos",
+          "valor": 2000
+        }
+      ],
+      "gastosExtras": [
+        {
+          "concepto": "Estética",
+          "valor": 420
+        }
+      ],
+      "gastosVacacionesExtras": [
+        {
+          "concepto": "Sri Lanka",
+          "valor": 1300
+        }
+      ],
+      "overrides": {
+        "gastosFijos_7": {
+          "concepto": "Pádel",
+          "valor": 0,
+          "eliminado": true
+        },
+        "gastosFijos_22": {
+          "concepto": "Gasolina",
+          "valor": 0,
+          "eliminado": true
+        }
+      }
     },
     {
       "ingresosExtras": [],
@@ -518,7 +532,13 @@
       "ingresosExtras": [],
       "gastosExtras": [],
       "gastosVacacionesExtras": [],
-      "overrides": {}
+      "overrides": {
+        "gastosVacaciones_2": {
+          "concepto": "Verano 1",
+          "valor": 0,
+          "eliminado": true
+        }
+      }
     },
     {
       "ingresosExtras": [],
@@ -530,7 +550,12 @@
       "ingresosExtras": [],
       "gastosExtras": [],
       "gastosVacacionesExtras": [],
-      "overrides": {}
+      "overrides": {
+        "gastosVacaciones_3": {
+          "concepto": "Verano 2",
+          "valor": 1000
+        }
+      }
     },
     {
       "ingresosExtras": [],
@@ -1403,5 +1428,5 @@
       ]
     }
   },
-  "_exportadoEn": "2026-05-03T13:07:38.172Z"
+  "_exportadoEn": "2026-05-03T14:44:16.280Z"
 }
