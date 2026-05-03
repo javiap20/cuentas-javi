@@ -4531,19 +4531,25 @@
                 return;
             }
             
-            // Usar orden personalizado si existe, sino ordenar por defecto
-            if (!window.ordenPersonalizado || !window.ordenPersonalizado[window.mesActualVerTodo]) {
+            // Usar orden personalizado del mes, o el maestro como fallback, o alfabético por defecto
+            const ordenMes = window.ordenPersonalizado && window.ordenPersonalizado[window.mesActualVerTodo];
+            const ordenFallback = window.ordenMaestro;
+
+            if (!ordenMes && !ordenFallback) {
+                // Sin ningún orden guardado: orden por defecto (ingresos primero, luego alfabético)
                 items.sort((a, b) => {
                     if (a.tipo !== b.tipo) return a.tipo === 'ingreso' ? -1 : 1;
                     return a.concepto.localeCompare(b.concepto);
                 });
             } else {
-                const orden = window.ordenPersonalizado[window.mesActualVerTodo];
+                // Usar el orden del mes si existe, si no el maestro global
+                const orden = ordenMes || ordenFallback;
                 items.sort((a, b) => {
                     const keyA = a.concepto + '_' + a.tipo;
                     const keyB = b.concepto + '_' + b.tipo;
                     const idxA = orden.indexOf(keyA);
                     const idxB = orden.indexOf(keyB);
+                    // Elementos no encontrados en el orden van al final
                     if (idxA === -1 && idxB === -1) return 0;
                     if (idxA === -1) return 1;
                     if (idxB === -1) return -1;
@@ -4661,6 +4667,7 @@
         // ========== VARIABLES GLOBALES ==========
         let draggedElement = null;
         window.ordenPersonalizado = window.ordenPersonalizado || {};
+        window.ordenMaestro = window.ordenMaestro || null;
         window.mesActualVerTodo = null;
         
         // ========== FUNCIONES DRAG & DROP ==========
@@ -4697,34 +4704,88 @@
         function handleDrop(e) {
             e.preventDefault();
             e.stopPropagation();
-            
+
             if (this !== draggedElement && this.classList.contains('item-todo-mes')) {
-                const lista = document.getElementById('lista-todo-mes');
-                const items = Array.from(lista.querySelectorAll('.item-todo-mes'));
-                const draggedIdx = items.indexOf(draggedElement);
-                const targetIdx = items.indexOf(this);
-                
-                if (draggedIdx < targetIdx) {
-                    this.parentNode.insertBefore(draggedElement, this.nextSibling);
+                const srcCol = draggedElement.parentNode;
+                const tgtCol = this.parentNode;
+                const crossColumn = srcCol !== tgtCol;
+
+                if (crossColumn) {
+                    // Insertar el elemento arrastrado en la columna destino (antes o después del target)
+                    const tgtItems = Array.from(tgtCol.querySelectorAll('.item-todo-mes'));
+                    const tgtIdx = tgtItems.indexOf(this);
+                    const srcItems = Array.from(srcCol.querySelectorAll('.item-todo-mes'));
+                    const srcIdx = srcItems.indexOf(draggedElement);
+
+                    // Mover el dragged al destino
+                    tgtCol.insertBefore(draggedElement, this);
+
+                    // Reequilibrar: mover el último de la columna destino (ahora más larga) al origen
+                    const tgtItemsAfter = Array.from(tgtCol.querySelectorAll('.item-todo-mes'));
+                    const srcItemsAfter = Array.from(srcCol.querySelectorAll('.item-todo-mes'));
+                    const diff = tgtItemsAfter.length - srcItemsAfter.length;
+
+                    if (diff > 1) {
+                        // La columna destino tiene 2+ elementos más: mover el último al origen
+                        const ultimoTgt = tgtItemsAfter[tgtItemsAfter.length - 1];
+                        srcCol.appendChild(ultimoTgt);
+                    } else if (diff < -1) {
+                        // La columna origen tiene 2+ elementos más: mover el último al destino
+                        const ultimoSrc = srcItemsAfter[srcItemsAfter.length - 1];
+                        tgtCol.appendChild(ultimoSrc);
+                    }
                 } else {
-                    this.parentNode.insertBefore(draggedElement, this);
+                    // Mismo columna: reordenar normalmente
+                    const items = Array.from(srcCol.querySelectorAll('.item-todo-mes'));
+                    const draggedIdx = items.indexOf(draggedElement);
+                    const targetIdx = items.indexOf(this);
+
+                    if (draggedIdx < targetIdx) {
+                        this.parentNode.insertBefore(draggedElement, this.nextSibling);
+                    } else {
+                        this.parentNode.insertBefore(draggedElement, this);
+                    }
                 }
-                
+
                 guardarOrdenPersonalizado();
             }
-            
+
             this.classList.remove('drag-over');
         }
         
         function guardarOrdenPersonalizado() {
+            // Leer columna izquierda y derecha por separado y entrelazarlas fila a fila
             const lista = document.getElementById('lista-todo-mes');
-            const items = Array.from(lista.querySelectorAll('.item-todo-mes'));
-            const orden = items.map(item => item.getAttribute('data-key')).filter(k => k);
-            
+            const colsWrapper = lista.querySelector('div[style*="grid-template-columns"]');
+            let orden = [];
+
+            if (colsWrapper) {
+                const cols = colsWrapper.children; // [colIzq, colDer]
+                const izq = Array.from(cols[0] ? cols[0].querySelectorAll('.item-todo-mes') : []);
+                const der = Array.from(cols[1] ? cols[1].querySelectorAll('.item-todo-mes') : []);
+                const maxLen = Math.max(izq.length, der.length);
+                for (let i = 0; i < maxLen; i++) {
+                    if (izq[i]) orden.push(izq[i].getAttribute('data-key'));
+                    if (der[i]) orden.push(der[i].getAttribute('data-key'));
+                }
+            } else {
+                orden = Array.from(lista.querySelectorAll('.item-todo-mes'))
+                    .map(item => item.getAttribute('data-key')).filter(k => k);
+            }
+
+            orden = orden.filter(k => k);
+
             if (window.mesActualVerTodo !== null) {
+                // Guardar orden específico de este mes
                 window.ordenPersonalizado[window.mesActualVerTodo] = orden;
+
+                // Guardar también como orden MAESTRO global (solo los conceptos-tipo, sin mes)
+                // El orden maestro se usa como fallback para todos los meses
+                window.ordenMaestro = orden;
+
                 try {
                     localStorage.setItem('ordenMovimientos', JSON.stringify(window.ordenPersonalizado));
+                    localStorage.setItem('ordenMaestro', JSON.stringify(window.ordenMaestro));
                 } catch(e) {}
             }
         }
@@ -4744,6 +4805,10 @@
             const ordenGuardado = localStorage.getItem('ordenMovimientos');
             if (ordenGuardado) {
                 window.ordenPersonalizado = JSON.parse(ordenGuardado);
+            }
+            const maestroGuardado = localStorage.getItem('ordenMaestro');
+            if (maestroGuardado) {
+                window.ordenMaestro = JSON.parse(maestroGuardado);
             }
         } catch(e) {}
         
