@@ -295,6 +295,18 @@
         {
           "concepto": "Baño",
           "valor": 144
+        },
+        {
+          "concepto": "Cumple Niños",
+          "valor": 50
+        },
+        {
+          "concepto": "Peluquería",
+          "valor": 26
+        },
+        {
+          "concepto": "Trabajo",
+          "valor": 144
         }
       ],
       "gastosVacacionesExtras": [],
@@ -1391,5 +1403,5 @@
       ]
     }
   },
-  "_exportadoEn": "2026-05-03T11:42:31.266Z"
+  "_exportadoEn": "2026-05-03T13:07:38.172Z"
 }

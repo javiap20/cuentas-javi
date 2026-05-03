@@ -1916,28 +1916,34 @@
             mesActual = hoy.getMonth();
             document.getElementById('mes-select').value = mesActual;
 
-            // Intentar cargar desde el servidor primero
-            let cargadoDesdeServidor = false;
-            try {
-                const resp = await fetch('finanzas-datos.json?_=' + Date.now());
-                if (resp.ok) {
-                    const datosServidor = await resp.json();
-                    normalizarDatos(datosServidor);
-                    // Distribuir en localStorage por año
-                    datos = datosServidor;
-                    guardarDatos();
-                    mostrarFuenteDatos('servidor', datosServidor._exportadoEn || null);
-                    cargadoDesdeServidor = true;
-                }
-            } catch(e) { /* sin servidor, continuar con local */ }
+            // Prioridad: localStorage siempre gana sobre el servidor.
+            // El JSON del servidor solo se usa si no hay datos locales todavía.
+            // Esto evita que una recarga de página sobreescriba cambios hechos en el navegador.
+            const datosLocales = localStorage.getItem('finanzasPersonales_2026');
 
-            if (!cargadoDesdeServidor) {
-                const datosGuardados = localStorage.getItem('finanzasPersonales_2026');
-                if (datosGuardados) {
-                    datos = JSON.parse(datosGuardados);
-                    normalizarDatos(datos);
-                }
+            if (datosLocales) {
+                // Tenemos datos locales → usarlos siempre, ignorar servidor
+                datos = JSON.parse(datosLocales);
+                normalizarDatos(datos);
                 mostrarFuenteDatos('local', null);
+            } else {
+                // Sin datos locales → intentar cargar desde el servidor como punto de partida
+                let cargadoDesdeServidor = false;
+                try {
+                    const resp = await fetch('finanzas-datos.json?_=' + Date.now());
+                    if (resp.ok) {
+                        const datosServidor = await resp.json();
+                        normalizarDatos(datosServidor);
+                        datos = datosServidor;
+                        guardarDatos(); // guardar en local para próximas cargas
+                        mostrarFuenteDatos('servidor', datosServidor._exportadoEn || null);
+                        cargadoDesdeServidor = true;
+                    }
+                } catch(e) { /* sin servidor */ }
+
+                if (!cargadoDesdeServidor) {
+                    mostrarFuenteDatos('local', null);
+                }
             }
 
             actualizarTodo();
@@ -1949,16 +1955,9 @@
         let anoActual = 2026;
 
         function guardarDatos() {
-            // Si el mes activo está reabierto (abierto=true), regenerar su snapshot
-            // con los valores actuales ANTES de guardar — así el snapshot siempre
-            // refleja lo que el usuario ha editado, nunca se actualiza solo.
-            if (datos.mesesCerrados && datos.mesesCerrados[mesActual] && datos.mesesCerrados[mesActual].abierto) {
-                const { totales, balanceAcumulado, snapshotItems } = generarSnapshot(mesActual);
-                datos.mesesCerrados[mesActual].snapshot = totales;
-                datos.mesesCerrados[mesActual].balanceAcumulado = balanceAcumulado;
-                datos.mesesCerrados[mesActual].snapshotItems = snapshotItems;
-                datos.mesesCerrados[mesActual].cerradoEn = datos.mesesCerrados[mesActual].cerradoEn; // conservar fecha original
-            }
+            // El snapshot NUNCA se toca aquí.
+            // Solo se genera/actualiza en cerrarMes() — cuando el usuario cierra el mes manualmente.
+            // Un mes reabierto (abierto=true) mantiene su snapshot intacto hasta que se cierre de nuevo.
             localStorage.setItem('finanzasPersonales_' + anoActual, JSON.stringify(datos));
         }
 
