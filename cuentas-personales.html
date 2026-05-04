@@ -1325,7 +1325,7 @@
             incrementos: { ingresos: 1, gastos: 2 },
             extrasRecurrentes: [],  // { concepto, valor, tipo:'ingresos'|'gastos', anoInicio, mesInicio, anoFin, mesFin }
             mesesCerrados: {},       // { "0": { cerradoEn, snapshot:{...totales}, balanceAcumulado }, ... }
-            ordenMaestro: []        // orden personalizado de items en Ver Todo
+            ordenMaestro: []        // orden personalizado de items en Ver Todo (legacy, ya no se usa)
         };
         
         for (let i = 0; i < 12; i++) {
@@ -2072,7 +2072,10 @@
                 });
             });
 
-            // Restaurar orden maestro desde datos si existe (se sincroniza con Gist)
+            // Restaurar orden por mes desde datos si existe (se sincroniza con Gist)
+            if (d.ordenPorMes) {
+                window.ordenPorMes = d.ordenPorMes;
+            }
             if (d.ordenMaestro && d.ordenMaestro.length > 0) {
                 window.ordenMaestro = d.ordenMaestro;
                 try { localStorage.setItem('ordenMaestro', JSON.stringify(d.ordenMaestro)); } catch(e) {}
@@ -4686,8 +4689,10 @@
                 return;
             }
             
-            // Aplicar orden maestro global si existe, si no orden por defecto
-            const orden = window.ordenMaestro;
+            // Aplicar orden personalizado del mes si existe, si no orden por defecto
+            const orden = (window.ordenPorMes && window.mesActualVerTodo !== null)
+                ? (window.ordenPorMes[window.mesActualVerTodo] || null)
+                : null;
 
             if (!orden || orden.length === 0) {
                 items.sort((a, b) => {
@@ -4816,8 +4821,7 @@
         
         // ========== VARIABLES GLOBALES ==========
         let draggedElement = null;
-        window.ordenPersonalizado = window.ordenPersonalizado || {};
-        window.ordenMaestro = window.ordenMaestro || null;
+        window.ordenPorMes = window.ordenPorMes || {};
         window.mesActualVerTodo = null;
         
         // ========== FUNCIONES DRAG & DROP ==========
@@ -4924,39 +4928,29 @@
 
             orden = orden.filter(k => k);
 
-            // Guardar como orden maestro global (aplica a todos los meses)
-            window.ordenMaestro = orden;
-            // Persistir en datos (para sincronización con Gist y entre sesiones)
-            datos.ordenMaestro = orden;
-            try {
-                localStorage.setItem('ordenMaestro', JSON.stringify(orden));
-            } catch(e) {}
-            // Guardar en localStorage del año para persistencia
+            // Guardar orden para este mes concreto
+            const mes = window.mesActualVerTodo;
+            if (mes === null || mes === undefined) return;
+            window.ordenPorMes[mes] = orden;
+            if (!datos.ordenPorMes) datos.ordenPorMes = {};
+            datos.ordenPorMes[mes] = orden;
             guardarDatos();
         }
         
         function resetearOrden() {
-            window.ordenMaestro = null;
-            try {
-                localStorage.removeItem('ordenMaestro');
-            } catch(e) {}
-            if (window.mesActualVerTodo !== null) {
-                abrirModalVerTodoMes(window.mesActualVerTodo);
+            const mes = window.mesActualVerTodo;
+            if (mes !== null && mes !== undefined) {
+                delete window.ordenPorMes[mes];
+                if (datos.ordenPorMes) delete datos.ordenPorMes[mes];
+                guardarDatos();
+                abrirModalVerTodoMes(mes);
             }
         }
         
-        // Cargar orden maestro guardado al iniciar (desde datos o localStorage)
+        // Cargar orden por mes al iniciar (desde datos)
         try {
-            // Primero intentar desde el objeto datos (tiene prioridad si es más reciente)
-            if (datos.ordenMaestro && datos.ordenMaestro.length > 0) {
-                window.ordenMaestro = datos.ordenMaestro;
-                localStorage.setItem('ordenMaestro', JSON.stringify(datos.ordenMaestro));
-            } else {
-                const maestroGuardado = localStorage.getItem('ordenMaestro');
-                if (maestroGuardado) {
-                    window.ordenMaestro = JSON.parse(maestroGuardado);
-                    datos.ordenMaestro = window.ordenMaestro;
-                }
+            if (datos.ordenPorMes) {
+                window.ordenPorMes = datos.ordenPorMes;
             }
         } catch(e) {}
         
@@ -5196,6 +5190,32 @@
         
         let _eliminacionPendiente = null;
 
+        function _capturarOrdenActual() {
+            const lista = document.getElementById('lista-todo-mes');
+            if (!lista) return;
+            const colsWrapper = lista.querySelector('div[style*="grid-template-columns"]');
+            let orden = [];
+            if (colsWrapper) {
+                const cols = colsWrapper.children;
+                const izq = Array.from(cols[0] ? cols[0].querySelectorAll('.item-todo-mes') : []);
+                const der = Array.from(cols[1] ? cols[1].querySelectorAll('.item-todo-mes') : []);
+                const maxLen = Math.max(izq.length, der.length);
+                for (let i = 0; i < maxLen; i++) {
+                    if (izq[i]) orden.push(izq[i].getAttribute('data-key'));
+                    if (der[i]) orden.push(der[i].getAttribute('data-key'));
+                }
+            } else {
+                orden = Array.from(lista.querySelectorAll('.item-todo-mes'))
+                    .map(item => item.getAttribute('data-key')).filter(k => k);
+            }
+            orden = orden.filter(k => k);
+            const mes = window.mesActualVerTodo;
+            if (mes === null || mes === undefined || orden.length === 0) return;
+            window.ordenPorMes[mes] = orden;
+            if (!datos.ordenPorMes) datos.ordenPorMes = {};
+            datos.ordenPorMes[mes] = orden;
+        }
+
         function eliminarItemDesdeTodoMes(item) {
             const esFijo = ['ingresosFijos', 'gastosFijos', 'gastosVacaciones', 'ingresosBonus'].includes(item.fuente);
 
@@ -5234,6 +5254,7 @@
             guardarDatos();
             actualizarTodo();
             actualizarResumenAnual();
+            _capturarOrdenActual();
             recopilarYMostrarTodosMes(mesVerTodo);
         }
 
@@ -5271,6 +5292,7 @@
             guardarDatos();
             actualizarTodo();
             actualizarResumenAnual();
+            _capturarOrdenActual();
             recopilarYMostrarTodosMes(mesVerTodo);
         }
 
