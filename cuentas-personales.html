@@ -4747,11 +4747,10 @@
                 const cols = colsWrapper.children;
                 const izq = Array.from(cols[0] ? cols[0].querySelectorAll('.item-todo-mes') : []);
                 const der = Array.from(cols[1] ? cols[1].querySelectorAll('.item-todo-mes') : []);
-                const maxLen = Math.max(izq.length, der.length);
-                for (let i = 0; i < maxLen; i++) {
-                    if (izq[i]) orden.push(izq[i].getAttribute('data-key'));
-                    if (der[i]) orden.push(der[i].getAttribute('data-key'));
-                }
+                // Guardar izquierda completa primero, luego derecha — igual que renderizarListaTodoMes
+                // que pone los primeros Math.ceil(n/2) en izq y el resto en der
+                orden = izq.map(el => el.getAttribute('data-key'))
+                    .concat(der.map(el => el.getAttribute('data-key')));
             } else {
                 orden = Array.from(lista.querySelectorAll('.item-todo-mes'))
                     .map(item => item.getAttribute('data-key')).filter(k => k);
