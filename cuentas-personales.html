@@ -2166,7 +2166,7 @@
                         El token se guarda solo en este dispositivo (localStorage). Nunca se envía a ningún servidor salvo a la API de GitHub.
                     </p>
                     <label style="display:block;font-weight:700;margin-bottom:6px;color:#374151;">Personal Access Token de GitHub</label>
-                    <input id="gist-token-input" type="password" placeholder="ghp_..." style="width:100%;padding:10px;border:2px solid #d1d5db;border-radius:8px;font-size:1em;margin-bottom:12px;">
+                    <input id="gist-token-input" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="ghp_..." style="width:100%;padding:10px;border:2px solid #d1d5db;border-radius:8px;font-size:1em;margin-bottom:12px;">
                     <div style="display:flex;gap:10px;margin-top:4px;align-items:center;">
                         <button onclick="guardarTokenGist()" style="flex:1;background:#4f46e5;color:white;border:none;padding:10px;border-radius:8px;cursor:pointer;font-weight:700;">Guardar token</button>
                         <button onclick="borrarTokenGist()" style="flex:0 0 auto;width:auto;background:#ef4444;color:white;border:none;padding:10px 16px;border-radius:8px;cursor:pointer;font-weight:700;font-size:0.85em;white-space:nowrap;">Borrar</button>
@@ -4413,7 +4413,7 @@
         function abrirModalVerTodoMes(numMes) {
             mesVerTodo = numMes;
             window.mesActualVerTodo = numMes;
-            mesActual = numMes;
+            // No tocar mesActual para no confundir al dashboard ni disparar guardado de contraseña
             
             document.getElementById('ver-todo-mes-nombre').textContent = MESES_NOMBRES[numMes] + ' ' + anoActual;
             
