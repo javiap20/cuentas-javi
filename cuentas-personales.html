@@ -295,7 +295,7 @@
         .edit-item-btn:hover { background: #2563eb; }
 
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); overflow-y: auto; -webkit-overflow-scrolling: touch; }
-        .modal-content { background-color: white; margin: 5% auto; padding: 30px; border-radius: 15px; width: 90%; max-width: 700px; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.5); color: #1f2937; }
+        .modal-content { background-color: white; margin: 2% auto; padding: 30px; border-radius: 15px; width: 90%; max-width: 700px; max-height: 94vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.5); color: #1f2937; }
         body.modal-abierto { overflow: hidden !important; touch-action: none; }
         .modal-content h2 { color: #1e3a8a; }
         .modal-content label { color: #374151; }
@@ -623,6 +623,28 @@
             }
         }
     
+        /* ========== FILAS COMPACTAS EN MODAL DESGLOSE (Gastos/Ingresos Fijos) ========== */
+        #modal-desglose .desglose-item {
+            padding: 6px 10px !important;
+            margin-bottom: 4px !important;
+            border-radius: 6px !important;
+        }
+        #modal-desglose .desglose-item span {
+            font-size: 13px !important;
+        }
+        #modal-desglose .desglose-item .valor {
+            font-size: 13px !important;
+        }
+        #modal-desglose .desglose-item .info-frecuencia {
+            font-size: 11px !important;
+            margin-top: 1px !important;
+        }
+        #modal-desglose .delete-btn,
+        #modal-desglose .edit-item-btn {
+            padding: 3px 8px !important;
+            font-size: 12px !important;
+        }
+
         #modal-alcance-edicion .modal-content {
             max-width: 500px;
         }
@@ -797,44 +819,53 @@
 
         /* ========== MODAL COMPACTO ========== */
         #modal-ver-todo-mes .modal-content {
-            padding: 15px !important;
-            padding-top: 50px !important;
-            max-height: 90vh !important;
+            padding: 12px !important;
+            padding-top: 44px !important;
+            max-height: 96vh !important;
+            min-height: 92vh !important;
             overflow-y: auto !important;
         }
         #modal-ver-todo-mes h3 {
-            font-size: 17px !important;
-            margin-bottom: 10px !important;
-        }
-        #modal-ver-todo-mes .orden-info {
-            padding: 5px 10px !important;
-            font-size: 11px !important;
+            font-size: 15px !important;
             margin-bottom: 8px !important;
         }
+        #modal-ver-todo-mes .orden-info {
+            padding: 4px 8px !important;
+            font-size: 10px !important;
+            margin-bottom: 6px !important;
+        }
         #modal-ver-todo-mes .item-todo-mes {
-            padding: 8px 12px !important;
-            font-size: 15px !important;
-            margin-bottom: 4px !important;
+            padding: 5px 8px !important;
+            font-size: 13px !important;
+            margin-bottom: 3px !important;
+            border-radius: 6px !important;
         }
         #modal-ver-todo-mes .item-todo-mes .concepto {
-            font-size: 15px !important;
+            font-size: 13px !important;
         }
         #modal-ver-todo-mes .item-todo-mes .valor {
-            font-size: 15px !important;
+            font-size: 13px !important;
             font-weight: 700 !important;
-            min-width: 80px !important;
+            min-width: 65px !important;
+            margin: 0 8px !important;
         }
         #modal-ver-todo-mes .item-todo-mes .tipo-badge {
-            font-size: 10px !important;
-            padding: 2px 7px !important;
+            font-size: 9px !important;
+            padding: 1px 5px !important;
         }
         #modal-ver-todo-mes .item-todo-mes .acciones button {
-            font-size: 14px !important;
-            padding: 4px 7px !important;
+            font-size: 12px !important;
+            padding: 3px 6px !important;
         }
         #modal-ver-todo-mes .drag-handle {
-            font-size: 15px !important;
-            padding: 0 7px !important;
+            font-size: 13px !important;
+            padding: 0 5px !important;
+        }
+        /* Totales compactos */
+        #modal-ver-todo-mes [id="total-ingresos-todo"],
+        #modal-ver-todo-mes [id="total-gastos-todo"],
+        #modal-ver-todo-mes [id="balance-todo"] {
+            font-size: 14px !important;
         }
 
         /* ========== BOTÓN CERRAR FIJO ========== */
@@ -1293,7 +1324,8 @@
             meses: [],
             incrementos: { ingresos: 1, gastos: 2 },
             extrasRecurrentes: [],  // { concepto, valor, tipo:'ingresos'|'gastos', anoInicio, mesInicio, anoFin, mesFin }
-            mesesCerrados: {}       // { "0": { cerradoEn, snapshot:{...totales}, balanceAcumulado }, ... }
+            mesesCerrados: {},       // { "0": { cerradoEn, snapshot:{...totales}, balanceAcumulado }, ... }
+            ordenMaestro: []        // orden personalizado de items en Ver Todo
         };
         
         for (let i = 0; i < 12; i++) {
@@ -2044,6 +2076,18 @@
             if (d.ordenMaestro && d.ordenMaestro.length > 0) {
                 window.ordenMaestro = d.ordenMaestro;
                 try { localStorage.setItem('ordenMaestro', JSON.stringify(d.ordenMaestro)); } catch(e) {}
+            } else {
+                // Si no hay en datos, intentar recuperar del localStorage y guardarlo en datos
+                try {
+                    const saved = localStorage.getItem('ordenMaestro');
+                    if (saved) {
+                        const parsed = JSON.parse(saved);
+                        if (parsed && parsed.length > 0) {
+                            window.ordenMaestro = parsed;
+                            d.ordenMaestro = parsed;
+                        }
+                    }
+                } catch(e) {}
             }
         }
 
@@ -4880,11 +4924,15 @@
 
             orden = orden.filter(k => k);
 
-            // Guardar SOLO como orden maestro global (aplica a todos los meses)
+            // Guardar como orden maestro global (aplica a todos los meses)
             window.ordenMaestro = orden;
+            // Persistir en datos (para sincronización con Gist y entre sesiones)
+            datos.ordenMaestro = orden;
             try {
                 localStorage.setItem('ordenMaestro', JSON.stringify(orden));
             } catch(e) {}
+            // Guardar en localStorage del año para persistencia
+            guardarDatos();
         }
         
         function resetearOrden() {
@@ -4897,11 +4945,18 @@
             }
         }
         
-        // Cargar orden maestro guardado al iniciar
+        // Cargar orden maestro guardado al iniciar (desde datos o localStorage)
         try {
-            const maestroGuardado = localStorage.getItem('ordenMaestro');
-            if (maestroGuardado) {
-                window.ordenMaestro = JSON.parse(maestroGuardado);
+            // Primero intentar desde el objeto datos (tiene prioridad si es más reciente)
+            if (datos.ordenMaestro && datos.ordenMaestro.length > 0) {
+                window.ordenMaestro = datos.ordenMaestro;
+                localStorage.setItem('ordenMaestro', JSON.stringify(datos.ordenMaestro));
+            } else {
+                const maestroGuardado = localStorage.getItem('ordenMaestro');
+                if (maestroGuardado) {
+                    window.ordenMaestro = JSON.parse(maestroGuardado);
+                    datos.ordenMaestro = window.ordenMaestro;
+                }
             }
         } catch(e) {}
         
