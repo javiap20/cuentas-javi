@@ -2231,46 +2231,11 @@
 
             if (datosGist) {
                 // Tenemos datos del Gist
-                if (datosLocales) {
-                    // Comparar fechas para ver cuál es más reciente
-                    const tsGist  = datosGist._exportadoEn  ? new Date(datosGist._exportadoEn).getTime()  : 0;
-                    const tsLocal = JSON.parse(datosLocales)._exportadoEn
-                        ? new Date(JSON.parse(datosLocales)._exportadoEn).getTime() : 0;
-
-                    if (tsLocal > tsGist) {
-                        // Local es más nuevo → preguntar
-                        const usar = confirm(
-                            '⚠️ Tus datos locales son más recientes que los del Gist.\n\n' +
-                            '• Local:  ' + (tsLocal ? new Date(tsLocal).toLocaleString('es-ES') : 'sin fecha') + '\n' +
-                            '• Gist:   ' + (tsGist  ? new Date(tsGist).toLocaleString('es-ES')  : 'sin fecha') + '\n\n' +
-                            '¿Cargar los datos LOCALES?\n' +
-                            '(Pulsa Cancelar para usar los del Gist y perder los cambios locales)'
-                        );
-                        if (usar) {
-                            datos = JSON.parse(datosLocales);
-                            normalizarDatos(datos);
-                            mostrarFuenteDatos('local-nuevo', JSON.parse(datosLocales)._exportadoEn || null);
-                            mostrarNotificacion('💾 Usando datos locales (más recientes). Recuerda guardar en Gist cuando termines.', 'exito');
-                        } else {
-                            datos = datosGist;
-                            normalizarDatos(datos);
-                            localStorage.setItem('finanzasPersonales_2026', JSON.stringify(datos));
-                            mostrarFuenteDatos('gist', datosGist._exportadoEn || null);
-                        }
-                    } else {
-                        // Gist es igual o más nuevo → usar Gist
-                        datos = datosGist;
-                        normalizarDatos(datos);
-                        localStorage.setItem('finanzasPersonales_2026', JSON.stringify(datos));
-                        mostrarFuenteDatos('gist', datosGist._exportadoEn || null);
-                    }
-                } else {
-                    // Sin datos locales → usar Gist directamente
-                    datos = datosGist;
-                    normalizarDatos(datos);
-                    localStorage.setItem('finanzasPersonales_2026', JSON.stringify(datos));
-                    mostrarFuenteDatos('gist', datosGist._exportadoEn || null);
-                }
+                // Gist siempre manda — es la fuente de verdad compartida entre dispositivos
+                datos = datosGist;
+                normalizarDatos(datos);
+                localStorage.setItem('finanzasPersonales_2026', JSON.stringify(datos));
+                mostrarFuenteDatos('gist', datosGist._exportadoEn || null);
             } else if (datosLocales) {
                 // Sin Gist disponible → usar local
                 datos = JSON.parse(datosLocales);
@@ -4413,7 +4378,7 @@
         function abrirModalVerTodoMes(numMes) {
             mesVerTodo = numMes;
             window.mesActualVerTodo = numMes;
-            // No tocar mesActual para no confundir al dashboard ni disparar guardado de contraseña
+            // No sobreescribir mesActual para no confundir al dashboard
             
             document.getElementById('ver-todo-mes-nombre').textContent = MESES_NOMBRES[numMes] + ' ' + anoActual;
             
