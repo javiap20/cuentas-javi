@@ -3143,7 +3143,8 @@
             }
             
             mostrarNotificacion('✏️ Editando: ' + item.concepto, 'exito');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            const modalContent = document.querySelector('#modal-desglose .modal-content');
+            if (modalContent) modalContent.scrollTo({ top: 0, behavior: 'smooth' });
         }
         
         function filtrarListaModal() {
