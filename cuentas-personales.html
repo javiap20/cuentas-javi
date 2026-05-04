@@ -2072,26 +2072,18 @@
                 });
             });
 
-            // Restaurar orden por mes desde datos si existe (se sincroniza con Gist)
-            if (d.ordenPorMes) {
+            // Restaurar orden por mes
+            // Solo confiamos en ordenPorMes si tiene el flag de versión v2 (sistema por mes)
+            // Sin el flag, son datos del sistema antiguo (maestro) y se descartan
+            if (d.ordenPorMes && d._ordenVersion === 2) {
                 window.ordenPorMes = d.ordenPorMes;
-            }
-            if (d.ordenMaestro && d.ordenMaestro.length > 0) {
-                window.ordenMaestro = d.ordenMaestro;
-                try { localStorage.setItem('ordenMaestro', JSON.stringify(d.ordenMaestro)); } catch(e) {}
             } else {
-                // Si no hay en datos, intentar recuperar del localStorage y guardarlo en datos
-                try {
-                    const saved = localStorage.getItem('ordenMaestro');
-                    if (saved) {
-                        const parsed = JSON.parse(saved);
-                        if (parsed && parsed.length > 0) {
-                            window.ordenMaestro = parsed;
-                            d.ordenMaestro = parsed;
-                        }
-                    }
-                } catch(e) {}
+                // Datos de versión anterior: limpiar para empezar desde cero
+                delete d.ordenPorMes;
+                window.ordenPorMes = {};
             }
+            delete d.ordenMaestro;
+            try { localStorage.removeItem('ordenMaestro'); } catch(e) {}
         }
 
         function mostrarFuenteDatos(fuente, fechaISO) {
@@ -4934,6 +4926,7 @@
             window.ordenPorMes[mes] = orden;
             if (!datos.ordenPorMes) datos.ordenPorMes = {};
             datos.ordenPorMes[mes] = orden;
+            datos._ordenVersion = 2; // marcar como sistema v2 (por mes)
             guardarDatos();
         }
         
@@ -4949,9 +4942,14 @@
         
         // Cargar orden por mes al iniciar (desde datos)
         try {
-            if (datos.ordenPorMes) {
+            if (datos.ordenPorMes && datos._ordenVersion === 2) {
                 window.ordenPorMes = datos.ordenPorMes;
+            } else {
+                delete datos.ordenPorMes;
+                delete datos.ordenMaestro;
+                window.ordenPorMes = {};
             }
+            try { localStorage.removeItem('ordenMaestro'); } catch(e) {}
         } catch(e) {}
         
         // ========== FUNCIONES EDICIÓN INLINE ==========
