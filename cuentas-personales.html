@@ -2039,6 +2039,12 @@
                     return true;
                 });
             });
+
+            // Restaurar orden maestro desde datos si existe (se sincroniza con Gist)
+            if (d.ordenMaestro && d.ordenMaestro.length > 0) {
+                window.ordenMaestro = d.ordenMaestro;
+                try { localStorage.setItem('ordenMaestro', JSON.stringify(d.ordenMaestro)); } catch(e) {}
+            }
         }
 
         function mostrarFuenteDatos(fuente, fechaISO) {
