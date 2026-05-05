@@ -831,6 +831,8 @@
             <button class="tb-btn purple" onclick="regenerarTodosLosAnos()">⚡ Regenerar todos</button>
             <button class="tb-btn success" onclick="exportarDatos()">📥 Exportar</button>
             <button class="tb-btn primary" onclick="document.getElementById('file-input').click()">📤 Importar</button>
+            <button class="tb-btn" id="btn-gist-sync" onclick="guardarEnGist(true)" style="background:#6366f1;border-color:#6366f1;display:none;">☁️ Guardar Gist</button>
+            <button class="tb-btn" onclick="abrirModalGistConfig()" style="background:#4f46e5;border-color:#4f46e5;">🔑 Gist</button>
             <button class="tb-btn" onclick="abrirModalConfig()">⚙️ Config</button>
             <input type="file" id="file-input" accept=".json" onchange="importarDatos(event)" style="display:none;">
         </div>
@@ -1237,8 +1239,9 @@
                 if (!aplica) return;
                 const ov = overrides['ingresosBonus_' + idx];
                 if (ov && ov.eliminado) return;
-                const valor = ov ? ov.valor : item.valor;
+                let valor = ov ? ov.valor : item.valor;
                 const concepto = ov ? ov.concepto : item.concepto;
+                if (esBonusSuministros(concepto)) valor = valorBonusSuministros(numMes);
                 const cat = clasificarConcepto(concepto, true);
                 if (cat && ingresosCateg[cat]) {
                     ingresosCateg[cat].total += valor;
@@ -1766,17 +1769,25 @@
         function mostrarFuenteDatos(fuente, fechaISO) {
             const el = document.getElementById('datos-fuente-info');
             if (!el) return;
-            let texto = '';
-            if (fuente === 'servidor') {
-                const fecha = fechaISO ? new Date(fechaISO) : null;
-                const fechaStr = fecha ? fecha.toLocaleDateString('es-ES', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '—';
-                texto = '&#9729; Datos del servidor · Exportados el ' + fechaStr;
+            const fechaStr = fechaISO
+                ? new Date(fechaISO).toLocaleString('es-ES', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' })
+                : '—';
+            if (fuente === 'gist') {
+                el.innerHTML = '☁️ Datos del Gist · ' + fechaStr;
+                el.style.color = '#818cf8';
+            } else if (fuente === 'local-nuevo') {
+                el.innerHTML = '💾 Datos locales (más recientes) · Recuerda guardar en Gist';
+                el.style.color = '#f59e0b';
+            } else if (fuente === 'cargando') {
+                el.innerHTML = '⏳ Conectando con Gist...';
+                el.style.color = 'rgba(255,255,255,0.38)';
+            } else if (fuente === 'servidor') {
+                el.innerHTML = '☁️ Datos del servidor · ' + fechaStr;
                 el.style.color = 'rgba(255,255,255,0.38)';
             } else {
-                texto = '&#128274; Datos locales · Sin conexión al servidor';
+                el.innerHTML = '🔒 Datos locales · Sin conexión al Gist';
                 el.style.color = '#f59e0b';
             }
-            el.innerHTML = texto;
         }
 
         async function cargarDatos() {
@@ -1795,22 +1806,12 @@
             mesActual = hoy.getMonth();
             document.getElementById('mes-select').value = mesActual;
 
-            // Intentar cargar desde el servidor primero
-            let cargadoDesdeServidor = false;
-            try {
-                const resp = await fetch('finanzas-mama.json?_=' + Date.now());
-                if (resp.ok) {
-                    const datosServidor = await resp.json();
-                    normalizarDatos(datosServidor);
-                    // Distribuir en localStorage por año
-                    datos = datosServidor;
-                    guardarDatos();
-                    mostrarFuenteDatos('servidor', datosServidor._exportadoEn || null);
-                    cargadoDesdeServidor = true;
-                }
-            } catch(e) { /* sin servidor, continuar con local */ }
+            actualizarBtnGist();
 
-            if (!cargadoDesdeServidor) {
+            // Intentar cargar desde Gist primero
+            const cargadoDesdeGist = await cargarDesdeGist();
+
+            if (!cargadoDesdeGist) {
                 const datosGuardados = localStorage.getItem('finanzasPersonales_2026');
                 if (datosGuardados) {
                     datos = JSON.parse(datosGuardados);
@@ -1827,8 +1828,17 @@
         
         let anoActual = 2026;
 
-        function guardarDatos() {
+        function guardarDatosLocal() {
             localStorage.setItem('finanzasPersonales_' + anoActual, JSON.stringify(datos));
+        }
+
+        function guardarDatos() {
+            guardarDatosLocal();
+            // Auto-guardar en Gist con debounce de 2s
+            if (typeof gistConfigurado === 'function' && gistConfigurado()) {
+                clearTimeout(window._gistSaveTimer);
+                window._gistSaveTimer = setTimeout(function() { guardarEnGist(false); }, 2000);
+            }
         }
 
         function crearDatosVaciosAno() {
@@ -2133,7 +2143,12 @@
             
             const ingresosBonus = (datos.ingresosBonus || []).reduce((sum, item, idx) => {
                 const ov = overrides['ingresosBonus_' + idx];
-                const valor = ov ? ov.valor : item.valor;
+                let valor;
+                if (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes) && esBonusSuministros(item.concepto)) {
+                    valor = valorBonusSuministros(numMes); // ← valor vivo trimestral
+                } else {
+                    valor = ov ? ov.valor : item.valor;
+                }
                 if (item.frecuencia === 'mensual') return sum + valor;
                 if (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) return sum + valor;
                 return sum;
@@ -3298,7 +3313,26 @@
                 
                 const valorSpan = document.createElement('span');
                 valorSpan.className = 'valor';
-                valorSpan.textContent = formatearMoneda(item.valor);
+                // Si es bonus de suministros, mostrar valor vivo en lugar del guardado
+                const esSuministrosAuto = modalTipo === 'ingresos-bonus' &&
+                    esBonusSuministros(item.concepto) &&
+                    item.frecuencia === 'anual' && item.meses;
+                if (esSuministrosAuto) {
+                    // Calcular para el primer mes en que aplica este trimestre
+                    const mesReferencia = item.meses[0];
+                    const valorVivo = valorBonusSuministros(mesReferencia);
+                    valorSpan.textContent = formatearMoneda(valorVivo);
+                    valorSpan.title = 'Calculado automáticamente: suma de Luz + Agua + Gas Majadahonda del trimestre';
+                    valorSpan.style.fontStyle = 'italic';
+                    // Pequeño badge "AUTO"
+                    const badge = document.createElement('span');
+                    badge.textContent = '🔄';
+                    badge.title = 'Valor automático (suma trimestral de suministros)';
+                    badge.style.cssText = 'font-size:0.75em; margin-left:4px; opacity:0.7;';
+                    valorSpan.appendChild(badge);
+                } else {
+                    valorSpan.textContent = formatearMoneda(item.valor);
+                }
                 
                 const editBtn = document.createElement('button');
                 editBtn.className = 'edit-item-btn';
@@ -3585,9 +3619,14 @@
                     if (!aplica) return;
                     const ov = overridesMes['ingresosBonus_' + idx];
                     if (ov && ov.eliminado) return;
-                    const valor = ov ? ov.valor : item.valor;
                     const concepto = ov ? ov.concepto : item.concepto;
-                    lineas.push({ concepto, tipo: 'Bonus', valor });
+                    let valor = ov ? ov.valor : item.valor;
+                    if (esBonusSuministros(concepto)) {
+                        valor = valorBonusSuministros(m);
+                        lineas.push({ concepto: concepto + ' 🔄', tipo: 'Bonus', valor });
+                    } else {
+                        lineas.push({ concepto, tipo: 'Bonus', valor });
+                    }
                 });
 
                 // Ingresos extras puntuales
@@ -5029,6 +5068,185 @@
             }, 500); // Esperar medio segundo para que se renderice todo
         });
 
+        // ══════════════════════════════════════════════
+        //  SUMINISTROS AUTO — valor vivo trimestral
+        // ══════════════════════════════════════════════
+        const CONCEPTOS_SUMINISTROS = ['luz', 'agua', 'gas majadahonda'];
+
+        // Devuelve true si el concepto del bonus es "suministros" (cualquier capitalización)
+        function esBonusSuministros(concepto) {
+            return concepto && concepto.trim().toLowerCase() === 'suministros';
+        }
+
+        // Dado un mes (0-11), devuelve el trimestre al que pertenece (0-3)
+        function trimestreDelMes(mes) { return Math.floor(mes / 3); }
+
+        // Suma Luz + Agua + Gas Majadahonda de los 3 meses de un trimestre.
+        // Si el mes está cerrado usa snapshotItems (valor real).
+        // Si está abierto usa gastosFijos + overrides (valor estimado).
+        function calcularSuministrosTrimestre(trimestreIdx) {
+            const mesInicio = trimestreIdx * 3;
+            let total = 0;
+
+            for (let m = mesInicio; m < mesInicio + 3; m++) {
+                const cerrado = datos.mesesCerrados && datos.mesesCerrados[m];
+
+                if (cerrado && cerrado.snapshotItems) {
+                    // Mes cerrado → valor real del snapshot
+                    cerrado.snapshotItems.forEach(si => {
+                        if (si.fuente === 'gastosFijos' && !si.eliminado &&
+                            CONCEPTOS_SUMINISTROS.includes(si.concepto.trim().toLowerCase())) {
+                            total += si.valor;
+                        }
+                    });
+                } else {
+                    // Mes abierto → estimado desde gastosFijos + overrides
+                    const overrides = (datos.meses[m] && datos.meses[m].overrides) || {};
+                    datos.gastosFijos.forEach((item, idx) => {
+                        if (!CONCEPTOS_SUMINISTROS.includes(item.concepto.trim().toLowerCase())) return;
+                        const aplica = item.frecuencia === 'mensual' ||
+                            (item.frecuencia === 'anual' && item.meses && item.meses.includes(m));
+                        if (!aplica) return;
+                        const ov = overrides['gastosFijos_' + idx];
+                        if (ov && ov.eliminado) return;
+                        total += ov ? ov.valor : item.valor;
+                    });
+                }
+            }
+            return total;
+        }
+
+        // Dado el número de mes en que aparece el bonus (ej: 0=enero, 3=abril...),
+        // devuelve el valor calculado automáticamente si es bonus de suministros.
+        function valorBonusSuministros(numMes) {
+            return calcularSuministrosTrimestre(trimestreDelMes(numMes));
+        }
+        // ══════════════════════════════════════════════
+
+        // ══════════════════════════════════════════════
+        //  GIST SYNC — cuentas-mama
+        // ══════════════════════════════════════════════
+        const GIST_ID_MAMA   = '6eaad65a997877a68cebeb3fdc7ecf5b'; // ← mismo Gist, fichero distinto
+        const GIST_FILENAME_MAMA = 'finanzas-mama.json';
+
+        function gistToken()       { return localStorage.getItem('gistToken') || ''; }
+        function gistConfigurado() { return !!gistToken(); }
+
+        function actualizarBtnGist() {
+            const btn = document.getElementById('btn-gist-sync');
+            if (btn) btn.style.display = gistConfigurado() ? '' : 'none';
+        }
+
+        async function cargarDesdeGist() {
+            mostrarFuenteDatos('cargando', null);
+            try {
+                const resp = await fetch('https://api.github.com/gists/' + GIST_ID_MAMA, {
+                    headers: gistConfigurado() ? { 'Authorization': 'token ' + gistToken() } : {}
+                });
+                if (!resp.ok) { mostrarFuenteDatos('local', null); return false; }
+                const gist = await resp.json();
+                const file = gist.files && gist.files[GIST_FILENAME_MAMA];
+                if (!file || !file.content) { mostrarFuenteDatos('local', null); return false; }
+
+                const datosGist = JSON.parse(file.content);
+                const fechaGist  = datosGist._exportadoEn || null;
+                const fechaLocal = localStorage.getItem('gistLastSavedMama');
+
+                if (fechaLocal && fechaGist && fechaLocal > fechaGist) {
+                    mostrarFuenteDatos('local-nuevo', fechaLocal);
+                    return false;
+                }
+
+                normalizarDatos(datosGist);
+                datos = datosGist;
+                guardarDatosLocal();
+                mostrarFuenteDatos('gist', fechaGist);
+                return true;
+            } catch(e) {
+                console.log('Error cargando Gist mamá:', e);
+                mostrarFuenteDatos('local', null);
+                return false;
+            }
+        }
+
+        async function guardarEnGist(manual) {
+            if (!gistConfigurado()) {
+                if (manual) mostrarNotificacion('⚠️ Configura primero el token Gist (botón 🔑 Gist)', 'error');
+                return;
+            }
+            const payload = Object.assign({}, datos, { _exportadoEn: new Date().toISOString() });
+            try {
+                const resp = await fetch('https://api.github.com/gists/' + GIST_ID_MAMA, {
+                    method: 'PATCH',
+                    headers: { 'Authorization': 'token ' + gistToken(), 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ files: { [GIST_FILENAME_MAMA]: { content: JSON.stringify(payload, null, 2) } } })
+                });
+                if (resp.ok) {
+                    localStorage.setItem('gistLastSavedMama', payload._exportadoEn);
+                    mostrarFuenteDatos('gist', payload._exportadoEn);
+                    if (manual) mostrarNotificacion('☁️ Guardado en Gist correctamente', 'exito');
+                } else {
+                    if (manual) mostrarNotificacion('❌ Error al guardar en Gist (' + resp.status + ')', 'error');
+                }
+            } catch(e) {
+                if (manual) mostrarNotificacion('❌ Sin conexión al guardar en Gist', 'error');
+            }
+        }
+
+        // Modal configuración Gist
+        function abrirModalGistConfig() {
+            let modal = document.getElementById('modal-gist-config');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'modal-gist-config';
+                modal.style.cssText = 'display:flex;align-items:center;justify-content:center;position:fixed;z-index:9999;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,0.65);';
+                modal.innerHTML = `
+                <div style="background:white;border-radius:14px;padding:28px;max-width:460px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.4);position:relative;color:#1f2937;">
+                    <span onclick="document.getElementById('modal-gist-config').style.display='none'"
+                          style="position:absolute;top:14px;right:18px;font-size:1.5em;cursor:pointer;color:#6b7280;">&times;</span>
+                    <h2 style="margin:0 0 12px;color:#1e3a8a;">🔑 Configuración Gist</h2>
+                    <p style="font-size:0.88em;color:#6b7280;margin-bottom:16px;">
+                        El token se guarda solo en este dispositivo. Solo se envía a la API de GitHub para leer/escribir tu Gist.
+                    </p>
+                    <p style="font-size:0.85em;color:#6b7280;margin-bottom:16px;">
+                        Gist ID: <code style="background:#f3f4f6;padding:2px 6px;border-radius:4px;">${GIST_ID_MAMA}</code><br>
+                        Fichero: <strong>${GIST_FILENAME_MAMA}</strong>
+                    </p>
+                    <label style="display:block;font-weight:700;margin-bottom:6px;">Personal Access Token de GitHub</label>
+                    <input id="gist-token-input" type="password" placeholder="ghp_..."
+                           style="width:100%;padding:10px;border:2px solid #d1d5db;border-radius:8px;font-size:1em;margin-bottom:12px;box-sizing:border-box;">
+                    <div style="display:flex;gap:10px;">
+                        <button onclick="guardarTokenGist()" style="flex:1;background:#4f46e5;color:white;border:none;padding:10px;border-radius:8px;cursor:pointer;font-weight:700;">Guardar token</button>
+                        <button onclick="borrarTokenGist()" style="background:#ef4444;color:white;border:none;padding:10px 16px;border-radius:8px;cursor:pointer;font-weight:700;">Borrar</button>
+                    </div>
+                    <div id="gist-token-status" style="margin-top:12px;font-size:0.85em;"></div>
+                </div>`;
+                document.body.appendChild(modal);
+                modal.addEventListener('click', function(e) { if (e.target === modal) modal.style.display = 'none'; });
+            }
+            document.getElementById('gist-token-input').value = gistToken();
+            document.getElementById('gist-token-status').innerHTML = gistConfigurado()
+                ? '<span style="color:#10b981;">✅ Token configurado en este dispositivo</span>'
+                : '<span style="color:#f59e0b;">⚠️ Sin token — solo lectura desde Gist</span>';
+            modal.style.display = 'flex';
+        }
+
+        function guardarTokenGist() {
+            const val = document.getElementById('gist-token-input').value.trim();
+            if (!val) { mostrarNotificacion('⚠️ Introduce un token', 'error'); return; }
+            localStorage.setItem('gistToken', val);
+            actualizarBtnGist();
+            document.getElementById('gist-token-status').innerHTML = '<span style="color:#10b981;">✅ Token guardado</span>';
+            mostrarNotificacion('✅ Token Gist guardado', 'exito');
+        }
+
+        function borrarTokenGist() {
+            localStorage.removeItem('gistToken');
+            document.getElementById('gist-token-input').value = '';
+            document.getElementById('gist-token-status').innerHTML = '<span style="color:#f59e0b;">⚠️ Token eliminado</span>';
+            actualizarBtnGist();
+        }
+        // ══════════════════════════════════════════════
+
     </script>
-    </body>
 </html>
