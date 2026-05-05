@@ -1245,10 +1245,10 @@ async function updatePrices() {
             if (item.type === 'stock') {
                 loading.innerHTML = '<div class="spinner"></div>Actualizando <strong>' + item.ticker + '</strong>...';
                 await getStockPrice(item.ticker, apiKey);
-                await sleep(8000);
+                await sleep(13000);
                 loading.innerHTML = '<div class="spinner"></div>Calculando soporte/resistencia <strong>' + item.ticker + '</strong>...';
                 await calculateSupportResistance(item.ticker, apiKey);
-                await sleep(7000);
+                await sleep(13000);
             } else if (item.type === 'crypto') {
                 loading.innerHTML = '<div class="spinner"></div>Actualizando cripto <strong>' + item.ticker + '</strong>...';
                 await getCryptoPrice(item.ticker);
@@ -1306,19 +1306,42 @@ async function getStockPrice(ticker, apiKey) {
 }
 
 async function getCryptoPrice(symbol) {
+    // Mapa de ticker → id de CoinGecko
+    const coinGeckoIds = {
+        'BTC':  'bitcoin',
+        'ETH':  'ethereum',
+        'SOL':  'solana',
+        'BNB':  'binancecoin',
+        'ADA':  'cardano',
+        'XRP':  'ripple',
+        'DOT':  'polkadot',
+        'DOGE': 'dogecoin',
+        'AVAX': 'avalanche-2',
+        'MATIC':'matic-network',
+        'LINK': 'chainlink',
+        'LTC':  'litecoin',
+    };
+    const coinId = coinGeckoIds[symbol.toUpperCase()] || symbol.toLowerCase();
     try {
-        const url = 'https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd';
+        const url = 'https://api.coingecko.com/api/v3/simple/price?ids=' + coinId + '&vs_currencies=usd';
         const response = await fetch(url);
         const data = await response.json();
-        if (data.ethereum && data.ethereum.usd) {
-            const price = data.ethereum.usd;
-            currentPrices['ETH'] = price;
-            apiPrices['ETH'] = price;
-            delete manualPrices['ETH'];
+        if (data[coinId] && data[coinId].usd) {
+            const price = data[coinId].usd;
+            currentPrices[symbol] = price;
+            apiPrices[symbol] = price;
+            delete manualPrices[symbol];
+            if (!maxPrices[symbol] || price > maxPrices[symbol]) {
+                maxPrices[symbol] = price;
+                saveMaxPrices();
+            }
             saveApiPrices();
             saveManualPrices();
+            console.log('✅ ' + symbol + ': $' + price);
+        } else {
+            console.warn('⚠️ Sin datos para ' + symbol + ' (id: ' + coinId + ')', data);
         }
-    } catch (error) { console.error('Error:', error); }
+    } catch (error) { console.error('Error cripto ' + symbol + ':', error); }
 }
 
 async function getExchangeRate(apiKey) {
