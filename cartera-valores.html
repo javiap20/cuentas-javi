@@ -180,6 +180,8 @@
             <h1>📊 Cartera JaviAp</h1>
             <div class="header-buttons">
                 <button class="btn-header" onclick="toggleApiConfig()">⚙️ API</button>
+                <button class="btn-header" id="btn-gist-sync" onclick="guardarEnGist(true)" style="background:#6366f1;border-color:#6366f1;display:none;">☁️ Guardar Gist</button>
+                <button class="btn-header" onclick="abrirModalGistConfig()" style="background:#4f46e5;border-color:#4f46e5;">🔑 Gist</button>
                 <button class="btn-header" onclick="exportData()">💾 Exportar</button>
                 <button class="btn-header" onclick="document.getElementById('importFile').click()">📥 Importar</button>
                 <button class="btn-header" onclick="openAddPositionModal()">➕ Añadir Posición</button>
@@ -188,6 +190,7 @@
             </div>
         </div>
         <p class="subtitle">Seguimiento completo de tu portafolio histórico</p>
+        <div id="datos-fuente-info" style="text-align:center;font-size:0.78em;color:rgba(100,116,139,0.8);margin:-8px 0 10px;min-height:16px;"></div>
         <div class="api-config" id="apiConfig">
             <h3>🔑 Configuración API</h3>
             <div class="api-input-group">
@@ -571,7 +574,14 @@ function initializeDefaultData() {
     }
 }
 
-function savePortfolioData() { localStorage.setItem('portfolioData', JSON.stringify(portfolioData)); }
+function savePortfolioData() {
+    localStorage.setItem('portfolioData', JSON.stringify(portfolioData));
+    // Auto-guardar en Gist con debounce de 2s para no saturar la API
+    if (gistConfigurado()) {
+        clearTimeout(window._gistSaveTimer);
+        window._gistSaveTimer = setTimeout(function() { guardarEnGist(false); }, 2000);
+    }
+}
 function loadManualPrices() { const saved = localStorage.getItem('manualPrices'); if (saved) { manualPrices = JSON.parse(saved); Object.keys(manualPrices).forEach(ticker => { currentPrices[ticker] = manualPrices[ticker]; }); } const savedApi = localStorage.getItem('apiPrices'); if (savedApi) { apiPrices = JSON.parse(savedApi); Object.keys(apiPrices).forEach(ticker => { currentPrices[ticker] = apiPrices[ticker]; }); } }
 function saveStopLossPrices() { localStorage.setItem('stopLossPrices', JSON.stringify(stopLossPrices)); }
 function loadStopLossPrices() { const s = localStorage.getItem('stopLossPrices'); if (s) stopLossPrices = JSON.parse(s); }
@@ -1164,7 +1174,9 @@ function exportData() {
         maxPrices: maxPrices,
         targetPrices: targetPrices,
         stopLossPrices: stopLossPrices,
-        usdToEur: usdToEur
+        usdToEur: usdToEur,
+        supportResistance: supportResistance,
+        aiReport: loadAiReport()
     };
     const dataStr = JSON.stringify(exportObj, null, 2);
     const dataBlob = new Blob([dataStr], {type: 'application/json'});
@@ -1207,6 +1219,15 @@ function importData(event) {
                         localStorage.setItem('usdToEur', usdToEur);
                         document.getElementById('usdEurInput').value = usdToEur.toFixed(4);
                     }
+                    if (imported.supportResistance) {
+                        supportResistance = imported.supportResistance;
+                        saveSupportResistance();
+                    }
+                    if (imported.aiReport) {
+                        saveAiReport(imported.aiReport);
+                        const rd = document.getElementById('aiResponse');
+                        if (rd) { rd.className = 'ai-response'; rd.textContent = imported.aiReport; }
+                    }
                 } else {
                     portfolioData = imported;
                 }
@@ -1238,10 +1259,10 @@ async function updatePrices() {
             if (item.type === 'stock') {
                 loading.innerHTML = '<div class="spinner"></div>Actualizando <strong>' + item.ticker + '</strong>...';
                 await getStockPrice(item.ticker, apiKey);
-                await sleep(8000);
+                await sleep(13000);
                 loading.innerHTML = '<div class="spinner"></div>Calculando soporte/resistencia <strong>' + item.ticker + '</strong>...';
                 await calculateSupportResistance(item.ticker, apiKey);
-                await sleep(7000);
+                await sleep(13000);
             } else if (item.type === 'crypto') {
                 loading.innerHTML = '<div class="spinner"></div>Actualizando cripto <strong>' + item.ticker + '</strong>...';
                 await getCryptoPrice(item.ticker);
@@ -1250,6 +1271,11 @@ async function updatePrices() {
         loading.innerHTML = '<div class="spinner"></div>Actualizando precios y calculando soportes/resistencias...';
         renderPortfolio();
         updateLastUpdateTime();
+        // Guardar en Gist con los precios y soportes/resistencias actualizados
+        if (gistConfigurado()) {
+            clearTimeout(window._gistSaveTimer);
+            window._gistSaveTimer = setTimeout(function() { guardarEnGist(false); }, 2000);
+        }
     } catch (error) { alert('❌ Error al actualizar precios'); } finally { updateBtn.disabled = false; loading.classList.remove('active'); }
 }
 
@@ -1299,19 +1325,42 @@ async function getStockPrice(ticker, apiKey) {
 }
 
 async function getCryptoPrice(symbol) {
+    // Mapa de ticker → id de CoinGecko
+    const coinGeckoIds = {
+        'BTC':  'bitcoin',
+        'ETH':  'ethereum',
+        'SOL':  'solana',
+        'BNB':  'binancecoin',
+        'ADA':  'cardano',
+        'XRP':  'ripple',
+        'DOT':  'polkadot',
+        'DOGE': 'dogecoin',
+        'AVAX': 'avalanche-2',
+        'MATIC':'matic-network',
+        'LINK': 'chainlink',
+        'LTC':  'litecoin',
+    };
+    const coinId = coinGeckoIds[symbol.toUpperCase()] || symbol.toLowerCase();
     try {
-        const url = 'https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd';
+        const url = 'https://api.coingecko.com/api/v3/simple/price?ids=' + coinId + '&vs_currencies=usd';
         const response = await fetch(url);
         const data = await response.json();
-        if (data.ethereum && data.ethereum.usd) {
-            const price = data.ethereum.usd;
-            currentPrices['ETH'] = price;
-            apiPrices['ETH'] = price;
-            delete manualPrices['ETH'];
+        if (data[coinId] && data[coinId].usd) {
+            const price = data[coinId].usd;
+            currentPrices[symbol] = price;
+            apiPrices[symbol] = price;
+            delete manualPrices[symbol];
+            if (!maxPrices[symbol] || price > maxPrices[symbol]) {
+                maxPrices[symbol] = price;
+                saveMaxPrices();
+            }
             saveApiPrices();
             saveManualPrices();
+            console.log('✅ ' + symbol + ': $' + price);
+        } else {
+            console.warn('⚠️ Sin datos para ' + symbol + ' (id: ' + coinId + ')', data);
         }
-    } catch (error) { console.error('Error:', error); }
+    } catch (error) { console.error('Error cripto ' + symbol + ':', error); }
 }
 
 async function getExchangeRate(apiKey) {
@@ -1349,6 +1398,7 @@ async function calculateSupportResistance(ticker, apiKey) {
                     resistance1: sortedPrices[Math.floor(sortedPrices.length * 0.85)],
                     resistance2: sortedPrices[Math.floor(sortedPrices.length * 0.95)]
                 };
+                saveSupportResistance();
             }
         }
     } catch (error) { console.error('Error:', error); }
@@ -1629,14 +1679,70 @@ function loadExchangeRate() {
     }
 }
 
+// ══════════════════════════════════════════════
+//  GIST SYNC
+// ══════════════════════════════════════════════
+const GIST_ID = '6eaad65a997877a68cebeb3fdc7ecf5b'; // ← pon aquí tu Gist ID
+const GIST_FILENAME = 'cartera-datos.json';
+
+function gistToken() { return localStorage.getItem('gistTokenCartera') || ''; }
+function gistConfigurado() { return !!gistToken(); }
+
+function actualizarBtnGist() {
+    const btn = document.getElementById('btn-gist-sync');
+    if (btn) btn.style.display = gistConfigurado() ? '' : 'none';
+}
+
+function mostrarFuenteDatos(fuente, fechaISO) {
+    const el = document.getElementById('datos-fuente-info');
+    if (!el) return;
+    const fechaStr = fechaISO
+        ? new Date(fechaISO).toLocaleString('es-ES', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' })
+        : '—';
+    if (fuente === 'gist') {
+        el.textContent = '☁️ Datos del Gist · ' + fechaStr;
+        el.style.color = '#818cf8';
+    } else if (fuente === 'cargando') {
+        el.textContent = '⏳ Conectando con Gist...';
+        el.style.color = '#94a3b8';
+    } else if (fuente === 'local-nuevo') {
+        el.textContent = '💾 Datos locales (más recientes) · ' + fechaStr + ' · Recuerda guardar en Gist';
+        el.style.color = '#f59e0b';
+    } else {
+        el.textContent = '🔒 Datos locales · Sin conexión al Gist';
+        el.style.color = '#f59e0b';
+    }
+}
+
 async function loadFromGitHub() {
-    const url = 'https://raw.githubusercontent.com/javiap20/cuentas-javi/main/cartera_backup.json';
+    // Ahora delegamos en cargarDesdeGist
+    return await cargarDesdeGist();
+}
+
+async function cargarDesdeGist() {
+    mostrarFuenteDatos('cargando');
     try {
-        const response = await fetch(url + '?nocache=' + Date.now());
-        if (!response.ok) return false;
-        const data = await response.json();
+        const resp = await fetch('https://api.github.com/gists/' + GIST_ID, {
+            headers: gistConfigurado() ? { 'Authorization': 'token ' + gistToken() } : {}
+        });
+        if (!resp.ok) { mostrarFuenteDatos('local'); return false; }
+        const gist = await resp.json();
+        const file = gist.files && gist.files[GIST_FILENAME];
+        if (!file || !file.content) { mostrarFuenteDatos('local'); return false; }
+
+        const data = JSON.parse(file.content);
+        const fechaGist = data._exportadoEn || null;
+        const fechaLocal = localStorage.getItem('gistLastSavedCartera');
+
+        // Si local es más reciente que el Gist, avisar pero usar local
+        if (fechaLocal && fechaGist && fechaLocal > fechaGist) {
+            mostrarFuenteDatos('local-nuevo', fechaLocal);
+            return false;
+        }
+
+        // Aplicar datos del Gist
         const remotePortfolio = data.portfolioData || data;
-        if (!remotePortfolio || Object.keys(remotePortfolio).length === 0) return false;
+        if (!remotePortfolio || Object.keys(remotePortfolio).length === 0) { mostrarFuenteDatos('local'); return false; }
 
         portfolioData = {};
         Object.keys(remotePortfolio).forEach(k => {
@@ -1647,40 +1753,106 @@ async function loadFromGitHub() {
                 });
             }
         });
-        if (data.manualPrices) {
-            manualPrices = data.manualPrices;
-            Object.keys(manualPrices).forEach(t => { currentPrices[t] = manualPrices[t]; });
-            saveManualPrices();
-        }
-        if (data.apiPrices) {
-            apiPrices = data.apiPrices;
-            Object.keys(apiPrices).forEach(t => { currentPrices[t] = apiPrices[t]; });
-            saveApiPrices();
-        }
-        if (data.maxPrices) {
-            maxPrices = data.maxPrices;
-            saveMaxPrices();
-        }
-        if (data.stopLossPrices) {
-            stopLossPrices = data.stopLossPrices;
-            saveStopLossPrices();
-        }
-        if (data.targetPrices) {
-            targetPrices = data.targetPrices;
-            saveTargetPrices();
-        }
-        if (data.usdToEur) {
-            usdToEur = data.usdToEur;
-            localStorage.setItem('usdToEur', usdToEur);
-            document.getElementById('usdEurInput').value = parseFloat(usdToEur).toFixed(4);
-        }
-        savePortfolioData();
+        if (data.manualPrices)  { manualPrices = data.manualPrices;   Object.keys(manualPrices).forEach(t => { currentPrices[t] = manualPrices[t]; }); saveManualPrices(); }
+        if (data.apiPrices)     { apiPrices = data.apiPrices;         Object.keys(apiPrices).forEach(t => { currentPrices[t] = apiPrices[t]; }); saveApiPrices(); }
+        if (data.maxPrices)     { maxPrices = data.maxPrices;         saveMaxPrices(); }
+        if (data.stopLossPrices){ stopLossPrices = data.stopLossPrices; saveStopLossPrices(); }
+        if (data.targetPrices)  { targetPrices = data.targetPrices;   saveTargetPrices(); }
+        if (data.usdToEur)      { usdToEur = data.usdToEur; localStorage.setItem('usdToEur', usdToEur); const el = document.getElementById('usdEurInput'); if (el) el.value = parseFloat(usdToEur).toFixed(4); }
+        if (data.supportResistance) { supportResistance = data.supportResistance; saveSupportResistance(); }
+        if (data.aiReport)      { saveAiReport(data.aiReport); const rd = document.getElementById('aiResponse'); if (rd) { rd.className = 'ai-response'; rd.textContent = data.aiReport; } }
+
+        localStorage.setItem('portfolioData', JSON.stringify(portfolioData));
+        mostrarFuenteDatos('gist', fechaGist);
         return true;
     } catch (e) {
-        console.log('No se pudo cargar desde GitHub:', e);
+        console.log('Error cargando Gist:', e);
+        mostrarFuenteDatos('local');
         return false;
     }
 }
+
+async function guardarEnGist(manual) {
+    if (!gistConfigurado()) {
+        if (manual) alert('⚠️ Configura primero el token Gist (botón 🔑 Gist)');
+        return;
+    }
+    const payload = {
+        _exportadoEn: new Date().toISOString(),
+        portfolioData, manualPrices, apiPrices, maxPrices, targetPrices, stopLossPrices, usdToEur,
+        supportResistance, aiReport: loadAiReport()
+    };
+    try {
+        const resp = await fetch('https://api.github.com/gists/' + GIST_ID, {
+            method: 'PATCH',
+            headers: { 'Authorization': 'token ' + gistToken(), 'Content-Type': 'application/json' },
+            body: JSON.stringify({ files: { [GIST_FILENAME]: { content: JSON.stringify(payload, null, 2) } } })
+        });
+        if (resp.ok) {
+            localStorage.setItem('gistLastSavedCartera', payload._exportadoEn);
+            mostrarFuenteDatos('gist', payload._exportadoEn);
+            if (manual) alert('☁️ Guardado en Gist correctamente');
+        } else {
+            if (manual) alert('❌ Error al guardar en Gist (' + resp.status + ')');
+        }
+    } catch (e) {
+        if (manual) alert('❌ Sin conexión al guardar en Gist');
+    }
+}
+
+// Modal configuración Gist
+function abrirModalGistConfig() {
+    let modal = document.getElementById('modal-gist-config');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'modal-gist-config';
+        modal.style.cssText = 'display:flex;align-items:center;justify-content:center;position:fixed;z-index:9999;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,0.65);';
+        modal.innerHTML = `
+        <div style="background:white;border-radius:14px;padding:28px;max-width:460px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.4);position:relative;color:#1f2937;">
+            <span onclick="document.getElementById('modal-gist-config').style.display='none'"
+                  style="position:absolute;top:14px;right:18px;font-size:1.5em;cursor:pointer;color:#6b7280;">&times;</span>
+            <h2 style="margin:0 0 12px;color:#1e3a8a;">🔑 Configuración Gist</h2>
+            <p style="font-size:0.88em;color:#6b7280;margin-bottom:16px;">
+                El token se guarda solo en este dispositivo (localStorage). Solo se envía a la API de GitHub para leer/escribir tu Gist.
+            </p>
+            <p style="font-size:0.85em;color:#6b7280;margin-bottom:16px;">
+                El <strong>Gist ID</strong> que usa este archivo es: <code style="background:#f3f4f6;padding:2px 6px;border-radius:4px;">${GIST_ID}</code><br>
+                Crea un Gist en <a href="https://gist.github.com" target="_blank" style="color:#4f46e5;">gist.github.com</a> con el fichero <strong>${GIST_FILENAME}</strong> y copia su ID en la constante GIST_ID del código.
+            </p>
+            <label style="display:block;font-weight:700;margin-bottom:6px;">Personal Access Token de GitHub</label>
+            <input id="gist-token-input" type="password" placeholder="ghp_..." 
+                   style="width:100%;padding:10px;border:2px solid #d1d5db;border-radius:8px;font-size:1em;margin-bottom:12px;box-sizing:border-box;">
+            <div style="display:flex;gap:10px;">
+                <button onclick="guardarTokenGist()" style="flex:1;background:#4f46e5;color:white;border:none;padding:10px;border-radius:8px;cursor:pointer;font-weight:700;">Guardar token</button>
+                <button onclick="borrarTokenGist()" style="background:#ef4444;color:white;border:none;padding:10px 16px;border-radius:8px;cursor:pointer;font-weight:700;">Borrar</button>
+            </div>
+            <div id="gist-token-status" style="margin-top:12px;font-size:0.85em;"></div>
+        </div>`;
+        document.body.appendChild(modal);
+        modal.addEventListener('click', function(e) { if (e.target === modal) modal.style.display = 'none'; });
+    }
+    document.getElementById('gist-token-input').value = gistToken();
+    document.getElementById('gist-token-status').innerHTML = gistConfigurado()
+        ? '<span style="color:#10b981;">✅ Token configurado en este dispositivo</span>'
+        : '<span style="color:#f59e0b;">⚠️ Sin token — se cargará en modo solo lectura</span>';
+    modal.style.display = 'flex';
+}
+
+function guardarTokenGist() {
+    const val = document.getElementById('gist-token-input').value.trim();
+    if (!val) { alert('⚠️ Introduce un token'); return; }
+    localStorage.setItem('gistTokenCartera', val);
+    actualizarBtnGist();
+    document.getElementById('gist-token-status').innerHTML = '<span style="color:#10b981;">✅ Token guardado</span>';
+}
+
+function borrarTokenGist() {
+    localStorage.removeItem('gistTokenCartera');
+    document.getElementById('gist-token-input').value = '';
+    document.getElementById('gist-token-status').innerHTML = '<span style="color:#f59e0b;">⚠️ Token eliminado</span>';
+    actualizarBtnGist();
+}
+// ══════════════════════════════════════════════
 
 function saveAnthropicKey() {
     const key = document.getElementById('anthropicKeyInput').value.trim();
@@ -1865,6 +2037,12 @@ IMPORTANTE: No uses asteriscos para negritas. Usa MAYÚSCULAS para énfasis. Usa
         if (data.content && data.content[0]) {
             responseDiv.className = 'ai-response';
             responseDiv.textContent = data.content[0].text;
+            saveAiReport(data.content[0].text);
+            // Guardar en Gist con el informe nuevo
+            if (gistConfigurado()) {
+                clearTimeout(window._gistSaveTimer);
+                window._gistSaveTimer = setTimeout(function() { guardarEnGist(false); }, 2000);
+            }
         } else if (data.error) {
             responseDiv.className = 'ai-response';
             responseDiv.textContent = '❌ Error: ' + data.error.message;
@@ -1882,6 +2060,10 @@ let maxPrices = {};
 
 function saveMaxPrices() { localStorage.setItem('maxPrices', JSON.stringify(maxPrices)); }
 function loadMaxPrices() { const s = localStorage.getItem('maxPrices'); if (s) maxPrices = JSON.parse(s); }
+function saveSupportResistance() { localStorage.setItem('supportResistance', JSON.stringify(supportResistance)); }
+function loadSupportResistance() { const s = localStorage.getItem('supportResistance'); if (s) supportResistance = JSON.parse(s); }
+function saveAiReport(text) { try { localStorage.setItem('aiReport', text); } catch(e) {} }
+function loadAiReport() { return localStorage.getItem('aiReport') || ''; }
 
 function openSimModal(posId, year) {
     const yearData = portfolioData[String(year)];
@@ -1978,7 +2160,16 @@ window.onload = async function() {
     loadTargetPrices();
     loadStopLossPrices();
     loadMaxPrices();
+    loadSupportResistance();
     loadExchangeRate();
+    actualizarBtnGist();
+    await loadFromGitHub();
+    // Restaurar informe IA si existe
+    const savedReport = loadAiReport();
+    if (savedReport) {
+        const rd = document.getElementById('aiResponse');
+        if (rd) { rd.className = 'ai-response'; rd.textContent = savedReport; }
+    }
     await loadFromGitHub();
     renderYearSelector();
     renderPortfolio();
