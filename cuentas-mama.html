@@ -239,8 +239,9 @@
         .edit-item-btn { background: #3b82f6; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 0.9em; margin-left: 5px; }
         .edit-item-btn:hover { background: #2563eb; }
 
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); }
-        .modal-content { background-color: white; margin: 5% auto; padding: 30px; border-radius: 15px; width: 90%; max-width: 700px; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.5); color: #1f2937; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); touch-action: none; }
+        .modal-content { background-color: white; margin: 2% auto; padding: 30px; border-radius: 15px; width: 90%; max-width: 700px; max-height: 94vh; overflow-y: auto; -webkit-overflow-scrolling: touch; box-shadow: 0 20px 60px rgba(0,0,0,0.5); color: #1f2937; touch-action: pan-y; }
+        body.modal-open { overflow: hidden; touch-action: none; }
         .modal-content h2 { color: #1e3a8a; }
         .modal-content label { color: #374151; }
         .modal-content p { color: #374151; }
@@ -567,6 +568,28 @@
             }
         }
     
+        /* ========== FILAS COMPACTAS EN MODAL DESGLOSE (Gastos/Ingresos Fijos) ========== */
+        #modal-desglose .desglose-item {
+            padding: 6px 10px !important;
+            margin-bottom: 4px !important;
+            border-radius: 6px !important;
+        }
+        #modal-desglose .desglose-item span {
+            font-size: 13px !important;
+        }
+        #modal-desglose .desglose-item .valor {
+            font-size: 13px !important;
+        }
+        #modal-desglose .desglose-item .info-frecuencia {
+            font-size: 11px !important;
+            margin-top: 1px !important;
+        }
+        #modal-desglose .delete-btn,
+        #modal-desglose .edit-item-btn {
+            padding: 3px 8px !important;
+            font-size: 12px !important;
+        }
+
         #modal-alcance-edicion .modal-content {
             max-width: 500px;
         }
@@ -670,6 +693,17 @@
             border-top: 3px solid #7c3aed !important;
             margin-top: -3px;
         }
+        /* ══ MODO EDICIÓN ══ */
+        body.modo-edicion-activo .drag-handle { opacity: 1; pointer-events: auto; }
+        body:not(.modo-edicion-activo) .drag-handle { opacity: 0.15; pointer-events: none; cursor: default; }
+        body:not(.modo-edicion-activo) [draggable="true"] { cursor: default !important; }
+        body:not(.modo-edicion-activo) .item-todo-mes { cursor: default !important; touch-action: pan-y !important; }
+        #btn-modo-edicion-todo { transition: background 0.2s, box-shadow 0.2s; }
+        #btn-modo-edicion-todo.activo { background:#f59e0b !important; border-color:#d97706 !important; color:#1f2937 !important; box-shadow: 0 0 0 3px rgba(245,158,11,0.35); }
+        #btn-modo-edicion-desglose.activo { background:#f59e0b !important; border-color:#d97706 !important; color:#1f2937 !important; box-shadow: 0 0 0 3px rgba(245,158,11,0.35); }
+        /* Bloquear drag en modal-desglose cuando el modo NO está activo */
+        body:not(.modo-edicion-desglose-activo) #desglose-lista .desglose-item { cursor: default !important; touch-action: pan-y !important; }
+        body:not(.modo-edicion-desglose-activo) #desglose-lista .desglose-item span[style*="cursor:grab"] { cursor: default !important; opacity: 0.25; pointer-events: none; }
         .drag-handle {
             cursor: grab;
             padding: 0 6px;
@@ -696,44 +730,47 @@
 
         /* ========== MODAL COMPACTO ========== */
         #modal-ver-todo-mes .modal-content {
-            padding: 15px !important;
-            padding-top: 50px !important;
-            max-height: 90vh !important;
+            padding: 12px !important;
+            padding-top: 44px !important;
+            max-height: 96vh !important;
+            min-height: 92vh !important;
             overflow-y: auto !important;
         }
         #modal-ver-todo-mes h3 {
-            font-size: 17px !important;
-            margin-bottom: 10px !important;
-        }
-        #modal-ver-todo-mes .orden-info {
-            padding: 5px 10px !important;
-            font-size: 11px !important;
+            font-size: 15px !important;
             margin-bottom: 8px !important;
         }
+        #modal-ver-todo-mes .orden-info {
+            padding: 4px 8px !important;
+            font-size: 10px !important;
+            margin-bottom: 6px !important;
+        }
         #modal-ver-todo-mes .item-todo-mes {
-            padding: 8px 12px !important;
-            font-size: 15px !important;
-            margin-bottom: 4px !important;
+            padding: 5px 8px !important;
+            font-size: 13px !important;
+            margin-bottom: 3px !important;
+            border-radius: 6px !important;
         }
         #modal-ver-todo-mes .item-todo-mes .concepto {
-            font-size: 15px !important;
+            font-size: 13px !important;
         }
         #modal-ver-todo-mes .item-todo-mes .valor {
-            font-size: 15px !important;
+            font-size: 13px !important;
             font-weight: 700 !important;
-            min-width: 80px !important;
+            min-width: 65px !important;
+            margin: 0 8px !important;
         }
         #modal-ver-todo-mes .item-todo-mes .tipo-badge {
-            font-size: 10px !important;
-            padding: 2px 7px !important;
+            font-size: 9px !important;
+            padding: 1px 5px !important;
         }
         #modal-ver-todo-mes .item-todo-mes .acciones button {
-            font-size: 14px !important;
-            padding: 4px 7px !important;
+            font-size: 12px !important;
+            padding: 3px 6px !important;
         }
         #modal-ver-todo-mes .drag-handle {
-            font-size: 15px !important;
-            padding: 0 7px !important;
+            font-size: 13px !important;
+            padding: 0 5px !important;
         }
 
         /* ========== BOTÓN CERRAR FIJO ========== */
@@ -823,15 +860,14 @@
     <!-- TOP BAR -->
     <nav class="topbar">
         <div class="topbar-logo">
-            💰 <span>Finanzas</span>Casa Majadahonda
+            💰 <span>Finanzas</span>JaviAp
         </div>
         <div class="topbar-actions">
             <button class="tb-btn" onclick="exportarGastosExcel()" style="background:#16a34a;border-color:#16a34a;color:white;">📊 Excel Gastos</button>
-            <button class="tb-btn" onclick="regenerarAnoDesdeAnterior()">🔄 Regenerar año</button>
-            <button class="tb-btn purple" onclick="regenerarTodosLosAnos()">⚡ Regenerar todos</button>
+            <button class="tb-btn" id="btn-regenerar-ano" onclick="regenerarAnoDesdeAnterior()" style="display:none;">🔄 Regenerar año</button>
             <button class="tb-btn success" onclick="exportarDatos()">📥 Exportar</button>
             <button class="tb-btn primary" onclick="document.getElementById('file-input').click()">📤 Importar</button>
-            <button class="tb-btn" id="btn-gist-sync" onclick="guardarEnGist(true)" style="background:#6366f1;border-color:#6366f1;display:none;">☁️ Guardar Gist</button>
+            <button class="tb-btn" id="btn-gist-sync" onclick="guardarEnGist(true)" style="background:#6366f1;border-color:#6366f1;display:none;" title="Guardar en Gist">☁️ Guardar Gist</button>
             <button class="tb-btn" onclick="abrirModalGistConfig()" style="background:#4f46e5;border-color:#4f46e5;">🔑 Gist</button>
             <button class="tb-btn" onclick="abrirModalConfig()">⚙️ Config</button>
             <input type="file" id="file-input" accept=".json" onchange="importarDatos(event)" style="display:none;">
@@ -862,6 +898,7 @@
             <div class="controls-actions">
                 <button class="act-btn" onclick="abrirResumenGlobal()">&#127757; Resumen Global</button>
                 <button class="act-btn" onclick="abrirDesgloseAnual()">&#128203; Desglose Anual</button>
+                <button class="act-btn" onclick="abrirSimulador()" style="background:#7c3aed;border-color:#7c3aed;">&#129514; Simular</button>
             </div>
         </div>
         
@@ -933,6 +970,10 @@
                         <span>Balance acumulado:</span>
                         <span id="balance-acumulado" class="positivo">0€</span>
                     </div>
+                    <div>
+                        <span>📅 Proyección 31 Dic:</span>
+                        <span id="balance-proyeccion-fin" class="positivo">0€</span>
+                    </div>
                 </div>
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;margin-bottom:5px;">
                     <span style="font-size:0.75em;color:rgba(255,255,255,0.45);font-weight:700;text-transform:uppercase;letter-spacing:0.06em;">Variación vs inicio de año</span>
@@ -944,7 +985,7 @@
                 <!-- Estado mes: cerrado o botón cerrar -->
                 <div id="mes-cerrado-info" style="display:none; margin-top:12px; background:#eef2ff; border-radius:8px; padding:10px 14px; display:none; align-items:center; justify-content:space-between; gap:8px;">
                     <span style="font-size:0.85em; color:#1e3a8a; font-weight:600;" id="mes-cerrado-fecha"></span>
-                    <button onclick="reabrirMes()" style="background:#1e3a8a;color:white;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-weight:bold;font-size:0.82em;width:auto;margin:0;">🔓 Reabrir</button>
+                    <button onclick="reabrirMes()" style="background:#dc2626;color:white;border:none;padding:6px 14px;border-radius:6px;font-size:0.8em;font-weight:700;cursor:pointer;white-space:nowrap;">🔓 Reabrir mes</button>
                 </div>
                 <button id="btn-cerrar-mes" onclick="cerrarMesManual()" style="background:#1e3a8a;margin-top:12px;">🔒 Cerrar mes</button>
             </div>
@@ -1102,7 +1143,12 @@
                 </div>
             </div>
             
-            <div id="desglose-lista" style="margin-top: 20px;"></div>
+            <!-- Botón modo edición orden (igual al de Ver Todo) -->
+            <div style="margin-top:14px; margin-bottom:2px;">
+                <button id="btn-modo-edicion-desglose" onclick="toggleModoEdicionDesglose()" style="background:rgba(100,116,139,0.12);border:1px solid rgba(100,116,139,0.3);color:#475569;padding:5px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;width:auto;margin:0;transition:background 0.2s,box-shadow 0.2s;">✏️ Editar orden</button>
+            </div>
+
+            <div id="desglose-lista" style="margin-top: 10px;"></div>
             <button onclick="guardarDesglose()">💾 Guardar y Cerrar</button>
         </div>
     </div>
@@ -1216,14 +1262,135 @@
             for (const key in CATEGORIAS_INGRESOS) ingresosCateg[key] = { total: 0, items: [] };
             for (const key in CATEGORIAS_GASTOS)   gastosCateg[key]   = { total: 0, items: [] };
 
+            const cerrado = datos.mesesCerrados && datos.mesesCerrados[numMes];
+
+            // Mes cerrado CON snapshotItems: usar la lista detallada exacta
+            if (cerrado && cerrado.snapshotItems && cerrado.snapshotItems.length > 0) {
+                cerrado.snapshotItems.forEach(item => {
+                    if (item.eliminado) return;
+                    let esIngreso = false;
+                    if (item.fuente === 'ingresosFijos' || item.fuente === 'ingresosBonus' || item.fuente === 'ingresosExtras') {
+                        esIngreso = true;
+                    } else if (item.fuente === 'extrasRecurrentes') {
+                        esIngreso = item.tipo === 'ingresos';
+                    }
+                    const cat = clasificarConcepto(item.concepto, esIngreso);
+                    if (esIngreso && cat && ingresosCateg[cat]) {
+                        ingresosCateg[cat].total += item.valor;
+                        ingresosCateg[cat].items.push({ concepto: item.concepto, valor: item.valor });
+                    } else if (!esIngreso && cat && gastosCateg[cat]) {
+                        gastosCateg[cat].total += item.valor;
+                        gastosCateg[cat].items.push({ concepto: item.concepto, valor: item.valor });
+                    }
+                });
+                return { ingresos: ingresosCateg, gastos: gastosCateg };
+            }
+
+            // Mes cerrado SIN snapshotItems: usar snapshot de totales agregados.
+            // No podemos desglosar por categoría con precisión, así que volcamos
+            // los totales del snapshot en las categorías genéricas correspondientes.
+            if (cerrado && cerrado.snapshot) {
+                const snap = cerrado.snapshot;
+                // Ingresos
+                if (snap.ingresosFijos) {
+                    const cat = clasificarConcepto('Nómina', true);
+                    if (cat && ingresosCateg[cat]) { ingresosCateg[cat].total += snap.ingresosFijos; ingresosCateg[cat].items.push({ concepto: 'Ingresos fijos', valor: snap.ingresosFijos }); }
+                }
+                if (snap.ingresosBonus) {
+                    const cat = clasificarConcepto('Bonus', true);
+                    if (cat && ingresosCateg[cat]) { ingresosCateg[cat].total += snap.ingresosBonus; ingresosCateg[cat].items.push({ concepto: 'Bonus / Paga Extra', valor: snap.ingresosBonus }); }
+                }
+                if (snap.ingresosExtras) {
+                    const cat = clasificarConcepto('Otros ingresos', true);
+                    const catKey = cat || Object.keys(CATEGORIAS_INGRESOS).slice(-1)[0];
+                    if (catKey && ingresosCateg[catKey]) { ingresosCateg[catKey].total += snap.ingresosExtras; ingresosCateg[catKey].items.push({ concepto: 'Ingresos extras', valor: snap.ingresosExtras }); }
+                }
+                // Gastos
+                if (snap.gastosFijos) {
+                    // Distribuir gastosFijos recalculando en vivo por categoría (los overrides no cambian las categorías)
+                    const overrides = datos.meses[numMes].overrides || {};
+                    datos.gastosFijos.forEach((item, idx) => {
+                        const ov = overrides['gastosFijos_' + idx];
+                        if (ov && ov.eliminado) return;
+                        const aplica = item.frecuencia === 'mensual' ||
+                            (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) ||
+                            (ov && ov.forzarEnMes);
+                        if (!aplica) return;
+                        const valor = ov ? ov.valor : item.valor;
+                        const concepto = ov ? ov.concepto : item.concepto;
+                        const cat = clasificarConcepto(concepto, false);
+                        if (cat && gastosCateg[cat]) {
+                            gastosCateg[cat].total += valor;
+                            gastosCateg[cat].items.push({ concepto, valor });
+                        }
+                    });
+                    // Ajustar si el total recalculado difiere del snapshot (por datos que ya no están)
+                    const totalCategGastos = Object.values(gastosCateg).reduce((s, c) => s + c.total, 0);
+                    const diff = snap.gastosFijos - totalCategGastos;
+                    if (Math.abs(diff) > 0.01) {
+                        // Poner la diferencia en "otros" para que el total cuadre
+                        const catOtros = clasificarConcepto('Otros', false);
+                        if (catOtros && gastosCateg[catOtros]) {
+                            gastosCateg[catOtros].total += diff;
+                            if (diff > 0) gastosCateg[catOtros].items.push({ concepto: 'Gastos fijos (ajuste)', valor: diff });
+                        }
+                    }
+                }
+                if (snap.gastosVacaciones || snap.gastosVacacionesExtras) {
+                    const totalVac = (snap.gastosVacaciones || 0) + (snap.gastosVacacionesExtras || 0);
+                    if (totalVac > 0) {
+                        gastosCateg['vacaciones'].total += totalVac;
+                        gastosCateg['vacaciones'].items.push({ concepto: 'Vacaciones', valor: totalVac });
+                    }
+                }
+                if (snap.gastosExtras) {
+                    // Extras puntuales: distribuir por categoría los que podemos, resto a "otros"
+                    let asignado = 0;
+                    datos.meses[numMes].gastosExtras.forEach(item => {
+                        const cat = clasificarConcepto(item.concepto, false);
+                        if (cat && gastosCateg[cat]) {
+                            gastosCateg[cat].total += item.valor;
+                            gastosCateg[cat].items.push({ concepto: item.concepto, valor: item.valor });
+                            asignado += item.valor;
+                        }
+                    });
+                    // Extras recurrentes que aplican en este mes
+                    (datos.extrasRecurrentes || []).forEach(item => {
+                        if (item.tipo !== 'gastos') return;
+                        const inicio = item.anoInicio * 12 + item.mesInicio;
+                        const fin = item.anoFin * 12 + item.mesFin;
+                        const actual = 2026 * 12 + numMes;
+                        if (actual >= inicio && actual <= fin) {
+                            const cat = clasificarConcepto(item.concepto, false);
+                            if (cat && gastosCateg[cat]) {
+                                gastosCateg[cat].total += item.valor;
+                                gastosCateg[cat].items.push({ concepto: item.concepto, valor: item.valor });
+                                asignado += item.valor;
+                            }
+                        }
+                    });
+                    const diffExtras = snap.gastosExtras - asignado;
+                    if (diffExtras > 0.01) {
+                        const catOtros = clasificarConcepto('Otros', false);
+                        if (catOtros && gastosCateg[catOtros]) {
+                            gastosCateg[catOtros].total += diffExtras;
+                            gastosCateg[catOtros].items.push({ concepto: 'Gastos extras (ajuste)', valor: diffExtras });
+                        }
+                    }
+                }
+                return { ingresos: ingresosCateg, gastos: gastosCateg };
+            }
+
             const overrides = datos.meses[numMes].overrides || {};
 
             // Ingresos fijos (con overrides y eliminados)
             datos.ingresosFijos.forEach((item, idx) => {
-                const aplica = item.frecuencia === 'mensual' || (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes));
-                if (!aplica) return;
                 const ov = overrides['ingresosFijos_' + idx];
                 if (ov && ov.eliminado) return;
+                const aplica = item.frecuencia === 'mensual' ||
+                    (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) ||
+                    (ov && ov.forzarEnMes);
+                if (!aplica) return;
                 const valor = ov ? ov.valor : item.valor;
                 const concepto = ov ? ov.concepto : item.concepto;
                 const cat = clasificarConcepto(concepto, true);
@@ -1235,13 +1402,14 @@
 
             // Bonus (con overrides y eliminados)
             (datos.ingresosBonus || []).forEach((item, idx) => {
-                const aplica = item.frecuencia === 'mensual' || (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes));
-                if (!aplica) return;
                 const ov = overrides['ingresosBonus_' + idx];
                 if (ov && ov.eliminado) return;
-                let valor = ov ? ov.valor : item.valor;
+                const aplica = item.frecuencia === 'mensual' ||
+                    (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) ||
+                    (ov && ov.forzarEnMes);
+                if (!aplica) return;
+                const valor = ov ? ov.valor : item.valor;
                 const concepto = ov ? ov.concepto : item.concepto;
-                if (esBonusSuministros(concepto)) valor = valorBonusSuministros(numMes);
                 const cat = clasificarConcepto(concepto, true);
                 if (cat && ingresosCateg[cat]) {
                     ingresosCateg[cat].total += valor;
@@ -1268,12 +1436,14 @@
                 }
             });
 
-            // Gastos fijos (con overrides y eliminados)
+            // Gastos fijos (con overrides, eliminados y forzarEnMes)
             datos.gastosFijos.forEach((item, idx) => {
-                const aplica = item.frecuencia === 'mensual' || (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes));
-                if (!aplica) return;
                 const ov = overrides['gastosFijos_' + idx];
                 if (ov && ov.eliminado) return;
+                const aplica = item.frecuencia === 'mensual' ||
+                    (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) ||
+                    (ov && ov.forzarEnMes);
+                if (!aplica) return;
                 const valor = ov ? ov.valor : item.valor;
                 const concepto = ov ? ov.concepto : item.concepto;
                 const cat = clasificarConcepto(concepto, false);
@@ -1283,12 +1453,14 @@
                 }
             });
 
-            // Vacaciones fijas (con overrides y eliminados)
+            // Vacaciones fijas (con overrides, eliminados y forzarEnMes)
             (datos.gastosVacaciones || []).forEach((item, idx) => {
-                const aplica = item.frecuencia === 'mensual' || (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes));
-                if (!aplica) return;
                 const ov = overrides['gastosVacaciones_' + idx];
                 if (ov && ov.eliminado) return;
+                const aplica = item.frecuencia === 'mensual' ||
+                    (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) ||
+                    (ov && ov.forzarEnMes);
+                if (!aplica) return;
                 const valor = ov ? ov.valor : item.valor;
                 const concepto = ov ? ov.concepto : item.concepto;
                 gastosCateg['vacaciones'].total += valor;
@@ -1554,6 +1726,7 @@
             guardarDatos();
             actualizarTodo();
             actualizarResumenAnual();
+        actualizarBotonesRegenerar();
             cerrarModalConfig();
             mostrarNotificacion('✅ Configuración guardada', 'exito');
         }
@@ -1571,7 +1744,7 @@
             // Recopilar todos los años con datos
             const anos = [];
             for (let y = 2024; y <= 2040; y++) {
-                const raw = localStorage.getItem('mama_finanzas_' + y);
+                const raw = localStorage.getItem('finanzasPersonales_' + y);
                 if (raw) anos.push({ ano: y, datos: JSON.parse(raw) });
             }
 
@@ -1581,117 +1754,141 @@
                 return;
             }
 
+            // Función auxiliar para calcular totales de un mes (igual que calcularTotalesMes pero para datos externos)
+            function calcularTotalesMesExterno(d, numMes, ano) {
+                // Si el mes está cerrado, usar snapshot inmutable
+                const entrada = d.mesesCerrados && d.mesesCerrados[numMes];
+                if (entrada && entrada.snapshot) {
+                    return {
+                        ingresosTotal: entrada.snapshot.ingresosTotal || 0,
+                        gastosTotal: entrada.snapshot.gastosTotal || 0
+                    };
+                }
+
+                // Mes abierto: calcular en vivo
+                const overrides = (d.meses[numMes] && d.meses[numMes].overrides) || {};
+                
+                let ingresosFijos = 0;
+                let gastosFijos = 0;
+                let gastosVacaciones = 0;
+
+                (d.ingresosFijos || []).forEach((item, idx) => {
+                    const ov = overrides['ingresosFijos_' + idx];
+                    if (ov && ov.eliminado) return;
+                    const aplica = item.frecuencia === 'mensual' ||
+                        (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) ||
+                        (ov && ov.forzarEnMes);
+                    if (!aplica) return;
+                    ingresosFijos += ov ? ov.valor : item.valor;
+                });
+
+                (d.gastosFijos || []).forEach((item, idx) => {
+                    const ov = overrides['gastosFijos_' + idx];
+                    if (ov && ov.eliminado) return;
+                    const aplica = item.frecuencia === 'mensual' ||
+                        (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) ||
+                        (ov && ov.forzarEnMes);
+                    if (!aplica) return;
+                    gastosFijos += ov ? ov.valor : item.valor;
+                });
+
+                (d.gastosVacaciones || []).forEach((item, idx) => {
+                    const ov = overrides['gastosVacaciones_' + idx];
+                    if (ov && ov.eliminado) return;
+                    const aplica = item.frecuencia === 'mensual' ||
+                        (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) ||
+                        (ov && ov.forzarEnMes);
+                    if (!aplica) return;
+                    gastosVacaciones += ov ? ov.valor : item.valor;
+                });
+
+                const ingresosExtras = (d.meses[numMes].ingresosExtras || []).reduce((sum, item) => sum + item.valor, 0);
+                const gastosExtras = (d.meses[numMes].gastosExtras || []).reduce((sum, item) => sum + item.valor, 0);
+                const gastosVacacionesExtras = (d.meses[numMes].gastosVacacionesExtras || []).reduce((sum, item) => sum + item.valor, 0);
+
+                // Extras recurrentes
+                let ingresosRecurrentes = 0;
+                let gastosRecurrentes = 0;
+                (d.extrasRecurrentes || []).forEach(item => {
+                    const inicio = item.anoInicio * 12 + item.mesInicio;
+                    const fin = item.anoFin * 12 + item.mesFin;
+                    const actual = ano * 12 + numMes;
+                    if (actual >= inicio && actual <= fin) {
+                        if (item.tipo === 'ingresos') ingresosRecurrentes += item.valor;
+                        else gastosRecurrentes += item.valor;
+                    }
+                });
+
+                // Bonus
+                let ingresosBonus = 0;
+                (d.ingresosBonus || []).forEach((item, idx) => {
+                    const ov = overrides['ingresosBonus_' + idx];
+                    if (ov && ov.eliminado) return;
+                    const aplica = item.frecuencia === 'mensual' ||
+                        (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) ||
+                        (ov && ov.forzarEnMes);
+                    if (!aplica) return;
+                    ingresosBonus += ov ? ov.valor : item.valor;
+                });
+
+                return {
+                    ingresosTotal: ingresosFijos + ingresosBonus + ingresosExtras + ingresosRecurrentes,
+                    gastosTotal: gastosFijos + gastosVacaciones + gastosExtras + gastosRecurrentes + gastosVacacionesExtras
+                };
+            }
+
             let totalIngresos = 0, totalGastos = 0;
             let filas = '';
-            // saldoEncadenado: el saldo 31 Dic calculado del año anterior se propaga como saldo 1 Ene del siguiente
             let saldoEncadenado = null;
 
             anos.forEach(({ ano, datos: d }) => {
-                // El saldo 1 Ene es el 31 Dic calculado del año anterior; para el primer año usamos su saldoInicial guardado
                 const saldoInicio = saldoEncadenado !== null ? saldoEncadenado : (d.saldoInicial || 0);
 
-                // Calcular ingresos y gastos del año mes a mes
                 let ingAno = 0, gasAno = 0;
                 for (let m = 0; m < 12; m++) {
-                    let ing = 0, gas = 0;
-                    const cerrado = d.mesesCerrados && d.mesesCerrados[m];
-                    if (cerrado && cerrado.snapshot) {
-                        ing = cerrado.snapshot.ingresosTotal || 0;
-                        gas = cerrado.snapshot.gastosTotal || 0;
-                    } else {
-                        d.ingresosFijos.forEach(item => {
-                            if (item.frecuencia === 'mensual') ing += item.valor;
-                            else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(m)) ing += item.valor;
-                        });
-                        (d.ingresosBonus || []).forEach(item => {
-                            if (item.frecuencia === 'mensual') ing += item.valor;
-                            else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(m)) ing += item.valor;
-                        });
-                        d.meses[m].ingresosExtras.forEach(item => ing += item.valor);
-                        d.gastosFijos.forEach(item => {
-                            if (item.frecuencia === 'mensual') gas += item.valor;
-                            else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(m)) gas += item.valor;
-                        });
-                        (d.gastosVacaciones || []).forEach(item => {
-                            if (item.frecuencia === 'mensual') gas += item.valor;
-                            else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(m)) gas += item.valor;
-                        });
-                        d.meses[m].gastosExtras.forEach(item => gas += item.valor);
-                        (d.meses[m].gastosVacacionesExtras || []).forEach(item => gas += item.valor);
-                        (d.extrasRecurrentes || []).forEach(item => {
-                            const inicio = item.anoInicio * 12 + item.mesInicio;
-                            const fin = item.anoFin * 12 + item.mesFin;
-                            const actual = ano * 12 + m;
-                            if (actual >= inicio && actual <= fin) {
-                                if (item.tipo === 'ingresos') ing += item.valor;
-                                else gas += item.valor;
-                            }
-                        });
-                    }
-                    ingAno += ing;
-                    gasAno += gas;
+                    const totales = calcularTotalesMesExterno(d, m, ano);
+                    ingAno += totales.ingresosTotal;
+                    gasAno += totales.gastosTotal;
                 }
 
-                // Saldo 31 Dic = Saldo 1 Ene + ingresos - gastos del año
                 const saldoFinal = saldoInicio + ingAno - gasAno;
-                // Propagar al año siguiente
                 saldoEncadenado = saldoFinal;
 
-                // Diferencia del año = saldo final 31 dic - saldo inicial 1 ene
-                const diferencia = saldoFinal - saldoInicio;
+                const diff = ingAno - gasAno;
                 totalIngresos += ingAno;
                 totalGastos += gasAno;
 
-                const difBg    = '#f1f5f9';
-                const difColor = diferencia >= 0 ? '#059669' : '#dc2626';
-                const siColor  = saldoInicio >= 0 ? '#059669' : '#dc2626';
-                const sfColor  = saldoFinal >= 0 ? '#059669' : '#dc2626';
-                filas += `<tr style="border-bottom:1px solid #e5e7eb;">
-                    <td style="padding:10px 14px;font-weight:800;color:#1e3a8a;font-size:1.08em;text-align:center;">${ano}</td>
-                    <td style="padding:10px 14px;text-align:center;font-weight:700;color:${siColor};font-size:0.97em;">${formatearMoneda(saldoInicio)}</td>
-                    <td style="padding:10px 14px;text-align:center;"><span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#dcfce7;color:#15803d;font-weight:700;font-size:0.95em;">${formatearMoneda(ingAno)}</span></td>
-                    <td style="padding:10px 14px;text-align:center;"><span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#fee2e2;color:#b91c1c;font-weight:700;font-size:0.95em;">${formatearMoneda(gasAno)}</span></td>
-                    <td style="padding:10px 14px;text-align:center;"><span style="display:inline-block;padding:4px 14px;border-radius:20px;background:${difBg};color:${difColor};font-weight:800;font-size:0.95em;">${diferencia >= 0 ? '+' : ''}${formatearMoneda(diferencia)}</span></td>
-                    <td style="padding:10px 14px;text-align:center;font-weight:800;color:${sfColor};font-size:0.97em;">${formatearMoneda(saldoFinal)}</td>
-                </tr>`;
+                filas += '<tr>' +
+                    '<td style="font-weight:600;text-align:center;">' + ano + '</td>' +
+                    '<td style="color:#6b7280;text-align:center;">' + formatearMoneda(saldoInicio) + '</td>' +
+                    '<td style="color:#10b981;font-weight:600;text-align:center;">' + formatearMoneda(ingAno) + '</td>' +
+                    '<td style="color:#ef4444;font-weight:600;text-align:center;">' + formatearMoneda(gasAno) + '</td>' +
+                    '<td style="color:' + (diff >= 0 ? '#10b981' : '#ef4444') + ';font-weight:700;text-align:center;">' + formatearMoneda(diff) + '</td>' +
+                    '<td style="color:' + (saldoFinal >= 0 ? '#10b981' : '#ef4444') + ';font-weight:700;text-align:center;">' + formatearMoneda(saldoFinal) + '</td>' +
+                '</tr>';
             });
 
-            const saldoPrimerAno = anos.length > 0 ? (anos[0].datos.saldoInicial || 0) : 0;
-            const saldoUltimoAno = saldoEncadenado !== null ? saldoEncadenado : 0;
-            const balTotal = saldoUltimoAno - saldoPrimerAno;
-            contenido.innerHTML = `
-                <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:20px;justify-content:center;">
-                    <div style="background:#dcfce7;border-radius:10px;padding:14px 22px;text-align:center;min-width:130px;">
-                        <div style="font-size:0.78em;font-weight:700;color:#065f46;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">💰 Ingresos totales</div>
-                        <div style="font-size:1.4em;font-weight:800;color:#059669;">${formatearMoneda(totalIngresos)}</div>
-                    </div>
-                    <div style="background:#fee2e2;border-radius:10px;padding:14px 22px;text-align:center;min-width:130px;">
-                        <div style="font-size:0.78em;font-weight:700;color:#991b1b;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">💸 Gastos totales</div>
-                        <div style="font-size:1.4em;font-weight:800;color:#dc2626;">${formatearMoneda(totalGastos)}</div>
-                    </div>
-                    <div style="background:#f1f5f9;border-radius:10px;padding:14px 22px;text-align:center;min-width:130px;">
-                        <div style="font-size:0.78em;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">📊 Balance global</div>
-                        <div style="font-size:1.4em;font-weight:800;color:${balTotal>=0?'#059669':'#dc2626'};">${balTotal>=0?'+':''}${formatearMoneda(balTotal)}</div>
-                    </div>
-                </div>
-                <div style="overflow-x:auto;">
-                <table style="width:100%;border-collapse:collapse;font-size:0.92em;">
-                    <thead>
-                        <tr style="background:#1e3a8a;">
-                            <th style="padding:10px 14px;color:white;text-align:center;font-weight:700;">Año</th>
-                            <th style="padding:10px 14px;color:white;text-align:center;font-weight:700;">Saldo 1 Ene</th>
-                            <th style="padding:10px 14px;color:white;text-align:center;font-weight:700;">Ingresos</th>
-                            <th style="padding:10px 14px;color:white;text-align:center;font-weight:700;">Gastos</th>
-                            <th style="padding:10px 14px;color:white;text-align:center;font-weight:700;background:#1e40af;">Diferencia año</th>
-                            <th style="padding:10px 14px;color:white;text-align:center;font-weight:700;">Saldo 31 Dic</th>
-                        </tr>
-                    </thead>
-                    <tbody>${filas}</tbody>
-                </table>
-                </div>
-                <p style="margin-top:12px;font-size:0.8em;color:#6b7280;text-align:center;">
-                    💡 <strong>Diferencia año</strong> = Saldo 31 Dic − Saldo 1 Ene &nbsp;|&nbsp; <strong>Saldo 1 Ene</strong> = Saldo 31 Dic del año anterior
-                </p>`;
+            const diffTotal = totalIngresos - totalGastos;
+            contenido.innerHTML = 
+                '<table style="width:100%;border-collapse:collapse;font-size:14px;">' +
+                '<thead><tr style="background:#1e293b;color:white;">' +
+                '<th style="padding:12px 8px;text-align:center;">Año</th>' +
+                '<th style="padding:12px 8px;text-align:center;">Saldo 1 Ene</th>' +
+                '<th style="padding:12px 8px;text-align:center;">Ingresos</th>' +
+                '<th style="padding:12px 8px;text-align:center;">Gastos</th>' +
+                '<th style="padding:12px 8px;text-align:center;">Diferencia</th>' +
+                '<th style="padding:12px 8px;text-align:center;">Saldo 31 Dic</th>' +
+                '</tr></thead>' +
+                '<tbody>' + filas + '</tbody>' +
+                '<tfoot><tr style="background:#0f172a;color:white;font-weight:700;">' +
+                '<td style="padding:12px 8px;text-align:center;">TOTAL</td>' +
+                '<td></td>' +
+                '<td style="padding:12px 8px;text-align:center;color:#10b981;">' + formatearMoneda(totalIngresos) + '</td>' +
+                '<td style="padding:12px 8px;text-align:center;color:#ef4444;">' + formatearMoneda(totalGastos) + '</td>' +
+                '<td style="padding:12px 8px;text-align:center;color:' + (diffTotal >= 0 ? '#10b981' : '#ef4444') + ';">' + formatearMoneda(diffTotal) + '</td>' +
+                '<td></td>' +
+                '</tr></tfoot>' +
+                '</table>';
         }
 
         function exportarDatos() {
@@ -1703,7 +1900,7 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'finanzas-mama.json';
+            a.download = 'finanzas-mama-new.json';
             a.click();
             URL.revokeObjectURL(url);
             mostrarNotificacion('✅ Datos exportados correctamente', 'exito');
@@ -1764,38 +1961,245 @@
             if (!d.extrasRecurrentes) d.extrasRecurrentes = [];
             if (!d.mesesCerrados) d.mesesCerrados = {};
             d.meses.forEach(mes => { if (!mes.gastosVacacionesExtras) mes.gastosVacacionesExtras = []; });
+
+            // ── Limpiar overrides huérfanos o incorrectos ──
+            // Un override es incorrecto si su concepto no coincide con el ítem fijo al que apunta
+            // (esto pasaba con el sistema antiguo de deltas que mezclaba conceptos)
+            d.meses.forEach((mes) => {
+                if (!mes.overrides) return;
+                const overridesLimpios = {};
+                Object.entries(mes.overrides).forEach(([key, ov]) => {
+                    // key tiene formato "gastosFijos_3", "ingresosFijos_1", etc.
+                    const partes = key.match(/^(.+)_(\d+)$/);
+                    if (!partes) return; // key malformada, descartar
+                    const fuente = partes[1];
+                    const idx = parseInt(partes[2]);
+                    let arrFuente;
+                    if (fuente === 'gastosFijos') arrFuente = d.gastosFijos;
+                    else if (fuente === 'ingresosFijos') arrFuente = d.ingresosFijos;
+                    else if (fuente === 'gastosVacaciones') arrFuente = d.gastosVacaciones || [];
+                    else if (fuente === 'ingresosBonus') arrFuente = d.ingresosBonus || [];
+                    else { overridesLimpios[key] = ov; return; } // fuente desconocida, conservar
+                    if (idx >= arrFuente.length) return; // índice fuera de rango, descartar
+                    const itemFijo = arrFuente[idx];
+                    // Si el concepto del override no coincide con el del ítem fijo,
+                    // es un override sucio del sistema antiguo → descartar
+                    if (ov.concepto && ov.concepto !== itemFijo.concepto) return;
+                    // Override válido: conservar
+                    overridesLimpios[key] = ov;
+                });
+                mes.overrides = overridesLimpios;
+            });
+            // El sistema antiguo guardaba en gastosExtras/ingresosExtras la DIFERENCIA entre
+            // el valor editado y el fijo. Detectamos esto si el concepto coincide con un ítem fijo.
+            // Lo convertimos a override y eliminamos el extra para evitar duplicaciones.
+            d.meses.forEach((mes, mIdx) => {
+                if (!mes.overrides) mes.overrides = {};
+                // Gastos extras: buscar coincidencia con gastosFijos
+                mes.gastosExtras = (mes.gastosExtras || []).filter(extra => {
+                    const fijIdx = d.gastosFijos.findIndex(f => f.concepto === extra.concepto);
+                    if (fijIdx >= 0) {
+                        const fijo = d.gastosFijos[fijIdx];
+                        // Solo migrar si no hay ya un override para este ítem
+                        const key = 'gastosFijos_' + fijIdx;
+                        if (!mes.overrides[key]) {
+                            // valor real = valor_fijo + diferencia
+                            const aplica = fijo.frecuencia === 'mensual' || (fijo.frecuencia === 'anual' && fijo.meses && fijo.meses.includes(mIdx));
+                            if (aplica) {
+                                mes.overrides[key] = { concepto: fijo.concepto, valor: fijo.valor + extra.valor };
+                            }
+                        }
+                        return false; // eliminar el extra del array
+                    }
+                    return true;
+                });
+                // Ingresos extras: buscar coincidencia con ingresosFijos
+                mes.ingresosExtras = (mes.ingresosExtras || []).filter(extra => {
+                    const fijIdx = d.ingresosFijos.findIndex(f => f.concepto === extra.concepto);
+                    if (fijIdx >= 0) {
+                        const fijo = d.ingresosFijos[fijIdx];
+                        const key = 'ingresosFijos_' + fijIdx;
+                        if (!mes.overrides[key]) {
+                            const aplica = fijo.frecuencia === 'mensual' || (fijo.frecuencia === 'anual' && fijo.meses && fijo.meses.includes(mIdx));
+                            if (aplica) {
+                                mes.overrides[key] = { concepto: fijo.concepto, valor: fijo.valor + extra.valor };
+                            }
+                        }
+                        return false;
+                    }
+                    return true;
+                });
+                // Vacaciones extras: buscar coincidencia con gastosVacaciones
+                mes.gastosVacacionesExtras = (mes.gastosVacacionesExtras || []).filter(extra => {
+                    const fijIdx = (d.gastosVacaciones || []).findIndex(f => f.concepto === extra.concepto);
+                    if (fijIdx >= 0) {
+                        const fijo = d.gastosVacaciones[fijIdx];
+                        const key = 'gastosVacaciones_' + fijIdx;
+                        if (!mes.overrides[key]) {
+                            const aplica = fijo.frecuencia === 'mensual' || (fijo.frecuencia === 'anual' && fijo.meses && fijo.meses.includes(mIdx));
+                            if (aplica) {
+                                mes.overrides[key] = { concepto: fijo.concepto, valor: fijo.valor + extra.valor };
+                            }
+                        }
+                        return false;
+                    }
+                    return true;
+                });
+            });
         }
 
         function mostrarFuenteDatos(fuente, fechaISO) {
             const el = document.getElementById('datos-fuente-info');
             if (!el) return;
+            let texto = '';
             const fechaStr = fechaISO
                 ? new Date(fechaISO).toLocaleString('es-ES', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' })
                 : '—';
             if (fuente === 'gist') {
-                el.innerHTML = '☁️ Datos del Gist · ' + fechaStr;
+                texto = '☁️ Datos del Gist · ' + fechaStr;
                 el.style.color = '#818cf8';
             } else if (fuente === 'local-nuevo') {
-                el.innerHTML = '💾 Datos locales (más recientes) · Recuerda guardar en Gist';
+                texto = '💾 Datos locales (más recientes que el Gist) · ' + fechaStr + ' · Recuerda guardar en Gist';
                 el.style.color = '#f59e0b';
             } else if (fuente === 'cargando') {
-                el.innerHTML = '⏳ Conectando con Gist...';
+                texto = '⏳ Conectando con Gist...';
                 el.style.color = 'rgba(255,255,255,0.38)';
             } else if (fuente === 'servidor') {
-                el.innerHTML = '☁️ Datos del servidor · ' + fechaStr;
+                texto = '☁️ Datos del servidor · ' + fechaStr;
                 el.style.color = 'rgba(255,255,255,0.38)';
             } else {
-                el.innerHTML = '🔒 Datos locales · Sin conexión al Gist';
+                texto = '🔒 Datos locales · Sin conexión al Gist';
                 el.style.color = '#f59e0b';
+            }
+            el.innerHTML = texto;
+        }
+
+        // ══════════════════════════════════════════════
+        //  GIST SYNC
+        // ══════════════════════════════════════════════
+        const GIST_ID = '6eaad65a997877a68cebeb3fdc7ecf5b';
+        const GIST_FILENAME = 'finanzas-mama-new.json';
+
+        function gistToken() { return localStorage.getItem('gistToken') || ''; }
+        function gistConfigurado() { return !!gistToken(); }
+
+        function actualizarBtnGist() {
+            const btn = document.getElementById('btn-gist-sync');
+            if (btn) btn.style.display = gistConfigurado() ? '' : 'none';
+        }
+
+        async function cargarDesdeGist() {
+            // Carga pública (sin token) usando la API de Gist
+            try {
+                const resp = await fetch('https://api.github.com/gists/' + GIST_ID, {
+                    headers: gistConfigurado() ? { 'Authorization': 'token ' + gistToken() } : {}
+                });
+                if (!resp.ok) return null;
+                const gist = await resp.json();
+                const file = gist.files && gist.files[GIST_FILENAME];
+                if (!file) return null;
+                // Si el contenido está truncado, fetch al raw_url
+                let raw = file.content;
+                if (file.truncated) {
+                    const rr = await fetch(file.raw_url);
+                    raw = await rr.text();
+                }
+                return JSON.parse(raw);
+            } catch(e) { return null; }
+        }
+
+        async function guardarEnGist(manual) {
+            if (!gistConfigurado()) {
+                if (manual) mostrarNotificacion('⚠️ Configura primero el token Gist (botón 🔑 Gist)', 'error');
+                return false;
+            }
+            const payload = Object.assign({}, datos, { _exportadoEn: new Date().toISOString() });
+            try {
+                const resp = await fetch('https://api.github.com/gists/' + GIST_ID, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': 'token ' + gistToken(),
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ files: { [GIST_FILENAME]: { content: JSON.stringify(payload, null, 2) } } })
+                });
+                if (resp.ok) {
+                    localStorage.setItem('gistLastSavedMama', payload._exportadoEn);
+                    if (manual) mostrarNotificacion('☁️ Guardado en Gist correctamente', 'exito');
+                    mostrarFuenteDatos('gist', payload._exportadoEn);
+                    return true;
+                } else {
+                    if (manual) mostrarNotificacion('❌ Error al guardar en Gist (' + resp.status + ')', 'error');
+                    return false;
+                }
+            } catch(e) {
+                if (manual) mostrarNotificacion('❌ Sin conexión al guardar en Gist', 'error');
+                return false;
             }
         }
 
+        // Modal configuración Gist
+        function abrirModalGistConfig() {
+            let modal = document.getElementById('modal-gist-config');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'modal-gist-config';
+                modal.className = 'modal';
+                modal.style.display = 'flex';
+                modal.style.alignItems = 'center';
+                modal.style.justifyContent = 'center';
+                modal.innerHTML = `
+                <div class="modal-content" style="max-width:480px;">
+                    <span class="close" onclick="document.getElementById('modal-gist-config').style.display='none'">&times;</span>
+                    <h2 style="margin-bottom:16px;">🔑 Configuración Gist</h2>
+                    <p style="font-size:0.9em;color:#6b7280;margin-bottom:16px;">
+                        El token se guarda solo en este dispositivo (localStorage). Nunca se envía a ningún servidor salvo a la API de GitHub.
+                    </p>
+                    <label style="display:block;font-weight:700;margin-bottom:6px;color:#374151;">Personal Access Token de GitHub</label>
+                    <input id="gist-token-input" type="password" placeholder="ghp_..." style="width:100%;padding:10px;border:2px solid #d1d5db;border-radius:8px;font-size:1em;margin-bottom:12px;">
+                    <div style="display:flex;gap:10px;margin-top:4px;align-items:center;">
+                        <button onclick="guardarTokenGist()" style="flex:1;background:#4f46e5;color:white;border:none;padding:10px;border-radius:8px;cursor:pointer;font-weight:700;">Guardar token</button>
+                        <button onclick="borrarTokenGist()" style="flex:0 0 auto;width:auto;background:#ef4444;color:white;border:none;padding:10px 16px;border-radius:8px;cursor:pointer;font-weight:700;font-size:0.85em;white-space:nowrap;">Borrar</button>
+                    </div>
+                    <div id="gist-token-status" style="margin-top:12px;font-size:0.85em;"></div>
+                </div>`;
+                document.body.appendChild(modal);
+            }
+            const input = document.getElementById('gist-token-input');
+            input.value = gistToken();
+            const status = document.getElementById('gist-token-status');
+            status.innerHTML = gistConfigurado()
+                ? '<span style="color:#10b981;">✅ Token configurado en este dispositivo</span>'
+                : '<span style="color:#f59e0b;">⚠️ Sin token — solo lectura desde Gist</span>';
+            modal.style.display = 'flex';
+        }
+
+        function guardarTokenGist() {
+            const val = document.getElementById('gist-token-input').value.trim();
+            if (!val) { mostrarNotificacion('⚠️ Introduce un token', 'error'); return; }
+            localStorage.setItem('gistToken', val);
+            actualizarBtnGist();
+            document.getElementById('gist-token-status').innerHTML = '<span style="color:#10b981;">✅ Token guardado</span>';
+            mostrarNotificacion('✅ Token Gist guardado en este dispositivo', 'exito');
+        }
+
+        function borrarTokenGist() {
+            localStorage.removeItem('gistToken');
+            document.getElementById('gist-token-input').value = '';
+            document.getElementById('gist-token-status').innerHTML = '<span style="color:#f59e0b;">⚠️ Token eliminado</span>';
+            actualizarBtnGist();
+            mostrarNotificacion('🗑️ Token eliminado', 'exito');
+        }
+
+        // ══════════════════════════════════════════════
+        //  CARGA DE DATOS (Gist primero)
+        // ══════════════════════════════════════════════
         async function cargarDatos() {
             // Migración datos antiguos
-            const datosViejos = localStorage.getItem('mama_finanzas2');
-            const datosNuevos = localStorage.getItem('mama_finanzas_2026');
+            const datosViejos = localStorage.getItem('finanzasPersonales2');
+            const datosNuevos = localStorage.getItem('finanzasPersonalesMama_2026');
             if (datosViejos && !datosNuevos) {
-                localStorage.setItem('mama_finanzas_2026', datosViejos);
+                localStorage.setItem('finanzasPersonales_2026', datosViejos);
                 mostrarNotificacion('✅ Datos migrados a sistema multi-año', 'exito');
             }
 
@@ -1808,15 +2212,62 @@
 
             actualizarBtnGist();
 
-            // Intentar cargar desde Gist primero
-            const cargadoDesdeGist = await cargarDesdeGist();
+            const datosLocales = localStorage.getItem('finanzasPersonales_2026');
 
-            if (!cargadoDesdeGist) {
-                const datosGuardados = localStorage.getItem('mama_finanzas_2026');
-                if (datosGuardados) {
-                    datos = JSON.parse(datosGuardados);
+            // ── Intentar cargar desde Gist primero ──
+            mostrarFuenteDatos('cargando', null);
+            const datosGist = await cargarDesdeGist();
+
+            if (datosGist) {
+                // Tenemos datos del Gist
+                if (datosLocales) {
+                    // Comparar fechas para ver cuál es más reciente
+                    const tsGist  = datosGist._exportadoEn  ? new Date(datosGist._exportadoEn).getTime()  : 0;
+                    const tsLocal = JSON.parse(datosLocales)._exportadoEn
+                        ? new Date(JSON.parse(datosLocales)._exportadoEn).getTime() : 0;
+
+                    if (tsLocal > tsGist) {
+                        // Local es más nuevo → preguntar
+                        const usar = confirm(
+                            '⚠️ Tus datos locales son más recientes que los del Gist.\n\n' +
+                            '• Local:  ' + (tsLocal ? new Date(tsLocal).toLocaleString('es-ES') : 'sin fecha') + '\n' +
+                            '• Gist:   ' + (tsGist  ? new Date(tsGist).toLocaleString('es-ES')  : 'sin fecha') + '\n\n' +
+                            '¿Cargar los datos LOCALES?\n' +
+                            '(Pulsa Cancelar para usar los del Gist y perder los cambios locales)'
+                        );
+                        if (usar) {
+                            datos = JSON.parse(datosLocales);
+                            normalizarDatos(datos);
+                            mostrarFuenteDatos('local-nuevo', JSON.parse(datosLocales)._exportadoEn || null);
+                            mostrarNotificacion('💾 Usando datos locales (más recientes). Recuerda guardar en Gist cuando termines.', 'exito');
+                        } else {
+                            datos = datosGist;
+                            normalizarDatos(datos);
+                            localStorage.setItem('finanzasPersonales_2026', JSON.stringify(datos));
+                            mostrarFuenteDatos('gist', datosGist._exportadoEn || null);
+                        }
+                    } else {
+                        // Gist es igual o más nuevo → usar Gist
+                        datos = datosGist;
+                        normalizarDatos(datos);
+                        localStorage.setItem('finanzasPersonales_2026', JSON.stringify(datos));
+                        mostrarFuenteDatos('gist', datosGist._exportadoEn || null);
+                    }
+                } else {
+                    // Sin datos locales → usar Gist directamente
+                    datos = datosGist;
                     normalizarDatos(datos);
+                    localStorage.setItem('finanzasPersonales_2026', JSON.stringify(datos));
+                    mostrarFuenteDatos('gist', datosGist._exportadoEn || null);
                 }
+            } else if (datosLocales) {
+                // Sin Gist disponible → usar local
+                datos = JSON.parse(datosLocales);
+                normalizarDatos(datos);
+                mostrarFuenteDatos('local', null);
+                mostrarNotificacion('⚠️ No se pudo conectar al Gist. Usando datos locales.', 'error');
+            } else {
+                // Sin nada → datos vacíos
                 mostrarFuenteDatos('local', null);
             }
 
@@ -1828,14 +2279,13 @@
         
         let anoActual = 2026;
 
-        function guardarDatosLocal() {
-            localStorage.setItem('mama_finanzas_' + anoActual, JSON.stringify(datos));
-        }
-
         function guardarDatos() {
-            guardarDatosLocal();
-            // Auto-guardar en Gist con debounce de 2s
-            if (typeof gistConfigurado === 'function' && gistConfigurado()) {
+            // El snapshot NUNCA se toca aquí.
+            // Solo se genera/actualiza en cerrarMes() — cuando el usuario cierra el mes manualmente.
+            // Un mes reabierto (abierto=true) mantiene su snapshot intacto hasta que se cierre de nuevo.
+            localStorage.setItem('finanzasPersonales_' + anoActual, JSON.stringify(datos));
+            // Auto-guardar en Gist si está configurado (con debounce de 2s para no saturar la API)
+            if (gistConfigurado()) {
                 clearTimeout(window._gistSaveTimer);
                 window._gistSaveTimer = setTimeout(function() { guardarEnGist(false); }, 2000);
             }
@@ -1946,7 +2396,7 @@
 
         function regenerarAnoDesdeAnterior() {
             const anoAnterior = anoActual - 1;
-            const guardadoAnterior = localStorage.getItem('mama_finanzas_' + anoAnterior);
+            const guardadoAnterior = localStorage.getItem('finanzasPersonales_' + anoAnterior);
             if (!guardadoAnterior) {
                 mostrarNotificacion('❌ No hay datos de ' + anoAnterior + ' para regenerar', 'error');
                 return;
@@ -1962,23 +2412,29 @@
         }
 
         function regenerarTodosLosAnos() {
-            // Encontrar el primer año con datos
+            // Solo regenerar desde el año actual en adelante
             const ANOS = [];
-            for (let y = 2024; y <= 2040; y++) {
-                if (localStorage.getItem('mama_finanzas_' + y)) ANOS.push(y);
+            for (let y = anoActual; y <= 2040; y++) {
+                if (localStorage.getItem('finanzasPersonales_' + y) || y === anoActual) ANOS.push(y);
             }
-            if (ANOS.length < 2) {
-                mostrarNotificacion('❌ Necesitas al menos 2 años con datos para regenerar en cadena', 'error');
+            
+            // Necesitamos el año anterior como base
+            const anoBase = anoActual - 1;
+            const guardadoBase = localStorage.getItem('finanzasPersonales_' + anoBase);
+            if (!guardadoBase) {
+                mostrarNotificacion('❌ No hay datos de ' + anoBase + ' para usar como base', 'error');
                 return;
             }
 
-            const primerAno = ANOS[0];
-            const ultimoAno = ANOS[ANOS.length - 1];
+            if (ANOS.length < 1) {
+                mostrarNotificacion('❌ No hay años para regenerar', 'error');
+                return;
+            }
 
             if (!confirm(
                 '🔄 REGENERACIÓN EN CADENA\n\n' +
-                'Se regenerarán todos los años desde ' + (primerAno + 1) + ' hasta ' + ultimoAno + '\n' +
-                'usando como base siempre el año anterior con sus % de incremento.\n\n' +
+                'Se regenerarán todos los años desde ' + anoActual + ' en adelante\n' +
+                'usando como base ' + anoBase + ' y aplicando los % de incremento.\n\n' +
                 '⚠️ Los extras puntuales de cada mes se perderán.\n' +
                 'Los extras recurrentes (con fecha fin) se conservan.\n\n' +
                 '¿Continuar?'
@@ -1988,37 +2444,51 @@
             guardarDatos();
 
             let regenerados = [];
+            
+            // Primer año: regenerar desde anoBase
+            let datosBase = JSON.parse(guardadoBase);
+            let nuevoDatos = generarDatosAnoSiguiente(datosBase);
+            
+            // Conservar extrasRecurrentes si ya existían
+            const rawActual = localStorage.getItem('finanzasPersonales_' + anoActual);
+            if (rawActual) {
+                const datosActual = JSON.parse(rawActual);
+                if (datosActual.extrasRecurrentes && datosActual.extrasRecurrentes.length > 0) {
+                    nuevoDatos.extrasRecurrentes = datosActual.extrasRecurrentes;
+                }
+            }
+            
+            localStorage.setItem('finanzasPersonales_' + anoActual, JSON.stringify(nuevoDatos));
+            regenerados.push(anoActual);
+            
+            // Años siguientes: en cadena
             for (let i = 1; i < ANOS.length; i++) {
-                const anoBase = ANOS[i - 1];
                 const anoTarget = ANOS[i];
-                const rawBase = localStorage.getItem('mama_finanzas_' + anoBase);
-                if (!rawBase) continue;
-                const datosBase = JSON.parse(rawBase);
-
-                // Temporalmente ajustamos anoActual para que calcularBalanceAcumuladoDeDatos
-                // use el año correcto en los extras recurrentes
-                const anoGuardado = anoActual;
-                anoActual = anoBase;
-                const nuevoDatos = generarDatosAnoSiguiente(datosBase);
-                anoActual = anoGuardado;
-
+                const anoAnterior = ANOS[i - 1];
+                
+                const rawAnterior = localStorage.getItem('finanzasPersonales_' + anoAnterior);
+                if (!rawAnterior) continue;
+                
+                datosBase = JSON.parse(rawAnterior);
+                nuevoDatos = generarDatosAnoSiguiente(datosBase);
+                
                 // Conservar extrasRecurrentes del año destino si ya los tiene
-                const rawTarget = localStorage.getItem('mama_finanzas_' + anoTarget);
+                const rawTarget = localStorage.getItem('finanzasPersonales_' + anoTarget);
                 if (rawTarget) {
                     const datosTarget = JSON.parse(rawTarget);
                     if (datosTarget.extrasRecurrentes && datosTarget.extrasRecurrentes.length > 0) {
                         nuevoDatos.extrasRecurrentes = datosTarget.extrasRecurrentes;
                     }
                 }
-
-                localStorage.setItem('mama_finanzas_' + anoTarget, JSON.stringify(nuevoDatos));
+                
+                localStorage.setItem('finanzasPersonales_' + anoTarget, JSON.stringify(nuevoDatos));
                 regenerados.push(anoTarget);
             }
 
             // Recargar el año que estaba activo
-            const rawActual = localStorage.getItem('mama_finanzas_' + anoActual);
-            if (rawActual) {
-                datos = JSON.parse(rawActual);
+            const rawRecargado = localStorage.getItem('finanzasPersonales_' + anoActual);
+            if (rawRecargado) {
+                datos = JSON.parse(rawRecargado);
                 if (!datos.extrasRecurrentes) datos.extrasRecurrentes = [];
             }
 
@@ -2035,7 +2505,7 @@
             const nuevoAno = parseInt(document.getElementById('ano-select').value);
 
             // Cargar datos del nuevo año si existen
-            const guardado = localStorage.getItem('mama_finanzas_' + nuevoAno);
+            const guardado = localStorage.getItem('finanzasPersonales_' + nuevoAno);
             if (guardado) {
                 anoActual = nuevoAno;
                 datos = JSON.parse(guardado);
@@ -2049,7 +2519,7 @@
             } else {
                 // Año nuevo: copiar del año anterior con incrementos
                 const anoAnterior = nuevoAno - 1;
-                const guardadoAnterior = localStorage.getItem('mama_finanzas_' + anoAnterior);
+                const guardadoAnterior = localStorage.getItem('finanzasPersonales_' + anoAnterior);
                 if (guardadoAnterior) {
                     const datosAnterior = JSON.parse(guardadoAnterior);
                     anoActual = nuevoAno;
@@ -2068,6 +2538,7 @@
             actualizarTodo();
             actualizarResumenAnual();
             actualizarCategorias();
+            actualizarBotonesRegenerar();
         }
         
         function cambiarMes() {
@@ -2085,10 +2556,10 @@
         }
 
         function calcularTotalesMes(numMes) {
-            // Si el mes está cerrado, usar snapshot fijo
-            const cerrado = datos.mesesCerrados && datos.mesesCerrados[numMes];
-            if (cerrado && cerrado.snapshot) {
-                return cerrado.snapshot;
+            // Si el mes está cerrado, usar snapshot inmutable
+            const entrada = datos.mesesCerrados && datos.mesesCerrados[numMes];
+            if (entrada && entrada.snapshot) {
+                return entrada.snapshot;
             }
 
             let ingresosFijos = 0;
@@ -2099,32 +2570,32 @@
 
             datos.ingresosFijos.forEach((item, idx) => {
                 const ov = overrides['ingresosFijos_' + idx];
-                const valor = ov ? ov.valor : item.valor;
-                if (item.frecuencia === 'mensual') {
-                    ingresosFijos += valor;
-                } else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) {
-                    ingresosFijos += valor;
-                }
+                if (ov && ov.eliminado) return;
+                const aplica = item.frecuencia === 'mensual' ||
+                    (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) ||
+                    (ov && ov.forzarEnMes); // fijo anual añadido expresamente solo a este mes
+                if (!aplica) return;
+                ingresosFijos += ov ? ov.valor : item.valor;
             });
 
             datos.gastosFijos.forEach((item, idx) => {
                 const ov = overrides['gastosFijos_' + idx];
-                const valor = ov ? ov.valor : item.valor;
-                if (item.frecuencia === 'mensual') {
-                    gastosFijos += valor;
-                } else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) {
-                    gastosFijos += valor;
-                }
+                if (ov && ov.eliminado) return;
+                const aplica = item.frecuencia === 'mensual' ||
+                    (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) ||
+                    (ov && ov.forzarEnMes);
+                if (!aplica) return;
+                gastosFijos += ov ? ov.valor : item.valor;
             });
             
             datos.gastosVacaciones.forEach((item, idx) => {
                 const ov = overrides['gastosVacaciones_' + idx];
-                const valor = ov ? ov.valor : item.valor;
-                if (item.frecuencia === 'mensual') {
-                    gastosVacaciones += valor;
-                } else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) {
-                    gastosVacaciones += valor;
-                }
+                if (ov && ov.eliminado) return;
+                const aplica = item.frecuencia === 'mensual' ||
+                    (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) ||
+                    (ov && ov.forzarEnMes);
+                if (!aplica) return;
+                gastosVacaciones += ov ? ov.valor : item.valor;
             });
             
             const ingresosExtras = datos.meses[numMes].ingresosExtras.reduce((sum, item) => sum + item.valor, 0);
@@ -2143,12 +2614,8 @@
             
             const ingresosBonus = (datos.ingresosBonus || []).reduce((sum, item, idx) => {
                 const ov = overrides['ingresosBonus_' + idx];
-                let valor;
-                if (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes) && esBonusSuministros(item.concepto)) {
-                    valor = valorBonusSuministros(numMes); // ← valor vivo trimestral
-                } else {
-                    valor = ov ? ov.valor : item.valor;
-                }
+                if (ov && ov.eliminado) return sum; // eliminado solo para este mes
+                const valor = ov ? ov.valor : item.valor;
                 if (item.frecuencia === 'mensual') return sum + valor;
                 if (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) return sum + valor;
                 return sum;
@@ -2172,7 +2639,7 @@
             // para obtener el saldo real 1 Ene (= 31 Dic calculado del año anterior).
             let saldoEncadenado = null;
             for (let y = 2024; y <= ano; y++) {
-                const raw = localStorage.getItem('mama_finanzas_' + y);
+                const raw = localStorage.getItem('finanzasPersonales_' + y);
                 if (!raw) continue;
                 const d = JSON.parse(raw);
                 const saldoInicio = saldoEncadenado !== null ? saldoEncadenado : (d.saldoInicial || 0);
@@ -2235,54 +2702,83 @@
             return !!(datos.mesesCerrados && datos.mesesCerrados[numMes]);
         }
 
-        function generarSnapshot(numMes) {
-            // Temporarily remove the snapshot to force live calculation
-            const backup = datos.mesesCerrados[numMes];
-            delete datos.mesesCerrados[numMes];
-            const totales = calcularTotalesMes(numMes);
-            const balanceAcumulado = calcularBalanceAcumulado(numMes);
-            if (backup) datos.mesesCerrados[numMes] = backup;
-
-            // Capturar snapshot detallado ítem a ítem (para comparar al reabrir)
-            const overrides = datos.meses[numMes].overrides || {};
-            const snapshotItems = [];
-
-            const capturar = (arr, fuente) => {
-                arr.forEach((item, idx) => {
-                    const aplica = item.frecuencia === 'mensual' ||
-                        (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes));
-                    if (!aplica) return;
-                    const ov = overrides[fuente + '_' + idx];
-                    if (ov && ov.eliminado) {
-                        snapshotItems.push({ fuente, idx, concepto: item.concepto, valor: 0, eliminado: true });
-                        return;
-                    }
-                    const valor = ov ? ov.valor : item.valor;
-                    const concepto = ov ? ov.concepto : item.concepto;
-                    snapshotItems.push({ fuente, idx, concepto, valor, eliminado: false });
-                });
-            };
-
-            capturar(datos.ingresosFijos, 'ingresosFijos');
-            capturar(datos.ingresosBonus || [], 'ingresosBonus');
-            capturar(datos.gastosFijos, 'gastosFijos');
-            capturar(datos.gastosVacaciones || [], 'gastosVacaciones');
-
-            return { totales, balanceAcumulado, snapshotItems };
-        }
-
         function cerrarMes(numMes, silencioso) {
             if (!datos.mesesCerrados) datos.mesesCerrados = {};
-            const { totales, balanceAcumulado, snapshotItems } = generarSnapshot(numMes);
+
+            // Calcular totales en vivo (el mes aún no está en mesesCerrados)
+            const totales = calcularTotalesMes(numMes);
+            const balanceAcumulado = calcularBalanceAcumulado(numMes);
+            const overrides = datos.meses[numMes].overrides || {};
+
+            // Generar snapshotItems: captura exacta de cada partida con su valor real
+            const snapshotItems = [];
+
+            datos.ingresosFijos.forEach((item, idx) => {
+                const ov = overrides['ingresosFijos_' + idx];
+                const eliminado = ov && ov.eliminado;
+                const aplica = item.frecuencia === 'mensual' ||
+                    (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) ||
+                    (ov && ov.forzarEnMes);
+                if (!aplica) return;
+                snapshotItems.push({ fuente: 'ingresosFijos', idx, concepto: ov ? ov.concepto : item.concepto, valor: eliminado ? 0 : (ov ? ov.valor : item.valor), eliminado: !!eliminado });
+            });
+
+            (datos.ingresosBonus || []).forEach((item, idx) => {
+                const ov = overrides['ingresosBonus_' + idx];
+                const eliminado = ov && ov.eliminado;
+                const aplica = item.frecuencia === 'mensual' ||
+                    (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) ||
+                    (ov && ov.forzarEnMes);
+                if (!aplica) return;
+                snapshotItems.push({ fuente: 'ingresosBonus', idx, concepto: ov ? ov.concepto : item.concepto, valor: eliminado ? 0 : (ov ? ov.valor : item.valor), eliminado: !!eliminado });
+            });
+
+            datos.meses[numMes].ingresosExtras.forEach((item, idx) => {
+                snapshotItems.push({ fuente: 'ingresosExtras', idx, concepto: item.concepto, valor: item.valor, eliminado: false });
+            });
+
+            datos.gastosFijos.forEach((item, idx) => {
+                const ov = overrides['gastosFijos_' + idx];
+                const eliminado = ov && ov.eliminado;
+                const aplica = item.frecuencia === 'mensual' ||
+                    (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) ||
+                    (ov && ov.forzarEnMes);
+                if (!aplica) return;
+                snapshotItems.push({ fuente: 'gastosFijos', idx, concepto: ov ? ov.concepto : item.concepto, valor: eliminado ? 0 : (ov ? ov.valor : item.valor), eliminado: !!eliminado });
+            });
+
+            (datos.gastosVacaciones || []).forEach((item, idx) => {
+                const ov = overrides['gastosVacaciones_' + idx];
+                const eliminado = ov && ov.eliminado;
+                const aplica = item.frecuencia === 'mensual' ||
+                    (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) ||
+                    (ov && ov.forzarEnMes);
+                if (!aplica) return;
+                snapshotItems.push({ fuente: 'gastosVacaciones', idx, concepto: ov ? ov.concepto : item.concepto, valor: eliminado ? 0 : (ov ? ov.valor : item.valor), eliminado: !!eliminado });
+            });
+
+            datos.meses[numMes].gastosExtras.forEach((item, idx) => {
+                snapshotItems.push({ fuente: 'gastosExtras', idx, concepto: item.concepto, valor: item.valor, eliminado: false });
+            });
+
+            datos.meses[numMes].gastosVacacionesExtras.forEach((item, idx) => {
+                snapshotItems.push({ fuente: 'gastosVacacionesExtras', idx, concepto: item.concepto, valor: item.valor, eliminado: false });
+            });
+
+            (datos.extrasRecurrentes || []).forEach((item, idx) => {
+                if (!extraRecurrenteAplicaEnMes(item, anoActual, numMes)) return;
+                snapshotItems.push({ fuente: 'extrasRecurrentes', idx, concepto: item.concepto, valor: item.valor, tipo: item.tipo, eliminado: false });
+            });
+
             datos.mesesCerrados[numMes] = {
                 cerradoEn: new Date().toISOString(),
                 snapshot: totales,
-                balanceAcumulado: balanceAcumulado,
-                snapshotItems: snapshotItems   // ← detalle ítem a ítem
+                snapshotItems,
+                balanceAcumulado
             };
             guardarDatos();
             if (!silencioso) {
-                mostrarNotificacion('🔒 ' + MESES_NOMBRES[numMes] + ' cerrado', 'exito');
+                mostrarNotificacion('🔒 ' + MESES_NOMBRES[numMes] + ' cerrado definitivamente', 'exito');
             }
         }
 
@@ -2291,288 +2787,27 @@
                 mostrarNotificacion('ℹ️ Este mes ya está cerrado', 'error');
                 return;
             }
-            if (!confirm('¿Cerrar ' + MESES_NOMBRES[mesActual] + '?\n\nLos datos quedarán fijos. Podrás editarlos pero los cambios también serán fijos.')) return;
+            if (!confirm('¿Cerrar ' + MESES_NOMBRES[mesActual] + ' definitivamente?\n\n⚠️ Esta acción NO se puede deshacer.\nLos datos quedarán fijos para siempre.')) return;
             cerrarMes(mesActual, false);
             actualizarTodo();
             actualizarResumenAnual();
         }
 
         function reabrirMes() {
-            const numMes = mesActual;
-            const cerrado = datos.mesesCerrados && datos.mesesCerrados[numMes];
-            if (!cerrado) return;
-
-            // Si no hay snapshotItems (mes cerrado con versión antigua), reabrir directo
-            if (!cerrado.snapshotItems || cerrado.snapshotItems.length === 0) {
-                if (!confirm('¿Reabrir ' + MESES_NOMBRES[numMes] + '?\n\nLos datos se calcularán en vivo desde los valores actuales.')) return;
-                delete datos.mesesCerrados[numMes];
-                guardarDatos();
-                mostrarNotificacion('🔓 ' + MESES_NOMBRES[numMes] + ' reabierto', 'exito');
-                actualizarTodo();
-                actualizarResumenAnual();
-                return;
-            }
-
-            // Detectar diferencias entre snapshot guardado y estado live actual
-            const overrides = datos.meses[numMes].overrides || {};
-            const diferencias = [];
-
-            const fuentes = [
-                { clave: 'ingresosFijos', arr: datos.ingresosFijos, tipo: 'ingreso', label: 'Ingreso fijo' },
-                { clave: 'ingresosBonus', arr: datos.ingresosBonus || [], tipo: 'ingreso', label: 'Bonus' },
-                { clave: 'gastosFijos', arr: datos.gastosFijos, tipo: 'gasto', label: 'Gasto fijo' },
-                { clave: 'gastosVacaciones', arr: datos.gastosVacaciones || [], tipo: 'gasto', label: 'Vacaciones' },
-            ];
-
-            fuentes.forEach(({ clave, arr, tipo, label }) => {
-                arr.forEach((item, idx) => {
-                    const aplica = item.frecuencia === 'mensual' ||
-                        (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes));
-                    if (!aplica) return;
-
-                    // Valor vivo (sin override, porque queremos comparar con el fijo global actual)
-                    const valorLive = item.valor;
-                    const conceptoLive = item.concepto;
-
-                    // Valor en snapshot
-                    const snap = cerrado.snapshotItems.find(s => s.fuente === clave && s.idx === idx);
-                    const valorSnap = snap ? snap.valor : null;
-                    const conceptoSnap = snap ? snap.concepto : null;
-                    const eliminadoSnap = snap ? snap.eliminado : false;
-
-                    // El valor que se mostrará al reabrir (live con overrides del mes)
-                    const ovActual = overrides[clave + '_' + idx];
-                    const valorEfectivo = ovActual ? ovActual.valor : valorLive;
-                    const conceptoEfectivo = ovActual ? ovActual.concepto : conceptoLive;
-
-                    if (snap === undefined) {
-                        // Ítem nuevo que no existía cuando se cerró — preguntar si añadir
-                        diferencias.push({
-                            fuente: clave, idx, tipo, label,
-                            concepto: conceptoLive,
-                            valorSnap: null, valorLive: valorLive,
-                            descripcion: '➕ NUEVO',
-                            colorBadge: '#7c3aed',
-                            textoSnap: '(no existía)',
-                            textoLive: conceptoLive + ': ' + formatearMoneda(valorLive),
-                        });
-                        return;
-                    }
-
-                    if (eliminadoSnap && !ovActual) {
-                        // Estaba eliminado en el snapshot pero ahora existe → preguntar
-                        diferencias.push({
-                            fuente: clave, idx, tipo, label,
-                            concepto: conceptoLive,
-                            valorSnap: 0, valorLive: valorLive,
-                            descripcion: '♻️ RESTAURADO',
-                            colorBadge: '#0891b2',
-                            textoSnap: '(eliminado en el cierre)',
-                            textoLive: conceptoLive + ': ' + formatearMoneda(valorLive),
-                        });
-                        return;
-                    }
-
-                    const mismoConcepto = conceptoSnap === conceptoEfectivo;
-                    const mismoValor = Math.abs((valorSnap || 0) - valorEfectivo) < 0.005;
-
-                    if (!mismoValor || !mismoConcepto) {
-                        diferencias.push({
-                            fuente: clave, idx, tipo, label,
-                            concepto: conceptoEfectivo,
-                            valorSnap: valorSnap,
-                            valorLive: valorLive,
-                            valorEfectivo: valorEfectivo,
-                            conceptoSnap: conceptoSnap,
-                            descripcion: '✏️ MODIFICADO',
-                            colorBadge: '#d97706',
-                            textoSnap: (conceptoSnap || '?') + ': ' + formatearMoneda(valorSnap || 0),
-                            textoLive: conceptoLive + ' (global): ' + formatearMoneda(valorLive),
-                        });
-                    }
-                });
-
-                // Ítems que estaban en el snapshot pero ya no existen en el array
-                cerrado.snapshotItems
-                    .filter(s => s.fuente === clave && !s.eliminado)
-                    .forEach(snap => {
-                        if (snap.idx >= arr.length) {
-                            diferencias.push({
-                                fuente: clave, idx: snap.idx, tipo, label,
-                                concepto: snap.concepto,
-                                valorSnap: snap.valor, valorLive: null,
-                                descripcion: '🗑️ ELIMINADO GLOBALMENTE',
-                                colorBadge: '#ef4444',
-                                textoSnap: snap.concepto + ': ' + formatearMoneda(snap.valor),
-                                textoLive: '(ya no existe en los fijos globales)',
-                            });
-                        }
-                    });
-            });
-
-            if (diferencias.length === 0) {
-                // Sin cambios: reabrir directamente
-                delete datos.mesesCerrados[numMes];
-                guardarDatos();
-                mostrarNotificacion('🔓 ' + MESES_NOMBRES[numMes] + ' reabierto (sin cambios detectados)', 'exito');
-                actualizarTodo();
-                actualizarResumenAnual();
-                return;
-            }
-
-            // Mostrar modal de diferencias
-            abrirModalReapertura(numMes, diferencias);
-        }
-
-        // ── MODAL DE REAPERTURA ─────────────────────────────────────────────
-        let _reaperturaMes = null;
-        let _reaperturaDiferencias = [];
-        let _reaperturaDecisiones = {}; // { idx_fuente: 'mantener'|'aplicar' }
-
-        function abrirModalReapertura(numMes, diferencias) {
-            _reaperturaMes = numMes;
-            _reaperturaDiferencias = diferencias;
-            _reaperturaDecisiones = {};
-
-            // Inicializar todas en "mantener" (valor del snapshot)
-            diferencias.forEach((d, i) => { _reaperturaDecisiones[i] = 'mantener'; });
-
-            const lista = document.getElementById('reapertura-lista');
-            lista.innerHTML = '';
-
-            diferencias.forEach((d, i) => {
-                const row = document.createElement('div');
-                row.style.cssText = 'background:#f8fafc;border-radius:12px;padding:14px 16px;margin-bottom:10px;border:1px solid #e2e8f0;';
-
-                const header = document.createElement('div');
-                header.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;';
-
-                const badge = document.createElement('span');
-                badge.style.cssText = `background:${d.colorBadge};color:white;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap;`;
-                badge.textContent = d.descripcion;
-
-                const label = document.createElement('span');
-                label.style.cssText = 'font-size:12px;color:#64748b;background:#e2e8f0;padding:2px 8px;border-radius:10px;';
-                label.textContent = d.label;
-
-                const concepto = document.createElement('strong');
-                concepto.style.cssText = 'font-size:14px;color:#1e293b;flex:1;';
-                concepto.textContent = d.concepto;
-
-                header.appendChild(badge);
-                header.appendChild(label);
-                header.appendChild(concepto);
-
-                // Comparativa
-                const comp = document.createElement('div');
-                comp.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;';
-
-                const boxSnap = document.createElement('div');
-                boxSnap.style.cssText = 'background:#fef3c7;border-radius:8px;padding:8px 12px;border-left:3px solid #f59e0b;';
-                boxSnap.innerHTML = '<div style="font-size:10px;font-weight:700;color:#92400e;text-transform:uppercase;margin-bottom:3px;">📌 Guardado al cerrar</div><div style="font-size:13px;font-weight:600;color:#78350f;">' + d.textoSnap + '</div>';
-
-                const boxLive = document.createElement('div');
-                boxLive.style.cssText = 'background:#eff6ff;border-radius:8px;padding:8px 12px;border-left:3px solid #3b82f6;';
-                boxLive.innerHTML = '<div style="font-size:10px;font-weight:700;color:#1e40af;text-transform:uppercase;margin-bottom:3px;">🔄 Valor actual global</div><div style="font-size:13px;font-weight:600;color:#1e3a8a;">' + d.textoLive + '</div>';
-
-                comp.appendChild(boxSnap);
-                comp.appendChild(boxLive);
-
-                // Botones de decisión
-                const btns = document.createElement('div');
-                btns.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:8px;';
-
-                const btnMantener = document.createElement('button');
-                btnMantener.id = 'reapertura-mantener-' + i;
-                btnMantener.style.cssText = 'padding:10px;border-radius:8px;border:2px solid #f59e0b;background:#fef3c7;color:#92400e;font-weight:700;font-size:13px;cursor:pointer;transition:all 0.2s;';
-                btnMantener.innerHTML = '📌 Mantener valor guardado';
-                btnMantener.onclick = () => seleccionarDecision(i, 'mantener');
-
-                const btnAplicar = document.createElement('button');
-                btnAplicar.id = 'reapertura-aplicar-' + i;
-                btnAplicar.style.cssText = 'padding:10px;border-radius:8px;border:2px solid #94a3b8;background:#f1f5f9;color:#475569;font-weight:700;font-size:13px;cursor:pointer;transition:all 0.2s;';
-                btnAplicar.innerHTML = '🔄 Usar valor actual global';
-                btnAplicar.onclick = () => seleccionarDecision(i, 'aplicar');
-
-                btns.appendChild(btnMantener);
-                btns.appendChild(btnAplicar);
-
-                row.appendChild(header);
-                row.appendChild(comp);
-                row.appendChild(btns);
-                lista.appendChild(row);
-
-                // Marcar "mantener" como seleccionado por defecto
-                seleccionarDecision(i, 'mantener');
-            });
-
-            document.getElementById('reapertura-mes-nombre').textContent = MESES_NOMBRES[numMes] + ' ' + anoActual;
-            document.getElementById('reapertura-num-cambios').textContent = diferencias.length + ' cambio' + (diferencias.length !== 1 ? 's' : '') + ' detectado' + (diferencias.length !== 1 ? 's' : '');
-            document.getElementById('modal-reapertura').style.display = 'flex';
-        }
-
-        function seleccionarDecision(idx, decision) {
-            _reaperturaDecisiones[idx] = decision;
-            const btnM = document.getElementById('reapertura-mantener-' + idx);
-            const btnA = document.getElementById('reapertura-aplicar-' + idx);
-            if (!btnM || !btnA) return;
-            if (decision === 'mantener') {
-                btnM.style.cssText = 'padding:10px;border-radius:8px;border:2px solid #f59e0b;background:#f59e0b;color:white;font-weight:700;font-size:13px;cursor:pointer;box-shadow:0 2px 8px rgba(245,158,11,0.4);';
-                btnA.style.cssText = 'padding:10px;border-radius:8px;border:2px solid #94a3b8;background:#f1f5f9;color:#475569;font-weight:700;font-size:13px;cursor:pointer;';
-            } else {
-                btnM.style.cssText = 'padding:10px;border-radius:8px;border:2px solid #94a3b8;background:#f1f5f9;color:#475569;font-weight:700;font-size:13px;cursor:pointer;';
-                btnA.style.cssText = 'padding:10px;border-radius:8px;border:2px solid #3b82f6;background:#3b82f6;color:white;font-weight:700;font-size:13px;cursor:pointer;box-shadow:0 2px 8px rgba(59,130,246,0.4);';
-            }
-        }
-
-        function reaperturaSeleccionarTodo(decision) {
-            _reaperturaDiferencias.forEach((_, i) => seleccionarDecision(i, decision));
-        }
-
-        function confirmarReapertura() {
-            const numMes = _reaperturaMes;
-            if (numMes === null) return;
-
-            // Aplicar decisiones como overrides
-            if (!datos.meses[numMes].overrides) datos.meses[numMes].overrides = {};
-            const overrides = datos.meses[numMes].overrides;
-
-            _reaperturaDiferencias.forEach((d, i) => {
-                const decision = _reaperturaDecisiones[i];
-                const key = d.fuente + '_' + d.idx;
-
-                if (decision === 'mantener') {
-                    // Guardar override con el valor del snapshot para protegerlo
-                    if (d.valorSnap === null) {
-                        // Ítem nuevo que no existía: marcarlo como eliminado para este mes
-                        overrides[key] = { concepto: d.concepto, valor: 0, eliminado: true };
-                    } else if (d.valorSnap === 0 && d.descripcion.includes('RESTAURADO')) {
-                        overrides[key] = { concepto: d.concepto, valor: 0, eliminado: true };
-                    } else {
-                        overrides[key] = { concepto: d.conceptoSnap || d.concepto, valor: d.valorSnap || 0 };
-                    }
-                } else {
-                    // Aplicar: usar el valor live global → eliminar override para ese ítem
-                    delete overrides[key];
-                }
-            });
-
-            // Eliminar el snapshot → el mes queda abierto
-            delete datos.mesesCerrados[numMes];
+            if (!esMesCerrado(mesActual)) return;
+            if (!confirm('¿Reabrir ' + MESES_NOMBRES[mesActual] + '?\n\n⚠️ Se eliminará el cierre y podrás editar los datos.\nCuando termines, ciérralo de nuevo para fijar los valores definitivos.\n\nLos overrides y extras que tengas actualmente se conservan.')) return;
+            delete datos.mesesCerrados[mesActual];
             guardarDatos();
-
-            document.getElementById('modal-reapertura').style.display = 'none';
-            _reaperturaMes = null;
-
-            mostrarNotificacion('🔓 ' + MESES_NOMBRES[numMes] + ' reabierto con tus decisiones aplicadas', 'exito');
+            mostrarNotificacion('🔓 ' + MESES_NOMBRES[mesActual] + ' reabierto — ya puedes editarlo', 'exito');
             actualizarTodo();
             actualizarResumenAnual();
+            actualizarCategorias();
+            actualizarBannerMesCerrado();
         }
 
-        function cancelarReapertura() {
-            document.getElementById('modal-reapertura').style.display = 'none';
-            _reaperturaMes = null;
-        }
+
+
+
 
         // ── BARRERA DE PROTECCIÓN ────────────────────────────────────────
         // Un mes está protegido si está CERRADO.
@@ -2591,6 +2826,21 @@
             // Esto evita que cualquier cambio en fijos contamine datos de meses pasados.
         }
 
+        
+        function actualizarBotonesRegenerar() {
+            const anoRealSistema = new Date().getFullYear();
+            const btnRegenerarAno = document.getElementById('btn-regenerar-ano');
+            const btnRegenerarTodos = document.getElementById('btn-regenerar-todos');
+            
+            if (anoActual > anoRealSistema) {
+                if (btnRegenerarAno) btnRegenerarAno.style.display = '';
+                if (btnRegenerarTodos) btnRegenerarTodos.style.display = '';
+            } else {
+                if (btnRegenerarAno) btnRegenerarAno.style.display = 'none';
+                if (btnRegenerarTodos) btnRegenerarTodos.style.display = 'none';
+            }
+        }
+
         function actualizarBannerMesCerrado() {
             const infoDiv = document.getElementById('mes-cerrado-info');
             const btnCerrar = document.getElementById('btn-cerrar-mes');
@@ -2607,21 +2857,17 @@
             if (esMesCerrado(mesActual)) {
                 const info = datos.mesesCerrados[mesActual];
                 const fecha = info.cerradoEn ? new Date(info.cerradoEn).toLocaleDateString('es-ES') : '';
-                document.getElementById('mes-cerrado-fecha').textContent = '🔒 Cerrado el ' + fecha;
+                document.getElementById('mes-cerrado-fecha').textContent = '🔒 Cerrado definitivamente el ' + fecha;
                 infoDiv.style.display = 'flex';
                 btnCerrar.style.display = 'none';
                 titulo.textContent = '💵 Balance  🔒';
-
-                // Ocultar botones de edición
                 botonesIngresos.style.display = 'none';
                 botonesGastos.style.display = 'none';
-
-                // Añadir aviso compacto en cada card
                 const avisoHtml = (id) => {
                     const div = document.createElement('div');
                     div.id = id;
                     div.style.cssText = 'margin-top:12px;padding:10px 14px;background:rgba(30,58,138,0.15);border:1px solid rgba(30,58,138,0.3);border-radius:10px;text-align:center;color:#818cf8;font-size:0.82em;font-weight:600;letter-spacing:0.02em;';
-                    div.textContent = '🔒 Mes cerrado — usa Reabrir para editar';
+                    div.textContent = '🔒 Mes cerrado — los datos son definitivos';
                     return div;
                 };
                 botonesIngresos.parentElement.appendChild(avisoHtml('aviso-cerrado-ingresos'));
@@ -2630,8 +2876,6 @@
                 infoDiv.style.display = 'none';
                 btnCerrar.style.display = 'block';
                 titulo.textContent = '💵 Balance';
-
-                // Mostrar botones de edición
                 botonesIngresos.style.display = 'grid';
                 botonesGastos.style.display = 'grid';
             }
@@ -2667,6 +2911,12 @@
             const balanceAcumuladoDisplay = document.getElementById('balance-acumulado');
             balanceAcumuladoDisplay.textContent = formatearMoneda(balanceAcumulado);
             balanceAcumuladoDisplay.className = balanceAcumulado >= 0 ? 'positivo' : 'negativo';
+
+            // Proyección 31 Dic: meses cerrados con snapshot + meses abiertos con previsión
+            const proyeccionFinAno = calcularBalanceAcumulado(11);
+            const proyDisplay = document.getElementById('balance-proyeccion-fin');
+            proyDisplay.textContent = formatearMoneda(proyeccionFinAno);
+            proyDisplay.className = proyeccionFinAno >= 0 ? 'positivo' : 'negativo';
             
             // % de crecimiento/decrecimiento respecto al saldo inicial de este año
             const saldoInicioEsteAno = calcularSaldoInicioRealDelAno(anoActual);
@@ -2756,25 +3006,48 @@
             mesesNegativos.push({ mes: i, balance: balanceAcumulado });
         }
     }
+
+    // Calcular categoría culpable del primer mes negativo
+    function calcularCategoriasCulpables(numMes) {
+        const cats = calcularCategorias(numMes);
+        // Ordenar categorías de gastos por total descendente
+        return Object.entries(cats.gastos)
+            .filter(([, v]) => v.total > 0)
+            .sort((a, b) => b[1].total - a[1].total)
+            .slice(0, 3)
+            .map(([key, v]) => ({ nombre: CATEGORIAS_GASTOS[key].icono + ' ' + CATEGORIAS_GASTOS[key].nombre, total: v.total }));
+    }
     
     // Mostrar alerta de meses negativos si existe
     if (primerMesNegativo !== null) {
         const alertaDiv = document.createElement('div');
-        alertaDiv.style.cssText = 'background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); border-left: 6px solid #dc2626; border-radius: 12px; padding: 25px 30px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2);';
+        alertaDiv.style.cssText = 'background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); border-left: 6px solid #dc2626; border-radius: 12px; padding: 20px 24px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2);';
         
         const titulo = document.createElement('div');
-        titulo.style.cssText = 'font-size: 1.5em; font-weight: bold; color: #991b1b; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;';
-        titulo.innerHTML = '<span style="font-size: 1.3em;">⚠️</span> PRIMER MES EN NEGATIVO: <span style="color: #dc2626;">' + MESES_NOMBRES[primerMesNegativo.mes] + ' ' + formatearMoneda(primerMesNegativo.balance) + '</span>';
-        
+        titulo.style.cssText = 'font-size: 1.2em; font-weight: bold; color: #991b1b; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; flex-wrap:wrap;';
+        titulo.innerHTML = '<span>⚠️</span> PRIMER MES EN NEGATIVO: <span style="color: #dc2626;">' + MESES_NOMBRES[primerMesNegativo.mes] + ' · ' + formatearMoneda(primerMesNegativo.balance) + '</span>';
         alertaDiv.appendChild(titulo);
+
+        // Categorías culpables
+        const culpables = calcularCategoriasCulpables(primerMesNegativo.mes);
+        if (culpables.length > 0) {
+            const culpDiv = document.createElement('div');
+            culpDiv.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;';
+            culpables.forEach((c, i) => {
+                const tag = document.createElement('span');
+                const bg = i === 0 ? '#dc2626' : i === 1 ? '#f97316' : '#f59e0b';
+                tag.style.cssText = `background:${bg};color:white;font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;display:flex;align-items:center;gap:4px;`;
+                tag.innerHTML = (i === 0 ? '🎯 Principal: ' : '') + c.nombre + ' <strong>' + formatearMoneda(c.total) + '</strong>';
+                culpDiv.appendChild(tag);
+            });
+            alertaDiv.appendChild(culpDiv);
+        }
         
         if (mesesNegativos.length > 1) {
             const subtitulo = document.createElement('div');
-            subtitulo.style.cssText = 'font-size: 1em; color: #7f1d1d; padding-top: 12px; border-top: 1px solid #fca5a5;';
-            
-            const listaMeses = mesesNegativos.map(m => '<strong>' + MESES_NOMBRES[m.mes] + '</strong> ' + formatearMoneda(m.balance)).join(' • ');
+            subtitulo.style.cssText = 'font-size: 0.9em; color: #7f1d1d; padding-top: 10px; border-top: 1px solid #fca5a5;';
+            const listaMeses = mesesNegativos.map(m => '<strong>' + MESES_NOMBRES[m.mes] + '</strong> ' + formatearMoneda(m.balance)).join(' · ');
             subtitulo.innerHTML = '<span style="font-weight: 600;">📉 Todos los meses en negativo:</span> ' + listaMeses;
-            
             alertaDiv.appendChild(subtitulo);
         }
         
@@ -3010,6 +3283,8 @@
             document.getElementById('fecha-fin-inputs').style.display = 'none';
             document.getElementById('tiene-fecha-fin').checked = false;
             itemEditandoIndex = -1;
+            // Resetear modo edición orden
+            if (modoEdicionDesgloseActivo) toggleModoEdicionDesglose();
         }
         
         function obtenerArrayActual() {
@@ -3056,7 +3331,8 @@
             }
             
             mostrarNotificacion('✏️ Editando: ' + item.concepto, 'exito');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            const modalContent = document.querySelector('#modal-desglose .modal-content');
+            if (modalContent) modalContent.scrollTo({ top: 0, behavior: 'smooth' });
         }
         
         function filtrarListaModal() {
@@ -3187,6 +3463,7 @@
                     titulo.title = 'Arrastra para mover el grupo completo';
 
                     titulo.addEventListener('dragstart', function(e) {
+                        if (!modoEdicionDesgloseActivo) { e.preventDefault(); return; }
                         dragSrcGrupo = catKey;
                         grupoDiv.style.opacity = '0.45';
                         e.dataTransfer.effectAllowed = 'move';
@@ -3245,6 +3522,7 @@
 
                 // Eventos drag & drop
                 div.addEventListener('dragstart', function(e) {
+                    if (!modoEdicionDesgloseActivo) { e.preventDefault(); return; }
                     dragSrcIdx = parseInt(this.dataset.idx);
                     this.style.opacity = '0.45';
                     e.dataTransfer.effectAllowed = 'move';
@@ -3313,26 +3591,7 @@
                 
                 const valorSpan = document.createElement('span');
                 valorSpan.className = 'valor';
-                // Si es bonus de suministros, mostrar valor vivo en lugar del guardado
-                const esSuministrosAuto = modalTipo === 'ingresos-bonus' &&
-                    esBonusSuministros(item.concepto) &&
-                    item.frecuencia === 'anual' && item.meses;
-                if (esSuministrosAuto) {
-                    // Usar mesActual para determinar el trimestre correcto
-                    // (item.meses[0] sería incorrecto si el bonus aplica en varios meses)
-                    const mesReferencia = item.meses.includes(mesActual) ? mesActual : item.meses[0];
-                    const valorVivo = valorBonusSuministros(mesReferencia);
-                    valorSpan.textContent = formatearMoneda(valorVivo);
-                    valorSpan.title = 'Calculado automáticamente: suma de Luz + Agua + Gas Majadahonda del trimestre';
-                    valorSpan.style.fontStyle = 'italic';
-                    const badge = document.createElement('span');
-                    badge.textContent = '🔄';
-                    badge.title = 'Valor automático (suma trimestral de suministros)';
-                    badge.style.cssText = 'font-size:0.75em; margin-left:4px; opacity:0.7;';
-                    valorSpan.appendChild(badge);
-                } else {
-                    valorSpan.textContent = formatearMoneda(item.valor);
-                }
+                valorSpan.textContent = formatearMoneda(item.valor);
                 
                 const editBtn = document.createElement('button');
                 editBtn.className = 'edit-item-btn';
@@ -3386,7 +3645,7 @@
             // Bloquear cualquier escritura en meses pasados
             if (modalTipo === 'extras' || modalTipo === 'vacaciones-extras') {
                 if (esMesPasado(mesActual, anoActual)) {
-                    mostrarNotificacion('🔒 Mes cerrado. Usa 🔓 Reabrir para poder añadir extras', 'error');
+                    mostrarNotificacion('🔒 Mes cerrado — los datos son definitivos', 'error');
                     return;
                 }
             }
@@ -3596,87 +3855,81 @@
             let totalIngresos = 0, totalGastos = 0;
 
             for (let m = 0; m < 12; m++) {
-                const totMes = calcularTotalesMes(m);
+                const totMes = calcularTotalesMes(m); // usa snapshot si cerrado
                 const lineas = [];
-                const overridesMes = datos.meses[m].overrides || {};
 
-                // ── Misma lógica que recopilarYMostrarTodosMes ──
+                const cerradoM = datos.mesesCerrados && datos.mesesCerrados[m];
+                if (cerradoM && cerradoM.snapshotItems && cerradoM.snapshotItems.length > 0) {
+                    // ── Mes cerrado: usar snapshotItems (datos reales fijados) ──
+                    const tipoLinea = {
+                        ingresosFijos: 'Ingreso fijo', ingresosBonus: 'Bonus',
+                        ingresosExtras: 'Ingreso extra', gastosExtras: 'Gasto extra',
+                        gastosVacaciones: 'Vacaciones', gastosVacacionesExtras: 'Vacaciones Extra',
+                        gastosFijos: 'Gasto fijo', extrasRecurrentes: 'Recurrente'
+                    };
+                    cerradoM.snapshotItems.forEach(snapItem => {
+                        if (snapItem.eliminado || snapItem.valor === 0) return;
+                        const esIngreso = snapItem.fuente === 'ingresosFijos' ||
+                                          snapItem.fuente === 'ingresosBonus' ||
+                                          snapItem.fuente === 'ingresosExtras' ||
+                                          (snapItem.fuente === 'extrasRecurrentes' && snapItem.tipo === 'ingresos');
+                        const signo = esIngreso ? 1 : -1;
+                        lineas.push({
+                            concepto: snapItem.concepto,
+                            tipo: tipoLinea[snapItem.fuente] || snapItem.fuente,
+                            valor: signo * snapItem.valor
+                        });
+                    });
+                } else {
+                    // ── Mes abierto: calcular en vivo ──
+                    const overridesMes = datos.meses[m].overrides || {};
 
-                // Ingresos fijos (con overrides y eliminados)
-                datos.ingresosFijos.forEach((item, idx) => {
-                    const aplica = item.frecuencia === 'mensual' || (item.frecuencia === 'anual' && item.meses && item.meses.includes(m));
-                    if (!aplica) return;
-                    const ov = overridesMes['ingresosFijos_' + idx];
-                    if (ov && ov.eliminado) return;
-                    const valor = ov ? ov.valor : item.valor;
-                    const concepto = ov ? ov.concepto : item.concepto;
-                    lineas.push({ concepto, tipo: 'Ingreso fijo', valor });
-                });
-
-                // Bonus (con overrides y eliminados)
-                (datos.ingresosBonus || []).forEach((item, idx) => {
-                    const aplica = item.frecuencia === 'mensual' || (item.frecuencia === 'anual' && item.meses && item.meses.includes(m));
-                    if (!aplica) return;
-                    const ov = overridesMes['ingresosBonus_' + idx];
-                    if (ov && ov.eliminado) return;
-                    const concepto = ov ? ov.concepto : item.concepto;
-                    let valor = ov ? ov.valor : item.valor;
-                    if (esBonusSuministros(concepto)) {
-                        valor = valorBonusSuministros(m);
-                        lineas.push({ concepto: concepto + ' 🔄', tipo: 'Bonus', valor });
-                    } else {
-                        lineas.push({ concepto, tipo: 'Bonus', valor });
-                    }
-                });
-
-                // Ingresos extras puntuales
-                (datos.meses[m].ingresosExtras || []).forEach(item => {
-                    lineas.push({ concepto: item.concepto, tipo: 'Ingreso extra', valor: item.valor });
-                });
-
-                // Extras recurrentes ingresos
-                (datos.extrasRecurrentes || []).forEach(item => {
-                    if (item.tipo === 'ingresos' && extraRecurrenteAplicaEnMes(item, anoActual, m))
-                        lineas.push({ concepto: item.concepto, tipo: 'Recurrente', valor: item.valor });
-                });
-
-                // Gastos fijos (con overrides y eliminados)
-                datos.gastosFijos.forEach((item, idx) => {
-                    const aplica = item.frecuencia === 'mensual' || (item.frecuencia === 'anual' && item.meses && item.meses.includes(m));
-                    if (!aplica) return;
-                    const ov = overridesMes['gastosFijos_' + idx];
-                    if (ov && ov.eliminado) return;
-                    const valor = ov ? ov.valor : item.valor;
-                    const concepto = ov ? ov.concepto : item.concepto;
-                    lineas.push({ concepto, tipo: 'Gasto fijo', valor: -valor });
-                });
-
-                // Vacaciones fijas (con overrides y eliminados)
-                (datos.gastosVacaciones || []).forEach((item, idx) => {
-                    const aplica = item.frecuencia === 'mensual' || (item.frecuencia === 'anual' && item.meses && item.meses.includes(m));
-                    if (!aplica) return;
-                    const ov = overridesMes['gastosVacaciones_' + idx];
-                    if (ov && ov.eliminado) return;
-                    const valor = ov ? ov.valor : item.valor;
-                    const concepto = ov ? ov.concepto : item.concepto;
-                    lineas.push({ concepto, tipo: 'Vacaciones', valor: -valor });
-                });
-
-                // Gastos extras puntuales
-                (datos.meses[m].gastosExtras || []).forEach(item => {
-                    lineas.push({ concepto: item.concepto, tipo: 'Gasto extra', valor: -item.valor });
-                });
-
-                // Extras vacaciones puntuales
-                (datos.meses[m].gastosVacacionesExtras || []).forEach(item => {
-                    lineas.push({ concepto: item.concepto, tipo: 'Vacaciones Extra', valor: -item.valor });
-                });
-
-                // Extras recurrentes gastos
-                (datos.extrasRecurrentes || []).forEach(item => {
-                    if (item.tipo === 'gastos' && extraRecurrenteAplicaEnMes(item, anoActual, m))
-                        lineas.push({ concepto: item.concepto, tipo: 'Recurrente', valor: -item.valor });
-                });
+                    datos.ingresosFijos.forEach((item, idx) => {
+                        const aplica = item.frecuencia === 'mensual' || (item.frecuencia === 'anual' && item.meses && item.meses.includes(m));
+                        if (!aplica) return;
+                        const ov = overridesMes['ingresosFijos_' + idx];
+                        if (ov && ov.eliminado) return;
+                        lineas.push({ concepto: ov ? ov.concepto : item.concepto, tipo: 'Ingreso fijo', valor: ov ? ov.valor : item.valor });
+                    });
+                    (datos.ingresosBonus || []).forEach((item, idx) => {
+                        const aplica = item.frecuencia === 'mensual' || (item.frecuencia === 'anual' && item.meses && item.meses.includes(m));
+                        if (!aplica) return;
+                        const ov = overridesMes['ingresosBonus_' + idx];
+                        if (ov && ov.eliminado) return;
+                        lineas.push({ concepto: ov ? ov.concepto : item.concepto, tipo: 'Bonus', valor: ov ? ov.valor : item.valor });
+                    });
+                    (datos.meses[m].ingresosExtras || []).forEach(item => {
+                        lineas.push({ concepto: item.concepto, tipo: 'Ingreso extra', valor: item.valor });
+                    });
+                    (datos.extrasRecurrentes || []).forEach(item => {
+                        if (item.tipo === 'ingresos' && extraRecurrenteAplicaEnMes(item, anoActual, m))
+                            lineas.push({ concepto: item.concepto, tipo: 'Recurrente', valor: item.valor });
+                    });
+                    datos.gastosFijos.forEach((item, idx) => {
+                        const aplica = item.frecuencia === 'mensual' || (item.frecuencia === 'anual' && item.meses && item.meses.includes(m));
+                        if (!aplica) return;
+                        const ov = overridesMes['gastosFijos_' + idx];
+                        if (ov && ov.eliminado) return;
+                        lineas.push({ concepto: ov ? ov.concepto : item.concepto, tipo: 'Gasto fijo', valor: -(ov ? ov.valor : item.valor) });
+                    });
+                    (datos.gastosVacaciones || []).forEach((item, idx) => {
+                        const aplica = item.frecuencia === 'mensual' || (item.frecuencia === 'anual' && item.meses && item.meses.includes(m));
+                        if (!aplica) return;
+                        const ov = overridesMes['gastosVacaciones_' + idx];
+                        if (ov && ov.eliminado) return;
+                        lineas.push({ concepto: ov ? ov.concepto : item.concepto, tipo: 'Vacaciones', valor: -(ov ? ov.valor : item.valor) });
+                    });
+                    (datos.meses[m].gastosExtras || []).forEach(item => {
+                        lineas.push({ concepto: item.concepto, tipo: 'Gasto extra', valor: -item.valor });
+                    });
+                    (datos.meses[m].gastosVacacionesExtras || []).forEach(item => {
+                        lineas.push({ concepto: item.concepto, tipo: 'Vacaciones Extra', valor: -item.valor });
+                    });
+                    (datos.extrasRecurrentes || []).forEach(item => {
+                        if (item.tipo === 'gastos' && extraRecurrenteAplicaEnMes(item, anoActual, m))
+                            lineas.push({ concepto: item.concepto, tipo: 'Recurrente', valor: -item.valor });
+                    });
+                }
 
                 const balanceMes = totMes.ingresosTotal - totMes.gastosTotal;
                 acumulado += balanceMes;
@@ -3882,32 +4135,46 @@
                 const filas = [];
                 const addGasto = (concepto, importe) => { conceptosSet.add(concepto); filas.push({ concepto, importe }); };
 
-                datos.gastosFijos.forEach(item => {
-                    const aplica = item.frecuencia === 'mensual' ||
-                        (item.frecuencia === 'anual' && item.meses && item.meses.includes(m));
-                    if (aplica) addGasto(item.concepto, item.valor);
-                });
-                datos.gastosVacaciones.forEach(item => {
-                    const aplica = item.frecuencia === 'mensual' ||
-                        (item.frecuencia === 'anual' && item.meses && item.meses.includes(m));
-                    if (aplica) addGasto(item.concepto + ' (vac)', item.valor);
-                });
-                (datos.extrasRecurrentes || []).forEach(item => {
-                    if (item.tipo === 'gastos' && extraRecurrenteAplicaEnMes(item, anoActual, m))
-                        addGasto(item.concepto + ' (rec)', item.valor);
-                });
-                if (!esMesCerrado(m)) {
+                const cerradoExcel = datos.mesesCerrados && datos.mesesCerrados[m];
+                if (cerradoExcel && cerradoExcel.snapshotItems && cerradoExcel.snapshotItems.length > 0) {
+                    // Mes cerrado: usar snapshotItems para obtener los datos reales fijados
+                    cerradoExcel.snapshotItems.forEach(snapItem => {
+                        if (snapItem.eliminado || snapItem.valor === 0) return;
+                        const esGasto = snapItem.fuente === 'gastosFijos' ||
+                                        snapItem.fuente === 'gastosVacaciones' ||
+                                        snapItem.fuente === 'gastosExtras' ||
+                                        snapItem.fuente === 'gastosVacacionesExtras' ||
+                                        (snapItem.fuente === 'extrasRecurrentes' && snapItem.tipo === 'gastos');
+                        if (!esGasto) return;
+                        const sufijo = (snapItem.fuente === 'gastosVacaciones' || snapItem.fuente === 'gastosVacacionesExtras') ? ' (vac)'
+                                     : snapItem.fuente === 'extrasRecurrentes' ? ' (rec)' : '';
+                        addGasto(snapItem.concepto + sufijo, snapItem.valor);
+                    });
+                } else {
+                    // Mes abierto: calcular en vivo
+                    const ovMes = datos.meses[m].overrides || {};
+                    datos.gastosFijos.forEach((item, idx) => {
+                        const aplica = item.frecuencia === 'mensual' ||
+                            (item.frecuencia === 'anual' && item.meses && item.meses.includes(m));
+                        if (!aplica) return;
+                        const ov = ovMes['gastosFijos_' + idx];
+                        if (ov && ov.eliminado) return;
+                        addGasto(ov ? ov.concepto : item.concepto, ov ? ov.valor : item.valor);
+                    });
+                    (datos.gastosVacaciones || []).forEach((item, idx) => {
+                        const aplica = item.frecuencia === 'mensual' ||
+                            (item.frecuencia === 'anual' && item.meses && item.meses.includes(m));
+                        if (!aplica) return;
+                        const ov = ovMes['gastosVacaciones_' + idx];
+                        if (ov && ov.eliminado) return;
+                        addGasto((ov ? ov.concepto : item.concepto) + ' (vac)', ov ? ov.valor : item.valor);
+                    });
+                    (datos.extrasRecurrentes || []).forEach(item => {
+                        if (item.tipo === 'gastos' && extraRecurrenteAplicaEnMes(item, anoActual, m))
+                            addGasto(item.concepto + ' (rec)', item.valor);
+                    });
                     datos.meses[m].gastosExtras.forEach(item => addGasto(item.concepto, item.valor));
                     datos.meses[m].gastosVacacionesExtras.forEach(item => addGasto(item.concepto + ' (vac)', item.valor));
-                } else {
-                    const snap = datos.mesesCerrados[m].snapshot;
-                    let recGas = 0;
-                    (datos.extrasRecurrentes || []).forEach(item => {
-                        if (item.tipo === 'gastos' && extraRecurrenteAplicaEnMes(item, anoActual, m)) recGas += item.valor;
-                    });
-                    const extPunt = (snap.gastosExtras || 0) - recGas;
-                    if (extPunt > 0) addGasto('(Extras puntuales)', extPunt);
-                    if ((snap.gastosVacacionesExtras || 0) > 0) addGasto('(Extras vacaciones)', snap.gastosVacacionesExtras);
                 }
                 datosPorMes.push(filas);
             }
@@ -4058,46 +4325,40 @@
 
         function aplicarEdicionConAlcance(alcance) {
             if (esMesPasado(mesActual, anoActual)) {
-                mostrarNotificacion('🔒 Mes cerrado. Usa 🔓 Reabrir para poder editarlo', 'error');
+                mostrarNotificacion('🔒 Mes cerrado — los datos son definitivos', 'error');
                 document.getElementById('modal-alcance-edicion').style.display = 'none';
                 itemEditandoIndex = -1;
                 return;
             }
             if (alcance === 'solo-mes') {
-                const mesData = datos.meses[mesActual];
-                
-                let arrayExtras;
+                // Usar el sistema de overrides: guardar el valor real (absoluto) solo para este mes
+                if (!datos.meses[mesActual].overrides) datos.meses[mesActual].overrides = {};
+                let fuenteOverride;
                 if (modalTipo === 'fijos' && tipoActual === 'gastos') {
-                    arrayExtras = mesData.gastosExtras;
-                } else if ((modalTipo === 'fijos' && tipoActual === 'ingresos') || modalTipo === 'ingresos-fijos' || modalTipo === 'ingresos-bonus') {
-                    arrayExtras = mesData.ingresosExtras;
+                    fuenteOverride = 'gastosFijos';
                 } else if (modalTipo === 'vacaciones') {
-                    arrayExtras = mesData.gastosVacacionesExtras;
-                }
-                
-                const itemFijo = obtenerArrayActual()[itemEditandoIndex];
-                let valorBase = 0;
-                
-                if (itemFijo.frecuencia === 'mensual') {
-                    valorBase = itemFijo.valor;
-                } else if (itemFijo.frecuencia === 'anual' && itemFijo.meses && itemFijo.meses.includes(mesActual)) {
-                    valorBase = itemFijo.valor;
-                }
-                
-                const diferencia = editandoValorNuevo - valorBase;
-                
-                const extraExistente = arrayExtras.findIndex(e => e.concepto === editandoConcepto);
-                
-                if (extraExistente >= 0) {
-                    arrayExtras[extraExistente].valor = diferencia;
+                    fuenteOverride = 'gastosVacaciones';
+                } else if (modalTipo === 'ingresos-bonus') {
+                    fuenteOverride = 'ingresosBonus';
                 } else {
-                    arrayExtras.push({
-                        concepto: editandoConcepto,
-                        valor: diferencia
-                    });
+                    fuenteOverride = 'ingresosFijos';
                 }
-                
-                mostrarNotificacion('✅ Actualizado solo para ' + MESES_NOMBRES[mesActual] + ' (valor real: ' + editandoValorNuevo + '€)', 'exito');
+                const key = fuenteOverride + '_' + itemEditandoIndex;
+                // Detectar si el ítem es anual y no aplica en este mes → forzarEnMes
+                let forzarFijo = false;
+                const arrFijo = fuenteOverride === 'gastosFijos' ? datos.gastosFijos
+                    : fuenteOverride === 'ingresosFijos' ? datos.ingresosFijos
+                    : fuenteOverride === 'gastosVacaciones' ? datos.gastosVacaciones
+                    : fuenteOverride === 'ingresosBonus' ? (datos.ingresosBonus || []) : null;
+                if (arrFijo) {
+                    const itemFijo2 = arrFijo[itemEditandoIndex];
+                    if (itemFijo2 && itemFijo2.frecuencia === 'anual' &&
+                        !(itemFijo2.meses && itemFijo2.meses.includes(mesActual))) {
+                        forzarFijo = true;
+                    }
+                }
+                datos.meses[mesActual].overrides[key] = { concepto: editandoConcepto, valor: editandoValorNuevo, ...(forzarFijo ? { forzarEnMes: true } : {}) };
+                mostrarNotificacion('✅ Actualizado solo para ' + MESES_NOMBRES[mesActual] + ' (' + editandoValorNuevo + '€)', 'exito');
             } else if (alcance === 'todos-abiertos') {
                 const item = {
                     concepto: editandoConcepto,
@@ -4166,200 +4427,142 @@
         function cerrarModalVerTodo() {
             document.getElementById('modal-ver-todo-mes').style.display = 'none';
             document.getElementById('buscar-todo-mes').value = '';
+            // Desactivar modo edición al cerrar
+            if (modoEdicionTodoActivo) {
+                modoEdicionTodoActivo = false;
+                document.body.classList.remove('modo-edicion-activo');
+                var btn = document.getElementById('btn-modo-edicion-todo');
+                if (btn) { btn.classList.remove('activo'); btn.textContent = '✏️ Editar orden'; }
+            }
         }
         
         function recopilarYMostrarTodosMes(numMes) {
             const items = [];
             let totalIngresos = 0;
             let totalGastos = 0;
-            
+
+            // ── Si el mes está CERRADO, usar snapshotItems (datos reales fijados) ──
+            const cerrado = datos.mesesCerrados && datos.mesesCerrados[numMes];
+            if (cerrado && cerrado.snapshotItems && cerrado.snapshotItems.length > 0) {
+                cerrado.snapshotItems.forEach(snapItem => {
+                    if (snapItem.eliminado || snapItem.valor === 0) return;
+                    const esIngreso = snapItem.fuente === 'ingresosFijos' ||
+                                      snapItem.fuente === 'ingresosBonus' ||
+                                      snapItem.fuente === 'ingresosExtras' ||
+                                      (snapItem.fuente === 'extrasRecurrentes' && snapItem.tipo === 'ingresos');
+                    const tipo = esIngreso ? 'ingreso' : 'gasto';
+                    const catMap = {
+                        ingresosFijos: 'Ingreso Fijo', ingresosBonus: 'Bonus',
+                        ingresosExtras: 'Extra', gastosExtras: 'Extra',
+                        gastosVacaciones: 'Vacaciones', gastosVacacionesExtras: 'Vacaciones Extra',
+                        gastosFijos: 'Gasto Fijo', extrasRecurrentes: 'Recurrente'
+                    };
+                    items.push({
+                        concepto: snapItem.concepto,
+                        valor: snapItem.valor,
+                        tipo: tipo,
+                        categoria: catMap[snapItem.fuente] || snapItem.fuente,
+                        fuente: snapItem.fuente,
+                        index: snapItem.idx,
+                        editable: false // mes cerrado: no editable
+                    });
+                    if (esIngreso) totalIngresos += snapItem.valor;
+                    else totalGastos += snapItem.valor;
+                });
+                document.getElementById('total-ingresos-todo').textContent = formatearMoneda(totalIngresos);
+                document.getElementById('total-gastos-todo').textContent = formatearMoneda(totalGastos);
+                document.getElementById('balance-todo').textContent = formatearMoneda(totalIngresos - totalGastos);
+                renderizarListaTodoMes(items);
+                return;
+            }
+
+            // ── Mes ABIERTO: calcular en vivo ──
             // Recopilar ingresos fijos
             const overridesMes = datos.meses[numMes].overrides || {};
 
             datos.ingresosFijos.forEach((item, idx) => {
-                let aplica = false;
-                
-                if (item.frecuencia === 'mensual') {
-                    aplica = true;
-                } else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) {
-                    aplica = true;
-                }
-                
-                if (aplica) {
-                    const ov = overridesMes['ingresosFijos_' + idx];
-                    if (ov && ov.eliminado) return; // oculto: eliminado solo este mes
-                    const valor = ov ? ov.valor : item.valor;
-                    const concepto = ov ? ov.concepto : item.concepto;
-                    items.push({
-                        concepto: concepto,
-                        valor: valor,
-                        tipo: 'ingreso',
-                        categoria: 'Ingreso Fijo',
-                        fuente: 'ingresosFijos',
-                        index: idx,
-                        editable: true,
-                        tieneOverride: !!ov
-                    });
-                    totalIngresos += valor;
-                }
+                const ov = overridesMes['ingresosFijos_' + idx];
+                if (ov && ov.eliminado) return;
+                const aplica = item.frecuencia === 'mensual' ||
+                    (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) ||
+                    (ov && ov.forzarEnMes);
+                if (!aplica) return;
+                const valor = ov ? ov.valor : item.valor;
+                const concepto = ov ? ov.concepto : item.concepto;
+                items.push({ concepto, valor, tipo: 'ingreso', categoria: 'Ingreso Fijo', fuente: 'ingresosFijos', index: idx, editable: true, tieneOverride: !!ov });
             });
             
             // Recopilar gastos fijos
             datos.gastosFijos.forEach((item, idx) => {
-                let aplica = false;
-                
-                if (item.frecuencia === 'mensual') {
-                    aplica = true;
-                } else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) {
-                    aplica = true;
-                }
-                
-                if (aplica) {
-                    const ov = overridesMes['gastosFijos_' + idx];
-                    if (ov && ov.eliminado) return; // oculto: eliminado solo este mes
-                    const valor = ov ? ov.valor : item.valor;
-                    const concepto = ov ? ov.concepto : item.concepto;
-                    items.push({
-                        concepto: concepto,
-                        valor: valor,
-                        tipo: 'gasto',
-                        categoria: 'Gasto Fijo',
-                        fuente: 'gastosFijos',
-                        index: idx,
-                        editable: true,
-                        tieneOverride: !!ov
-                    });
-                    totalGastos += valor;
-                }
+                const ov = overridesMes['gastosFijos_' + idx];
+                if (ov && ov.eliminado) return;
+                const aplica = item.frecuencia === 'mensual' ||
+                    (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) ||
+                    (ov && ov.forzarEnMes);
+                if (!aplica) return;
+                const valor = ov ? ov.valor : item.valor;
+                const concepto = ov ? ov.concepto : item.concepto;
+                items.push({ concepto, valor, tipo: 'gasto', categoria: 'Gasto Fijo', fuente: 'gastosFijos', index: idx, editable: true, tieneOverride: !!ov });
             });
             
             // Recopilar vacaciones fijas
             datos.gastosVacaciones.forEach((item, idx) => {
-                let aplica = false;
-                
-                if (item.frecuencia === 'mensual') {
-                    aplica = true;
-                } else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) {
-                    aplica = true;
-                }
-                
-                if (aplica) {
-                    const ov = overridesMes['gastosVacaciones_' + idx];
-                    if (ov && ov.eliminado) return; // oculto: eliminado solo este mes
-                    const valor = ov ? ov.valor : item.valor;
-                    const concepto = ov ? ov.concepto : item.concepto;
-                    items.push({
-                        concepto: concepto,
-                        valor: valor,
-                        tipo: 'gasto',
-                        categoria: 'Vacaciones',
-                        fuente: 'gastosVacaciones',
-                        index: idx,
-                        editable: true,
-                        tieneOverride: !!ov
-                    });
-                    totalGastos += valor;
-                }
+                const ov = overridesMes['gastosVacaciones_' + idx];
+                if (ov && ov.eliminado) return;
+                const aplica = item.frecuencia === 'mensual' ||
+                    (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) ||
+                    (ov && ov.forzarEnMes);
+                if (!aplica) return;
+                const valor = ov ? ov.valor : item.valor;
+                const concepto = ov ? ov.concepto : item.concepto;
+                items.push({ concepto, valor, tipo: 'gasto', categoria: 'Vacaciones', fuente: 'gastosVacaciones', index: idx, editable: true, tieneOverride: !!ov });
             });
             
             // Recopilar bonus
             datos.ingresosBonus.forEach((item, idx) => {
-                let aplica = false;
-                
-                if (item.frecuencia === 'mensual') {
-                    aplica = true;
-                } else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) {
-                    aplica = true;
-                }
-                
-                if (aplica) {
-                    const ov = overridesMes['ingresosBonus_' + idx];
-                    if (ov && ov.eliminado) return; // oculto: eliminado solo este mes
-                    const valor = ov ? ov.valor : item.valor;
-                    const concepto = ov ? ov.concepto : item.concepto;
-                    items.push({
-                        concepto: concepto,
-                        valor: valor,
-                        tipo: 'ingreso',
-                        categoria: 'Bonus',
-                        fuente: 'ingresosBonus',
-                        index: idx,
-                        editable: true,
-                        tieneOverride: !!ov
-                    });
-                    totalIngresos += valor;
-                }
+                const ov = overridesMes['ingresosBonus_' + idx];
+                if (ov && ov.eliminado) return;
+                const aplica = item.frecuencia === 'mensual' ||
+                    (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) ||
+                    (ov && ov.forzarEnMes);
+                if (!aplica) return;
+                const valor = ov ? ov.valor : item.valor;
+                const concepto = ov ? ov.concepto : item.concepto;
+                items.push({ concepto, valor, tipo: 'ingreso', categoria: 'Bonus', fuente: 'ingresosBonus', index: idx, editable: true, tieneOverride: !!ov });
             });
             
             // Recopilar extras del mes
             const mesData = datos.meses[numMes];
             
             mesData.ingresosExtras.forEach((item, idx) => {
-                items.push({
-                    concepto: item.concepto,
-                    valor: item.valor,
-                    tipo: 'ingreso',
-                    categoria: 'Extra',
-                    fuente: 'ingresosExtras',
-                    index: idx,
-                    editable: true
-                });
-                totalIngresos += item.valor;
+                items.push({ concepto: item.concepto, valor: item.valor, tipo: 'ingreso', categoria: 'Extra', fuente: 'ingresosExtras', index: idx, editable: true });
             });
             
             mesData.gastosExtras.forEach((item, idx) => {
-                items.push({
-                    concepto: item.concepto,
-                    valor: item.valor,
-                    tipo: 'gasto',
-                    categoria: 'Extra',
-                    fuente: 'gastosExtras',
-                    index: idx,
-                    editable: true
-                });
-                totalGastos += item.valor;
+                items.push({ concepto: item.concepto, valor: item.valor, tipo: 'gasto', categoria: 'Extra', fuente: 'gastosExtras', index: idx, editable: true });
             });
             
             mesData.gastosVacacionesExtras.forEach((item, idx) => {
-                items.push({
-                    concepto: item.concepto,
-                    valor: item.valor,
-                    tipo: 'gasto',
-                    categoria: 'Vacaciones Extra',
-                    fuente: 'gastosVacacionesExtras',
-                    index: idx,
-                    editable: true
-                });
-                totalGastos += item.valor;
+                items.push({ concepto: item.concepto, valor: item.valor, tipo: 'gasto', categoria: 'Vacaciones Extra', fuente: 'gastosVacacionesExtras', index: idx, editable: true });
             });
             
             // Recopilar extras recurrentes
             if (datos.extrasRecurrentes) {
                 datos.extrasRecurrentes.forEach((item, idx) => {
                     if (extraRecurrenteAplicaEnMes(item, anoActual, numMes)) {
-                        items.push({
-                            concepto: item.concepto,
-                            valor: item.valor,
-                            tipo: item.tipo,
-                            categoria: 'Recurrente',
-                            fuente: 'extrasRecurrentes',
-                            index: idx,
-                            editable: false
-                        });
-                        
-                        if (item.tipo === 'ingresos') {
-                            totalIngresos += item.valor;
-                        } else {
-                            totalGastos += item.valor;
-                        }
+                        items.push({ concepto: item.concepto, valor: item.valor, tipo: item.tipo, categoria: 'Recurrente', fuente: 'extrasRecurrentes', index: idx, editable: false });
                     }
                 });
             }
             
-            // Actualizar totales
-            document.getElementById('total-ingresos-todo').textContent = formatearMoneda(totalIngresos);
-            document.getElementById('total-gastos-todo').textContent = formatearMoneda(totalGastos);
-            document.getElementById('balance-todo').textContent = formatearMoneda(totalIngresos - totalGastos);
+            // Usar calcularTotalesMes como única fuente de verdad para los totales
+            // (igual que el resto de bloques del dashboard)
+            const totalesOficiales = calcularTotalesMes(numMes);
+            
+            // Actualizar totales usando la única fuente de verdad
+            document.getElementById('total-ingresos-todo').textContent = formatearMoneda(totalesOficiales.ingresosTotal);
+            document.getElementById('total-gastos-todo').textContent = formatearMoneda(totalesOficiales.gastosTotal);
+            document.getElementById('balance-todo').textContent = formatearMoneda(totalesOficiales.ingresosTotal - totalesOficiales.gastosTotal);
             
             // Renderizar lista
             renderizarListaTodoMes(items);
@@ -4505,9 +4708,33 @@
         let draggedElement = null;
         window.ordenPersonalizado = window.ordenPersonalizado || {};
         window.mesActualVerTodo = null;
+        var modoEdicionTodoActivo = false;
+
+        function toggleModoEdicionTodo() {
+            modoEdicionTodoActivo = !modoEdicionTodoActivo;
+            document.body.classList.toggle('modo-edicion-activo', modoEdicionTodoActivo);
+            var btn = document.getElementById('btn-modo-edicion-todo');
+            if (btn) {
+                btn.classList.toggle('activo', modoEdicionTodoActivo);
+                btn.textContent = modoEdicionTodoActivo ? '🔒 Salir edición' : '✏️ Editar orden';
+            }
+        }
+
+        var modoEdicionDesgloseActivo = false;
+
+        function toggleModoEdicionDesglose() {
+            modoEdicionDesgloseActivo = !modoEdicionDesgloseActivo;
+            document.body.classList.toggle('modo-edicion-desglose-activo', modoEdicionDesgloseActivo);
+            var btn = document.getElementById('btn-modo-edicion-desglose');
+            if (btn) {
+                btn.classList.toggle('activo', modoEdicionDesgloseActivo);
+                btn.textContent = modoEdicionDesgloseActivo ? '🔒 Salir edición' : '✏️ Editar orden';
+            }
+        }
         
         // ========== FUNCIONES DRAG & DROP ==========
         function handleDragStart(e) {
+            if (!modoEdicionTodoActivo) { e.preventDefault(); return; }
             draggedElement = this;
             this.classList.add('dragging');
             e.dataTransfer.effectAllowed = 'move';
@@ -4542,17 +4769,37 @@
             e.stopPropagation();
             
             if (this !== draggedElement && this.classList.contains('item-todo-mes')) {
-                const lista = document.getElementById('lista-todo-mes');
-                const items = Array.from(lista.querySelectorAll('.item-todo-mes'));
-                const draggedIdx = items.indexOf(draggedElement);
-                const targetIdx = items.indexOf(this);
-                
-                if (draggedIdx < targetIdx) {
-                    this.parentNode.insertBefore(draggedElement, this.nextSibling);
+                const srcCol = draggedElement.parentNode;
+                const tgtCol = this.parentNode;
+                const crossColumn = srcCol !== tgtCol;
+
+                if (crossColumn) {
+                    // Insertar el elemento arrastrado en la columna destino
+                    tgtCol.insertBefore(draggedElement, this);
+
+                    // Reequilibrar: si una columna tiene 2+ elementos más, mover el último al otra
+                    const tgtItems = Array.from(tgtCol.querySelectorAll('.item-todo-mes'));
+                    const srcItems = Array.from(srcCol.querySelectorAll('.item-todo-mes'));
+                    const diff = tgtItems.length - srcItems.length;
+
+                    if (diff > 1) {
+                        srcCol.appendChild(tgtItems[tgtItems.length - 1]);
+                    } else if (diff < -1) {
+                        tgtCol.appendChild(srcItems[srcItems.length - 1]);
+                    }
                 } else {
-                    this.parentNode.insertBefore(draggedElement, this);
+                    // Misma columna: reordenar normalmente
+                    const items = Array.from(srcCol.querySelectorAll('.item-todo-mes'));
+                    const draggedIdx = items.indexOf(draggedElement);
+                    const targetIdx = items.indexOf(this);
+
+                    if (draggedIdx < targetIdx) {
+                        this.parentNode.insertBefore(draggedElement, this.nextSibling);
+                    } else {
+                        this.parentNode.insertBefore(draggedElement, this);
+                    }
                 }
-                
+
                 guardarOrdenPersonalizado();
             }
             
@@ -4561,13 +4808,28 @@
         
         function guardarOrdenPersonalizado() {
             const lista = document.getElementById('lista-todo-mes');
-            const items = Array.from(lista.querySelectorAll('.item-todo-mes'));
-            const orden = items.map(item => item.getAttribute('data-key')).filter(k => k);
-            
+            const colsWrapper = lista.querySelector('div[style*="grid-template-columns"]');
+            let orden = [];
+
+            if (colsWrapper) {
+                const cols = colsWrapper.children;
+                const izq = Array.from(cols[0] ? cols[0].querySelectorAll('.item-todo-mes') : []);
+                const der = Array.from(cols[1] ? cols[1].querySelectorAll('.item-todo-mes') : []);
+                // Guardar izquierda completa primero, luego derecha — igual que renderizarListaTodoMes
+                // que pone los primeros Math.ceil(n/2) en izq y el resto en der
+                orden = izq.map(el => el.getAttribute('data-key'))
+                    .concat(der.map(el => el.getAttribute('data-key')));
+            } else {
+                orden = Array.from(lista.querySelectorAll('.item-todo-mes'))
+                    .map(item => item.getAttribute('data-key')).filter(k => k);
+            }
+
+            orden = orden.filter(k => k);
+
             if (window.mesActualVerTodo !== null) {
                 window.ordenPersonalizado[window.mesActualVerTodo] = orden;
                 try {
-                    localStorage.setItem('mama_ordenMovimientos', JSON.stringify(window.ordenPersonalizado));
+                    localStorage.setItem('ordenMovimientos', JSON.stringify(window.ordenPersonalizado));
                 } catch(e) {}
             }
         }
@@ -4576,7 +4838,7 @@
             if (window.mesActualVerTodo !== null && window.ordenPersonalizado) {
                 delete window.ordenPersonalizado[window.mesActualVerTodo];
                 try {
-                    localStorage.setItem('mama_ordenMovimientos', JSON.stringify(window.ordenPersonalizado));
+                    localStorage.setItem('ordenMovimientos', JSON.stringify(window.ordenPersonalizado));
                 } catch(e) {}
                 abrirModalVerTodoMes(window.mesActualVerTodo);
             }
@@ -4584,7 +4846,7 @@
         
         // Cargar orden guardado al iniciar
         try {
-            const ordenGuardado = localStorage.getItem('mama_ordenMovimientos');
+            const ordenGuardado = localStorage.getItem('ordenMovimientos');
             if (ordenGuardado) {
                 window.ordenPersonalizado = JSON.parse(ordenGuardado);
             }
@@ -4674,7 +4936,7 @@
 
         function aplicarEdicionDirecta(item, nuevoConcepto, nuevoValor) {
             if (esMesPasado(mesVerTodo, anoActual)) {
-                mostrarNotificacion('🔒 Mes cerrado. Usa 🔓 Reabrir para poder editarlo', 'error');
+                mostrarNotificacion('🔒 Mes cerrado — los datos son definitivos', 'error');
                 return;
             }
             if (item.fuente === 'ingresosExtras') {
@@ -4698,7 +4960,7 @@
             cerrarModalAlcanceInline();
             if (!_edicionPendiente) return;
             if (esMesPasado(mesVerTodo, anoActual)) {
-                mostrarNotificacion('🔒 Mes cerrado. Usa 🔓 Reabrir para poder editarlo', 'error');
+                mostrarNotificacion('🔒 Mes cerrado — los datos son definitivos', 'error');
                 _edicionPendiente = null;
                 return;
             }
@@ -4709,8 +4971,22 @@
                 // Guardar override solo para este mes
                 if (!datos.meses[mesVerTodo].overrides) datos.meses[mesVerTodo].overrides = {};
                 const key = item.fuente + '_' + item.index;
-                datos.meses[mesVerTodo].overrides[key] = { concepto: nuevoConcepto, valor: nuevoValor };
-                mostrarNotificacion('✅ ' + nuevoConcepto + ' actualizado solo para este mes', 'exito');
+                // Si el ítem es un fijo anual que no incluye este mes, marcarlo con forzarEnMes
+                // para que calcularTotalesMes lo incluya aunque no "aplique" por frecuencia
+                let forzar = false;
+                const fuenteArr = item.fuente === 'gastosFijos' ? datos.gastosFijos
+                    : item.fuente === 'ingresosFijos' ? datos.ingresosFijos
+                    : item.fuente === 'gastosVacaciones' ? datos.gastosVacaciones
+                    : item.fuente === 'ingresosBonus' ? (datos.ingresosBonus || []) : null;
+                if (fuenteArr) {
+                    const itemFijo = fuenteArr[item.index];
+                    if (itemFijo && itemFijo.frecuencia === 'anual' &&
+                        !(itemFijo.meses && itemFijo.meses.includes(mesVerTodo))) {
+                        forzar = true;
+                    }
+                }
+                datos.meses[mesVerTodo].overrides[key] = { concepto: nuevoConcepto, valor: nuevoValor, ...(forzar ? { forzarEnMes: true } : {}) };
+                mostrarNotificacion('✅ ' + nuevoConcepto + ' añadido' + (forzar ? ' excepcionalmente' : '') + ' solo para ' + MESES_NOMBRES[mesVerTodo], 'exito');
             } else {
                 // Actualizar el array global (todos los meses)
                 if (item.fuente === 'ingresosFijos') {
@@ -4830,7 +5106,7 @@
 
         function _ejecutarEliminacionDirecta(item) {
             if (esMesPasado(mesVerTodo, anoActual)) {
-                mostrarNotificacion('🔒 Mes cerrado. Usa 🔓 Reabrir para poder editarlo', 'error');
+                mostrarNotificacion('🔒 Mes cerrado — los datos son definitivos', 'error');
                 return;
             }
             const mesData = datos.meses[mesVerTodo];
@@ -4859,7 +5135,7 @@
             const item = _eliminacionPendiente;
             _eliminacionPendiente = null;
             if (esMesPasado(mesVerTodo, anoActual)) {
-                mostrarNotificacion('🔒 Mes cerrado. Usa 🔓 Reabrir para poder editarlo', 'error');
+                mostrarNotificacion('🔒 Mes cerrado — los datos son definitivos', 'error');
                 return;
             }
 
@@ -4986,6 +5262,11 @@
 
                 <h3 style="margin-bottom: 10px;">📋 <span id="ver-todo-mes-nombre"></span> - Todos los Movimientos</h3>
 
+                <!-- Botón modo edición orden -->
+                <div style="margin-bottom:8px;">
+                    <button id="btn-modo-edicion-todo" onclick="toggleModoEdicionTodo()" style="background:rgba(100,116,139,0.15);border:1px solid rgba(100,116,139,0.3);color:#475569;padding:5px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;width:auto;margin:0;">✏️ Editar orden</button>
+                </div>
+
                 <!-- Buscador oculto (necesario para filtrarTodoMes()) -->
                 <input type="text" id="buscar-todo-mes" style="display:none;" oninput="filtrarTodoMes()">
                 <span id="resultados-todo-mes" style="display:none;"></span>
@@ -5016,237 +5297,590 @@
 
     
     <!-- ══════════ MODAL REAPERTURA MES ══════════ -->
-    <div id="modal-reapertura" class="modal" style="z-index:1200;align-items:center;justify-content:center;">
-        <div class="modal-content" style="max-width:680px;max-height:92vh;display:flex;flex-direction:column;padding:0;overflow:hidden;border-radius:18px;">
-            <!-- Cabecera fija -->
-            <div style="background:linear-gradient(135deg,#1e3a8a,#2563eb);padding:20px 24px;flex-shrink:0;">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-                    <h2 style="margin:0;color:white;font-size:1.2em;">🔓 Reabrir: <span id="reapertura-mes-nombre" style="color:#93c5fd;"></span></h2>
-                    <button onclick="cancelarReapertura()" style="background:rgba(255,255,255,0.15);border:none;color:white;width:32px;height:32px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;margin:0;">✕</button>
+    <!-- MODAL SIMULADOR -->
+<div id="modal-simulador" class="modal" style="z-index:1300; display:none; align-items:flex-start; justify-content:center; padding-top:0; overflow-y:auto;">
+    <div style="width:100%; max-width:1000px; min-height:100vh; display:flex; flex-direction:column; background:#0f2337; border-radius:0 0 18px 18px; box-shadow:0 8px 40px rgba(0,0,0,0.7);">
+        <div style="background:linear-gradient(135deg,#0c4a6e,#0369a1); padding:14px 22px; flex-shrink:0; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; position:sticky; top:0; z-index:10;">
+            <div>
+                <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                    <span style="font-size:1.4em;">&#129514;</span>
+                    <h2 style="margin:0; color:white; font-size:1.1em; font-weight:800;">Simulador anual &mdash; <span id="sim-ano-label" style="color:#7dd3fc;"></span></h2>
+                    <span style="background:rgba(255,200,0,0.2); color:#fde68a; font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px; border:1px solid rgba(253,230,138,0.3);">&#9888; nada se guarda</span>
                 </div>
-                <p style="margin:0;color:#bfdbfe;font-size:0.87em;">Se detectaron cambios desde que cerraste el mes. Decide qué mantener y qué actualizar.</p>
-                <div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
-                    <span id="reapertura-num-cambios" style="background:rgba(255,255,255,0.2);color:white;font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;"></span>
-                    <div style="display:flex;gap:8px;">
-                        <button onclick="reaperturaSeleccionarTodo('mantener')" style="background:#f59e0b;border:none;color:white;font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;cursor:pointer;margin:0;">📌 Mantener todo</button>
-                        <button onclick="reaperturaSeleccionarTodo('aplicar')" style="background:#3b82f6;border:none;color:white;font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;cursor:pointer;margin:0;">🔄 Aplicar todo</button>
-                    </div>
+                <p style="margin:3px 0 0 38px; color:#bae6fd; font-size:0.8em;">Cambia ingresos, gastos o vacaciones del ano y compara el resultado al instante.</p>
+            </div>
+            <button onclick="cerrarSimulador()" style="background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.2); color:white; padding:7px 16px; border-radius:8px; font-weight:700; cursor:pointer; font-size:13px; margin:0; width:auto;">&times; Cerrar</button>
+        </div>
+        <div style="padding:14px 20px; background:#0a1929; border-bottom:1px solid rgba(255,255,255,0.07); flex-shrink:0;">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+                <div>
+                    <div style="font-size:10px; font-weight:700; color:rgba(255,255,255,0.35); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:8px;">Datos actuales</div>
+                    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px;" id="sim-kpis-actual"></div>
+                </div>
+                <div>
+                    <div style="font-size:10px; font-weight:700; color:#38bdf8; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:8px;">Datos simulados</div>
+                    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px;" id="sim-kpis-sim"></div>
                 </div>
             </div>
-            <!-- Lista scrollable -->
-            <div id="reapertura-lista" style="overflow-y:auto;padding:14px 18px;flex:1;-webkit-overflow-scrolling:touch;background:#f8fafc;"></div>
-            <!-- Footer fijo -->
-            <div style="padding:14px 18px;border-top:2px solid #e2e8f0;display:flex;gap:10px;flex-shrink:0;background:white;">
-                <button onclick="cancelarReapertura()" style="flex:1;padding:13px;border-radius:10px;border:2px solid #cbd5e1;background:white;color:#64748b;font-weight:700;font-size:14px;cursor:pointer;margin:0;">❌ Cancelar</button>
-                <button onclick="confirmarReapertura()" style="flex:2;padding:13px;border-radius:10px;border:none;background:linear-gradient(135deg,#059669,#10b981);color:white;font-weight:800;font-size:14px;cursor:pointer;margin:0;box-shadow:0 3px 12px rgba(16,185,129,0.35);">✅ Confirmar y reabrir</button>
+        </div>
+        <div id="sim-body-grid" style="display:grid; grid-template-columns:620px 1fr; flex:1; min-height:400px;">
+            <div style="overflow-y:auto; padding:14px 16px; background:#0a1929; border-right:1px solid rgba(255,255,255,0.07); -webkit-overflow-scrolling:touch;">
+                <div style="font-size:10px; font-weight:700; color:#38bdf8; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:10px;">Edita cualquier importe del año</div>
+                <div id="sim-inputs"></div>
+            </div>
+            <div style="overflow-y:auto; padding:14px 16px; -webkit-overflow-scrolling:touch; background:#0f2337;">
+                <div style="font-size:10px; font-weight:700; color:#38bdf8; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:10px;">Impacto mes a mes</div>
+                <div id="sim-meses-grid" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:8px;"></div>
             </div>
         </div>
     </div>
+</div>
 
+<style>
+@media (max-width: 1000px) {
+    #sim-body-grid { grid-template-columns: 1fr !important; }
+}
+@media (max-width: 600px) {
+    #sim-inputs { grid-template-columns: 1fr !important; }
+}
+</style>
+
+<script>
+var simDatos = null;
+
+function abrirSimulador() {
+    simDatos = JSON.parse(JSON.stringify(datos));
+    simExtras = [];
+    document.getElementById('sim-ano-label').textContent = anoActual;
+    document.getElementById('modal-simulador').style.display = 'flex';
+    construirInputsSimulador();
+    recalcularSimulador();
+}
+
+function cerrarSimulador() {
+    document.getElementById('modal-simulador').style.display = 'none';
+    simDatos = null;
+}
+
+function resetearSimulador() {
+    simDatos = JSON.parse(JSON.stringify(datos));
+    simExtras = [];
+    construirInputsSimulador();
+    recalcularSimulador();
+}
+
+function construirInputsSimulador() {
+    var cont = document.getElementById('sim-inputs');
+    cont.innerHTML = '';
+    cont.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:0 18px;';
+
+    function seccion(titulo, color) {
+        var d = document.createElement('div');
+        d.style.cssText = 'grid-column:1/-1;font-size:10px;font-weight:800;color:' + color + ';text-transform:uppercase;letter-spacing:0.08em;margin:12px 0 5px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.06);';
+        d.textContent = titulo;
+        cont.appendChild(d);
+    }
+
+    function inputRow(label, valor, subLabel, onChange) {
+        var row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:5px;';
+        var leftDiv = document.createElement('div');
+        leftDiv.style.cssText = 'flex:1;min-width:0;';
+        var lbl = document.createElement('div');
+        lbl.style.cssText = 'font-size:11px;color:rgba(255,255,255,0.82);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+        lbl.textContent = label;
+        lbl.title = label;
+        leftDiv.appendChild(lbl);
+        if (subLabel) {
+            var sub = document.createElement('div');
+            sub.style.cssText = 'font-size:9px;color:rgba(255,255,255,0.27);margin-top:1px;';
+            sub.textContent = subLabel;
+            leftDiv.appendChild(sub);
+        }
+        var inp = document.createElement('input');
+        inp.type = 'number';
+        inp.value = Math.round(valor);
+        inp.step = '1';
+        inp.style.cssText = 'width:76px;padding:5px 7px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);border-radius:6px;color:white;font-size:12px;font-weight:700;text-align:right;flex-shrink:0;';
+        inp.addEventListener('input', (function(cb) { return function() { cb(parseFloat(inp.value) || 0); recalcularSimulador(); }; })(onChange));
+        row.appendChild(leftDiv);
+        row.appendChild(inp);
+        cont.appendChild(row);
+    }
+
+    function freqSub(item) {
+        if (item.frecuencia === 'mensual') return 'mensual (x12)';
+        if (item.frecuencia === 'anual' && item.meses) return 'meses: ' + item.meses.map(function(x) { return MESES_CORTOS[x]; }).join(', ');
+        return 'puntual';
+    }
+
+    if (simDatos.ingresosFijos.length > 0) {
+        seccion('Ingresos fijos', '#34d399');
+        simDatos.ingresosFijos.forEach(function(item, i) {
+            (function(idx) { inputRow(item.concepto, item.valor, freqSub(item), function(v) { simDatos.ingresosFijos[idx].valor = v; }); })(i);
+        });
+    }
+    if ((simDatos.ingresosBonus || []).length > 0) {
+        seccion('Bonus / Extras fijos', '#60a5fa');
+        (simDatos.ingresosBonus || []).forEach(function(item, i) {
+            (function(idx) { inputRow(item.concepto, item.valor, freqSub(item), function(v) { simDatos.ingresosBonus[idx].valor = v; }); })(i);
+        });
+    }
+    if (simDatos.gastosFijos.length > 0) {
+        seccion('Gastos fijos', '#f87171');
+        simDatos.gastosFijos.forEach(function(item, i) {
+            (function(idx) { inputRow(item.concepto, item.valor, freqSub(item), function(v) { simDatos.gastosFijos[idx].valor = v; }); })(i);
+        });
+    }
+    if ((simDatos.gastosVacaciones || []).length > 0) {
+        seccion('Vacaciones', '#fb923c');
+        (simDatos.gastosVacaciones || []).forEach(function(item, i) {
+            (function(idx) { inputRow(item.concepto, item.valor, freqSub(item), function(v) { simDatos.gastosVacaciones[idx].valor = v; }); })(i);
+        });
+    }
+    var recEsteAno = (simDatos.extrasRecurrentes || []).filter(function(item) {
+        return item.anoInicio <= anoActual && item.anoFin >= anoActual;
+    });
+    if (recEsteAno.length > 0) {
+        seccion('Extras recurrentes', '#c4b5fd');
+        (simDatos.extrasRecurrentes || []).forEach(function(item, i) {
+            if (!(item.anoInicio <= anoActual && item.anoFin >= anoActual)) return;
+            var sub = (item.tipo === 'ingresos' ? 'ingreso' : 'gasto') + ' hasta ' + MESES_CORTOS[item.mesFin] + ' ' + item.anoFin;
+            (function(idx) { inputRow(item.concepto, item.valor, sub, function(v) { simDatos.extrasRecurrentes[idx].valor = v; }); })(i);
+        });
+    }
+
+    // ── Extras puntuales de simulación ──
+    seccion('➕ Gastos / Ingresos extra puntuales', '#fbbf24');
+
+    var extraSimRow = document.createElement('div');
+    extraSimRow.style.cssText = 'grid-column:1/-1;display:flex;gap:5px;align-items:center;margin-bottom:8px;flex-wrap:wrap;';
+    extraSimRow.innerHTML =
+        '<select id="sim-extra-mes" style="padding:5px 4px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:white;font-size:11px;">' +
+        ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'].map(function(m,i){ return '<option value="'+i+'">'+m+'</option>'; }).join('') +
+        '</select>' +
+        '<select id="sim-extra-tipo" style="padding:5px 4px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:white;font-size:11px;">' +
+        '<option value="gasto">Gasto</option><option value="ingreso">Ingreso</option>' +
+        '</select>' +
+        '<input id="sim-extra-concepto" type="text" placeholder="Ej: Portátil nuevo" style="flex:1;min-width:100px;padding:5px 7px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:white;font-size:11px;">' +
+        '<input id="sim-extra-valor" type="number" placeholder="€" step="1" min="0" style="width:75px;padding:5px 7px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:white;font-size:11px;text-align:right;">' +
+        '<button onclick="agregarExtraSimulacion()" style="padding:5px 12px;background:#f59e0b;border:none;border-radius:6px;color:white;font-size:14px;font-weight:800;cursor:pointer;margin:0;flex-shrink:0;">+</button>';
+    cont.appendChild(extraSimRow);
+
+    var listaExtras = document.createElement('div');
+    listaExtras.id = 'sim-extras-lista';
+    listaExtras.style.cssText = 'grid-column:1/-1;';
+    cont.appendChild(listaExtras);
+    renderizarExtrasSimulacion();
+
+    var nota = document.createElement('div');
+    nota.style.cssText = 'grid-column:1/-1;margin-top:14px;padding:8px 10px;background:rgba(255,255,255,0.04);border-radius:8px;font-size:10px;color:rgba(255,255,255,0.25);line-height:1.6;';
+    nota.textContent = 'Los extras puntuales reales de cada mes se incluyen automáticamente en los cálculos.';
+    cont.appendChild(nota);
+
+    var btnReset = document.createElement('button');
+    btnReset.style.cssText = 'grid-column:1/-1;width:100%;margin-top:10px;padding:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.45);border-radius:8px;cursor:pointer;font-size:11px;font-weight:600;';
+    btnReset.textContent = 'Restaurar valores originales';
+    btnReset.onclick = resetearSimulador;
+    cont.appendChild(btnReset);
+}
+
+function calcularTotalesMesSim(m) {
+    var ingTotal = 0, gasTotal = 0;
+
+    // Si el mes está cerrado usar el snapshot real (igual que calcularTotalesMes del dashboard)
+    var cerradoSim = simDatos.mesesCerrados && simDatos.mesesCerrados[m];
+    if (cerradoSim && cerradoSim.snapshot) {
+        ingTotal = cerradoSim.snapshot.ingresosTotal || 0;
+        gasTotal = cerradoSim.snapshot.gastosTotal || 0;
+        (simExtras || []).forEach(function(e) {
+            if (e.mes === m) {
+                if (e.tipo === 'ingreso') ingTotal += e.valor;
+                else gasTotal += e.valor;
+            }
+        });
+        return { ingTotal: ingTotal, gasTotal: gasTotal };
+    }
+
+    // Mes abierto: calcular en vivo desde simDatos (respetando overrides)
+    var ovSim = (simDatos.meses[m] && simDatos.meses[m].overrides) || {};
+    simDatos.ingresosFijos.forEach(function(item, idx) {
+        var ov = ovSim['ingresosFijos_' + idx];
+        if (ov && ov.eliminado) return;
+        var valor = ov ? ov.valor : item.valor;
+        if (item.frecuencia === 'mensual') ingTotal += valor;
+        else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(m)) ingTotal += valor;
+    });
+    (simDatos.ingresosBonus || []).forEach(function(item, idx) {
+        var ov = ovSim['ingresosBonus_' + idx];
+        if (ov && ov.eliminado) return;
+        var valor = ov ? ov.valor : item.valor;
+        if (item.frecuencia === 'mensual') ingTotal += valor;
+        else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(m)) ingTotal += valor;
+    });
+    ingTotal += simDatos.meses[m].ingresosExtras.reduce(function(s,x){ return s+x.valor; }, 0);
+    (simDatos.extrasRecurrentes || []).forEach(function(item) {
+        if (item.tipo === 'ingresos' && extraRecurrenteAplicaEnMes(item, anoActual, m)) ingTotal += item.valor;
+    });
+    simDatos.gastosFijos.forEach(function(item, idx) {
+        var ov = ovSim['gastosFijos_' + idx];
+        if (ov && ov.eliminado) return;
+        var valor = ov ? ov.valor : item.valor;
+        if (item.frecuencia === 'mensual') gasTotal += valor;
+        else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(m)) gasTotal += valor;
+    });
+    (simDatos.gastosVacaciones || []).forEach(function(item, idx) {
+        var ov = ovSim['gastosVacaciones_' + idx];
+        if (ov && ov.eliminado) return;
+        var valor = ov ? ov.valor : item.valor;
+        if (item.frecuencia === 'mensual') gasTotal += valor;
+        else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(m)) gasTotal += valor;
+    });
+    gasTotal += simDatos.meses[m].gastosExtras.reduce(function(s,x){ return s+x.valor; }, 0);
+    gasTotal += simDatos.meses[m].gastosVacacionesExtras.reduce(function(s,x){ return s+x.valor; }, 0);
+    (simDatos.extrasRecurrentes || []).forEach(function(item) {
+        if (item.tipo === 'gastos' && extraRecurrenteAplicaEnMes(item, anoActual, m)) gasTotal += item.valor;
+    });
+    (simExtras || []).forEach(function(e) {
+        if (e.mes === m) {
+            if (e.tipo === 'ingreso') ingTotal += e.valor;
+            else gasTotal += e.valor;
+        }
+    });
+    return { ingTotal: ingTotal, gasTotal: gasTotal };
+}
+
+var simExtras = []; // { mes, tipo, concepto, valor }
+
+function agregarExtraSimulacion() {
+    var mes = parseInt(document.getElementById('sim-extra-mes').value);
+    var tipo = document.getElementById('sim-extra-tipo').value;
+    var concepto = document.getElementById('sim-extra-concepto').value.trim();
+    var valor = parseFloat(document.getElementById('sim-extra-valor').value) || 0;
+    if (!concepto || valor <= 0) {
+        // pequeño flash en el input
+        var inp = document.getElementById('sim-extra-valor');
+        inp.style.borderColor = '#f87171';
+        setTimeout(function(){ inp.style.borderColor = 'rgba(255,255,255,0.15)'; }, 1000);
+        return;
+    }
+    simExtras.push({ mes: mes, tipo: tipo, concepto: concepto, valor: valor });
+    document.getElementById('sim-extra-concepto').value = '';
+    document.getElementById('sim-extra-valor').value = '';
+    renderizarExtrasSimulacion();
+    recalcularSimulador();
+}
+
+function renderizarExtrasSimulacion() {
+    var lista = document.getElementById('sim-extras-lista');
+    if (!lista) return;
+    lista.innerHTML = '';
+    if (simExtras.length === 0) {
+        var vacio = document.createElement('div');
+        vacio.style.cssText = 'font-size:10px;color:rgba(255,255,255,0.2);font-style:italic;padding:3px 0 6px;';
+        vacio.textContent = 'Sin extras añadidos. Usa el formulario para simular gastos o ingresos puntuales.';
+        lista.appendChild(vacio);
+        return;
+    }
+    simExtras.forEach(function(e, i) {
+        var row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;gap:6px;margin-bottom:3px;padding:5px 8px;background:rgba(245,158,11,0.1);border-radius:6px;border-left:3px solid #f59e0b;';
+        row.innerHTML =
+            '<span style="font-size:10px;color:rgba(255,255,255,0.5);flex-shrink:0;min-width:26px;">'+
+            ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][e.mes]+'</span>'+
+            '<span style="font-size:10px;color:'+(e.tipo==='gasto'?'#f87171':'#34d399')+';flex-shrink:0;">'+(e.tipo==='gasto'?'▼ Gasto':'▲ Ingreso')+'</span>'+
+            '<span style="font-size:11px;color:white;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+e.concepto+'">'+e.concepto+'</span>'+
+            '<span style="font-size:11px;font-weight:700;color:'+(e.tipo==='gasto'?'#f87171':'#34d399')+';flex-shrink:0;">'+formatearMoneda(e.valor)+'</span>'+
+            '<button onclick="eliminarExtraSimulacion('+i+')" style="background:rgba(239,68,68,0.25);border:none;color:#fca5a5;border-radius:4px;padding:2px 7px;cursor:pointer;font-size:11px;margin:0;flex-shrink:0;">✕</button>';
+        lista.appendChild(row);
+    });
+}
+
+function eliminarExtraSimulacion(i) {
+    simExtras.splice(i, 1);
+    renderizarExtrasSimulacion();
+    recalcularSimulador();
+}
+
+function recalcularSimulador() {
+    if (!simDatos) return;
+    // Ambos (actual y simulado) parten del mismo saldo real encadenado (saldo 1 Ene del año actual)
+    var saldoInicio = calcularSaldoInicioRealDelAno(anoActual);
+
+    // ── Datos ACTUALES (del dashboard real) ──
+    var actIng = 0, actGas = 0, actAcum = saldoInicio;
+    for (var m = 0; m < 12; m++) {
+        var t = calcularTotalesMes(m);
+        actIng += t.ingresosTotal;
+        actGas += t.gastosTotal;
+        actAcum += t.ingresosTotal - t.gastosTotal;
+    }
+
+    // ── Datos SIMULADOS ──
+    var simIng = 0, simGas = 0, simAcum = saldoInicio;  // mismo punto de partida
+    var resultados = [];
+    for (var ms = 0; ms < 12; ms++) {
+        var ts = calcularTotalesMesSim(ms);
+        simIng += ts.ingTotal;
+        simGas += ts.gasTotal;
+        simAcum += ts.ingTotal - ts.gasTotal;
+        resultados.push({ mes: ms, ingTotal: ts.ingTotal, gasTotal: ts.gasTotal, balance: ts.ingTotal - ts.gasTotal, acumulado: simAcum });
+    }
+
+    // Fondo uniforme para cada bloque: pizarra para Actuales, violeta para Simulados
+    var bgActual = 'rgba(100,116,139,0.22)';
+    var borderActual = '1px solid rgba(148,163,184,0.25)';
+    function kpiBox(label, valor, color) {
+        return '<div style="background:' + bgActual + ';border-radius:8px;padding:9px 10px;border:' + borderActual + ';">' +
+            '<div style="font-size:9px;font-weight:700;color:' + color + ';text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px;">' + label + '</div>' +
+            '<div style="font-size:1.1em;font-weight:800;color:white;">' + valor + '</div></div>';
+    }
+    document.getElementById('sim-kpis-actual').innerHTML =
+        kpiBox('Ingresos', formatearMoneda(actIng), '#94a3b8') +
+        kpiBox('Gastos', formatearMoneda(actGas), '#94a3b8') +
+        kpiBox('Saldo 31 Dic', formatearMoneda(actAcum), actAcum >= 0 ? '#34d399' : '#f87171');
+
+    var difIng = simIng - actIng;
+    var difGas = simGas - actGas;
+    var difAcum = simAcum - actAcum;
+
+    function difTag(dif) {
+        if (Math.abs(dif) < 1) return '';
+        return '<div style="font-size:9px;color:' + (dif > 0 ? '#34d399' : '#f87171') + ';font-weight:700;margin-top:2px;">' + (dif > 0 ? '+' : '') + formatearMoneda(dif) + '</div>';
+    }
+    var bgSim = 'rgba(124,58,237,0.2)';
+    var borderSim = '1px solid rgba(167,139,250,0.3)';
+    function kpiBoxSim(label, valor, difValor, color) {
+        return '<div style="background:' + bgSim + ';border-radius:8px;padding:9px 10px;border:' + borderSim + ';">' +
+            '<div style="font-size:9px;font-weight:700;color:' + color + ';text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px;">' + label + '</div>' +
+            '<div style="font-size:1.1em;font-weight:800;color:white;">' + valor + '</div>' +
+            difTag(difValor) + '</div>';
+    }
+    document.getElementById('sim-kpis-sim').innerHTML =
+        kpiBoxSim('Ingresos', formatearMoneda(simIng), difIng, '#c4b5fd') +
+        kpiBoxSim('Gastos', formatearMoneda(simGas), -difGas, '#c4b5fd') +
+        kpiBoxSim('Saldo 31 Dic', formatearMoneda(simAcum), difAcum, simAcum >= 0 ? '#34d399' : '#f87171');
+
+    var primerNeg = null;
+    for (var rr = 0; rr < resultados.length; rr++) {
+        if (resultados[rr].acumulado < 0) { primerNeg = resultados[rr]; break; }
+    }
+    var alertaVieja = document.getElementById('sim-alerta');
+    if (alertaVieja) alertaVieja.remove();
+    var grid = document.getElementById('sim-meses-grid');
+    if (primerNeg) {
+        var al = document.createElement('div');
+        al.id = 'sim-alerta';
+        al.style.cssText = 'background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.5);border-radius:8px;padding:8px 12px;margin-bottom:10px;color:#fca5a5;font-size:12px;font-weight:600;';
+        al.innerHTML = 'Primer mes en negativo: <strong style="color:#f87171">' + MESES_NOMBRES[primerNeg.mes] + ' ' + formatearMoneda(primerNeg.acumulado) + '</strong>';
+        grid.before(al);
+    }
+    grid.innerHTML = '';
+    resultados.forEach(function(r) {
+        var esNeg = r.acumulado < 0;
+        var balPos = r.balance >= 0;
+        var card = document.createElement('div');
+        card.style.cssText = 'background:' + (esNeg ? 'rgba(239,68,68,0.12)' : 'rgba(255,255,255,0.04)') +
+            ';border:1px solid ' + (esNeg ? 'rgba(239,68,68,0.4)' : 'rgba(255,255,255,0.08)') + ';border-radius:9px;padding:9px 11px;';
+        card.innerHTML =
+            '<div style="font-weight:800;color:' + (esNeg ? '#f87171' : '#7dd3fc') + ';font-size:12px;margin-bottom:5px;">' + MESES_NOMBRES[r.mes] + '</div>' +
+            '<div style="display:flex;justify-content:space-between;font-size:10px;color:rgba(255,255,255,0.5);margin-bottom:1px;"><span>Ingresos</span><span style="color:#34d399;font-weight:600;">' + formatearMoneda(r.ingTotal) + '</span></div>' +
+            '<div style="display:flex;justify-content:space-between;font-size:10px;color:rgba(255,255,255,0.5);margin-bottom:5px;"><span>Gastos</span><span style="color:#f87171;font-weight:600;">' + formatearMoneda(r.gasTotal) + '</span></div>' +
+            '<div style="font-size:11px;font-weight:700;color:' + (balPos ? '#34d399' : '#f87171') + ';">' + (balPos ? '+' : '') + formatearMoneda(r.balance) + '</div>' +
+            '<div style="font-size:10px;color:' + (r.acumulado >= 0 ? 'rgba(255,255,255,0.38)' : '#f87171') + ';margin-top:2px;font-weight:600;">Acum: ' + formatearMoneda(r.acumulado) + '</div>';
+        grid.appendChild(card);
+    });
+}
+</script>
+
+    <!-- ── Fix scroll modal en iPad/iOS ── -->
     <script>
-        // Script para añadir botón "Ver Todo" a cada mes
-        window.addEventListener('DOMContentLoaded', function() {
-            setTimeout(function() {
-                const mesesCards = document.querySelectorAll('.mes-card');
-                mesesCards.forEach((card, idx) => {
-                    const accionesDiv = card.querySelector('.mes-acciones');
-                    if (accionesDiv && !accionesDiv.querySelector('.btn-ver-todo-mes')) {
-                        const btnVerTodo = document.createElement('button');
-                        btnVerTodo.className = 'tb-btn btn-ver-todo-mes';
-                        btnVerTodo.style.cssText = 'background: #9c27b0; border-color: #9c27b0; color: white; margin: 5px;';
-                        btnVerTodo.textContent = '📋 Ver Todo';
-                        btnVerTodo.onclick = function() { abrirModalVerTodoMes(idx); };
-                        
-                        // Insertar al principio de las acciones
-                        if (accionesDiv.firstChild) {
-                            accionesDiv.insertBefore(btnVerTodo, accionesDiv.firstChild);
+    (function() {
+        // Bloquea el scroll del fondo cuando hay un modal abierto
+        // Permite el scroll SOLO dentro de .modal-content
+
+        function isInsideModalContent(el) {
+            while (el) {
+                if (el.classList && el.classList.contains('modal-content')) return true;
+                el = el.parentElement;
+            }
+            return false;
+        }
+
+        function onModalTouchMove(e) {
+            // Si el toque está dentro del contenido del modal, lo dejamos pasar
+            if (isInsideModalContent(e.target)) {
+                // Pero solo si el modal-content tiene más contenido del que muestra
+                var mc = e.target;
+                while (mc && !(mc.classList && mc.classList.contains('modal-content'))) {
+                    mc = mc.parentElement;
+                }
+                if (mc) {
+                    var atTop    = mc.scrollTop === 0;
+                    var atBottom = mc.scrollTop + mc.clientHeight >= mc.scrollHeight - 1;
+                    var touch    = e.touches[0];
+                    var deltaY   = touch.clientY - (mc._lastTouchY || touch.clientY);
+                    mc._lastTouchY = touch.clientY;
+                    // Bloquea solo si intenta salirse de los límites
+                    if ((atTop && deltaY > 0) || (atBottom && deltaY < 0)) {
+                        e.preventDefault();
+                    }
+                    return; // deja pasar el evento normalmente
+                }
+            }
+            // Si el toque está en el overlay (fondo oscuro), bloqueamos siempre
+            e.preventDefault();
+        }
+
+        function onModalTouchStart(e) {
+            if (isInsideModalContent(e.target)) {
+                var mc = e.target;
+                while (mc && !(mc.classList && mc.classList.contains('modal-content'))) {
+                    mc = mc.parentElement;
+                }
+                if (mc) mc._lastTouchY = e.touches[0].clientY;
+            }
+        }
+
+        // Observamos cuándo se muestran/ocultan los modales
+        var observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(m) {
+                if (m.type === 'attributes' && m.attributeName === 'style') {
+                    var el = m.target;
+                    if (el.classList && el.classList.contains('modal')) {
+                        var visible = el.style.display === 'block' || el.style.display === 'flex';
+                        if (visible) {
+                            document.body.classList.add('modal-open');
+                            el.addEventListener('touchstart', onModalTouchStart, { passive: true });
+                            el.addEventListener('touchmove',  onModalTouchMove,  { passive: false });
                         } else {
-                            accionesDiv.appendChild(btnVerTodo);
+                            // Comprueba si sigue habiendo algún modal abierto
+                            var anyOpen = Array.from(document.querySelectorAll('.modal')).some(function(m) {
+                                return m.style.display === 'block' || m.style.display === 'flex';
+                            });
+                            if (!anyOpen) document.body.classList.remove('modal-open');
+                            el.removeEventListener('touchstart', onModalTouchStart);
+                            el.removeEventListener('touchmove',  onModalTouchMove);
                         }
                     }
-                });
-            }, 500); // Esperar medio segundo para que se renderice todo
+                }
+            });
         });
 
-        // ══════════════════════════════════════════════
-        //  SUMINISTROS AUTO — valor vivo trimestral
-        // ══════════════════════════════════════════════
-        const CONCEPTOS_SUMINISTROS = ['luz', 'agua', 'gas majadahonda'];
-
-        // Devuelve true si el concepto del bonus es "suministros" (cualquier capitalización)
-        function esBonusSuministros(concepto) {
-            return concepto && concepto.trim().toLowerCase() === 'suministros';
+        // Observamos todos los modales existentes y los futuros
+        function observeModals() {
+            document.querySelectorAll('.modal').forEach(function(modal) {
+                observer.observe(modal, { attributes: true });
+            });
         }
 
-        // Dado un mes (0-11), devuelve el trimestre al que pertenece (0-3)
-        function trimestreDelMes(mes) { return Math.floor(mes / 3); }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', observeModals);
+        } else {
+            observeModals();
+        }
+    })();
+    </script>
 
-        // Suma Luz + Agua + Gas Majadahonda de los 3 meses de un trimestre.
-        // Si el mes está cerrado usa snapshotItems (valor real).
-        // Si está abierto usa gastosFijos + overrides (valor estimado).
-        function calcularSuministrosTrimestre(trimestreIdx) {
-            const mesInicio = trimestreIdx * 3;
-            let total = 0;
+    <!-- ── Soporte táctil para drag & drop en iPad/iOS ── -->
+    <script>
+    (function() {
+        var dragging = null;
+        var cloneEl = null;
+        var offsetX = 0, offsetY = 0;
 
-            for (let m = mesInicio; m < mesInicio + 3; m++) {
-                const cerrado = datos.mesesCerrados && datos.mesesCerrados[m];
+        function isDraggable(el) {
+            return el && (el.draggable || el.getAttribute('draggable') === 'true');
+        }
 
-                if (cerrado && cerrado.snapshotItems) {
-                    // Mes cerrado → valor real del snapshot
-                    cerrado.snapshotItems.forEach(si => {
-                        if (si.fuente === 'gastosFijos' && !si.eliminado &&
-                            CONCEPTOS_SUMINISTROS.includes(si.concepto.trim().toLowerCase())) {
-                            total += si.valor;
-                        }
-                    });
-                } else {
-                    // Mes abierto → estimado desde gastosFijos + overrides
-                    const overrides = (datos.meses[m] && datos.meses[m].overrides) || {};
-                    datos.gastosFijos.forEach((item, idx) => {
-                        if (!CONCEPTOS_SUMINISTROS.includes(item.concepto.trim().toLowerCase())) return;
-                        const aplica = item.frecuencia === 'mensual' ||
-                            (item.frecuencia === 'anual' && item.meses && item.meses.includes(m));
-                        if (!aplica) return;
-                        const ov = overrides['gastosFijos_' + idx];
-                        if (ov && ov.eliminado) return;
-                        total += ov ? ov.valor : item.valor;
-                    });
-                }
+        function closest(el, selector) {
+            while (el) {
+                if (el.matches && el.matches(selector)) return el;
+                el = el.parentElement;
             }
-            return total;
+            return null;
         }
 
-        // Dado el número de mes en que aparece el bonus (ej: 0=enero, 3=abril...),
-        // devuelve el valor calculado automáticamente si es bonus de suministros.
-        function valorBonusSuministros(numMes) {
-            return calcularSuministrosTrimestre(trimestreDelMes(numMes));
-        }
-        // ══════════════════════════════════════════════
-
-        // ══════════════════════════════════════════════
-        //  GIST SYNC — cuentas-mama
-        // ══════════════════════════════════════════════
-        const GIST_ID_MAMA   = '6eaad65a997877a68cebeb3fdc7ecf5b'; // ← mismo Gist, fichero distinto
-        const GIST_FILENAME_MAMA = 'finanzas-mama.json';
-
-        function gistToken()       { return localStorage.getItem('gistToken') || ''; }
-        function gistConfigurado() { return !!gistToken(); }
-
-        function actualizarBtnGist() {
-            const btn = document.getElementById('btn-gist-sync');
-            if (btn) btn.style.display = gistConfigurado() ? '' : 'none';
+        function elementFromTouchPoint(touch) {
+            if (cloneEl) cloneEl.style.display = 'none';
+            var el = document.elementFromPoint(touch.clientX, touch.clientY);
+            if (cloneEl) cloneEl.style.display = '';
+            return el;
         }
 
-        async function cargarDesdeGist() {
-            mostrarFuenteDatos('cargando', null);
-            try {
-                const resp = await fetch('https://api.github.com/gists/' + GIST_ID_MAMA, {
-                    headers: gistConfigurado() ? { 'Authorization': 'token ' + gistToken() } : {}
-                });
-                if (!resp.ok) { mostrarFuenteDatos('local', null); return false; }
-                const gist = await resp.json();
-                const file = gist.files && gist.files[GIST_FILENAME_MAMA];
-                if (!file || !file.content) { mostrarFuenteDatos('local', null); return false; }
+        document.addEventListener('touchstart', function(e) {
+            var target = e.target;
+            var draggableEl = isDraggable(target) ? target : closest(target, '[draggable="true"]');
+            if (!draggableEl) return;
 
-                const datosGist = JSON.parse(file.content);
-                const fechaGist  = datosGist._exportadoEn || null;
-                const fechaLocal = localStorage.getItem('gistLastSavedMama');
+            // Comprobar qué modo de edición aplica según el contexto
+            var enDesgloseModal = !!closest(draggableEl, '#modal-desglose');
+            var enVerTodoModal  = !!closest(draggableEl, '#modal-ver-todo-mes');
 
-                if (fechaLocal && fechaGist && fechaLocal > fechaGist) {
-                    mostrarFuenteDatos('local-nuevo', fechaLocal);
-                    return false;
-                }
-
-                normalizarDatos(datosGist);
-                datos = datosGist;
-                guardarDatosLocal();
-                mostrarFuenteDatos('gist', fechaGist);
-                return true;
-            } catch(e) {
-                console.log('Error cargando Gist mamá:', e);
-                mostrarFuenteDatos('local', null);
-                return false;
-            }
-        }
-
-        async function guardarEnGist(manual) {
-            if (!gistConfigurado()) {
-                if (manual) mostrarNotificacion('⚠️ Configura primero el token Gist (botón 🔑 Gist)', 'error');
+            if (enDesgloseModal) {
+                if (typeof modoEdicionDesgloseActivo === 'undefined' || !modoEdicionDesgloseActivo) return;
+            } else if (enVerTodoModal) {
+                if (typeof modoEdicionTodoActivo === 'undefined' || !modoEdicionTodoActivo) return;
+            } else {
+                // Fuera de los dos modales: no activar drag táctil
                 return;
             }
-            const payload = Object.assign({}, datos, { _exportadoEn: new Date().toISOString() });
-            try {
-                const resp = await fetch('https://api.github.com/gists/' + GIST_ID_MAMA, {
-                    method: 'PATCH',
-                    headers: { 'Authorization': 'token ' + gistToken(), 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ files: { [GIST_FILENAME_MAMA]: { content: JSON.stringify(payload, null, 2) } } })
-                });
-                if (resp.ok) {
-                    localStorage.setItem('gistLastSavedMama', payload._exportadoEn);
-                    mostrarFuenteDatos('gist', payload._exportadoEn);
-                    if (manual) mostrarNotificacion('☁️ Guardado en Gist correctamente', 'exito');
-                } else {
-                    if (manual) mostrarNotificacion('❌ Error al guardar en Gist (' + resp.status + ')', 'error');
+
+            dragging = draggableEl;
+            var rect = dragging.getBoundingClientRect();
+            var touch = e.touches[0];
+            offsetX = touch.clientX - rect.left;
+            offsetY = touch.clientY - rect.top;
+
+            cloneEl = dragging.cloneNode(true);
+            cloneEl.style.cssText = 'position:fixed;z-index:9999;pointer-events:none;opacity:0.75;' +
+                'left:' + rect.left + 'px;top:' + rect.top + 'px;' +
+                'width:' + rect.width + 'px;height:' + rect.height + 'px;' +
+                'margin:0;box-shadow:0 8px 24px rgba(0,0,0,0.4);border-radius:8px;';
+            document.body.appendChild(cloneEl);
+
+            dragging.style.opacity = '0.4';
+            dragging.dispatchEvent(new DragEvent('dragstart', { bubbles: true }));
+        }, { passive: true });
+
+        document.addEventListener('touchmove', function(e) {
+            if (!dragging || !cloneEl) return;
+            var touch = e.touches[0];
+
+            cloneEl.style.left = (touch.clientX - offsetX) + 'px';
+            cloneEl.style.top  = (touch.clientY - offsetY) + 'px';
+
+            var below = elementFromTouchPoint(touch);
+            if (!below) return;
+
+            var dropTarget = isDraggable(below) ? below : closest(below, '[draggable="true"]');
+            if (dropTarget && dropTarget !== dragging) {
+                dropTarget.dispatchEvent(new DragEvent('dragover', { bubbles: true, cancelable: true }));
+                dropTarget.dispatchEvent(new DragEvent('dragenter', { bubbles: true, cancelable: true }));
+            }
+        }, { passive: true });
+
+        document.addEventListener('touchend', function(e) {
+            if (!dragging) return;
+
+            var touch = e.changedTouches[0];
+            var below = elementFromTouchPoint(touch);
+
+            if (below) {
+                var dropTarget = isDraggable(below) ? below : closest(below, '[draggable="true"]');
+                if (dropTarget && dropTarget !== dragging) {
+                    dropTarget.dispatchEvent(new DragEvent('dragleave', { bubbles: true }));
+                    dropTarget.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true }));
                 }
-            } catch(e) {
-                if (manual) mostrarNotificacion('❌ Sin conexión al guardar en Gist', 'error');
             }
-        }
 
-        // Modal configuración Gist
-        function abrirModalGistConfig() {
-            let modal = document.getElementById('modal-gist-config');
-            if (!modal) {
-                modal = document.createElement('div');
-                modal.id = 'modal-gist-config';
-                modal.style.cssText = 'display:flex;align-items:center;justify-content:center;position:fixed;z-index:9999;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,0.65);';
-                modal.innerHTML = `
-                <div style="background:white;border-radius:14px;padding:28px;max-width:460px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.4);position:relative;color:#1f2937;">
-                    <span onclick="document.getElementById('modal-gist-config').style.display='none'"
-                          style="position:absolute;top:14px;right:18px;font-size:1.5em;cursor:pointer;color:#6b7280;">&times;</span>
-                    <h2 style="margin:0 0 12px;color:#1e3a8a;">🔑 Configuración Gist</h2>
-                    <p style="font-size:0.88em;color:#6b7280;margin-bottom:16px;">
-                        El token se guarda solo en este dispositivo. Solo se envía a la API de GitHub para leer/escribir tu Gist.
-                    </p>
-                    <p style="font-size:0.85em;color:#6b7280;margin-bottom:16px;">
-                        Gist ID: <code style="background:#f3f4f6;padding:2px 6px;border-radius:4px;">${GIST_ID_MAMA}</code><br>
-                        Fichero: <strong>${GIST_FILENAME_MAMA}</strong>
-                    </p>
-                    <label style="display:block;font-weight:700;margin-bottom:6px;">Personal Access Token de GitHub</label>
-                    <input id="gist-token-input" type="password" placeholder="ghp_..."
-                           style="width:100%;padding:10px;border:2px solid #d1d5db;border-radius:8px;font-size:1em;margin-bottom:12px;box-sizing:border-box;">
-                    <div style="display:flex;gap:10px;">
-                        <button onclick="guardarTokenGist()" style="flex:1;background:#4f46e5;color:white;border:none;padding:10px;border-radius:8px;cursor:pointer;font-weight:700;">Guardar token</button>
-                        <button onclick="borrarTokenGist()" style="background:#ef4444;color:white;border:none;padding:10px 16px;border-radius:8px;cursor:pointer;font-weight:700;">Borrar</button>
-                    </div>
-                    <div id="gist-token-status" style="margin-top:12px;font-size:0.85em;"></div>
-                </div>`;
-                document.body.appendChild(modal);
-                modal.addEventListener('click', function(e) { if (e.target === modal) modal.style.display = 'none'; });
-            }
-            document.getElementById('gist-token-input').value = gistToken();
-            document.getElementById('gist-token-status').innerHTML = gistConfigurado()
-                ? '<span style="color:#10b981;">✅ Token configurado en este dispositivo</span>'
-                : '<span style="color:#f59e0b;">⚠️ Sin token — solo lectura desde Gist</span>';
-            modal.style.display = 'flex';
-        }
+            dragging.dispatchEvent(new DragEvent('dragend', { bubbles: true }));
+            dragging.style.opacity = '';
 
-        function guardarTokenGist() {
-            const val = document.getElementById('gist-token-input').value.trim();
-            if (!val) { mostrarNotificacion('⚠️ Introduce un token', 'error'); return; }
-            localStorage.setItem('gistToken', val);
-            actualizarBtnGist();
-            document.getElementById('gist-token-status').innerHTML = '<span style="color:#10b981;">✅ Token guardado</span>';
-            mostrarNotificacion('✅ Token Gist guardado', 'exito');
-        }
-
-        function borrarTokenGist() {
-            localStorage.removeItem('gistToken');
-            document.getElementById('gist-token-input').value = '';
-            document.getElementById('gist-token-status').innerHTML = '<span style="color:#f59e0b;">⚠️ Token eliminado</span>';
-            actualizarBtnGist();
-        }
-        // ══════════════════════════════════════════════
-
+            if (cloneEl) { cloneEl.remove(); cloneEl = null; }
+            dragging = null;
+        }, { passive: true });
+    })();
     </script>
+    </body>
 </html>
