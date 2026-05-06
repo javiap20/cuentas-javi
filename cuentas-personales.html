@@ -1262,20 +1262,18 @@
             for (const key in CATEGORIAS_INGRESOS) ingresosCateg[key] = { total: 0, items: [] };
             for (const key in CATEGORIAS_GASTOS)   gastosCateg[key]   = { total: 0, items: [] };
 
-            // Si el mes está cerrado y tiene snapshotItems, usar SOLO esos datos
             const cerrado = datos.mesesCerrados && datos.mesesCerrados[numMes];
+
+            // Mes cerrado CON snapshotItems: usar la lista detallada exacta
             if (cerrado && cerrado.snapshotItems && cerrado.snapshotItems.length > 0) {
                 cerrado.snapshotItems.forEach(item => {
                     if (item.eliminado) return;
-                    
-                    // Determinar si es ingreso o gasto
                     let esIngreso = false;
                     if (item.fuente === 'ingresosFijos' || item.fuente === 'ingresosBonus' || item.fuente === 'ingresosExtras') {
                         esIngreso = true;
                     } else if (item.fuente === 'extrasRecurrentes') {
                         esIngreso = item.tipo === 'ingresos';
                     }
-                    
                     const cat = clasificarConcepto(item.concepto, esIngreso);
                     if (esIngreso && cat && ingresosCateg[cat]) {
                         ingresosCateg[cat].total += item.valor;
@@ -1285,7 +1283,101 @@
                         gastosCateg[cat].items.push({ concepto: item.concepto, valor: item.valor });
                     }
                 });
-                
+                return { ingresos: ingresosCateg, gastos: gastosCateg };
+            }
+
+            // Mes cerrado SIN snapshotItems: usar snapshot de totales agregados.
+            // No podemos desglosar por categoría con precisión, así que volcamos
+            // los totales del snapshot en las categorías genéricas correspondientes.
+            if (cerrado && cerrado.snapshot) {
+                const snap = cerrado.snapshot;
+                // Ingresos
+                if (snap.ingresosFijos) {
+                    const cat = clasificarConcepto('Nómina', true);
+                    if (cat && ingresosCateg[cat]) { ingresosCateg[cat].total += snap.ingresosFijos; ingresosCateg[cat].items.push({ concepto: 'Ingresos fijos', valor: snap.ingresosFijos }); }
+                }
+                if (snap.ingresosBonus) {
+                    const cat = clasificarConcepto('Bonus', true);
+                    if (cat && ingresosCateg[cat]) { ingresosCateg[cat].total += snap.ingresosBonus; ingresosCateg[cat].items.push({ concepto: 'Bonus / Paga Extra', valor: snap.ingresosBonus }); }
+                }
+                if (snap.ingresosExtras) {
+                    const cat = clasificarConcepto('Otros ingresos', true);
+                    const catKey = cat || Object.keys(CATEGORIAS_INGRESOS).slice(-1)[0];
+                    if (catKey && ingresosCateg[catKey]) { ingresosCateg[catKey].total += snap.ingresosExtras; ingresosCateg[catKey].items.push({ concepto: 'Ingresos extras', valor: snap.ingresosExtras }); }
+                }
+                // Gastos
+                if (snap.gastosFijos) {
+                    // Distribuir gastosFijos recalculando en vivo por categoría (los overrides no cambian las categorías)
+                    const overrides = datos.meses[numMes].overrides || {};
+                    datos.gastosFijos.forEach((item, idx) => {
+                        const ov = overrides['gastosFijos_' + idx];
+                        if (ov && ov.eliminado) return;
+                        const aplica = item.frecuencia === 'mensual' ||
+                            (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) ||
+                            (ov && ov.forzarEnMes);
+                        if (!aplica) return;
+                        const valor = ov ? ov.valor : item.valor;
+                        const concepto = ov ? ov.concepto : item.concepto;
+                        const cat = clasificarConcepto(concepto, false);
+                        if (cat && gastosCateg[cat]) {
+                            gastosCateg[cat].total += valor;
+                            gastosCateg[cat].items.push({ concepto, valor });
+                        }
+                    });
+                    // Ajustar si el total recalculado difiere del snapshot (por datos que ya no están)
+                    const totalCategGastos = Object.values(gastosCateg).reduce((s, c) => s + c.total, 0);
+                    const diff = snap.gastosFijos - totalCategGastos;
+                    if (Math.abs(diff) > 0.01) {
+                        // Poner la diferencia en "otros" para que el total cuadre
+                        const catOtros = clasificarConcepto('Otros', false);
+                        if (catOtros && gastosCateg[catOtros]) {
+                            gastosCateg[catOtros].total += diff;
+                            if (diff > 0) gastosCateg[catOtros].items.push({ concepto: 'Gastos fijos (ajuste)', valor: diff });
+                        }
+                    }
+                }
+                if (snap.gastosVacaciones || snap.gastosVacacionesExtras) {
+                    const totalVac = (snap.gastosVacaciones || 0) + (snap.gastosVacacionesExtras || 0);
+                    if (totalVac > 0) {
+                        gastosCateg['vacaciones'].total += totalVac;
+                        gastosCateg['vacaciones'].items.push({ concepto: 'Vacaciones', valor: totalVac });
+                    }
+                }
+                if (snap.gastosExtras) {
+                    // Extras puntuales: distribuir por categoría los que podemos, resto a "otros"
+                    let asignado = 0;
+                    datos.meses[numMes].gastosExtras.forEach(item => {
+                        const cat = clasificarConcepto(item.concepto, false);
+                        if (cat && gastosCateg[cat]) {
+                            gastosCateg[cat].total += item.valor;
+                            gastosCateg[cat].items.push({ concepto: item.concepto, valor: item.valor });
+                            asignado += item.valor;
+                        }
+                    });
+                    // Extras recurrentes que aplican en este mes
+                    (datos.extrasRecurrentes || []).forEach(item => {
+                        if (item.tipo !== 'gastos') return;
+                        const inicio = item.anoInicio * 12 + item.mesInicio;
+                        const fin = item.anoFin * 12 + item.mesFin;
+                        const actual = 2026 * 12 + numMes;
+                        if (actual >= inicio && actual <= fin) {
+                            const cat = clasificarConcepto(item.concepto, false);
+                            if (cat && gastosCateg[cat]) {
+                                gastosCateg[cat].total += item.valor;
+                                gastosCateg[cat].items.push({ concepto: item.concepto, valor: item.valor });
+                                asignado += item.valor;
+                            }
+                        }
+                    });
+                    const diffExtras = snap.gastosExtras - asignado;
+                    if (diffExtras > 0.01) {
+                        const catOtros = clasificarConcepto('Otros', false);
+                        if (catOtros && gastosCateg[catOtros]) {
+                            gastosCateg[catOtros].total += diffExtras;
+                            gastosCateg[catOtros].items.push({ concepto: 'Gastos extras (ajuste)', valor: diffExtras });
+                        }
+                    }
+                }
                 return { ingresos: ingresosCateg, gastos: gastosCateg };
             }
 
