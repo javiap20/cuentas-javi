@@ -985,7 +985,7 @@
                 <!-- Estado mes: cerrado o botón cerrar -->
                 <div id="mes-cerrado-info" style="display:none; margin-top:12px; background:#eef2ff; border-radius:8px; padding:10px 14px; display:none; align-items:center; justify-content:space-between; gap:8px;">
                     <span style="font-size:0.85em; color:#1e3a8a; font-weight:600;" id="mes-cerrado-fecha"></span>
-
+                    <button onclick="reabrirMes()" style="background:#dc2626;color:white;border:none;padding:6px 14px;border-radius:6px;font-size:0.8em;font-weight:700;cursor:pointer;white-space:nowrap;">🔓 Reabrir mes</button>
                 </div>
                 <button id="btn-cerrar-mes" onclick="cerrarMesManual()" style="background:#1e3a8a;margin-top:12px;">🔒 Cerrar mes</button>
             </div>
@@ -2730,6 +2730,18 @@
             cerrarMes(mesActual, false);
             actualizarTodo();
             actualizarResumenAnual();
+        }
+
+        function reabrirMes() {
+            if (!esMesCerrado(mesActual)) return;
+            if (!confirm('¿Reabrir ' + MESES_NOMBRES[mesActual] + '?\n\n⚠️ Se eliminará el cierre y podrás editar los datos.\nCuando termines, ciérralo de nuevo para fijar los valores definitivos.\n\nLos overrides y extras que tengas actualmente se conservan.')) return;
+            delete datos.mesesCerrados[mesActual];
+            guardarDatos();
+            mostrarNotificacion('🔓 ' + MESES_NOMBRES[mesActual] + ' reabierto — ya puedes editarlo', 'exito');
+            actualizarTodo();
+            actualizarResumenAnual();
+            actualizarCategorias();
+            actualizarBannerMesCerrado();
         }
 
 
