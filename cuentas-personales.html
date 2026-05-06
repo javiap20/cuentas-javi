@@ -2705,15 +2705,76 @@
         function cerrarMes(numMes, silencioso) {
             if (!datos.mesesCerrados) datos.mesesCerrados = {};
 
-            // Calcular totales en vivo (el mes aún no está en mesesCerrados, así que
-            // calcularTotalesMes lo calcula desde los arrays reales — sin snapshot que interfiera)
+            // Calcular totales en vivo (el mes aún no está en mesesCerrados)
             const totales = calcularTotalesMes(numMes);
             const balanceAcumulado = calcularBalanceAcumulado(numMes);
+            const overrides = datos.meses[numMes].overrides || {};
+
+            // Generar snapshotItems: captura exacta de cada partida con su valor real
+            const snapshotItems = [];
+
+            datos.ingresosFijos.forEach((item, idx) => {
+                const ov = overrides['ingresosFijos_' + idx];
+                const eliminado = ov && ov.eliminado;
+                const aplica = item.frecuencia === 'mensual' ||
+                    (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) ||
+                    (ov && ov.forzarEnMes);
+                if (!aplica) return;
+                snapshotItems.push({ fuente: 'ingresosFijos', idx, concepto: ov ? ov.concepto : item.concepto, valor: eliminado ? 0 : (ov ? ov.valor : item.valor), eliminado: !!eliminado });
+            });
+
+            (datos.ingresosBonus || []).forEach((item, idx) => {
+                const ov = overrides['ingresosBonus_' + idx];
+                const eliminado = ov && ov.eliminado;
+                const aplica = item.frecuencia === 'mensual' ||
+                    (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) ||
+                    (ov && ov.forzarEnMes);
+                if (!aplica) return;
+                snapshotItems.push({ fuente: 'ingresosBonus', idx, concepto: ov ? ov.concepto : item.concepto, valor: eliminado ? 0 : (ov ? ov.valor : item.valor), eliminado: !!eliminado });
+            });
+
+            datos.meses[numMes].ingresosExtras.forEach((item, idx) => {
+                snapshotItems.push({ fuente: 'ingresosExtras', idx, concepto: item.concepto, valor: item.valor, eliminado: false });
+            });
+
+            datos.gastosFijos.forEach((item, idx) => {
+                const ov = overrides['gastosFijos_' + idx];
+                const eliminado = ov && ov.eliminado;
+                const aplica = item.frecuencia === 'mensual' ||
+                    (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) ||
+                    (ov && ov.forzarEnMes);
+                if (!aplica) return;
+                snapshotItems.push({ fuente: 'gastosFijos', idx, concepto: ov ? ov.concepto : item.concepto, valor: eliminado ? 0 : (ov ? ov.valor : item.valor), eliminado: !!eliminado });
+            });
+
+            (datos.gastosVacaciones || []).forEach((item, idx) => {
+                const ov = overrides['gastosVacaciones_' + idx];
+                const eliminado = ov && ov.eliminado;
+                const aplica = item.frecuencia === 'mensual' ||
+                    (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) ||
+                    (ov && ov.forzarEnMes);
+                if (!aplica) return;
+                snapshotItems.push({ fuente: 'gastosVacaciones', idx, concepto: ov ? ov.concepto : item.concepto, valor: eliminado ? 0 : (ov ? ov.valor : item.valor), eliminado: !!eliminado });
+            });
+
+            datos.meses[numMes].gastosExtras.forEach((item, idx) => {
+                snapshotItems.push({ fuente: 'gastosExtras', idx, concepto: item.concepto, valor: item.valor, eliminado: false });
+            });
+
+            datos.meses[numMes].gastosVacacionesExtras.forEach((item, idx) => {
+                snapshotItems.push({ fuente: 'gastosVacacionesExtras', idx, concepto: item.concepto, valor: item.valor, eliminado: false });
+            });
+
+            (datos.extrasRecurrentes || []).forEach((item, idx) => {
+                if (!extraRecurrenteAplicaEnMes(item, anoActual, numMes)) return;
+                snapshotItems.push({ fuente: 'extrasRecurrentes', idx, concepto: item.concepto, valor: item.valor, tipo: item.tipo, eliminado: false });
+            });
 
             datos.mesesCerrados[numMes] = {
                 cerradoEn: new Date().toISOString(),
                 snapshot: totales,
-                balanceAcumulado: balanceAcumulado
+                snapshotItems,
+                balanceAcumulado
             };
             guardarDatos();
             if (!silencioso) {
