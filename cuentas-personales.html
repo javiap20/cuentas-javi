@@ -4312,189 +4312,88 @@
             const overridesMes = datos.meses[numMes].overrides || {};
 
             datos.ingresosFijos.forEach((item, idx) => {
-                let aplica = false;
-                
-                if (item.frecuencia === 'mensual') {
-                    aplica = true;
-                } else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) {
-                    aplica = true;
-                }
-                
-                if (aplica) {
-                    const ov = overridesMes['ingresosFijos_' + idx];
-                    if (ov && ov.eliminado) return; // oculto: eliminado solo este mes
-                    const valor = ov ? ov.valor : item.valor;
-                    const concepto = ov ? ov.concepto : item.concepto;
-                    items.push({
-                        concepto: concepto,
-                        valor: valor,
-                        tipo: 'ingreso',
-                        categoria: 'Ingreso Fijo',
-                        fuente: 'ingresosFijos',
-                        index: idx,
-                        editable: true,
-                        tieneOverride: !!ov
-                    });
-                    totalIngresos += valor;
-                }
+                const ov = overridesMes['ingresosFijos_' + idx];
+                if (ov && ov.eliminado) return;
+                const aplica = item.frecuencia === 'mensual' ||
+                    (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) ||
+                    (ov && ov.forzarEnMes);
+                if (!aplica) return;
+                const valor = ov ? ov.valor : item.valor;
+                const concepto = ov ? ov.concepto : item.concepto;
+                items.push({ concepto, valor, tipo: 'ingreso', categoria: 'Ingreso Fijo', fuente: 'ingresosFijos', index: idx, editable: true, tieneOverride: !!ov });
             });
             
             // Recopilar gastos fijos
             datos.gastosFijos.forEach((item, idx) => {
-                let aplica = false;
-                
-                if (item.frecuencia === 'mensual') {
-                    aplica = true;
-                } else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) {
-                    aplica = true;
-                }
-                
-                if (aplica) {
-                    const ov = overridesMes['gastosFijos_' + idx];
-                    if (ov && ov.eliminado) return; // oculto: eliminado solo este mes
-                    const valor = ov ? ov.valor : item.valor;
-                    const concepto = ov ? ov.concepto : item.concepto;
-                    items.push({
-                        concepto: concepto,
-                        valor: valor,
-                        tipo: 'gasto',
-                        categoria: 'Gasto Fijo',
-                        fuente: 'gastosFijos',
-                        index: idx,
-                        editable: true,
-                        tieneOverride: !!ov
-                    });
-                    totalGastos += valor;
-                }
+                const ov = overridesMes['gastosFijos_' + idx];
+                if (ov && ov.eliminado) return;
+                const aplica = item.frecuencia === 'mensual' ||
+                    (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) ||
+                    (ov && ov.forzarEnMes);
+                if (!aplica) return;
+                const valor = ov ? ov.valor : item.valor;
+                const concepto = ov ? ov.concepto : item.concepto;
+                items.push({ concepto, valor, tipo: 'gasto', categoria: 'Gasto Fijo', fuente: 'gastosFijos', index: idx, editable: true, tieneOverride: !!ov });
             });
             
             // Recopilar vacaciones fijas
             datos.gastosVacaciones.forEach((item, idx) => {
-                let aplica = false;
-                
-                if (item.frecuencia === 'mensual') {
-                    aplica = true;
-                } else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) {
-                    aplica = true;
-                }
-                
-                if (aplica) {
-                    const ov = overridesMes['gastosVacaciones_' + idx];
-                    if (ov && ov.eliminado) return; // oculto: eliminado solo este mes
-                    const valor = ov ? ov.valor : item.valor;
-                    const concepto = ov ? ov.concepto : item.concepto;
-                    items.push({
-                        concepto: concepto,
-                        valor: valor,
-                        tipo: 'gasto',
-                        categoria: 'Vacaciones',
-                        fuente: 'gastosVacaciones',
-                        index: idx,
-                        editable: true,
-                        tieneOverride: !!ov
-                    });
-                    totalGastos += valor;
-                }
+                const ov = overridesMes['gastosVacaciones_' + idx];
+                if (ov && ov.eliminado) return;
+                const aplica = item.frecuencia === 'mensual' ||
+                    (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) ||
+                    (ov && ov.forzarEnMes);
+                if (!aplica) return;
+                const valor = ov ? ov.valor : item.valor;
+                const concepto = ov ? ov.concepto : item.concepto;
+                items.push({ concepto, valor, tipo: 'gasto', categoria: 'Vacaciones', fuente: 'gastosVacaciones', index: idx, editable: true, tieneOverride: !!ov });
             });
             
             // Recopilar bonus
             datos.ingresosBonus.forEach((item, idx) => {
-                let aplica = false;
-                
-                if (item.frecuencia === 'mensual') {
-                    aplica = true;
-                } else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) {
-                    aplica = true;
-                }
-                
-                if (aplica) {
-                    const ov = overridesMes['ingresosBonus_' + idx];
-                    if (ov && ov.eliminado) return; // oculto: eliminado solo este mes
-                    const valor = ov ? ov.valor : item.valor;
-                    const concepto = ov ? ov.concepto : item.concepto;
-                    items.push({
-                        concepto: concepto,
-                        valor: valor,
-                        tipo: 'ingreso',
-                        categoria: 'Bonus',
-                        fuente: 'ingresosBonus',
-                        index: idx,
-                        editable: true,
-                        tieneOverride: !!ov
-                    });
-                    totalIngresos += valor;
-                }
+                const ov = overridesMes['ingresosBonus_' + idx];
+                if (ov && ov.eliminado) return;
+                const aplica = item.frecuencia === 'mensual' ||
+                    (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) ||
+                    (ov && ov.forzarEnMes);
+                if (!aplica) return;
+                const valor = ov ? ov.valor : item.valor;
+                const concepto = ov ? ov.concepto : item.concepto;
+                items.push({ concepto, valor, tipo: 'ingreso', categoria: 'Bonus', fuente: 'ingresosBonus', index: idx, editable: true, tieneOverride: !!ov });
             });
             
             // Recopilar extras del mes
             const mesData = datos.meses[numMes];
             
             mesData.ingresosExtras.forEach((item, idx) => {
-                items.push({
-                    concepto: item.concepto,
-                    valor: item.valor,
-                    tipo: 'ingreso',
-                    categoria: 'Extra',
-                    fuente: 'ingresosExtras',
-                    index: idx,
-                    editable: true
-                });
-                totalIngresos += item.valor;
+                items.push({ concepto: item.concepto, valor: item.valor, tipo: 'ingreso', categoria: 'Extra', fuente: 'ingresosExtras', index: idx, editable: true });
             });
             
             mesData.gastosExtras.forEach((item, idx) => {
-                items.push({
-                    concepto: item.concepto,
-                    valor: item.valor,
-                    tipo: 'gasto',
-                    categoria: 'Extra',
-                    fuente: 'gastosExtras',
-                    index: idx,
-                    editable: true
-                });
-                totalGastos += item.valor;
+                items.push({ concepto: item.concepto, valor: item.valor, tipo: 'gasto', categoria: 'Extra', fuente: 'gastosExtras', index: idx, editable: true });
             });
             
             mesData.gastosVacacionesExtras.forEach((item, idx) => {
-                items.push({
-                    concepto: item.concepto,
-                    valor: item.valor,
-                    tipo: 'gasto',
-                    categoria: 'Vacaciones Extra',
-                    fuente: 'gastosVacacionesExtras',
-                    index: idx,
-                    editable: true
-                });
-                totalGastos += item.valor;
+                items.push({ concepto: item.concepto, valor: item.valor, tipo: 'gasto', categoria: 'Vacaciones Extra', fuente: 'gastosVacacionesExtras', index: idx, editable: true });
             });
             
             // Recopilar extras recurrentes
             if (datos.extrasRecurrentes) {
                 datos.extrasRecurrentes.forEach((item, idx) => {
                     if (extraRecurrenteAplicaEnMes(item, anoActual, numMes)) {
-                        items.push({
-                            concepto: item.concepto,
-                            valor: item.valor,
-                            tipo: item.tipo,
-                            categoria: 'Recurrente',
-                            fuente: 'extrasRecurrentes',
-                            index: idx,
-                            editable: false
-                        });
-                        
-                        if (item.tipo === 'ingresos') {
-                            totalIngresos += item.valor;
-                        } else {
-                            totalGastos += item.valor;
-                        }
+                        items.push({ concepto: item.concepto, valor: item.valor, tipo: item.tipo, categoria: 'Recurrente', fuente: 'extrasRecurrentes', index: idx, editable: false });
                     }
                 });
             }
             
-            // Actualizar totales
-            document.getElementById('total-ingresos-todo').textContent = formatearMoneda(totalIngresos);
-            document.getElementById('total-gastos-todo').textContent = formatearMoneda(totalGastos);
-            document.getElementById('balance-todo').textContent = formatearMoneda(totalIngresos - totalGastos);
+            // Usar calcularTotalesMes como única fuente de verdad para los totales
+            // (igual que el resto de bloques del dashboard)
+            const totalesOficiales = calcularTotalesMes(numMes);
+            
+            // Actualizar totales usando la única fuente de verdad
+            document.getElementById('total-ingresos-todo').textContent = formatearMoneda(totalesOficiales.ingresosTotal);
+            document.getElementById('total-gastos-todo').textContent = formatearMoneda(totalesOficiales.gastosTotal);
+            document.getElementById('balance-todo').textContent = formatearMoneda(totalesOficiales.ingresosTotal - totalesOficiales.gastosTotal);
             
             // Renderizar lista
             renderizarListaTodoMes(items);

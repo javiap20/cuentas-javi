@@ -1571,7 +1571,7 @@
             // Recopilar todos los años con datos
             const anos = [];
             for (let y = 2024; y <= 2040; y++) {
-                const raw = localStorage.getItem('finanzasPersonales_' + y);
+                const raw = localStorage.getItem('mama_finanzas_' + y);
                 if (raw) anos.push({ ano: y, datos: JSON.parse(raw) });
             }
 
@@ -1792,10 +1792,10 @@
 
         async function cargarDatos() {
             // Migración datos antiguos
-            const datosViejos = localStorage.getItem('finanzasPersonales2');
-            const datosNuevos = localStorage.getItem('finanzasPersonales_2026');
+            const datosViejos = localStorage.getItem('mama_finanzas2');
+            const datosNuevos = localStorage.getItem('mama_finanzas_2026');
             if (datosViejos && !datosNuevos) {
-                localStorage.setItem('finanzasPersonales_2026', datosViejos);
+                localStorage.setItem('mama_finanzas_2026', datosViejos);
                 mostrarNotificacion('✅ Datos migrados a sistema multi-año', 'exito');
             }
 
@@ -1812,7 +1812,7 @@
             const cargadoDesdeGist = await cargarDesdeGist();
 
             if (!cargadoDesdeGist) {
-                const datosGuardados = localStorage.getItem('finanzasPersonales_2026');
+                const datosGuardados = localStorage.getItem('mama_finanzas_2026');
                 if (datosGuardados) {
                     datos = JSON.parse(datosGuardados);
                     normalizarDatos(datos);
@@ -1829,7 +1829,7 @@
         let anoActual = 2026;
 
         function guardarDatosLocal() {
-            localStorage.setItem('finanzasPersonales_' + anoActual, JSON.stringify(datos));
+            localStorage.setItem('mama_finanzas_' + anoActual, JSON.stringify(datos));
         }
 
         function guardarDatos() {
@@ -1946,7 +1946,7 @@
 
         function regenerarAnoDesdeAnterior() {
             const anoAnterior = anoActual - 1;
-            const guardadoAnterior = localStorage.getItem('finanzasPersonales_' + anoAnterior);
+            const guardadoAnterior = localStorage.getItem('mama_finanzas_' + anoAnterior);
             if (!guardadoAnterior) {
                 mostrarNotificacion('❌ No hay datos de ' + anoAnterior + ' para regenerar', 'error');
                 return;
@@ -1965,7 +1965,7 @@
             // Encontrar el primer año con datos
             const ANOS = [];
             for (let y = 2024; y <= 2040; y++) {
-                if (localStorage.getItem('finanzasPersonales_' + y)) ANOS.push(y);
+                if (localStorage.getItem('mama_finanzas_' + y)) ANOS.push(y);
             }
             if (ANOS.length < 2) {
                 mostrarNotificacion('❌ Necesitas al menos 2 años con datos para regenerar en cadena', 'error');
@@ -1991,7 +1991,7 @@
             for (let i = 1; i < ANOS.length; i++) {
                 const anoBase = ANOS[i - 1];
                 const anoTarget = ANOS[i];
-                const rawBase = localStorage.getItem('finanzasPersonales_' + anoBase);
+                const rawBase = localStorage.getItem('mama_finanzas_' + anoBase);
                 if (!rawBase) continue;
                 const datosBase = JSON.parse(rawBase);
 
@@ -2003,7 +2003,7 @@
                 anoActual = anoGuardado;
 
                 // Conservar extrasRecurrentes del año destino si ya los tiene
-                const rawTarget = localStorage.getItem('finanzasPersonales_' + anoTarget);
+                const rawTarget = localStorage.getItem('mama_finanzas_' + anoTarget);
                 if (rawTarget) {
                     const datosTarget = JSON.parse(rawTarget);
                     if (datosTarget.extrasRecurrentes && datosTarget.extrasRecurrentes.length > 0) {
@@ -2011,12 +2011,12 @@
                     }
                 }
 
-                localStorage.setItem('finanzasPersonales_' + anoTarget, JSON.stringify(nuevoDatos));
+                localStorage.setItem('mama_finanzas_' + anoTarget, JSON.stringify(nuevoDatos));
                 regenerados.push(anoTarget);
             }
 
             // Recargar el año que estaba activo
-            const rawActual = localStorage.getItem('finanzasPersonales_' + anoActual);
+            const rawActual = localStorage.getItem('mama_finanzas_' + anoActual);
             if (rawActual) {
                 datos = JSON.parse(rawActual);
                 if (!datos.extrasRecurrentes) datos.extrasRecurrentes = [];
@@ -2035,7 +2035,7 @@
             const nuevoAno = parseInt(document.getElementById('ano-select').value);
 
             // Cargar datos del nuevo año si existen
-            const guardado = localStorage.getItem('finanzasPersonales_' + nuevoAno);
+            const guardado = localStorage.getItem('mama_finanzas_' + nuevoAno);
             if (guardado) {
                 anoActual = nuevoAno;
                 datos = JSON.parse(guardado);
@@ -2049,7 +2049,7 @@
             } else {
                 // Año nuevo: copiar del año anterior con incrementos
                 const anoAnterior = nuevoAno - 1;
-                const guardadoAnterior = localStorage.getItem('finanzasPersonales_' + anoAnterior);
+                const guardadoAnterior = localStorage.getItem('mama_finanzas_' + anoAnterior);
                 if (guardadoAnterior) {
                     const datosAnterior = JSON.parse(guardadoAnterior);
                     anoActual = nuevoAno;
@@ -2172,7 +2172,7 @@
             // para obtener el saldo real 1 Ene (= 31 Dic calculado del año anterior).
             let saldoEncadenado = null;
             for (let y = 2024; y <= ano; y++) {
-                const raw = localStorage.getItem('finanzasPersonales_' + y);
+                const raw = localStorage.getItem('mama_finanzas_' + y);
                 if (!raw) continue;
                 const d = JSON.parse(raw);
                 const saldoInicio = saldoEncadenado !== null ? saldoEncadenado : (d.saldoInicial || 0);
@@ -4567,7 +4567,7 @@
             if (window.mesActualVerTodo !== null) {
                 window.ordenPersonalizado[window.mesActualVerTodo] = orden;
                 try {
-                    localStorage.setItem('ordenMovimientos', JSON.stringify(window.ordenPersonalizado));
+                    localStorage.setItem('mama_ordenMovimientos', JSON.stringify(window.ordenPersonalizado));
                 } catch(e) {}
             }
         }
@@ -4576,7 +4576,7 @@
             if (window.mesActualVerTodo !== null && window.ordenPersonalizado) {
                 delete window.ordenPersonalizado[window.mesActualVerTodo];
                 try {
-                    localStorage.setItem('ordenMovimientos', JSON.stringify(window.ordenPersonalizado));
+                    localStorage.setItem('mama_ordenMovimientos', JSON.stringify(window.ordenPersonalizado));
                 } catch(e) {}
                 abrirModalVerTodoMes(window.mesActualVerTodo);
             }
@@ -4584,7 +4584,7 @@
         
         // Cargar orden guardado al iniciar
         try {
-            const ordenGuardado = localStorage.getItem('ordenMovimientos');
+            const ordenGuardado = localStorage.getItem('mama_ordenMovimientos');
             if (ordenGuardado) {
                 window.ordenPersonalizado = JSON.parse(ordenGuardado);
             }
