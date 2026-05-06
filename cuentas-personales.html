@@ -1344,12 +1344,14 @@
                 }
             });
 
-            // Gastos fijos (con overrides y eliminados)
+            // Gastos fijos (con overrides, eliminados y forzarEnMes)
             datos.gastosFijos.forEach((item, idx) => {
-                const aplica = item.frecuencia === 'mensual' || (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes));
-                if (!aplica) return;
                 const ov = overrides['gastosFijos_' + idx];
                 if (ov && ov.eliminado) return;
+                const aplica = item.frecuencia === 'mensual' ||
+                    (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) ||
+                    (ov && ov.forzarEnMes);
+                if (!aplica) return;
                 const valor = ov ? ov.valor : item.valor;
                 const concepto = ov ? ov.concepto : item.concepto;
                 const cat = clasificarConcepto(concepto, false);
@@ -1359,12 +1361,14 @@
                 }
             });
 
-            // Vacaciones fijas (con overrides y eliminados)
+            // Vacaciones fijas (con overrides, eliminados y forzarEnMes)
             (datos.gastosVacaciones || []).forEach((item, idx) => {
-                const aplica = item.frecuencia === 'mensual' || (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes));
-                if (!aplica) return;
                 const ov = overrides['gastosVacaciones_' + idx];
                 if (ov && ov.eliminado) return;
+                const aplica = item.frecuencia === 'mensual' ||
+                    (item.frecuencia === 'anual' && item.meses && item.meses.includes(numMes)) ||
+                    (ov && ov.forzarEnMes);
+                if (!aplica) return;
                 const valor = ov ? ov.valor : item.valor;
                 const concepto = ov ? ov.concepto : item.concepto;
                 gastosCateg['vacaciones'].total += valor;
