@@ -2199,7 +2199,7 @@
             const datosViejos = localStorage.getItem('finanzasPersonales2');
             const datosNuevos = localStorage.getItem('finanzasPersonalesMama_2026');
             if (datosViejos && !datosNuevos) {
-                localStorage.setItem('finanzasPersonales_2026', datosViejos);
+                localStorage.setItem('finanzasPersonalesMama_2026', datosViejos);
                 mostrarNotificacion('✅ Datos migrados a sistema multi-año', 'exito');
             }
 
@@ -2212,7 +2212,7 @@
 
             actualizarBtnGist();
 
-            const datosLocales = localStorage.getItem('finanzasPersonales_2026');
+            const datosLocales = localStorage.getItem('finanzasPersonalesMama_2026');
 
             // ── Intentar cargar desde Gist primero ──
             mostrarFuenteDatos('cargando', null);
@@ -2243,21 +2243,21 @@
                         } else {
                             datos = datosGist;
                             normalizarDatos(datos);
-                            localStorage.setItem('finanzasPersonales_2026', JSON.stringify(datos));
+                            localStorage.setItem('finanzasPersonalesMama_2026', JSON.stringify(datos));
                             mostrarFuenteDatos('gist', datosGist._exportadoEn || null);
                         }
                     } else {
                         // Gist es igual o más nuevo → usar Gist
                         datos = datosGist;
                         normalizarDatos(datos);
-                        localStorage.setItem('finanzasPersonales_2026', JSON.stringify(datos));
+                        localStorage.setItem('finanzasPersonalesMama_2026', JSON.stringify(datos));
                         mostrarFuenteDatos('gist', datosGist._exportadoEn || null);
                     }
                 } else {
                     // Sin datos locales → usar Gist directamente
                     datos = datosGist;
                     normalizarDatos(datos);
-                    localStorage.setItem('finanzasPersonales_2026', JSON.stringify(datos));
+                    localStorage.setItem('finanzasPersonalesMama_2026', JSON.stringify(datos));
                     mostrarFuenteDatos('gist', datosGist._exportadoEn || null);
                 }
             } else if (datosLocales) {
