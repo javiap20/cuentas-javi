@@ -239,11 +239,11 @@
         .edit-item-btn { background: #3b82f6; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 0.9em; margin-left: 5px; }
         .edit-item-btn:hover { background: #2563eb; }
 
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); }
-        .modal-content { background-color: white; margin: 2% auto; padding: 30px; border-radius: 15px; width: 90%; max-width: 700px; max-height: 94vh; overflow-y: auto; -webkit-overflow-scrolling: touch; box-shadow: 0 20px 60px rgba(0,0,0,0.5); color: #1f2937; touch-action: pan-y; overscroll-behavior: contain; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        .modal-content { background-color: white; margin: 2% auto; padding: 30px; border-radius: 15px; width: 90%; max-width: 700px; overflow-y: visible; box-shadow: 0 20px 60px rgba(0,0,0,0.5); color: #1f2937; }
         body.modal-open { overflow: hidden; }
         @media (hover: none) and (pointer: coarse) {
-            body.modal-open { position: fixed; width: 100%; }
+            body.modal-open { overflow: hidden; }
         }
         .modal-content h2 { color: #1e3a8a; }
         .modal-content label { color: #374151; }
@@ -735,9 +735,9 @@
         #modal-ver-todo-mes .modal-content {
             padding: 12px !important;
             padding-top: 44px !important;
-            max-height: 96vh !important;
-            min-height: 92vh !important;
-            overflow-y: auto !important;
+            max-height: none !important;
+            min-height: unset !important;
+            overflow-y: visible !important;
         }
         #modal-ver-todo-mes h3 {
             font-size: 15px !important;
@@ -5749,18 +5749,9 @@ function recalcularSimulador() {
             while (el) {
                 if (!el.classList) { el = el.parentElement; continue; }
                 // Zona de scroll estándar de modal
-                if (el.classList.contains('modal-content')) return el;
-                // El propio overlay puede ser scrollable (ej: modal-simulador)
-                if (el.classList.contains('modal')) {
-                    var cs = window.getComputedStyle(el);
-                    if (cs.overflowY === 'auto' || cs.overflowY === 'scroll') return el;
-                    return null; // overlay sin scroll → bloquear
-                }
-                // Div interior con overflow scroll (paneles del simulador)
-                var cs2 = window.getComputedStyle(el);
-                if ((cs2.overflowY === 'auto' || cs2.overflowY === 'scroll') && el.scrollHeight > el.clientHeight) {
-                    return el;
-                }
+                if (el.classList.contains('modal-content')) return el.parentElement || el;
+                // El propio overlay: siempre scrollable ahora
+                if (el.classList.contains('modal')) return el;
                 el = el.parentElement;
             }
             return null;
