@@ -1482,7 +1482,9 @@ async function updatePrices() {
     loading.classList.add('active');
     try {
         await getExchangeRate(apiKey);
-        const openPositions = portfolioData[String(currentYear)].positions.filter(p => !p.sold);
+        const openPositions = currentYear === 'ACTIVA'
+            ? getOpenPositions()
+            : (portfolioData[String(currentYear)]?.positions || []).filter(p => !p.sold);
         for (const item of openPositions) {
             loading.querySelector('div + *') || loading.childNodes[1];
             const loadingText = loading.querySelector('div') ? loading : loading;
