@@ -239,8 +239,13 @@
         .edit-item-btn { background: #3b82f6; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 0.9em; margin-left: 5px; }
         .edit-item-btn:hover { background: #2563eb; }
 
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); overflow-y: auto; -webkit-overflow-scrolling: touch; }
-        .modal-content { background-color: white; margin: 2% auto; padding: 30px; border-radius: 15px; width: 90%; max-width: 700px; overflow-y: visible; box-shadow: 0 20px 60px rgba(0,0,0,0.5); color: #1f2937; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); overflow-y: hidden; }
+        .modal-content { background-color: white; margin: 2% auto; padding: 30px; border-radius: 15px; width: 90%; max-width: 700px; max-height: 94vh; overflow-y: auto; -webkit-overflow-scrolling: touch; box-shadow: 0 20px 60px rgba(0,0,0,0.5); color: #1f2937; touch-action: pan-y; overscroll-behavior: contain; }
+        /* iPad/touch: el scroll vive en el overlay, no en modal-content */
+        @media (hover: none) and (pointer: coarse) {
+            .modal { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+            .modal-content { max-height: none; overflow-y: visible; }
+        }
         body.modal-open { overflow: hidden; }
         @media (hover: none) and (pointer: coarse) {
             body.modal-open { overflow: hidden; }
@@ -735,9 +740,14 @@
         #modal-ver-todo-mes .modal-content {
             padding: 12px !important;
             padding-top: 44px !important;
-            max-height: none !important;
-            min-height: unset !important;
-            overflow-y: visible !important;
+            max-height: 96vh !important;
+            overflow-y: auto !important;
+        }
+        @media (hover: none) and (pointer: coarse) {
+            #modal-ver-todo-mes .modal-content {
+                max-height: none !important;
+                overflow-y: visible !important;
+            }
         }
         #modal-ver-todo-mes h3 {
             font-size: 15px !important;
@@ -5746,11 +5756,14 @@ function recalcularSimulador() {
         // Acepta: .modal-content, el propio .modal con overflow-y, o cualquier
         // div interno con overflow-y:auto / overflow-y:scroll.
         function findScrollableAncestor(el) {
+            var isTouch = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
             while (el) {
                 if (!el.classList) { el = el.parentElement; continue; }
-                // Zona de scroll estándar de modal
-                if (el.classList.contains('modal-content')) return el.parentElement || el;
-                // El propio overlay: siempre scrollable ahora
+                if (el.classList.contains('modal-content')) {
+                    // En touch: subir al .modal overlay que es el scrollable
+                    // En PC: el propio modal-content es el scrollable
+                    return isTouch ? (el.closest ? el.closest('.modal') : el.parentElement) : el;
+                }
                 if (el.classList.contains('modal')) return el;
                 el = el.parentElement;
             }
