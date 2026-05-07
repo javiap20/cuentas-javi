@@ -815,16 +815,12 @@
             transform: scale(1.1) !important;
         }
 
-        /* ── iPad/touch: una sola columna en el modal Ver Todo ── */
+        /* ── iPad/touch: modal Ver Todo ocupa el ancho completo de la pantalla ── */
         @media (hover: none) and (pointer: coarse) {
-            #lista-todo-mes > div[style*="grid-template-columns"] {
-                grid-template-columns: 1fr !important;
-            }
-        }
-        /* También para pantallas <= 900px (iPad landscape/portrait) */
-        @media (max-width: 900px) {
-            #lista-todo-mes > div[style*="grid-template-columns"] {
-                grid-template-columns: 1fr !important;
+            #modal-ver-todo-mes .modal-content {
+                width: 98% !important;
+                max-width: 98% !important;
+                margin: 1% auto !important;
             }
         }
 
