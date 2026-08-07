@@ -8,7 +8,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 20px; min-height: 100vh; }
         .container { max-width: 95%; width: 100%; margin: 0 auto; background: white; border-radius: 20px; padding: 30px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow-x: auto; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 26px; }
         .header h1 { color: #2d3748; font-size: 2.1em; }
         .header-buttons { display: flex; gap: 6px; }
         .btn-header { padding: 4px 12px; background: #334155; color: white; border: 1.5px solid #475569; border-radius: 6px; cursor: pointer; font-size: 11px; transition: all 0.3s; font-weight: bold; }
@@ -26,7 +26,7 @@
         .api-status { margin-top: 10px; padding: 10px; border-radius: 6px; font-size: 14px; display: none; }
         .api-status.success { background: #c6f6d5; color: #22543d; display: block; }
         .api-status.error { background: #fed7d7; color: #742a2a; display: block; }
-        .year-selector { display: flex; justify-content: center; gap: 5px; margin-bottom: 10px; flex-wrap: wrap; }
+        .year-selector { display: flex; justify-content: center; gap: 5px; margin-bottom: 22px; flex-wrap: wrap; }
         .year-tab { padding: 4px 11px; background: #e2e8f0; color: #475569; border: 1.5px solid #cbd5e0; border-radius: 6px; cursor: pointer; font-weight: bold; transition: all 0.3s; font-size: 11px; }
         .year-tab:hover { background: #cbd5e0; transform: translateY(-1px); }
         .year-tab.active { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: white; border-color: #475569; }
@@ -60,6 +60,17 @@
         .group-scroll::-webkit-scrollbar-thumb:hover { background: #cbd5e0; }
         table { width: 100%; min-width: 1050px; border-collapse: collapse; border-radius: 10px; }
         .table-wrapper.compact-view table, .table-wrapper.compact-view .group-scroll table { min-width: 0; }
+        /* En la cartera activa ya no mostramos las 5 columnas técnicas en línea. */
+        .table-wrapper.active-slim table, .table-wrapper.active-slim .group-scroll table { min-width: 850px; }
+        .table-wrapper.active-slim .group-section-title { min-width: 850px; }
+        /* Vista activa un poco más compacta para evitar el último scroll horizontal */
+        .table-wrapper.active-slim th { padding-left:8px; padding-right:8px; font-size:10px; }
+        .table-wrapper.active-slim td { padding-left:8px; padding-right:8px; font-size:12px; }
+        .table-wrapper.active-slim .btn-sell { padding:5px 10px; font-size:10px; }
+        .table-wrapper.active-slim .btn-edit,
+        .table-wrapper.active-slim .btn-delete,
+        .table-wrapper.active-slim .btn-position-info { padding:5px 6px; font-size:10px; }
+        .table-wrapper.active-slim .action-cell { gap:4px; }
         .group-scroll table { margin-top: 0; }
         thead { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: white; border-bottom: 3px solid #475569; }
         th { padding: 13px 10px; text-align: center; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; white-space: nowrap; }
@@ -80,8 +91,23 @@
         .btn-edit:hover { background: #2563eb; transform: translateY(-2px); }
         .btn-delete { padding: 6px 8px; background: #64748b; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold; transition: all 0.3s; }
         .btn-delete:hover { background: #475569; transform: translateY(-2px); }
+        .btn-position-info { padding: 6px 9px; background: #0f766e; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold; transition: all 0.3s; }
+        .btn-position-info:hover { background: #115e59; transform: translateY(-2px); }
         .action-cell { display: flex; gap: 5px; justify-content: center; align-items: center; flex-wrap: nowrap; white-space: nowrap; }
         .section-title { font-size: 15px; font-weight: bold; color: white; margin: 35px 0 18px 0; padding: 10px 20px; background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border-radius: 8px; text-align: left; border: 2px solid #475569; box-shadow: 0 4px 15px rgba(0,0,0,0.2); letter-spacing: 1.5px; }
+        /* Título de cada bloque por encima de la cabecera de columnas */
+        .group-section-title {
+            width: 100%;
+            min-width: 1050px;
+            margin: 0;
+            padding: 12px 24px;
+            border-radius: 10px 10px 0 0;
+            border-bottom: 0;
+            box-shadow: none;
+            text-align: center;
+        }
+        .group-section-title .section-icon { display:inline-block; margin-right:10px; }
+        .table-wrapper.compact-view .group-section-title { min-width: 0; }
         .subtotal-row td { padding: 13px 16px !important; font-size: 14px; white-space: nowrap; }
         .section-spacer { height: 30px; background: transparent; }
         .section-row td { padding: 0 !important; border: none !important; }
@@ -95,6 +121,49 @@
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideIn { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .modal-content h2 { color: #2d3748; margin-bottom: 20px; }
+        .position-info-modal-content { max-width: 820px; padding: 0; overflow: hidden; display:flex; flex-direction:column; max-height:90vh; }
+        .position-info-head { padding: 18px 24px; background: linear-gradient(135deg,#1e293b,#334155); color:white; flex:0 0 auto; }
+        .position-info-head h2 { color:white; margin:0 0 4px; font-size:19px; }
+        .position-info-head .position-info-subtitle { color:#cbd5e1; font-size:12px; }
+        .position-info-body { padding:16px 24px 18px; overflow-y:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; min-height:0; }
+        .position-info-body::-webkit-scrollbar { width:7px; }
+        .position-info-body::-webkit-scrollbar-track { background:transparent; }
+        .position-info-body::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:8px; }
+        .position-info-signal { display:flex; align-items:center; justify-content:space-between; gap:14px; border-radius:10px; padding:10px 14px; margin-bottom:12px; border:1px solid transparent; }
+        .position-info-signal strong { font-size:12px; letter-spacing:.7px; }
+        .position-info-signal span { font-size:11px; opacity:.9; text-align:right; }
+        .position-info-signal.green { background:#ecfdf5; color:#047857; border-color:#a7f3d0; }
+        .position-info-signal.yellow { background:#fffbeb; color:#92400e; border-color:#fde68a; }
+        .position-info-signal.red { background:#fef2f2; color:#b91c1c; border-color:#fecaca; }
+        .position-info-insights { display:grid; grid-template-columns:1.2fr 1fr 1fr; gap:10px; margin-bottom:12px; }
+        .position-info-insight { border:1px solid #e2e8f0; background:white; border-radius:10px; padding:11px 14px; min-height:108px; box-shadow:0 2px 8px rgba(15,23,42,.04); }
+        .position-info-insight h4 { margin:0 0 8px; color:#475569; font-size:10px; text-transform:uppercase; letter-spacing:.8px; }
+        .position-info-metric-main { font-size:18px; font-weight:800; color:#1e293b; margin-bottom:4px; }
+        .position-info-metric-line { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; padding:3px 0; font-size:11px; color:#64748b; }
+        .position-info-metric-line strong { color:#334155; text-align:right; }
+        .position-info-metric-note { margin-top:5px; font-size:9px; color:#94a3b8; }
+        .metric-danger { color:#dc2626 !important; }
+        .metric-good { color:#059669 !important; }
+        .metric-warn { color:#d97706 !important; }
+        .position-info-section-title { margin:3px 0 8px; color:#64748b; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:1px; }
+        .position-info-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px 12px; }
+        .position-info-card { border:1px solid #e2e8f0; background:#f8fafc; border-radius:10px; padding:12px 15px; min-height:96px; }
+        .position-info-card h4 { margin:0 0 9px; color:#475569; font-size:11px; text-transform:uppercase; letter-spacing:.8px; }
+        .position-info-main { font-size:16px; font-weight:800; color:#1e293b; line-height:1.45; }
+        .position-info-line { display:flex; justify-content:space-between; gap:14px; padding:3px 0; font-size:12px; color:#64748b; }
+        .position-info-line strong { color:#334155; }
+        .position-info-stop.triggered .position-info-main { color:#dc2626; }
+        .position-info-target.reached .position-info-main { color:#2563eb; }
+        .position-info-target-input { display:flex; gap:8px; align-items:center; margin-top:5px; }
+        .position-info-target-input input { flex:1; min-width:0; padding:8px 9px; font-size:13px; border:1px solid #cbd5e0; border-radius:7px; }
+        .position-info-news { margin-top:10px; border:1px solid #e2e8f0; background:white; border-radius:10px; padding:11px 14px; }
+        .position-info-news h4 { margin:0 0 10px; color:#475569; font-size:11px; text-transform:uppercase; letter-spacing:.8px; }
+        .position-info-news-links { display:flex; gap:8px; flex-wrap:wrap; }
+        .position-info-news-links .btn-news { width:auto; min-width:110px; margin:0; padding:8px 12px; font-size:11px; }
+        .position-info-close { width:100%; margin-top:10px; padding:8px 14px; border:none; border-radius:8px; background:#e2e8f0; color:#475569; font-weight:800; cursor:pointer; }
+        .position-info-close:hover { background:#cbd5e0; }
+        @media (max-width: 760px) { .position-info-insights { grid-template-columns:1fr; } }
+        @media (max-width: 640px) { .position-info-grid { grid-template-columns:1fr; } .position-info-modal-content { width:94%; } .position-info-signal { align-items:flex-start; flex-direction:column; } .position-info-signal span { text-align:left; } }
         .modal-content label { display: block; color: #475569; font-weight: bold; margin-bottom: 8px; margin-top: 15px; }
         .modal-content input { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px; }
         .modal-buttons { display: flex; gap: 10px; margin-top: 25px; }
@@ -107,7 +176,14 @@
         .loading.active { display: block; }
         .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #667eea; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 10px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .exchange-rate { text-align: center; color: #718096; font-size: 14px; margin-top: 20px; }
+        .exchange-rate { text-align: center; color: #718096; font-size: 13px; margin-top: 20px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+        .exchange-rate-row { display: flex; align-items: center; justify-content: center; gap: 5px; flex-wrap: wrap; }
+        .exchange-rate input { width: 74px; border: 1px solid #cbd5e0; border-radius: 5px; padding: 2px 6px; font-size: 13px; color: #2d3748; text-align: center; background: #fff; }
+        .exchange-rate-note { font-size: 11px; color: #a0aec0; }
+        .btn-rate-api { padding: 3px 8px; background: #0ea5e9; color: white; border: none; border-radius: 5px; font-size: 10px; font-weight: 700; cursor: pointer; transition: all 0.2s; margin-left: 3px; }
+        .btn-rate-api:hover { background: #0284c7; transform: translateY(-1px); }
+        .btn-rate-api:disabled { background: #94a3b8; cursor: not-allowed; transform: none; }
+        .exchange-rate-status { min-height: 12px; font-size: 10px; color: #94a3b8; }
         .support-resistance { font-size: 10px; color: #64748b; min-width: 76px; }
         .support-value { color: #ef4444; font-weight: bold; font-size: 11px; }
         .resistance-value { color: #22c55e; font-weight: bold; font-size: 11px; }
@@ -182,12 +258,103 @@
         .voice-hint { font-size: 11px; color: #7c3aed; margin-top: 3px; display: none; }
         .voice-hint.active { display: block; }
 
+        /* Filtro de cartera activa: Activa / Trading / Cartera */
+        .active-filter-bar { display:none; justify-content:center; margin:-4px 0 18px; }
+        .active-filter-group { display:inline-flex; gap:4px; padding:4px; background:#e2e8f0; border:1px solid #cbd5e0; border-radius:10px; box-shadow:0 2px 8px rgba(15,23,42,0.08); }
+        .active-filter-btn { border:none; background:transparent; color:#475569; padding:7px 16px; border-radius:7px; font-size:12px; font-weight:800; cursor:pointer; transition:all .2s; }
+        .active-filter-btn:hover { background:#f8fafc; }
+        .active-filter-btn.active { background:#1e293b; color:white; box-shadow:0 2px 8px rgba(15,23,42,0.22); }
+        .active-filter-btn[data-filter="trading"].active { background:#b45309; }
+        .active-filter-btn[data-filter="cartera"].active { background:#0369a1; }
+
+        /* Clasificación rápida por posición */
+        .position-bucket-wrap { min-width:118px; display:flex; flex-direction:column; align-items:center; gap:3px; }
+        .position-bucket-control { display:inline-flex; gap:2px; padding:2px; background:#f1f5f9; border:1px solid #cbd5e0; border-radius:7px; }
+        .position-bucket-btn { border:none; border-radius:5px; padding:3px 5px; background:white; color:#64748b; font-size:8px; font-weight:800; cursor:pointer; transition:all .15s; }
+        .position-bucket-btn:hover { background:#e2e8f0; color:#1e293b; }
+        .position-bucket-btn.trading.active { background:#f59e0b; color:white; }
+        .position-bucket-btn.cartera.active { background:#0ea5e9; color:white; }
+        .position-bucket-state { font-size:8px; color:#94a3b8; white-space:nowrap; }
+        .position-bucket-state.assigned { color:#475569; font-weight:700; }
+
+        /* Selector en alta de nueva posición */
+        .add-bucket-selector { display:flex; gap:8px; margin-top:6px; }
+        .add-bucket-btn { flex:1; border:2px solid #cbd5e0; background:#f8fafc; color:#475569; padding:10px 12px; border-radius:8px; font-weight:800; cursor:pointer; transition:all .2s; }
+        .add-bucket-btn:hover { border-color:#94a3b8; background:#f1f5f9; }
+        .add-bucket-btn.trading.active { border-color:#f59e0b; background:#fef3c7; color:#92400e; }
+        .add-bucket-btn.cartera.active { border-color:#0ea5e9; background:#e0f2fe; color:#075985; }
+        .add-bucket-help { font-size:11px; color:#64748b; margin-top:5px; }
+
+        /* Selectores visuales del formulario de alta */
+        .add-choice-with-mic { display:flex; align-items:stretch; gap:8px; }
+        .add-choice-selector { display:flex; gap:8px; flex:1; }
+        .add-choice-btn {
+            flex:1; border:2px solid #cbd5e0; background:#f8fafc; color:#475569;
+            padding:10px 12px; border-radius:8px; font-weight:800; cursor:pointer;
+            transition:all .2s; min-height:42px;
+        }
+        .add-choice-btn:hover { border-color:#94a3b8; background:#f1f5f9; }
+        .add-choice-btn.active { border-color:#334155; background:#e2e8f0; color:#1e293b; box-shadow:0 0 0 1px rgba(51,65,85,.08) inset; }
+        .add-choice-with-mic .btn-mic { height:auto; min-height:42px; align-self:stretch; }
+        .add-market-field { margin-top:2px; }
+
+        /* Moneda + precio en la misma fila al abrir una posición */
+        .currency-price-stack { display:flex; flex-direction:column; gap:8px; margin-top:6px; }
+        .currency-price-row { display:flex; align-items:stretch; gap:8px; }
+        .currency-price-row .add-choice-btn { flex:0 0 105px; }
+        .currency-price-row input { flex:1; width:auto; min-width:0; }
+        .currency-price-row .btn-mic { height:auto; min-height:42px; align-self:stretch; }
+        .currency-price-row input:disabled { background:#f1f5f9; color:#94a3b8; cursor:not-allowed; }
+        .currency-price-help { font-size:11px; color:#64748b; margin-top:5px; line-height:1.35; }
+
+
+        /* Primera columna fija al hacer scroll horizontal (Acciones y Cripto) */
+        #stocksGroupWrapper thead th:first-child,
+        #cryptoGroupWrapper thead th:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 7;
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            box-shadow: 5px 0 8px -7px rgba(15, 23, 42, 0.75);
+        }
+        #stocksGroupWrapper tbody tr:not(.section-row) > td:first-child,
+        #cryptoGroupWrapper tbody tr:not(.section-row) > td:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 3;
+            background: #ffffff;
+            box-shadow: 5px 0 8px -7px rgba(15, 23, 42, 0.35);
+        }
+        #stocksGroupWrapper tbody tr:not(.section-row):hover > td:first-child,
+        #cryptoGroupWrapper tbody tr:not(.section-row):hover > td:first-child { background:#f7fafc; }
+        #stocksGroupWrapper tbody tr.sold > td:first-child,
+        #cryptoGroupWrapper tbody tr.sold > td:first-child { background:#f1f5f9; }
+        #stocksGroupWrapper tbody tr.sold:hover > td:first-child,
+        #cryptoGroupWrapper tbody tr.sold:hover > td:first-child { background:#e2e8f0; }
+        #stocksGroupWrapper tbody tr.subtotal-stocks > td:first-child { background:linear-gradient(135deg,#fff0e6,#ffe8d6); }
+        #cryptoGroupWrapper tbody tr.subtotal-crypto > td:first-child { background:linear-gradient(135deg,#fef9c3,#fef3c7); }
+
+        /* Movimiento necesario desde el precio actual hasta volver al precio de compra */
+        .to-buy-distance { display:block; margin-top:4px; font-size:9px; font-weight:700; white-space:nowrap; line-height:1.15; }
+        .to-buy-distance.up { color:#b45309; }
+        .to-buy-distance.down { color:#0369a1; }
+        .to-buy-distance.flat { color:#64748b; }
+
+        /* Precio actual / de venta editable manualmente */
+        .editable-price { cursor:pointer; border-radius:5px; padding:2px 5px; transition:background .15s, box-shadow .15s; }
+        .editable-price:hover { background:#fff7d6; box-shadow:0 0 0 1px #facc15 inset; transform:none; }
+        .editable-price::after { content:"  ✏️"; font-size:8px; opacity:.38; vertical-align:middle; }
+        .price-edit-stack { display:flex; flex-direction:column; gap:4px; align-items:center; min-width:104px; }
+        .price-edit-stack input { width:92px; border:1px solid #94a3b8; border-radius:5px; padding:4px 5px; text-align:center; font-size:11px; background:white; }
+        .price-edit-stack .price-edit-hint { font-size:8px; color:#64748b; font-weight:600; white-space:nowrap; }
+        .price-edit-save { border:none; background:#1e293b; color:white; border-radius:4px; padding:3px 8px; font-size:9px; font-weight:800; cursor:pointer; }
+
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>📊 Cartera JaviAp</h1>
+            <h1>📈 Cartera JaviAp</h1>
             <div class="header-buttons">
                 <button class="btn-header" onclick="toggleApiConfig()">⚙️ API</button>
                 <button class="btn-header" id="btn-gist-sync" onclick="guardarEnGist(true)" style="background:#6366f1;border-color:#6366f1;display:none;">☁️ Guardar Gist</button>
@@ -199,8 +366,7 @@
                 <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
             </div>
         </div>
-        <p class="subtitle">Seguimiento completo de tu portafolio histórico</p>
-        <div id="datos-fuente-info" style="text-align:center;font-size:0.78em;color:rgba(100,116,139,0.8);margin:-8px 0 10px;min-height:16px;"></div>
+        <div id="datos-fuente-info" style="text-align:center;font-size:0.78em;color:rgba(100,116,139,0.8);margin:0 0 22px;min-height:16px;"></div>
         <div class="api-config" id="apiConfig">
             <h3>🔑 Configuración API</h3>
             <div class="api-input-group">
@@ -214,7 +380,7 @@
                 <input type="text" id="apiKeyInput" placeholder="Pega aquí tu API Key de Alpha Vantage">
                 <button onclick="saveApiKey()">Guardar Alpha Vantage Key</button>
             </div>
-            <div class="api-help">ℹ️ Solo se usa para calcular soporte/resistencia (25 peticiones/día gratis). Consíguela en: <a href="https://www.alphavantage.co/support/#api-key" target="_blank">Alpha Vantage</a></div>
+            <div class="api-help">ℹ️ Se usa para el tipo de cambio USD/EUR y para calcular soporte/resistencia (25 peticiones/día gratis). Consíguela en: <a href="https://www.alphavantage.co/support/#api-key" target="_blank">Alpha Vantage</a></div>
             <div id="apiStatus" class="api-status"></div>
             <hr style="border-color:#e2e8f0;margin:15px 0;">
             <div class="api-input-group">
@@ -232,10 +398,17 @@
         </div>
         <div class="last-update" id="lastUpdate">Última actualización: Nunca</div>
         <div class="loading" id="loading"><div class="spinner"></div>Actualizando precios y calculando soportes/resistencias...</div>
+        <div class="active-filter-bar" id="activePortfolioFilter">
+            <div class="active-filter-group" role="group" aria-label="Filtrar cartera activa">
+                <button type="button" class="active-filter-btn active" data-filter="activa" onclick="setActivePortfolioFilter('activa')">⚡ Activa</button>
+                <button type="button" class="active-filter-btn" data-filter="trading" onclick="setActivePortfolioFilter('trading')">📊 Trading</button>
+                <button type="button" class="active-filter-btn" data-filter="cartera" onclick="setActivePortfolioFilter('cartera')">💼 Cartera</button>
+            </div>
+        </div>
         <div class="summary">
             <!-- Bloque 1: Solo Acciones -->
             <div class="summary-card" style="display:flex;gap:0;padding:0;overflow:hidden;flex-direction:column;">
-                <div style="padding:10px 16px;background:rgba(255,255,255,0.07);border-bottom:1px solid #475569;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;opacity:0.8;text-align:center;">📈 Solo Acciones</div>
+                <div id="stocksSummaryTitle" style="padding:10px 16px;background:rgba(255,255,255,0.07);border-bottom:1px solid #475569;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;opacity:0.8;text-align:center;">📈 Solo Acciones</div>
                 <div style="display:flex;flex:1;">
                     <div style="flex:1;padding:15px;border-right:1px solid #475569;text-align:center;">
                         <h3>Inversión</h3>
@@ -256,7 +429,7 @@
             </div>
             <!-- Bloque 2: Total con Cripto -->
             <div class="summary-card" style="display:flex;gap:0;padding:0;overflow:hidden;flex-direction:column;">
-                <div style="padding:10px 16px;background:rgba(255,255,255,0.07);border-bottom:1px solid #475569;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;opacity:0.8;text-align:center;">🌍 Total (Acciones + Cripto)</div>
+                <div id="totalSummaryTitle" style="padding:10px 16px;background:rgba(255,255,255,0.07);border-bottom:1px solid #475569;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;opacity:0.8;text-align:center;">🌍 Total (Acciones + Cripto)</div>
                 <div style="display:flex;flex:1;">
                     <div style="flex:1;padding:15px;border-right:1px solid #475569;text-align:center;">
                         <h3>Inversión</h3>
@@ -282,6 +455,7 @@
         <div id="normalTableWrapper" class="table-wrapper">
             <div id="tableBanner"></div>
             <div id="stocksGroupWrapper" class="group-scroll">
+                <div id="stocksSectionTitle" class="section-title group-section-title"></div>
                 <table>
                     <thead>
                         <tr id="theadRowStocks"></tr>
@@ -290,6 +464,7 @@
                 </table>
             </div>
             <div id="cryptoGroupWrapper" class="group-scroll">
+                <div id="cryptoSectionTitle" class="section-title group-section-title"></div>
                 <table>
                     <thead>
                         <tr id="theadRowCrypto"></tr>
@@ -299,12 +474,24 @@
             </div>
         </div>
         <div class="exchange-rate" id="exchangeRate">
-            Tipo de cambio: 1 USD = 
-            <input type="number" id="usdEurInput" step="0.001" min="0.01" value="0.92"
-                style="width:70px;border:1px solid #cbd5e0;border-radius:5px;padding:2px 6px;font-size:14px;color:#2d3748;text-align:center;"
-                onchange="updateExchangeRate(this.value)"
-                onkeypress="if(event.key==='Enter') updateExchangeRate(this.value)">
-            EUR &nbsp;<span style="font-size:12px;color:#a0aec0;">(editable)</span>
+            <div class="exchange-rate-row">
+                <span>Tipo de cambio: 1 USD =</span>
+                <input type="number" id="usdEurInput" step="0.0001" min="0.0001" value="0.9200"
+                    onchange="updateExchangeRate(this.value)"
+                    onkeypress="if(event.key==='Enter') updateExchangeRate(this.value)">
+                <span>EUR</span>
+                <span class="exchange-rate-note">(editable)</span>
+                <button class="btn-rate-api" id="exchangeApiBtn" onclick="refreshExchangeRateFromApi()" title="Actualizar USD/EUR con Alpha Vantage">🔄 API</button>
+            </div>
+            <div class="exchange-rate-row">
+                <span>Tipo de cambio: 1 EUR =</span>
+                <input type="number" id="eurUsdInput" step="0.0001" min="0.0001" value="1.0870"
+                    onchange="updateExchangeRateInverse(this.value)"
+                    onkeypress="if(event.key==='Enter') updateExchangeRateInverse(this.value)">
+                <span>USD</span>
+                <span class="exchange-rate-note">(editable)</span>
+            </div>
+            <div id="exchangeRateStatus" class="exchange-rate-status"></div>
         </div>
         <div class="ai-panel" id="aiPanel" style="display:none;margin-top:30px;">
             <h2>🤖 Análisis IA de tu Cartera</h2>
@@ -322,22 +509,32 @@
             <div id="sellEURFields">
                 <label for="sellPriceEUR">Precio de Venta (EUR):</label>
                 <input type="number" id="sellPriceEUR" step="0.01" placeholder="Ej: 15,80">
-                <label for="sellCostsEUR">Gastos de venta (EUR, comisiones etc.):</label>
-                <input type="number" id="sellCostsEUR" step="0.01" placeholder="Ej: 5,00 (dejar en 0 si no hay)">
             </div>
             <div id="sellUSDFields" style="display:none;">
                 <label for="sellPrice">Precio de Venta (USD):</label>
                 <input type="number" id="sellPrice" step="0.01" placeholder="Ej: 210.50">
                 <label for="sellPriceEURfromUSD">Precio de venta en EUR (del día de venta):</label>
                 <input type="number" id="sellPriceEURfromUSD" step="0.01" placeholder="Ej: 192,50">
-                <label for="sellCostsUSD">Gastos de venta (EUR, comisiones etc.):</label>
-                <input type="number" id="sellCostsUSD" step="0.01" placeholder="Ej: 5,00 (dejar en 0 si no hay)">
             </div>
             <label for="sellYear">Año de Venta:</label>
             <input type="number" id="sellYear" placeholder="Ej: 2026" min="2010" max="2040">
             <div class="modal-buttons">
                 <button class="btn-confirm" onclick="confirmSell()">✅ Confirmar Venta</button>
                 <button class="btn-cancel" onclick="closeSellModal()">❌ Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detalle técnico de una posición abierta: sustituye las columnas Soporte/Resistencia/Stop/Objetivo/Noticias -->
+    <div id="positionInfoModal" class="modal" onclick="if(event.target===this) closePositionInfoModal()">
+        <div class="modal-content position-info-modal-content">
+            <div class="position-info-head">
+                <h2 id="positionInfoTitle">🔎 Detalle de posición</h2>
+                <div id="positionInfoSubtitle" class="position-info-subtitle"></div>
+            </div>
+            <div class="position-info-body">
+                <div id="positionInfoContent"></div>
+                <button type="button" class="position-info-close" onclick="closePositionInfoModal()">Cerrar</button>
             </div>
         </div>
     </div>
@@ -371,64 +568,51 @@
             <button class="btn-mic" onclick="startVoice('addQuantity','number')" title="Dictar cantidad">🎤</button>
         </div>
 
-        <label for="addCurrency">Moneda de compra:</label>
-        <div class="field-with-mic">
-            <select id="addCurrency" onchange="toggleCurrencyFields()">
-                <option value="EUR">EUR (€)</option>
-                <option value="USD">USD (\$)</option>
-            </select>
-            <button class="btn-mic" onclick="startVoice('addCurrency','currency')" title="Dictar moneda (euros/dólares)">🎤</button>
-        </div>
-
-        <div id="eurFields">
-            <label for="addBuyPriceEUR">Precio de compra (EUR):</label>
-            <div class="field-with-mic">
-                <input type="number" id="addBuyPriceEUR" step="0.01" placeholder="Ej: 15,20">
-                <button class="btn-mic" onclick="startVoice('addBuyPriceEUR','number')" title="Dictar precio">🎤</button>
-            </div>
-            <label for="addBuyCostsEUR">Gastos de compra (EUR):</label>
-            <div class="field-with-mic">
-                <input type="number" id="addBuyCostsEUR" step="0.01" placeholder="Ej: 5,00">
-                <button class="btn-mic" onclick="startVoice('addBuyCostsEUR','number')" title="Dictar gastos">🎤</button>
-            </div>
-        </div>
-
-        <div id="usdFields" style="display: none;">
-            <label for="addBuyPriceUSD">Precio de compra (USD):</label>
-            <div class="field-with-mic">
-                <input type="number" id="addBuyPriceUSD" step="0.01" placeholder="Ej: 193,03">
+        <label for="addCurrency">Moneda y precio de compra:</label>
+        <input type="hidden" id="addCurrency" value="USD">
+        <div class="currency-price-stack">
+            <div class="currency-price-row">
+                <button type="button" id="addCurrencyUSD" class="add-choice-btn active" onclick="setAddCurrency('USD')">$ USD</button>
+                <input type="number" id="addBuyPriceUSD" step="0.01" placeholder="Precio en $ · Ej: 193,03">
                 <button class="btn-mic" onclick="startVoice('addBuyPriceUSD','number')" title="Dictar precio USD">🎤</button>
             </div>
-            <label for="addBuyPriceEURfromUSD">Precio de compra en EUR (del día):</label>
-            <div class="field-with-mic">
-                <input type="number" id="addBuyPriceEURfromUSD" step="0.01" placeholder="Ej: 176,50">
-                <button class="btn-mic" onclick="startVoice('addBuyPriceEURfromUSD','number')" title="Dictar precio EUR">🎤</button>
-            </div>
-            <label for="addBuyCostsUSD">Gastos de compra (EUR):</label>
-            <div class="field-with-mic">
-                <input type="number" id="addBuyCostsUSD" step="0.01" placeholder="Ej: 5,00">
-                <button class="btn-mic" onclick="startVoice('addBuyCostsUSD','number')" title="Dictar gastos">🎤</button>
+            <div class="currency-price-row">
+                <button type="button" id="addCurrencyEUR" class="add-choice-btn" onclick="setAddCurrency('EUR')">€ EUR</button>
+                <input type="number" id="addBuyPriceEUR" step="0.01" placeholder="Equivalente en € · Ej: 176,50">
+                <button class="btn-mic" onclick="startVoice('addBuyPriceEUR','number')" title="Dictar precio EUR">🎤</button>
             </div>
         </div>
+        <div id="addCurrencyHelp" class="currency-price-help">Compra en USD: rellena el precio en $ y su equivalente en € del día.</div>
 
         <label for="addType">Tipo:</label>
-        <div class="field-with-mic">
-            <select id="addType">
-                <option value="stock">Acción (Stock)</option>
-                <option value="crypto">Criptomoneda (Crypto)</option>
-            </select>
+        <input type="hidden" id="addType" value="stock">
+        <div class="add-choice-with-mic">
+            <div class="add-choice-selector">
+                <button type="button" id="addTypeStock" class="add-choice-btn active" onclick="setAddType('stock')">📈 Acción</button>
+                <button type="button" id="addTypeCrypto" class="add-choice-btn" onclick="setAddType('crypto')">₿ Cripto</button>
+            </div>
             <button class="btn-mic" onclick="startVoice('addType','type')" title="Dictar tipo (acción/crypto)">🎤</button>
         </div>
 
-        <label for="addExchange">Mercado (solo para acciones):</label>
-        <select id="addExchange">
-            <option value="NYSE">NYSE</option>
-            <option value="NASDAQ">NASDAQ</option>
-            <option value="EURONEXT">Euronext</option>
-            <option value="BME">BME (España)</option>
-            <option value="LSE">LSE (Londres)</option>
-            <option value="OTHER">Otro</option>
-        </select>
+        <div id="addBucketField">
+            <label>Destino de la posición:</label>
+            <input type="hidden" id="addPositionBucket" value="trading">
+            <div class="add-bucket-selector">
+                <button type="button" id="addBucketTrading" class="add-bucket-btn trading active" onclick="setAddPositionBucket('trading')">📊 Trading</button>
+                <button type="button" id="addBucketCartera" class="add-bucket-btn cartera" onclick="setAddPositionBucket('cartera')">💼 Cartera</button>
+            </div>
+            <div class="add-bucket-help">Obligatorio para cualquier posición abierta. Luego puedes cambiarlo al instante desde la tabla.</div>
+        </div>
+
+        <div id="addMarketField" class="add-market-field">
+            <label for="addExchange">Mercado (solo para acciones):</label>
+            <input type="hidden" id="addExchange" value="NASDAQ">
+            <div class="add-choice-selector">
+                <button type="button" id="addMarketUSA" class="add-choice-btn active" onclick="setAddMarket('USA')">🇺🇸 USA</button>
+                <button type="button" id="addMarketEurope" class="add-choice-btn" onclick="setAddMarket('EUROPA')">🇪🇺 Europa</button>
+                <button type="button" id="addMarketSpain" class="add-choice-btn" onclick="setAddMarket('ESPANA')">🇪🇸 España</button>
+            </div>
+        </div>
 
         <label for="addIsin">Código ISIN (opcional):</label>
         <div class="field-with-mic">
@@ -455,11 +639,6 @@
                         <input type="number" id="addSellPriceEUR" step="0.01" placeholder="Ej: 157,74">
                         <button class="btn-mic" onclick="startVoice('addSellPriceEUR','number')" title="Dictar precio venta">🎤</button>
                     </div>
-                    <label for="addSellCostsEUR">Gastos de venta (EUR):</label>
-                    <div class="field-with-mic">
-                        <input type="number" id="addSellCostsEUR" step="0.01" placeholder="Ej: 5,00">
-                        <button class="btn-mic" onclick="startVoice('addSellCostsEUR','number')" title="Dictar gastos venta">🎤</button>
-                    </div>
                 </div>
 
                 <div id="soldUsdFields" style="display: none;">
@@ -472,11 +651,6 @@
                     <div class="field-with-mic">
                         <input type="number" id="addSellPriceEURfromUSD" step="0.01" placeholder="Ej: 192,50">
                         <button class="btn-mic" onclick="startVoice('addSellPriceEURfromUSD','number')" title="Dictar precio EUR">🎤</button>
-                    </div>
-                    <label for="addSellCostsUSD">Gastos de venta (EUR):</label>
-                    <div class="field-with-mic">
-                        <input type="number" id="addSellCostsUSD" step="0.01" placeholder="Ej: 5,00">
-                        <button class="btn-mic" onclick="startVoice('addSellCostsUSD','number')" title="Dictar gastos">🎤</button>
                     </div>
                 </div>
             </div>
@@ -506,42 +680,46 @@
         <label for="editQuantity">Cantidad:</label>
         <input type="number" id="editQuantity" step="0.000001">
 
-        <label for="editCurrency">Moneda:</label>
-        <select id="editCurrency" onchange="toggleEditCurrencyFields()">
-            <option value="EUR">EUR (€)</option>
-            <option value="USD">USD ($)</option>
-        </select>
-
-        <div id="editEurFields">
-            <label for="editBuyPriceEUR">Precio de compra (EUR):</label>
-            <input type="number" id="editBuyPriceEUR" step="0.01">
-            <label for="editBuyCostsEUR">Gastos de compra (EUR):</label>
-            <input type="number" id="editBuyCostsEUR" step="0.01">
+        <label for="editCurrency">Moneda y precio de compra:</label>
+        <input type="hidden" id="editCurrency" value="USD">
+        <div class="currency-price-stack">
+            <div class="currency-price-row">
+                <button type="button" id="editCurrencyUSD" class="add-choice-btn" onclick="setEditCurrency('USD')">$ USD</button>
+                <input type="number" id="editBuyPriceUSD" step="0.01" placeholder="Precio en $">
+            </div>
+            <div class="currency-price-row">
+                <button type="button" id="editCurrencyEUR" class="add-choice-btn" onclick="setEditCurrency('EUR')">€ EUR</button>
+                <input type="number" id="editBuyPriceEUR" step="0.01" placeholder="Equivalente en €">
+            </div>
         </div>
-        <div id="editUsdFields" style="display:none;">
-            <label for="editBuyPriceUSD">Precio de compra (USD):</label>
-            <input type="number" id="editBuyPriceUSD" step="0.01">
-            <label for="editBuyPriceEURfromUSD">Precio de compra en EUR (día de compra):</label>
-            <input type="number" id="editBuyPriceEURfromUSD" step="0.01">
-            <label for="editBuyCostsUSD">Gastos de compra (EUR):</label>
-            <input type="number" id="editBuyCostsUSD" step="0.01">
-        </div>
+        <div id="editCurrencyHelp" class="currency-price-help"></div>
 
         <label for="editType">Tipo:</label>
-        <select id="editType">
-            <option value="stock">Acción (Stock)</option>
-            <option value="crypto">Criptomoneda (Crypto)</option>
-        </select>
+        <input type="hidden" id="editType" value="stock">
+        <div class="add-choice-selector">
+            <button type="button" id="editTypeStock" class="add-choice-btn" onclick="setEditType('stock')">📈 Acción</button>
+            <button type="button" id="editTypeCrypto" class="add-choice-btn" onclick="setEditType('crypto')">₿ Cripto</button>
+        </div>
 
-        <label for="editExchange">Mercado:</label>
-        <select id="editExchange">
-            <option value="NYSE">NYSE</option>
-            <option value="NASDAQ">NASDAQ</option>
-            <option value="EURONEXT">Euronext</option>
-            <option value="BME">BME (España)</option>
-            <option value="LSE">LSE (Londres)</option>
-            <option value="OTHER">Otro</option>
-        </select>
+        <div id="editBucketField">
+            <label>Destino de la posición:</label>
+            <input type="hidden" id="editPositionBucket" value="">
+            <div class="add-bucket-selector">
+                <button type="button" id="editBucketTrading" class="add-bucket-btn trading" onclick="setEditPositionBucket('trading')">📊 Trading</button>
+                <button type="button" id="editBucketCartera" class="add-bucket-btn cartera" onclick="setEditPositionBucket('cartera')">💼 Cartera</button>
+            </div>
+            <div class="add-bucket-help">La clasificación se guarda con la posición y también puedes cambiarla desde la tabla.</div>
+        </div>
+
+        <div id="editMarketField" class="add-market-field">
+            <label for="editExchange">Mercado (solo para acciones):</label>
+            <input type="hidden" id="editExchange" value="NASDAQ">
+            <div class="add-choice-selector">
+                <button type="button" id="editMarketUSA" class="add-choice-btn" onclick="setEditMarket('USA')">🇺🇸 USA</button>
+                <button type="button" id="editMarketEurope" class="add-choice-btn" onclick="setEditMarket('EUROPA')">🇪🇺 Europa</button>
+                <button type="button" id="editMarketSpain" class="add-choice-btn" onclick="setEditMarket('ESPANA')">🇪🇸 España</button>
+            </div>
+        </div>
 
         <label for="editIsin">Código ISIN (opcional):</label>
         <input type="text" id="editIsin" placeholder="Ej: US0378331005" style="text-transform: uppercase;" maxlength="12">
@@ -557,16 +735,12 @@
                 <div id="editSoldEurFields">
                     <label for="editSellPriceEUR">Precio de venta (EUR):</label>
                     <input type="number" id="editSellPriceEUR" step="0.01">
-                    <label for="editSellCostsEUR">Gastos de venta (EUR):</label>
-                    <input type="number" id="editSellCostsEUR" step="0.01">
                 </div>
                 <div id="editSoldUsdFields" style="display:none;">
                     <label for="editSellPriceUSD">Precio de venta (USD):</label>
                     <input type="number" id="editSellPriceUSD" step="0.01">
                     <label for="editSellPriceEURfromUSD">Precio de venta en EUR (día de venta):</label>
                     <input type="number" id="editSellPriceEURfromUSD" step="0.01">
-                    <label for="editSellCostsUSD">Gastos de venta (EUR):</label>
-                    <input type="number" id="editSellCostsUSD" step="0.01">
                 </div>
             </div>
         </div>
@@ -592,6 +766,7 @@ let portfolioData = {};
 let currentSellTicker = null;
 let currentSellBuyYear = null; // año donde está guardada la posición a vender
 let currentEditYear = null; // año donde está guardada la posición a editar
+let activePortfolioFilter = 'activa'; // activa | trading | cartera. No clasifica posiciones antiguas automáticamente.
 
 function initializeDefaultData() {
     const saved = localStorage.getItem('portfolioData');
@@ -759,6 +934,137 @@ function loadApiKey() { const savedKey = localStorage.getItem('alphaVantageApiKe
 function saveFinnhubKey() { const apiKey = document.getElementById('finnhubKeyInput').value.trim(); const statusDiv = document.getElementById('finnhubStatus'); if (!apiKey) { statusDiv.className = 'api-status error'; statusDiv.textContent = '❌ Por favor, introduce una API Key válida'; return; } localStorage.setItem('finnhubApiKey', apiKey); statusDiv.className = 'api-status success'; statusDiv.textContent = '✅ API Key guardada correctamente'; document.getElementById('finnhubKeyInput').value = ''; }
 function loadFinnhubKey() { const savedKey = localStorage.getItem('finnhubApiKey'); if (savedKey) { const statusDiv = document.getElementById('finnhubStatus'); statusDiv.className = 'api-status success'; statusDiv.textContent = '✅ API Key configurada'; } }
 
+function setActivePortfolioFilter(filter) {
+    if (!['activa', 'trading', 'cartera'].includes(filter)) return;
+    activePortfolioFilter = filter;
+    updateActivePortfolioFilterUI();
+    if (currentYear === 'ACTIVA') renderPortfolio();
+}
+
+function updateActivePortfolioFilterUI() {
+    const bar = document.getElementById('activePortfolioFilter');
+    if (!bar) return;
+    bar.style.display = currentYear === 'ACTIVA' ? 'flex' : 'none';
+    bar.querySelectorAll('.active-filter-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.filter === activePortfolioFilter);
+    });
+}
+
+function updateSummaryTitlesForView() {
+    const stocksTitle = document.getElementById('stocksSummaryTitle');
+    const totalTitle = document.getElementById('totalSummaryTitle');
+    if (!stocksTitle || !totalTitle) return;
+    if (currentYear === 'ACTIVA' && activePortfolioFilter === 'trading') {
+        stocksTitle.textContent = '📊 Acciones Trading';
+        totalTitle.textContent = '📊 Total Trading (Acciones + Cripto)';
+    } else if (currentYear === 'ACTIVA' && activePortfolioFilter === 'cartera') {
+        stocksTitle.textContent = '💼 Acciones Cartera';
+        totalTitle.textContent = '💼 Total Cartera (Acciones + Cripto)';
+    } else {
+        stocksTitle.textContent = '📈 Solo Acciones';
+        totalTitle.textContent = '🌍 Total (Acciones + Cripto)';
+    }
+}
+
+function setPositionBucket(id, year, bucket) {
+    if (!['trading', 'cartera'].includes(bucket)) return;
+    const yd = portfolioData[String(year)];
+    if (!yd || !yd.positions) return;
+    const pos = yd.positions.find(p => p.id === id);
+    if (!pos || pos.sold) return;
+
+    // Pulsar de nuevo la opción activa permite volver temporalmente a "Sin clasificar".
+    if (pos.positionBucket === bucket) delete pos.positionBucket;
+    else pos.positionBucket = bucket;
+
+    savePortfolioData();
+    renderPortfolio();
+}
+
+function positionBucketCell(item) {
+    if (item.sold) return '<span style="color:#94a3b8;">—</span>';
+    const bucket = item.positionBucket || '';
+    const yr = String(item._buyYear);
+    const state = bucket === 'trading' ? 'Trading' : (bucket === 'cartera' ? 'Cartera' : 'Sin clasificar');
+    return '<div class="position-bucket-wrap">'
+        + '<div class="position-bucket-control">'
+        + '<button type="button" class="position-bucket-btn trading ' + (bucket === 'trading' ? 'active' : '') + '" title="Marcar como Trading" onclick="event.stopPropagation();setPositionBucket(\'' + item.id + '\',\'' + yr + '\',\'trading\')">Trading</button>'
+        + '<button type="button" class="position-bucket-btn cartera ' + (bucket === 'cartera' ? 'active' : '') + '" title="Marcar como Cartera" onclick="event.stopPropagation();setPositionBucket(\'' + item.id + '\',\'' + yr + '\',\'cartera\')">Cartera</button>'
+        + '</div>'
+        + '<span class="position-bucket-state ' + (bucket ? 'assigned' : '') + '">' + state + '</span>'
+        + '</div>';
+}
+
+function setAddCurrency(currency) {
+    if (!['EUR', 'USD'].includes(currency)) return;
+    const input = document.getElementById('addCurrency');
+    if (input) input.value = currency;
+    const eurBtn = document.getElementById('addCurrencyEUR');
+    const usdBtn = document.getElementById('addCurrencyUSD');
+    if (eurBtn) eurBtn.classList.toggle('active', currency === 'EUR');
+    if (usdBtn) usdBtn.classList.toggle('active', currency === 'USD');
+    toggleCurrencyFields();
+}
+
+function setAddType(type) {
+    if (!['stock', 'crypto'].includes(type)) return;
+    const input = document.getElementById('addType');
+    if (input) input.value = type;
+    const stockBtn = document.getElementById('addTypeStock');
+    const cryptoBtn = document.getElementById('addTypeCrypto');
+    if (stockBtn) stockBtn.classList.toggle('active', type === 'stock');
+    if (cryptoBtn) cryptoBtn.classList.toggle('active', type === 'crypto');
+    const marketField = document.getElementById('addMarketField');
+    if (marketField) marketField.style.display = type === 'stock' ? 'block' : 'none';
+    toggleAddBucketField();
+}
+
+function setAddMarket(market) {
+    const map = { USA: 'NASDAQ', EUROPA: 'EURONEXT', ESPANA: 'BME' };
+    if (!map[market]) return;
+    const input = document.getElementById('addExchange');
+    if (input) input.value = map[market];
+    const usaBtn = document.getElementById('addMarketUSA');
+    const europeBtn = document.getElementById('addMarketEurope');
+    const spainBtn = document.getElementById('addMarketSpain');
+    if (usaBtn) usaBtn.classList.toggle('active', market === 'USA');
+    if (europeBtn) europeBtn.classList.toggle('active', market === 'EUROPA');
+    if (spainBtn) spainBtn.classList.toggle('active', market === 'ESPANA');
+}
+
+function setAddPositionBucket(bucket) {
+    if (!['trading', 'cartera'].includes(bucket)) return;
+    const input = document.getElementById('addPositionBucket');
+    if (input) input.value = bucket;
+    const tradingBtn = document.getElementById('addBucketTrading');
+    const carteraBtn = document.getElementById('addBucketCartera');
+    if (tradingBtn) tradingBtn.classList.toggle('active', bucket === 'trading');
+    if (carteraBtn) carteraBtn.classList.toggle('active', bucket === 'cartera');
+}
+
+function clearAddPositionBucket() {
+    const input = document.getElementById('addPositionBucket');
+    if (input) input.value = '';
+    const tradingBtn = document.getElementById('addBucketTrading');
+    const carteraBtn = document.getElementById('addBucketCartera');
+    if (tradingBtn) tradingBtn.classList.remove('active');
+    if (carteraBtn) carteraBtn.classList.remove('active');
+}
+
+function toggleAddBucketField() {
+    const field = document.getElementById('addBucketField');
+    const isSold = document.getElementById('addIsSold') ? document.getElementById('addIsSold').checked : false;
+    if (!field) return;
+    const needsBucket = !isSold;
+    field.style.display = needsBucket ? 'block' : 'none';
+    if (!needsBucket) {
+        clearAddPositionBucket();
+    } else {
+        const input = document.getElementById('addPositionBucket');
+        if (!input || !input.value) setAddPositionBucket('trading');
+    }
+}
+
 function renderYearSelector() {
     const selector = document.getElementById('yearSelector');
     const years = Object.keys(portfolioData).sort().reverse();
@@ -797,6 +1103,7 @@ function renderYearSelector() {
 function switchYear(year) {
     currentYear = year;
     renderYearSelector();
+    updateActivePortfolioFilterUI();
     renderPortfolio();
     const aiPanel = document.getElementById('aiPanel');
     if (aiPanel) aiPanel.style.display = (year === 'ACTIVA') ? 'block' : 'none';
@@ -823,28 +1130,238 @@ function switchYear(year) {
     }
 }
 
+function closePositionInfoModal() {
+    const modal = document.getElementById('positionInfoModal');
+    if (modal) modal.classList.remove('show');
+}
+
+function setTargetPriceFromInfo(ticker, value, id, year) {
+    const v = parseFloat(value);
+    if (!isNaN(v) && v > 0) targetPrices[ticker] = v;
+    else delete targetPrices[ticker];
+    saveTargetPrices();
+    renderPortfolio();
+    openPositionInfoModal(id, year);
+}
+
+function openPositionInfoModal(id, year) {
+    const yd = portfolioData[String(year)];
+    if (!yd || !yd.positions) return;
+    const item = yd.positions.find(p => p.id === id);
+    if (!item || item.sold) return;
+
+    const modal = document.getElementById('positionInfoModal');
+    const title = document.getElementById('positionInfoTitle');
+    const subtitle = document.getElementById('positionInfoSubtitle');
+    const content = document.getElementById('positionInfoContent');
+    if (!modal || !title || !subtitle || !content) return;
+
+    const isUSD = item.currency === 'USD';
+    const symbol = isUSD ? '$' : '\u20ac';
+    const buyPrice = isUSD ? item.buyPriceUSD : item.buyPrice;
+    const currentRaw = currentPrices[item.ticker] || buyPrice;
+    const profitPct = buyPrice > 0 ? ((currentRaw - buyPrice) / buyPrice) * 100 : 0;
+
+    let stop, stopLabel;
+    if (profitPct >= 10) {
+        const trailMax = maxPrices[item.ticker] || currentRaw;
+        stop = trailMax * 0.95;
+        stopLabel = '-5% del m\u00e1ximo (' + symbol + formatNumber(trailMax, 2) + ')';
+    } else {
+        stop = buyPrice * 0.965;
+        stopLabel = '-3,5% del precio de compra';
+    }
+    const stopTriggered = currentRaw <= stop;
+    const stopDistance = currentRaw > 0 ? ((stop - currentRaw) / currentRaw) * 100 : 0;
+
+    const target = targetPrices[item.ticker] || buyPrice * 1.20;
+    const targetReached = currentRaw >= target;
+    const targetDistance = currentRaw > 0 ? ((target - currentRaw) / currentRaw) * 100 : 0;
+
+    const quantity = Number(item.quantity) || 0;
+    const rawToEUR = isUSD ? usdToEur : 1;
+    const riskPerUnit = Math.max(currentRaw - stop, 0);
+    const rewardPerUnit = Math.max(target - currentRaw, 0);
+    const riskPct = currentRaw > 0 ? (riskPerUnit / currentRaw) * 100 : 0;
+    const rewardPct = currentRaw > 0 ? (rewardPerUnit / currentRaw) * 100 : 0;
+    const riskEUR = riskPerUnit * quantity * rawToEUR;
+    const rewardEUR = rewardPerUnit * quantity * rawToEUR;
+    const riskRewardRatio = (!stopTriggered && !targetReached && riskEUR > 0) ? rewardEUR / riskEUR : null;
+    const riskText = stopTriggered
+        ? '<strong class="metric-danger">STOP CRUZADO</strong>'
+        : '<strong class="metric-danger">-' + formatNumber(riskPct, 1) + '% \u00b7 -' + formatEUR(riskEUR) + '</strong>';
+    const rewardText = targetReached
+        ? '<strong class="metric-good">OBJETIVO ALCANZADO</strong>'
+        : '<strong class="metric-good">+' + formatNumber(rewardPct, 1) + '% \u00b7 +' + formatEUR(rewardEUR) + '</strong>';
+    const ratioText = riskRewardRatio !== null && Number.isFinite(riskRewardRatio)
+        ? '1 : ' + formatNumber(riskRewardRatio, 2)
+        : '\u2014';
+
+    const openAll = getOpenPositions();
+    const valueEUR = p => {
+        const pIsUSD = p.currency === 'USD';
+        const pBuy = pIsUSD ? p.buyPriceUSD : p.buyPrice;
+        const pCurrent = currentPrices[p.ticker] || pBuy || 0;
+        return (Number(p.quantity) || 0) * pCurrent * (pIsUSD ? usdToEur : 1);
+    };
+    const itemValueEUR = quantity * currentRaw * rawToEUR;
+    const activeTotalEUR = openAll.reduce((sum, p) => sum + valueEUR(p), 0);
+    const activeWeight = activeTotalEUR > 0 ? itemValueEUR / activeTotalEUR * 100 : 0;
+    const bucket = item.positionBucket || '';
+    const bucketLabel = bucket === 'trading' ? 'Trading' : (bucket === 'cartera' ? 'Cartera' : '');
+    const bucketTotalEUR = bucket
+        ? openAll.filter(p => p.positionBucket === bucket).reduce((sum, p) => sum + valueEUR(p), 0)
+        : 0;
+    const bucketWeight = bucketTotalEUR > 0 ? itemValueEUR / bucketTotalEUR * 100 : 0;
+
+    const recordedMax = Number(maxPrices[item.ticker]) || 0;
+    let drawdownMain = '\u2014';
+    let drawdownDetail = 'Sin m\u00e1ximo registrado';
+    let drawdownClass = '';
+    if (recordedMax > 0) {
+        const effectiveMax = Math.max(recordedMax, currentRaw);
+        const drawdownPct = effectiveMax > 0 ? (currentRaw - effectiveMax) / effectiveMax * 100 : 0;
+        drawdownMain = (drawdownPct > 0 ? '+' : '') + formatNumber(drawdownPct, 1) + '%';
+        drawdownDetail = 'M\u00e1ximo: ' + symbol + formatNumber(effectiveMax, 2);
+        drawdownClass = drawdownPct <= -10 ? 'metric-danger' : (drawdownPct <= -5 ? 'metric-warn' : 'metric-good');
+    }
+
+    let signalClass = 'yellow';
+    let signalIcon = '\ud83d\udfe1';
+    let signalLabel = 'ZONA INTERMEDIA';
+    let signalDetail = 'Equilibrio entre stop y objetivo';
+    if (stopTriggered) {
+        signalClass = 'red';
+        signalIcon = '\ud83d\udd34';
+        signalLabel = 'STOP CRUZADO';
+        signalDetail = 'El precio actual est\u00e1 en o por debajo del stop';
+    } else if (targetReached) {
+        signalClass = 'green';
+        signalIcon = '\ud83d\udfe2';
+        signalLabel = 'OBJETIVO ALCANZADO';
+        signalDetail = 'El precio actual ha alcanzado o superado el objetivo';
+    } else if (target > stop) {
+        const progress = (currentRaw - stop) / (target - stop);
+        const progressPct = Math.max(0, Math.min(1, progress)) * 100;
+        if (progress >= 0.75) {
+            signalClass = 'green';
+            signalIcon = '\ud83d\udfe2';
+            signalLabel = 'CERCA DE OBJETIVO';
+        } else if (progress <= 0.25) {
+            signalClass = 'red';
+            signalIcon = '\ud83d\udd34';
+            signalLabel = 'CERCA DEL STOP';
+        }
+        signalDetail = 'Recorrido stop \u2192 objetivo: ' + formatNumber(progressPct, 0) + '%';
+    }
+
+    let supportHtml = '<div class="position-info-main" style="color:#94a3b8;">N/A</div>';
+    let resistanceHtml = '<div class="position-info-main" style="color:#94a3b8;">N/A</div>';
+    if (item.type === 'stock') {
+        const sr = supportResistance[item.ticker];
+        if (sr) {
+            supportHtml = '<div class="position-info-line"><span>S1</span><strong>' + formatUSD(sr.support1) + '</strong></div>'
+                + '<div class="position-info-line"><span>S2</span><strong>' + formatUSD(sr.support2) + '</strong></div>';
+            resistanceHtml = '<div class="position-info-line"><span>R1</span><strong>' + formatUSD(sr.resistance1) + '</strong></div>'
+                + '<div class="position-info-line"><span>R2</span><strong>' + formatUSD(sr.resistance2) + '</strong></div>';
+        } else {
+            supportHtml = '<div class="position-info-main" style="color:#94a3b8;">\u2014</div><div class="position-info-line"><span>Actualiza precios para calcularlos</span></div>';
+            resistanceHtml = '<div class="position-info-main" style="color:#94a3b8;">\u2014</div><div class="position-info-line"><span>Actualiza precios para calcularlos</span></div>';
+        }
+    }
+
+    const targetValue = Number.isFinite(target) ? target.toFixed(2) : '';
+    const stopStatus = stopTriggered ? '\ud83d\udea8 Stop cruzado' : formatNumber(Math.abs(stopDistance), 1) + '% hasta el stop';
+    const targetStatus = targetReached ? '\ud83c\udfaf Objetivo alcanzado' : '+' + formatNumber(Math.max(targetDistance, 0), 1) + '% para objetivo';
+    const googleUrl = 'https://www.google.com/search?q=' + encodeURIComponent(item.ticker + ' stock news');
+    const yahooUrl = 'https://finance.yahoo.com/quote/' + encodeURIComponent(item.ticker) + '/news/';
+
+    title.textContent = '\ud83d\udd0e ' + item.ticker + ' \u2014 ' + item.name;
+    subtitle.textContent = 'Compra ' + year + ' \u00b7 Precio actual: ' + symbol + formatNumber(currentRaw, 2) + ' \u00b7 G/P: ' + (profitPct >= 0 ? '+' : '') + formatNumber(profitPct, 2) + '%';
+
+    const weightBucketLine = bucketLabel
+        ? '<div class="position-info-metric-line"><span>Dentro de ' + bucketLabel + '</span><strong>' + formatNumber(bucketWeight, 1) + '%</strong></div>'
+        : '<div class="position-info-metric-line"><span>Clasificaci\u00f3n</span><strong>Sin clasificar</strong></div>';
+
+    content.innerHTML = `
+        <div class="position-info-signal ${signalClass}">
+            <strong>${signalIcon} ${signalLabel}</strong><span>${signalDetail}</span>
+        </div>
+        <div class="position-info-insights">
+            <div class="position-info-insight">
+                <h4>RIESGO / OBJETIVO</h4>
+                <div class="position-info-metric-line"><span>\ud83d\uded1 Hasta Stop</span>${riskText}</div>
+                <div class="position-info-metric-line"><span>\ud83c\udfaf Hasta Objetivo</span>${rewardText}</div>
+                <div class="position-info-metric-line"><span>\u2696\ufe0f Ratio R/B</span><strong>${ratioText}</strong></div>
+                <div class="position-info-metric-note">Desde el precio actual${isUSD ? ' \u00b7 importes convertidos a EUR al cambio actual' : ''}</div>
+            </div>
+            <div class="position-info-insight">
+                <h4>PESO</h4>
+                <div class="position-info-metric-main">${formatNumber(activeWeight, 1)}%</div>
+                <div class="position-info-metric-line"><span>Cartera activa</span><strong>${formatEUR(itemValueEUR)}</strong></div>
+                ${weightBucketLine}
+            </div>
+            <div class="position-info-insight">
+                <h4>DRAWDOWN DESDE M\u00c1XIMO</h4>
+                <div class="position-info-metric-main ${drawdownClass}">${drawdownMain}</div>
+                <div class="position-info-metric-line"><span>${drawdownDetail}</span></div>
+                <div class="position-info-metric-note">Usa el m\u00e1ximo registrado para el trailing stop</div>
+            </div>
+        </div>
+        <div class="position-info-section-title">NIVELES T\u00c9CNICOS</div>
+        <div class="position-info-grid">
+            <div class="position-info-card"><h4>\ud83e\uddf1 Soporte</h4>${supportHtml}</div>
+            <div class="position-info-card"><h4>\ud83d\udd3a Resistencia</h4>${resistanceHtml}</div>
+            <div class="position-info-card position-info-stop${stopTriggered ? ' triggered' : ''}">
+                <h4>\ud83d\uded1 Stop Loss</h4>
+                <div class="position-info-main">${symbol}${formatNumber(stop, 2)}</div>
+                <div class="position-info-line"><span>${stopLabel}</span></div>
+                <div class="position-info-line"><span>Estado</span><strong>${stopStatus}</strong></div>
+            </div>
+            <div class="position-info-card position-info-target${targetReached ? ' reached' : ''}">
+                <h4>\ud83c\udfaf Objetivo</h4>
+                <div class="position-info-target-input"><span style="font-weight:800;color:#64748b;">${symbol}</span>
+                <input type="number" step="0.01" value="${targetValue}" onchange="setTargetPriceFromInfo('${item.ticker}', this.value, '${item.id}', '${year}')"></div>
+                <div class="position-info-line"><span>Estado</span><strong>${targetStatus}</strong></div>
+            </div>
+        </div>
+        <div class="position-info-news"><h4>\ud83d\udcf0 Noticias</h4><div class="position-info-news-links">
+            <a href="${googleUrl}" target="_blank" class="btn-news">\ud83d\udcf0 Google</a>
+            <a href="${yahooUrl}" target="_blank" class="btn-news btn-news-yahoo">\ud83d\udcca Yahoo</a>
+        </div></div>`;
+
+    modal.classList.add('show');
+}
+
 function renderPortfolio() {
+    updateActivePortfolioFilterUI();
+    updateSummaryTitlesForView();
     const tbodyStocks = document.getElementById('portfolioTableStocks');
     const tbodyCrypto = document.getElementById('portfolioTableCrypto');
     const tableBanner = document.getElementById('tableBanner');
     const stocksGroupWrapper = document.getElementById('stocksGroupWrapper');
     const cryptoGroupWrapper = document.getElementById('cryptoGroupWrapper');
+    const stocksSectionTitle = document.getElementById('stocksSectionTitle');
+    const cryptoSectionTitle = document.getElementById('cryptoSectionTitle');
     tbodyStocks.innerHTML = '';
     tbodyCrypto.innerHTML = '';
     tableBanner.innerHTML = '';
+    if (stocksSectionTitle) stocksSectionTitle.innerHTML = '';
+    if (cryptoSectionTitle) cryptoSectionTitle.innerHTML = '';
     stocksGroupWrapper.style.display = 'block';
     cryptoGroupWrapper.style.display = 'block';
 
-    // Las columnas Soporte/Resistencia/Stop Loss/Objetivo/Noticias solo tienen sentido
-    // en posiciones abiertas (vista ⚡ Activa). En las vistas por año (solo cerradas)
-    // se ocultan por completo para que la columna Acción quede justo tras G/P (%).
+    // En posiciones abiertas, Soporte/Resistencia/Stop/Objetivo/Noticias se muestran
+    // en una ventana emergente por posición para mantener la tabla mucho más compacta.
     const showActiveOnlyCols = (currentYear === 'ACTIVA');
-    const fullHeader = '<th>Ticker / Empresa</th><th>Cantidad</th><th>Precio Compra</th><th>Precio Actual/Venta</th><th>Inversión (€)</th><th>Valor Actual (€)</th><th>G/P (€)</th><th>G/P (%)</th><th>Soporte</th><th>Resistencia</th><th>Stop Loss</th><th>Objetivo</th><th>Noticias</th><th>Acción</th>';
+    const activeHeader = '<th>Ticker / Empresa</th><th>Cantidad</th><th>Precio Compra</th><th>Precio Actual/Venta</th><th>Inversión (€)</th><th>Valor Actual (€)</th><th>G/P (€)</th><th>G/P (%)</th><th>Trading / Cartera</th><th>Acción</th>';
     const compactHeader = '<th>Ticker / Empresa</th><th>Cantidad</th><th>Precio Compra</th><th>Precio Actual/Venta</th><th>Inversión (€)</th><th>Valor Actual (€)</th><th>G/P (€)</th><th>G/P (%)</th><th style="width:120px;">Acción</th>';
-    const headerHtml = showActiveOnlyCols ? fullHeader : compactHeader;
+    const headerHtml = showActiveOnlyCols ? activeHeader : compactHeader;
     document.getElementById('theadRowStocks').innerHTML = headerHtml;
     document.getElementById('theadRowCrypto').innerHTML = headerHtml;
-    document.getElementById('normalTableWrapper').classList.toggle('compact-view', !showActiveOnlyCols);
+    const normalWrapper = document.getElementById('normalTableWrapper');
+    normalWrapper.classList.toggle('compact-view', !showActiveOnlyCols);
+    normalWrapper.classList.toggle('active-slim', showActiveOnlyCols);
     let totalInvested = 0;
     let totalCurrent = 0;
 
@@ -890,6 +1407,26 @@ function renderPortfolio() {
         return formatEUR(currentPrices[item.ticker] || item.buyPrice);
     }
 
+
+    // Porcentaje que debe moverse el precio ACTUAL para volver exactamente al precio de compra.
+    // Se calcula en la moneda original de la posicion y no incluye comisiones.
+    function toBuyPriceDistanceHtml(item) {
+        if (item.sold) return '';
+        const isUSD = item.currency === 'USD';
+        const currentRaw = currentPrices[item.ticker] || (isUSD ? item.buyPriceUSD : item.buyPrice);
+        const buyRaw = isUSD ? item.buyPriceUSD : item.buyPrice;
+        if (!currentRaw || !buyRaw || currentRaw <= 0 || buyRaw <= 0) return '';
+
+        const movePct = ((buyRaw / currentRaw) - 1) * 100;
+        if (Math.abs(movePct) < 0.005) {
+            return '<span class="to-buy-distance flat" title="El precio actual coincide con el precio de compra">● 0,00% a compra</span>';
+        }
+        if (movePct > 0) {
+            return '<span class="to-buy-distance up" title="Subida necesaria desde el precio actual para volver al precio de compra (sin comisiones)">↗ +' + formatNumber(movePct, 2) + '% a compra</span>';
+        }
+        return '<span class="to-buy-distance down" title="Bajada necesaria desde el precio actual para volver al precio de compra (sin comisiones)">↘ -' + formatNumber(Math.abs(movePct), 2) + '% a compra</span>';
+    }
+
     if (currentYear === 'ACTIVA') {
         document.getElementById('globalPanel').style.display = 'none';
         document.getElementById('normalTableWrapper').style.display = 'block';
@@ -910,23 +1447,48 @@ function renderPortfolio() {
             });
         });
 
-        const openStocksA = allOpenStocks;
-        const openCryptoA = allOpenCrypto;
+        // Activa conserva exactamente la vista completa. Trading/Cartera filtran
+        // tanto acciones como criptomonedas por la clasificación guardada en cada posición.
+        const openStocksA = activePortfolioFilter === 'activa'
+            ? allOpenStocks
+            : allOpenStocks.filter(p => p.positionBucket === activePortfolioFilter);
+        const openCryptoA = activePortfolioFilter === 'activa'
+            ? allOpenCrypto
+            : allOpenCrypto.filter(p => p.positionBucket === activePortfolioFilter);
+        const unclassifiedPositions = allOpenStocks.concat(allOpenCrypto).filter(p => !p.positionBucket).length;
 
         if (openStocksA.length === 0 && openCryptoA.length === 0) {
             stocksGroupWrapper.style.display = 'none';
             cryptoGroupWrapper.style.display = 'none';
-            tableBanner.innerHTML = '<div style="text-align:center;padding:40px;color:#718096;">No hay posiciones abiertas en ningún año</div>';
+            const emptyMsg = activePortfolioFilter === 'trading'
+                ? 'No hay posiciones abiertas clasificadas como Trading'
+                : (activePortfolioFilter === 'cartera'
+                    ? 'No hay posiciones abiertas clasificadas como Cartera'
+                    : 'No hay posiciones abiertas en ningún año');
+            tableBanner.innerHTML = '<div style="text-align:center;padding:40px;color:#718096;">' + emptyMsg + '</div>';
             updateSummary(0, 0, 0, 0);
             return;
         }
 
         // Banner informativo
-        tableBanner.innerHTML = '<div style="padding:10px 16px;background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-bottom:2px solid #22c55e;border-radius:8px;margin-bottom:15px;">'
-            + '<span style="font-size:13px;color:#15803d;font-weight:600;">⚡ Vista Activa — Todas las posiciones abiertas</span>'
-            + '<span style="font-size:12px;color:#64748b;margin-left:10px;">'
-            + (openStocksA.length + openCryptoA.length) + ' posición' + ((openStocksA.length + openCryptoA.length) > 1 ? 'es' : '') + ' | Las vendidas se archivan en su tab de año'
-            + '</span></div>';
+        if (activePortfolioFilter === 'activa') {
+            tableBanner.innerHTML = '<div style="padding:10px 16px;background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-bottom:2px solid #22c55e;border-radius:8px;margin-bottom:15px;">'
+                + '<span style="font-size:13px;color:#15803d;font-weight:600;">⚡ Vista Activa — Todas las posiciones abiertas</span>'
+                + '<span style="font-size:12px;color:#64748b;margin-left:10px;">'
+                + (openStocksA.length + openCryptoA.length) + ' posición' + ((openStocksA.length + openCryptoA.length) > 1 ? 'es' : '') + ' | Las vendidas se archivan en su tab de año'
+                + (unclassifiedPositions > 0 ? ' | ' + unclassifiedPositions + ' posición' + (unclassifiedPositions !== 1 ? 'es' : '') + ' sin clasificar' : '')
+                + '</span></div>';
+        } else {
+            const isTrading = activePortfolioFilter === 'trading';
+            const title = isTrading ? '📊 Vista Trading' : '💼 Vista Cartera';
+            const color = isTrading ? '#92400e' : '#075985';
+            const bg = isTrading ? 'linear-gradient(135deg,#fffbeb,#fef3c7)' : 'linear-gradient(135deg,#f0f9ff,#e0f2fe)';
+            const border = isTrading ? '#f59e0b' : '#0ea5e9';
+            tableBanner.innerHTML = '<div style="padding:10px 16px;background:' + bg + ';border-bottom:2px solid ' + border + ';border-radius:8px;margin-bottom:15px;">'
+                + '<span style="font-size:13px;color:' + color + ';font-weight:700;">' + title + ' — Posiciones abiertas clasificadas</span>'
+                + '<span style="font-size:12px;color:#64748b;margin-left:10px;">' + (openStocksA.length + openCryptoA.length) + ' posición' + ((openStocksA.length + openCryptoA.length) !== 1 ? 'es' : '')
+                + ' | Acciones y cripto de esta categoría</span></div>';
+        }
 
         let stocksInvA = 0, stocksCurA = 0;
 
@@ -957,11 +1519,12 @@ function renderPortfolio() {
             return '<div class="action-cell"><button class="btn-sell" onclick="openSellModal(\'' + id + '\', ' + yr + ')">Vender</button>'
                 + '<button class="btn-edit" onclick="openEditModal(\'' + id + '\', ' + yr + ')" title="Editar">✏️</button>'
                 + '<button class="btn-delete" onclick="deletePosition(\'' + id + '\', ' + yr + ')" title="Eliminar">🗑️</button>'
+                + '<button class="btn-position-info" onclick="openPositionInfoModal(\'' + id + '\', ' + yr + ')" title="Soporte, resistencia, stop, objetivo y noticias">🔎</button>'
                 + '</div>';
         }
 
         if (openStocksA.length > 0) {
-            tbodyStocks.innerHTML += '<tr class="section-row"><td colspan="14" class="section-title">📈 ACCIONES — POSICIONES ABIERTAS</td></tr>';
+            if (stocksSectionTitle) stocksSectionTitle.innerHTML = '<span class="section-icon">📈</span>ACCIONES — POSICIONES ABIERTAS';
             openStocksA.forEach(item => {
                 const { investedEUR, currentValueEUR } = getEURValues(item);
                 const plEUR = currentValueEUR - investedEUR;
@@ -973,7 +1536,7 @@ function renderPortfolio() {
                 const bp = isUSD ? item.buyPriceUSD : item.buyPrice;
                 const isTriggered = cr <= bp * 0.965;
                 const priceCell = '<div style="display:flex;flex-direction:column;align-items:center;gap:3px;">'
-                    + '<div class="editable-price" onclick="editPrice(\'' + item.ticker + '\')" id="price-' + item.ticker + '">' + fmtCurrentPrice(item) + '</div>'
+                    + '<div class="editable-price" title="Pulsa para introducir un precio manual" onclick="editPositionPrice(\'' + item.id + '\', \'' + item._buyYear + '\')" id="price-' + item.id + '">' + fmtCurrentPrice(item) + '</div>'
                     + '<div style="display:flex;align-items:center;justify-content:center;gap:4px;">'
                     + '<button id="refresh-' + item.ticker + '" onclick="event.stopPropagation();updateSinglePrice(\'' + item.ticker + '\',\'stock\')" title="Actualizar precio" style="background:none;border:none;cursor:pointer;font-size:12px;padding:2px;opacity:0.6;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">🔄</button>'
                     + priceStatusBadge(item.ticker)
@@ -993,13 +1556,9 @@ function renderPortfolio() {
                     + '<td>' + priceCell + '</td>'
                     + '<td>' + formatEUR(investedEUR) + '</td>'
                     + '<td>' + formatEUR(currentValueEUR) + '</td>'
-                    + '<td class="' + (plEUR >= 0 ? 'positive' : 'negative') + '">' + (plEUR >= 0 ? '+' : '') + formatEUR(plEUR) + '</td>'
+                    + '<td class="' + (plEUR >= 0 ? 'positive' : 'negative') + '">' + (plEUR >= 0 ? '+' : '') + formatEUR(plEUR) + toBuyPriceDistanceHtml(item) + '</td>'
                     + '<td class="' + (plPct >= 0 ? 'positive' : 'negative') + '">' + (plPct >= 0 ? '+' : '') + formatNumber(plPct, 2) + '%</td>'
-                    + '<td class="support-resistance">' + srS + '</td>'
-                    + '<td class="support-resistance">' + srR + '</td>'
-                    + stopLossCell(item)
-                    + tpCellA(item)
-                    + newsCellA(item)
+                    + '<td>' + positionBucketCell(item) + '</td>'
                     + '<td>' + acCellA(item) + '</td></tr>';
             });
             const spl = stocksCurA - stocksInvA;
@@ -1008,12 +1567,12 @@ function renderPortfolio() {
                 + '<td>' + formatEUR0(stocksInvA) + '</td><td>' + formatEUR0(stocksCurA) + '</td>'
                 + '<td class="' + (spl >= 0 ? 'positive' : 'negative') + '">' + (spl >= 0 ? '+' : '') + formatEUR0(spl) + '</td>'
                 + '<td class="' + (splP >= 0 ? 'positive' : 'negative') + '">' + (splP >= 0 ? '+' : '') + formatNumber(splP, 2) + '%</td>'
-                + '<td></td><td></td><td></td><td></td><td></td><td></td></tr>';
+                + '<td></td><td></td></tr>';
         } else {
             stocksGroupWrapper.style.display = 'none';
         }
         if (openCryptoA.length > 0) {
-            tbodyCrypto.innerHTML += '<tr class="section-row"><td colspan="14" class="section-title">₿ CRIPTOMONEDAS — POSICIONES ABIERTAS</td></tr>';
+            if (cryptoSectionTitle) cryptoSectionTitle.innerHTML = '<span class="section-icon">₿</span>CRIPTOMONEDAS — POSICIONES ABIERTAS';
             let cInv = 0, cCur = 0;
             openCryptoA.forEach(item => {
                 const { investedEUR, currentValueEUR } = getEURValues(item);
@@ -1022,7 +1581,7 @@ function renderPortfolio() {
                 cInv += investedEUR; cCur += currentValueEUR;
                 totalInvested += investedEUR; totalCurrent += currentValueEUR;
                 const priceCell = '<div style="display:flex;flex-direction:column;align-items:center;gap:3px;">'
-                    + '<div class="editable-price" onclick="editPrice(\'' + item.ticker + '\')" id="price-' + item.ticker + '">' + fmtCurrentPrice(item) + '</div>'
+                    + '<div class="editable-price" title="Pulsa para introducir un precio manual" onclick="editPositionPrice(\'' + item.id + '\', \'' + item._buyYear + '\')" id="price-' + item.id + '">' + fmtCurrentPrice(item) + '</div>'
                     + '<div style="display:flex;align-items:center;justify-content:center;gap:4px;">'
                     + '<button id="refresh-' + item.ticker + '" onclick="event.stopPropagation();updateSinglePrice(\'' + item.ticker + '\',\'crypto\')" title="Actualizar precio" style="background:none;border:none;cursor:pointer;font-size:12px;padding:2px;opacity:0.6;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">🔄</button>'
                     + priceStatusBadge(item.ticker)
@@ -1035,12 +1594,9 @@ function renderPortfolio() {
                     + '<td>' + priceCell + '</td>'
                     + '<td>' + formatEUR(investedEUR) + '</td>'
                     + '<td>' + formatEUR(currentValueEUR) + '</td>'
-                    + '<td class="' + (plEUR >= 0 ? 'positive' : 'negative') + '">' + (plEUR >= 0 ? '+' : '') + formatEUR(plEUR) + '</td>'
+                    + '<td class="' + (plEUR >= 0 ? 'positive' : 'negative') + '">' + (plEUR >= 0 ? '+' : '') + formatEUR(plEUR) + toBuyPriceDistanceHtml(item) + '</td>'
                     + '<td class="' + (plPct >= 0 ? 'positive' : 'negative') + '">' + (plPct >= 0 ? '+' : '') + formatNumber(plPct, 2) + '%</td>'
-                    + '<td colspan="2" style="text-align:center;color:#94a3b8;font-size:12px;">N/A</td>'
-                    + stopLossCell(item)
-                    + tpCellA(item)
-                    + newsCellA(item)
+                    + '<td>' + positionBucketCell(item) + '</td>'
                     + '<td>' + acCellA(item) + '</td></tr>';
             });
             const cpl = cCur - cInv;
@@ -1049,7 +1605,7 @@ function renderPortfolio() {
                 + '<td>' + formatEUR0(cInv) + '</td><td>' + formatEUR0(cCur) + '</td>'
                 + '<td class="' + (cpl >= 0 ? 'positive' : 'negative') + '">' + (cpl >= 0 ? '+' : '') + formatEUR0(cpl) + '</td>'
                 + '<td class="' + (cplP >= 0 ? 'positive' : 'negative') + '">' + (cplP >= 0 ? '+' : '') + formatNumber(cplP, 2) + '%</td>'
-                + '<td></td><td></td><td></td><td></td><td></td><td></td></tr>';
+                + '<td></td><td></td></tr>';
         } else {
             cryptoGroupWrapper.style.display = 'none';
         }
@@ -1244,7 +1800,7 @@ function actionCell(item) {
     }
 
     if (stocks.length > 0) {
-        tbodyStocks.innerHTML += '<tr class="section-row"><td colspan="9" class="section-title">📈 ACCIONES — POSICIONES CERRADAS</td></tr>';
+        if (stocksSectionTitle) stocksSectionTitle.innerHTML = '<span class="section-icon">📈</span>ACCIONES — POSICIONES CERRADAS';
         stocks.forEach(item => {
             const { investedEUR, currentValueEUR } = getEURValues(item);
             const plEUR = currentValueEUR - investedEUR;
@@ -1261,9 +1817,10 @@ function actionCell(item) {
             const rowClass = item.sold ? 'sold' : (isTriggered ? 'stop-triggered' : '');
             const soldBadge = item.sold ? '<span class="sold-badge">🔒 VENDIDO</span>' : '';
             const soldInfo = item.sold ? '<span class="sold-info">Vendido en ' + (item.sellYear || item.sellDate || '—') + '</span>' : '';
-            const priceCell = item.sold ? fmtCurrentPrice(item)
+            const priceCell = item.sold
+                ? '<div class="editable-price" title="Pulsa para editar el precio de venta" onclick="editPositionPrice(\'' + item.id + '\', \'' + currentYear + '\')" id="price-' + item.id + '">' + fmtCurrentPrice(item) + '</div>'
                 : '<div style="display:flex;flex-direction:column;align-items:center;gap:3px;">'
-                + '<div class="editable-price" onclick="editPrice(\'' + item.ticker + '\')" id="price-' + item.ticker + '">' + fmtCurrentPrice(item) + '</div>'
+                + '<div class="editable-price" title="Pulsa para introducir un precio manual" onclick="editPositionPrice(\'' + item.id + '\', \'' + currentYear + '\')" id="price-' + item.id + '">' + fmtCurrentPrice(item) + '</div>'
                 + '<div style="display:flex;align-items:center;justify-content:center;gap:4px;">'
                 + '<button id="refresh-' + item.ticker + '" onclick="event.stopPropagation();updateSinglePrice(\'' + item.ticker + '\',\'stock\')" title="Actualizar precio" style="background:none;border:none;cursor:pointer;font-size:12px;padding:2px;opacity:0.6;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">🔄</button>'
                 + priceStatusBadge(item.ticker)
@@ -1298,7 +1855,7 @@ function actionCell(item) {
     }
 
     if (crypto.length > 0) {
-        tbodyCrypto.innerHTML += '<tr class="section-row"><td colspan="9" class="section-title">₿ CRIPTOMONEDAS — POSICIONES CERRADAS</td></tr>';
+        if (cryptoSectionTitle) cryptoSectionTitle.innerHTML = '<span class="section-icon">₿</span>CRIPTOMONEDAS — POSICIONES CERRADAS';
         let cryptoInvestedEUR = 0, cryptoCurrentEUR = 0;
         crypto.forEach(item => {
             const { investedEUR, currentValueEUR } = getEURValues(item);
@@ -1311,9 +1868,10 @@ function actionCell(item) {
             const rowClass = item.sold ? 'sold' : '';
             const soldBadge = item.sold ? '<span class="sold-badge">🔒 VENDIDO</span>' : '';
             const soldInfo = item.sold ? '<span class="sold-info">Vendido en ' + (item.sellYear || item.sellDate || '—') + '</span>' : '';
-            const priceCell = item.sold ? fmtCurrentPrice(item)
+            const priceCell = item.sold
+                ? '<div class="editable-price" title="Pulsa para editar el precio de venta" onclick="editPositionPrice(\'' + item.id + '\', \'' + currentYear + '\')" id="price-' + item.id + '">' + fmtCurrentPrice(item) + '</div>'
                 : '<div style="display:flex;flex-direction:column;align-items:center;gap:3px;">'
-                + '<div class="editable-price" onclick="editPrice(\'' + item.ticker + '\')" id="price-' + item.ticker + '">' + fmtCurrentPrice(item) + '</div>'
+                + '<div class="editable-price" title="Pulsa para introducir un precio manual" onclick="editPositionPrice(\'' + item.id + '\', \'' + currentYear + '\')" id="price-' + item.id + '">' + fmtCurrentPrice(item) + '</div>'
                 + '<div style="display:flex;align-items:center;justify-content:center;gap:4px;">'
                 + '<button id="refresh-' + item.ticker + '" onclick="event.stopPropagation();updateSinglePrice(\'' + item.ticker + '\',\'crypto\')" title="Actualizar precio" style="background:none;border:none;cursor:pointer;font-size:12px;padding:2px;opacity:0.6;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">🔄</button>'
                 + priceStatusBadge(item.ticker)
@@ -1374,27 +1932,124 @@ function updateSummary(totalInvestedEUR, totalCurrentEUR, stocksInvestedEUR, sto
     }
 }
 
-function editPrice(ticker) {
-    const priceDiv = document.getElementById('price-' + ticker);
-    const pos = portfolioData[String(currentYear)].positions.find(p => p.ticker === ticker);
-    const currentPrice = currentPrices[ticker] || (pos.currency === 'USD' ? pos.buyPriceUSD : pos.buyPrice) || 0;
-    priceDiv.innerHTML = '<input type="number" id="input-' + ticker + '" value="' + currentPrice.toFixed(2) + '" step="0.01" style="width:100%; border:none; background:transparent; text-align:center; font-size:inherit; outline:none;" onblur="savePrice(\'' + ticker + '\')" onkeypress="if(event.key===\'Enter\') savePrice(\'' + ticker + '\')" onkeydown="if(event.key===\'Escape\') renderPortfolio();">';
-    document.getElementById('input-' + ticker).focus();
-    document.getElementById('input-' + ticker).select();
+function editPositionPrice(id, year) {
+    const yearKey = String(year);
+    const yearData = portfolioData[yearKey];
+    if (!yearData || !yearData.positions) return;
+    const pos = yearData.positions.find(p => p.id === id);
+    if (!pos) return;
+
+    const priceDiv = document.getElementById('price-' + id);
+    if (!priceDiv) return;
+
+    if (pos.sold) {
+        // En una venta USD conservamos los dos valores historicos: USD y EUR del dia de venta.
+        if (pos.currency === 'USD') {
+            const usd = Number(pos.sellPriceUSD || 0);
+            const eur = Number(pos.sellPriceEUR || 0);
+            priceDiv.innerHTML = '<div class="price-edit-stack" onclick="event.stopPropagation()">'
+                + '<input type="number" id="input-price-usd-' + id + '" value="' + (usd || '').toString() + '" step="0.01" placeholder="Venta USD" title="Precio de venta en USD">'
+                + '<input type="number" id="input-price-eur-' + id + '" value="' + (eur || '').toString() + '" step="0.01" placeholder="Venta EUR" title="Equivalente en EUR del dia de venta">'
+                + '<span class="price-edit-hint">Enter = guardar · Esc = cancelar</span>'
+                + '<button type="button" class="price-edit-save" onclick="event.stopPropagation();savePositionPrice(\'' + id + '\', \'' + yearKey + '\')">✓ Guardar</button>'
+                + '</div>';
+            const inputs = [document.getElementById('input-price-usd-' + id), document.getElementById('input-price-eur-' + id)];
+            inputs.forEach(input => {
+                input.addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter') savePositionPrice(id, yearKey);
+                    if (event.key === 'Escape') renderPortfolio();
+                });
+            });
+            inputs[0].focus();
+            inputs[0].select();
+        } else {
+            const eur = Number(pos.sellPrice || 0);
+            priceDiv.innerHTML = '<div class="price-edit-stack" onclick="event.stopPropagation()">'
+                + '<input type="number" id="input-price-eur-' + id + '" value="' + (eur || '').toString() + '" step="0.01" placeholder="Venta EUR" title="Precio de venta en EUR">'
+                + '<span class="price-edit-hint">Enter = guardar · Esc = cancelar</span>'
+                + '<button type="button" class="price-edit-save" onclick="event.stopPropagation();savePositionPrice(\'' + id + '\', \'' + yearKey + '\')">✓ Guardar</button>'
+                + '</div>';
+            const input = document.getElementById('input-price-eur-' + id);
+            input.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter') savePositionPrice(id, yearKey);
+                if (event.key === 'Escape') renderPortfolio();
+            });
+            input.focus();
+            input.select();
+        }
+        return;
+    }
+
+    const isUSD = pos.currency === 'USD';
+    const currentPrice = Number(currentPrices[pos.ticker] || (isUSD ? pos.buyPriceUSD : pos.buyPrice) || 0);
+    priceDiv.innerHTML = '<div class="price-edit-stack" onclick="event.stopPropagation()">'
+        + '<input type="number" id="input-price-current-' + id + '" value="' + (currentPrice || '').toString() + '" step="0.01" placeholder="Precio manual">'
+        + '<span class="price-edit-hint">' + (isUSD ? 'USD' : 'EUR') + ' · Enter = guardar · Esc = cancelar</span>'
+        + '<button type="button" class="price-edit-save" onclick="event.stopPropagation();savePositionPrice(\'' + id + '\', \'' + yearKey + '\')">✓ Guardar</button>'
+        + '</div>';
+    const input = document.getElementById('input-price-current-' + id);
+    input.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') savePositionPrice(id, yearKey);
+        if (event.key === 'Escape') renderPortfolio();
+    });
+    input.focus();
+    input.select();
 }
 
-function savePrice(ticker) {
-    const input = document.getElementById('input-' + ticker);
-    const newPrice = parseFloat(input.value);
-    if (newPrice && newPrice > 0) {
-        currentPrices[ticker] = newPrice;
-        manualPrices[ticker] = newPrice;
-        delete apiPrices[ticker];
-        if (!maxPrices[ticker] || newPrice > maxPrices[ticker]) {
-            maxPrices[ticker] = newPrice;
-            saveMaxPrices();
+function savePositionPrice(id, year) {
+    const yearKey = String(year);
+    const yearData = portfolioData[yearKey];
+    if (!yearData || !yearData.positions) { renderPortfolio(); return; }
+    const pos = yearData.positions.find(p => p.id === id);
+    if (!pos) { renderPortfolio(); return; }
+
+    if (pos.sold) {
+        if (pos.currency === 'USD') {
+            const usdInput = document.getElementById('input-price-usd-' + id);
+            const eurInput = document.getElementById('input-price-eur-' + id);
+            const usd = usdInput ? parseFloat(usdInput.value) : NaN;
+            const eur = eurInput ? parseFloat(eurInput.value) : NaN;
+            if (!(usd > 0) || !(eur > 0)) {
+                alert('⚠️ Introduce precios de venta validos en USD y EUR');
+                renderPortfolio();
+                return;
+            }
+            pos.sellPriceUSD = usd;
+            pos.sellPriceEUR = eur;
+        } else {
+            const eurInput = document.getElementById('input-price-eur-' + id);
+            const eur = eurInput ? parseFloat(eurInput.value) : NaN;
+            if (!(eur > 0)) {
+                alert('⚠️ Introduce un precio de venta valido');
+                renderPortfolio();
+                return;
+            }
+            pos.sellPrice = eur;
         }
-        saveManualPrices(); saveApiPrices(); renderPortfolio(); } else { alert('⚠️ Por favor, introduce un precio válido'); renderPortfolio(); }
+        savePortfolioData();
+        renderPortfolio();
+        return;
+    }
+
+    const input = document.getElementById('input-price-current-' + id);
+    const newPrice = input ? parseFloat(input.value) : NaN;
+    if (!(newPrice > 0)) {
+        alert('⚠️ Por favor, introduce un precio valido');
+        renderPortfolio();
+        return;
+    }
+
+    currentPrices[pos.ticker] = newPrice;
+    manualPrices[pos.ticker] = newPrice;
+    delete apiPrices[pos.ticker];
+    delete apiErrors[pos.ticker];
+    if (!maxPrices[pos.ticker] || newPrice > maxPrices[pos.ticker]) {
+        maxPrices[pos.ticker] = newPrice;
+        saveMaxPrices();
+    }
+    saveManualPrices();
+    saveApiPrices();
+    renderPortfolio();
 }
 
 function openSellModal(id, year) {
@@ -1405,8 +2060,6 @@ function openSellModal(id, year) {
     document.getElementById('sellPrice').value = '';
     document.getElementById('sellPriceEUR').value = '';
     document.getElementById('sellPriceEURfromUSD').value = '';
-    document.getElementById('sellCostsEUR').value = '';
-    document.getElementById('sellCostsUSD').value = '';
     // Año de venta por defecto: año actual del calendario, no el de compra
     const nowYear = new Date().getFullYear();
     document.getElementById('sellYear').value = nowYear;
@@ -1434,14 +2087,13 @@ function confirmSell() {
         if (!sellPriceEUR || sellPriceEUR <= 0) { alert('⚠️ Por favor, introduce el precio equivalente en EUR'); return; }
         position.sellPriceUSD = sellPriceUSD;
         position.sellPriceEUR = sellPriceEUR;
-        position.sellCosts = parseFloat(document.getElementById('sellCostsUSD').value) || 0;
     } else {
         const sellPriceEUR = parseFloat(document.getElementById('sellPriceEUR').value);
         if (!sellPriceEUR || sellPriceEUR <= 0) { alert('⚠️ Por favor, introduce un precio de venta en EUR válido'); return; }
         position.sellPrice = sellPriceEUR;
-        position.sellCosts = parseFloat(document.getElementById('sellCostsEUR').value) || 0;
     }
 
+    delete position.sellCosts;
     savePortfolioData();
     closeSellModal();
     renderPortfolio();
@@ -1521,7 +2173,7 @@ function importData(event) {
                     if (imported.usdToEur) {
                         usdToEur = imported.usdToEur;
                         localStorage.setItem('usdToEur', usdToEur);
-                        document.getElementById('usdEurInput').value = usdToEur.toFixed(4);
+                        syncExchangeRateInputs();
                     }
                     if (imported.supportResistance) {
                         supportResistance = imported.supportResistance;
@@ -1716,17 +2368,63 @@ async function getCryptoPrice(symbol) {
     }
 }
 
+function syncExchangeRateInputs() {
+    const usdEurEl = document.getElementById('usdEurInput');
+    const eurUsdEl = document.getElementById('eurUsdInput');
+    if (!usdToEur || usdToEur <= 0) return;
+    if (usdEurEl) usdEurEl.value = usdToEur.toFixed(4);
+    if (eurUsdEl) eurUsdEl.value = (1 / usdToEur).toFixed(4);
+}
+
+function setExchangeRateStatus(text, color) {
+    const el = document.getElementById('exchangeRateStatus');
+    if (!el) return;
+    el.textContent = text || '';
+    el.style.color = color || '#94a3b8';
+}
+
 async function getExchangeRate(apiKey) {
     try {
         const url = 'https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=USD&to_currency=EUR&apikey=' + apiKey;
         const response = await fetch(url);
-        const data = await response.json();
-        if (data['Realtime Currency Exchange Rate']) {
-            usdToEur = parseFloat(data['Realtime Currency Exchange Rate']['5. Exchange Rate']);
-            document.getElementById('usdEurInput').value = usdToEur.toFixed(4);
-            localStorage.setItem('usdToEur', usdToEur);
+        if (!response.ok) {
+            return { ok: false, message: 'Alpha Vantage devolvió HTTP ' + response.status };
         }
-    } catch (error) { console.error('Error:', error); }
+        const data = await response.json();
+        const fx = data['Realtime Currency Exchange Rate'];
+        const rate = fx ? parseFloat(fx['5. Exchange Rate']) : NaN;
+        if (!isNaN(rate) && rate > 0) {
+            usdToEur = rate;
+            localStorage.setItem('usdToEur', usdToEur);
+            syncExchangeRateInputs();
+            setExchangeRateStatus('🔄 Alpha Vantage · ' + new Date().toLocaleTimeString('es-ES', {hour:'2-digit', minute:'2-digit'}), '#0ea5e9');
+            return { ok: true, rate: rate };
+        }
+        const msg = data.Note || data.Information || data['Error Message'] || 'Alpha Vantage no devolvió un tipo de cambio válido';
+        return { ok: false, message: msg };
+    } catch (error) {
+        console.error('Error tipo de cambio:', error);
+        return { ok: false, message: 'Error de conexión con Alpha Vantage: ' + error.message };
+    }
+}
+
+async function refreshExchangeRateFromApi() {
+    const apiKey = localStorage.getItem('alphaVantageApiKey');
+    if (!apiKey) {
+        alert('⚠️ Configura primero tu API Key de Alpha Vantage en ⚙️ API');
+        return;
+    }
+    const btn = document.getElementById('exchangeApiBtn');
+    if (btn) { btn.disabled = true; btn.textContent = '⏳'; }
+    setExchangeRateStatus('Consultando Alpha Vantage...', '#64748b');
+    const result = await getExchangeRate(apiKey);
+    if (btn) { btn.disabled = false; btn.textContent = '🔄 API'; }
+    if (result && result.ok) {
+        renderPortfolio();
+    } else {
+        setExchangeRateStatus('⚠️ No se pudo actualizar con la API', '#dc2626');
+        alert('⚠️ ' + ((result && result.message) || 'No se pudo obtener el tipo de cambio'));
+    }
 }
 
 async function calculateSupportResistance(ticker, apiKey) {
@@ -1778,30 +2476,25 @@ function priceStatusBadge(ticker) {
 function updateLastUpdateTime() { const now = new Date(); document.getElementById('lastUpdate').textContent = 'Última actualización: ' + now.toLocaleString('es-ES'); }
 
 function openAddPositionModal() {
-    document.getElementById('addYear').value = currentYear;
+    document.getElementById('addYear').value = (typeof currentYear === 'number') ? currentYear : new Date().getFullYear();
     document.getElementById('addTicker').value = '';
     document.getElementById('addName').value = '';
     document.getElementById('addQuantity').value = '';
     document.getElementById('addBuyPriceEUR').value = '';
     document.getElementById('addBuyPriceUSD').value = '';
-    document.getElementById('addBuyPriceEURfromUSD').value = '';
-    document.getElementById('addType').value = 'stock';
-    document.getElementById('addExchange').value = 'NASDAQ';
-    document.getElementById('addCurrency').value = 'EUR';
+    setAddType('stock');
+    setAddPositionBucket('trading');
+    setAddMarket('USA');
+    setAddCurrency('USD');
     document.getElementById('addIsSold').checked = false;
+    toggleAddBucketField();
     document.getElementById('addSellPriceEUR').value = '';
     document.getElementById('addSellPriceUSD').value = '';
     document.getElementById('addSellPriceEURfromUSD').value = '';
     document.getElementById('addSellYear').value = '';
     document.getElementById('soldFieldsAdd').style.display = 'none';
-    document.getElementById('eurFields').style.display = 'block';
-    document.getElementById('usdFields').style.display = 'none';
-    document.getElementById('soldEurFields').style.display = 'block';
-    document.getElementById('soldUsdFields').style.display = 'none';
-    document.getElementById('addBuyCostsEUR').value = '';
-    document.getElementById('addBuyCostsUSD').value = '';
-    document.getElementById('addSellCostsEUR').value = '';
-    document.getElementById('addSellCostsUSD').value = '';
+    document.getElementById('soldEurFields').style.display = 'none';
+    document.getElementById('soldUsdFields').style.display = 'block';
     document.getElementById('addPositionModal').classList.add('show');
 }
 
@@ -1812,12 +2505,28 @@ function closeAddPositionModal() {
 function toggleSoldFields() {
     const isSold = document.getElementById('addIsSold').checked;
     document.getElementById('soldFieldsAdd').style.display = isSold ? 'block' : 'none';
+    toggleAddBucketField();
 }
 
 function toggleCurrencyFields() {
     const currency = document.getElementById('addCurrency').value;
-    document.getElementById('eurFields').style.display = currency === 'EUR' ? 'block' : 'none';
-    document.getElementById('usdFields').style.display = currency === 'USD' ? 'block' : 'none';
+    const usdInput = document.getElementById('addBuyPriceUSD');
+    const eurInput = document.getElementById('addBuyPriceEUR');
+    const help = document.getElementById('addCurrencyHelp');
+
+    // En USD necesitamos también el equivalente histórico en EUR para calcular la cartera.
+    // En EUR basta con el importe en euros y dejamos la caja USD desactivada.
+    if (usdInput) usdInput.disabled = currency === 'EUR';
+    if (eurInput) {
+        eurInput.disabled = false;
+        eurInput.placeholder = currency === 'USD' ? 'Equivalente en € · Ej: 176,50' : 'Precio en € · Ej: 15,20';
+    }
+    if (help) {
+        help.textContent = currency === 'USD'
+            ? 'Compra en USD: rellena el precio en $ y su equivalente en € del día.'
+            : 'Compra en EUR: rellena solo el precio en €. La caja de $ no es necesaria.';
+    }
+
     document.getElementById('soldEurFields').style.display = currency === 'EUR' ? 'block' : 'none';
     document.getElementById('soldUsdFields').style.display = currency === 'USD' ? 'block' : 'none';
 }
@@ -1832,11 +2541,13 @@ function confirmAddPosition() {
     const isin = document.getElementById('addIsin').value.trim().toUpperCase();
     const isSold = document.getElementById('addIsSold').checked;
     const currency = document.getElementById('addCurrency').value;
+    const positionBucket = document.getElementById('addPositionBucket').value;
 
     if (!year || year < 2010 || year > 2030) { alert('⚠️ Por favor, introduce un año válido (2010-2030)'); return; }
     if (!ticker) { alert('⚠️ Por favor, introduce un ticker'); return; }
     if (!name) { alert('⚠️ Por favor, introduce el nombre'); return; }
     if (!quantity || quantity <= 0) { alert('⚠️ Por favor, introduce una cantidad válida'); return; }
+    if (!isSold && !['trading', 'cartera'].includes(positionBucket)) { alert('⚠️ Elige si la nueva posición es Trading o Cartera'); return; }
     if (isin && !/^[A-Z]{2}[A-Z0-9]{9}[0-9]$/.test(isin)) { alert('⚠️ El ISIN no tiene un formato válido (2 letras de país + 10 caracteres, ej: US0378331005). Puedes dejarlo vacío si no lo tienes a mano.'); return; }
 
     const newPosition = {
@@ -1846,22 +2557,19 @@ function confirmAddPosition() {
         isin: isin || undefined,
         sold: false
     };
+    if (!isSold) newPosition.positionBucket = positionBucket;
 
     if (currency === 'EUR') {
         const buyPrice = parseFloat(document.getElementById('addBuyPriceEUR').value);
         if (!buyPrice || buyPrice <= 0) { alert('⚠️ Por favor, introduce el precio de compra en €'); return; }
-        const buyCosts = parseFloat(document.getElementById('addBuyCostsEUR').value) || 0;
         newPosition.buyPrice = buyPrice;
-        newPosition.buyCosts = buyCosts; // gastos totales en EUR
     } else {
         const buyPriceUSD = parseFloat(document.getElementById('addBuyPriceUSD').value);
-        const buyPriceEUR = parseFloat(document.getElementById('addBuyPriceEURfromUSD').value);
+        const buyPriceEUR = parseFloat(document.getElementById('addBuyPriceEUR').value);
         if (!buyPriceUSD || buyPriceUSD <= 0) { alert('⚠️ Por favor, introduce el precio de compra en $'); return; }
         if (!buyPriceEUR || buyPriceEUR <= 0) { alert('⚠️ Por favor, introduce el precio equivalente en €'); return; }
-        const buyCosts = parseFloat(document.getElementById('addBuyCostsUSD').value) || 0;
         newPosition.buyPriceUSD = buyPriceUSD;
         newPosition.buyPriceEUR = buyPriceEUR;
-        newPosition.buyCosts = buyCosts;
     }
 
     if (isSold) {
@@ -1872,18 +2580,14 @@ function confirmAddPosition() {
         if (currency === 'EUR') {
             const sellPrice = parseFloat(document.getElementById('addSellPriceEUR').value);
             if (!sellPrice || sellPrice <= 0) { alert('⚠️ Por favor, introduce el precio de venta en €'); return; }
-            const sellCosts = parseFloat(document.getElementById('addSellCostsEUR').value) || 0;
             newPosition.sellPrice = sellPrice;
-            newPosition.sellCosts = sellCosts;
         } else {
             const sellPriceUSD = parseFloat(document.getElementById('addSellPriceUSD').value);
             const sellPriceEUR = parseFloat(document.getElementById('addSellPriceEURfromUSD').value);
             if (!sellPriceUSD || sellPriceUSD <= 0) { alert('⚠️ Por favor, introduce el precio de venta en $'); return; }
             if (!sellPriceEUR || sellPriceEUR <= 0) { alert('⚠️ Por favor, introduce el precio de venta equivalente en €'); return; }
-            const sellCosts = parseFloat(document.getElementById('addSellCostsUSD').value) || 0;
             newPosition.sellPriceUSD = sellPriceUSD;
             newPosition.sellPriceEUR = sellPriceEUR;
-            newPosition.sellCosts = sellCosts;
         }
     }
 
@@ -1891,7 +2595,12 @@ function confirmAddPosition() {
     portfolioData[String(year)].positions.push(newPosition);
     savePortfolioData();
     closeAddPositionModal();
-    switchYear(year);
+    if (newPosition.sold) {
+        switchYear(year);
+    } else {
+        activePortfolioFilter = 'activa';
+        switchYear('ACTIVA');
+    }
     alert('✅ Posición añadida correctamente a ' + year);
 }
 
@@ -1917,6 +2626,68 @@ function deletePosition(id, year) {
 
 
 
+function syncEditMarketButtons(exchange) {
+    const usa = ['NASDAQ', 'NYSE', 'AMEX'].includes(exchange);
+    const spain = exchange === 'BME';
+    const europe = ['EURONEXT', 'LSE', 'XETRA', 'FWB'].includes(exchange);
+    const usaBtn = document.getElementById('editMarketUSA');
+    const europeBtn = document.getElementById('editMarketEurope');
+    const spainBtn = document.getElementById('editMarketSpain');
+    if (usaBtn) usaBtn.classList.toggle('active', usa);
+    if (europeBtn) europeBtn.classList.toggle('active', europe);
+    if (spainBtn) spainBtn.classList.toggle('active', spain);
+}
+
+function setEditMarket(market) {
+    const map = { USA: 'NASDAQ', EUROPA: 'EURONEXT', ESPANA: 'BME' };
+    if (!map[market]) return;
+    const input = document.getElementById('editExchange');
+    if (input) input.value = map[market];
+    syncEditMarketButtons(map[market]);
+}
+
+function setEditType(type) {
+    if (!['stock', 'crypto'].includes(type)) return;
+    const input = document.getElementById('editType');
+    if (input) input.value = type;
+    const stockBtn = document.getElementById('editTypeStock');
+    const cryptoBtn = document.getElementById('editTypeCrypto');
+    if (stockBtn) stockBtn.classList.toggle('active', type === 'stock');
+    if (cryptoBtn) cryptoBtn.classList.toggle('active', type === 'crypto');
+    const marketField = document.getElementById('editMarketField');
+    if (marketField) marketField.style.display = type === 'stock' ? 'block' : 'none';
+}
+
+function setEditPositionBucket(bucket) {
+    if (!['trading', 'cartera'].includes(bucket)) return;
+    const input = document.getElementById('editPositionBucket');
+    if (input) input.value = bucket;
+    const tradingBtn = document.getElementById('editBucketTrading');
+    const carteraBtn = document.getElementById('editBucketCartera');
+    if (tradingBtn) tradingBtn.classList.toggle('active', bucket === 'trading');
+    if (carteraBtn) carteraBtn.classList.toggle('active', bucket === 'cartera');
+}
+
+function syncEditPositionBucket(bucket) {
+    const input = document.getElementById('editPositionBucket');
+    if (input) input.value = ['trading', 'cartera'].includes(bucket) ? bucket : '';
+    const tradingBtn = document.getElementById('editBucketTrading');
+    const carteraBtn = document.getElementById('editBucketCartera');
+    if (tradingBtn) tradingBtn.classList.toggle('active', bucket === 'trading');
+    if (carteraBtn) carteraBtn.classList.toggle('active', bucket === 'cartera');
+}
+
+function setEditCurrency(currency) {
+    if (!['EUR', 'USD'].includes(currency)) return;
+    const input = document.getElementById('editCurrency');
+    if (input) input.value = currency;
+    const eurBtn = document.getElementById('editCurrencyEUR');
+    const usdBtn = document.getElementById('editCurrencyUSD');
+    if (eurBtn) eurBtn.classList.toggle('active', currency === 'EUR');
+    if (usdBtn) usdBtn.classList.toggle('active', currency === 'USD');
+    toggleEditCurrencyFields();
+}
+
 function openEditModal(id, year) {
     const pos = portfolioData[String(year)].positions.find(p => p.id === id);
     if (!pos) return;
@@ -1925,38 +2696,40 @@ function openEditModal(id, year) {
     document.getElementById('editTicker').value = pos.ticker;
     document.getElementById('editName').value = pos.name;
     document.getElementById('editQuantity').value = pos.quantity;
-    document.getElementById('editCurrency').value = pos.currency || 'EUR';
-    document.getElementById('editType').value = pos.type || 'stock';
-    document.getElementById('editExchange').value = pos.exchange || 'NASDAQ';
     document.getElementById('editIsin').value = pos.isin || '';
 
     const isUSD = pos.currency === 'USD';
-    document.getElementById('editEurFields').style.display = isUSD ? 'none' : 'block';
-    document.getElementById('editUsdFields').style.display = isUSD ? 'block' : 'none';
+    document.getElementById('editBuyPriceUSD').value = isUSD ? (pos.buyPriceUSD || '') : '';
+    document.getElementById('editBuyPriceEUR').value = isUSD ? (pos.buyPriceEUR || '') : (pos.buyPrice || '');
+    setEditCurrency(pos.currency || 'EUR');
+    setEditType(pos.type || 'stock');
 
-    if (isUSD) {
-        document.getElementById('editBuyPriceUSD').value = pos.buyPriceUSD || '';
-        document.getElementById('editBuyPriceEURfromUSD').value = pos.buyPriceEUR || '';
-        document.getElementById('editBuyCostsUSD').value = pos.buyCosts || 0;
-    } else {
-        document.getElementById('editBuyPriceEUR').value = pos.buyPrice || '';
-        document.getElementById('editBuyCostsEUR').value = pos.buyCosts || 0;
-    }
+    // Conservamos el mercado exacto de posiciones antiguas (p. ej. NYSE/LSE).
+    // Solo se simplifica a NASDAQ/EURONEXT/BME si el usuario pulsa uno de los tres botones.
+    const currentExchange = pos.exchange || 'NASDAQ';
+    document.getElementById('editExchange').value = currentExchange;
+    syncEditMarketButtons(currentExchange);
+
+    syncEditPositionBucket(pos.positionBucket || '');
+    const editBucketField = document.getElementById('editBucketField');
+    if (editBucketField) editBucketField.style.display = pos.sold ? 'none' : 'block';
 
     document.getElementById('editIsSold').checked = !!pos.sold;
     document.getElementById('editSoldFields').style.display = pos.sold ? 'block' : 'none';
     document.getElementById('editSoldEurFields').style.display = isUSD ? 'none' : 'block';
     document.getElementById('editSoldUsdFields').style.display = isUSD ? 'block' : 'none';
 
+    document.getElementById('editSellYear').value = '';
+    document.getElementById('editSellPriceEUR').value = '';
+    document.getElementById('editSellPriceUSD').value = '';
+    document.getElementById('editSellPriceEURfromUSD').value = '';
     if (pos.sold) {
         document.getElementById('editSellYear').value = pos.sellYear || pos.sellDate || '';
         if (isUSD) {
             document.getElementById('editSellPriceUSD').value = pos.sellPriceUSD || '';
             document.getElementById('editSellPriceEURfromUSD').value = pos.sellPriceEUR || '';
-            document.getElementById('editSellCostsUSD').value = pos.sellCosts || 0;
         } else {
             document.getElementById('editSellPriceEUR').value = pos.sellPrice || '';
-            document.getElementById('editSellCostsEUR').value = pos.sellCosts || 0;
         }
     }
 
@@ -1969,16 +2742,32 @@ function closeEditModal() {
 }
 
 function toggleEditCurrencyFields() {
-    const isUSD = document.getElementById('editCurrency').value === 'USD';
-    document.getElementById('editEurFields').style.display = isUSD ? 'none' : 'block';
-    document.getElementById('editUsdFields').style.display = isUSD ? 'block' : 'none';
+    const currency = document.getElementById('editCurrency').value;
+    const isUSD = currency === 'USD';
+    const usdInput = document.getElementById('editBuyPriceUSD');
+    const eurInput = document.getElementById('editBuyPriceEUR');
+    const help = document.getElementById('editCurrencyHelp');
+
+    if (usdInput) usdInput.disabled = !isUSD;
+    if (eurInput) {
+        eurInput.disabled = false;
+        eurInput.placeholder = isUSD ? 'Equivalente en €' : 'Precio en €';
+    }
+    if (help) {
+        help.textContent = isUSD
+            ? 'Compra en USD: puedes editar el precio en $ y el equivalente en € del día.'
+            : 'Compra en EUR: edita solo el precio en €. La caja de $ queda desactivada.';
+    }
+
     document.getElementById('editSoldEurFields').style.display = isUSD ? 'none' : 'block';
     document.getElementById('editSoldUsdFields').style.display = isUSD ? 'block' : 'none';
 }
 
 function toggleEditSoldFields() {
-    document.getElementById('editSoldFields').style.display =
-        document.getElementById('editIsSold').checked ? 'block' : 'none';
+    const isSold = document.getElementById('editIsSold').checked;
+    document.getElementById('editSoldFields').style.display = isSold ? 'block' : 'none';
+    const editBucketField = document.getElementById('editBucketField');
+    if (editBucketField) editBucketField.style.display = isSold ? 'none' : 'block';
 }
 
 function confirmEditPosition() {
@@ -1992,13 +2781,15 @@ function confirmEditPosition() {
     const currency = document.getElementById('editCurrency').value;
     const isSold = document.getElementById('editIsSold').checked;
     const isUSD = currency === 'USD';
+    const type = document.getElementById('editType').value;
+    const bucket = document.getElementById('editPositionBucket').value;
 
     pos.ticker = document.getElementById('editTicker').value.trim().toUpperCase();
     pos.name = document.getElementById('editName').value.trim();
     pos.quantity = parseFloat(document.getElementById('editQuantity').value);
     pos.currency = currency;
-    pos.type = document.getElementById('editType').value;
-    pos.exchange = document.getElementById('editExchange').value;
+    pos.type = type;
+    pos.exchange = type === 'stock' ? document.getElementById('editExchange').value : undefined;
     const editIsin = document.getElementById('editIsin').value.trim().toUpperCase();
     if (editIsin && !/^[A-Z]{2}[A-Z0-9]{9}[0-9]$/.test(editIsin)) {
         alert('⚠️ El ISIN no tiene un formato válido (2 letras de país + 10 caracteres, ej: US0378331005). Puedes dejarlo vacío si no lo tienes a mano.'); return;
@@ -2010,27 +2801,34 @@ function confirmEditPosition() {
     }
 
     if (isUSD) {
-        pos.buyPriceUSD = parseFloat(document.getElementById('editBuyPriceUSD').value);
-        pos.buyPriceEUR = parseFloat(document.getElementById('editBuyPriceEURfromUSD').value);
-        pos.buyCosts = parseFloat(document.getElementById('editBuyCostsUSD').value) || 0;
+        const buyPriceUSD = parseFloat(document.getElementById('editBuyPriceUSD').value);
+        const buyPriceEUR = parseFloat(document.getElementById('editBuyPriceEUR').value);
+        if (!buyPriceUSD || buyPriceUSD <= 0) { alert('⚠️ Por favor, introduce el precio de compra en $'); return; }
+        if (!buyPriceEUR || buyPriceEUR <= 0) { alert('⚠️ Por favor, introduce el precio equivalente en €'); return; }
+        pos.buyPriceUSD = buyPriceUSD;
+        pos.buyPriceEUR = buyPriceEUR;
         delete pos.buyPrice;
     } else {
-        pos.buyPrice = parseFloat(document.getElementById('editBuyPriceEUR').value);
-        pos.buyCosts = parseFloat(document.getElementById('editBuyCostsEUR').value) || 0;
+        const buyPrice = parseFloat(document.getElementById('editBuyPriceEUR').value);
+        if (!buyPrice || buyPrice <= 0) { alert('⚠️ Por favor, introduce el precio de compra en €'); return; }
+        pos.buyPrice = buyPrice;
         delete pos.buyPriceUSD; delete pos.buyPriceEUR;
     }
 
     pos.sold = isSold;
+    if (!isSold) {
+        // Las posiciones nuevas ya vienen clasificadas. Para las antiguas sin clasificar no forzamos nada.
+        if (['trading', 'cartera'].includes(bucket)) pos.positionBucket = bucket;
+    }
+
     if (isSold) {
         pos.sellYear = parseInt(document.getElementById('editSellYear').value) || null;
         if (isUSD) {
             pos.sellPriceUSD = parseFloat(document.getElementById('editSellPriceUSD').value);
             pos.sellPriceEUR = parseFloat(document.getElementById('editSellPriceEURfromUSD').value);
-            pos.sellCosts = parseFloat(document.getElementById('editSellCostsUSD').value) || 0;
             delete pos.sellPrice;
         } else {
             pos.sellPrice = parseFloat(document.getElementById('editSellPriceEUR').value);
-            pos.sellCosts = parseFloat(document.getElementById('editSellCostsEUR').value) || 0;
             delete pos.sellPriceUSD; delete pos.sellPriceEUR;
         }
     } else {
@@ -2046,18 +2844,28 @@ function confirmEditPosition() {
 
 function updateExchangeRate(val) {
     const rate = parseFloat(val);
-    if (!rate || rate <= 0) { alert('⚠️ Introduce un tipo de cambio válido'); return; }
+    if (!rate || rate <= 0) { alert('⚠️ Introduce un tipo de cambio válido'); syncExchangeRateInputs(); return; }
     usdToEur = rate;
     localStorage.setItem('usdToEur', rate);
+    syncExchangeRateInputs();
+    setExchangeRateStatus('✏️ Tipo de cambio manual', '#856404');
+    renderPortfolio();
+}
+
+function updateExchangeRateInverse(val) {
+    const eurToUsd = parseFloat(val);
+    if (!eurToUsd || eurToUsd <= 0) { alert('⚠️ Introduce un tipo de cambio válido'); syncExchangeRateInputs(); return; }
+    usdToEur = 1 / eurToUsd;
+    localStorage.setItem('usdToEur', usdToEur);
+    syncExchangeRateInputs();
+    setExchangeRateStatus('✏️ Tipo de cambio manual', '#856404');
     renderPortfolio();
 }
 
 function loadExchangeRate() {
     const saved = localStorage.getItem('usdToEur');
-    if (saved) {
-        usdToEur = parseFloat(saved);
-        document.getElementById('usdEurInput').value = parseFloat(saved).toFixed(4);
-    }
+    if (saved) usdToEur = parseFloat(saved);
+    syncExchangeRateInputs();
 }
 
 // ══════════════════════════════════════════════
@@ -2139,7 +2947,7 @@ async function cargarDesdeGist() {
         if (data.maxPrices)     { maxPrices = data.maxPrices;         saveMaxPrices(); }
         if (data.stopLossPrices){ stopLossPrices = data.stopLossPrices; saveStopLossPrices(); }
         if (data.targetPrices)  { targetPrices = data.targetPrices;   saveTargetPrices(); }
-        if (data.usdToEur)      { usdToEur = data.usdToEur; localStorage.setItem('usdToEur', usdToEur); const el = document.getElementById('usdEurInput'); if (el) el.value = parseFloat(usdToEur).toFixed(4); }
+        if (data.usdToEur)      { usdToEur = data.usdToEur; localStorage.setItem('usdToEur', usdToEur); syncExchangeRateInputs(); }
         if (data.supportResistance) { supportResistance = data.supportResistance; saveSupportResistance(); }
         if (data.aiReport)      { saveAiReport(data.aiReport); const rd = document.getElementById('aiResponse'); if (rd) { rd.className = 'ai-response'; rd.textContent = data.aiReport; } }
 
@@ -2560,6 +3368,7 @@ window.onload = async function() {
         if (sortedYears.length > 0) currentYear = parseInt(sortedYears[0]);
     }
     renderYearSelector();
+    updateActivePortfolioFilterUI();
     renderPortfolio();
     applyOrientationClass();
     const aiPanel = document.getElementById('aiPanel');
@@ -2640,12 +3449,11 @@ window.addEventListener('orientationchange', function() {
             value = value.toUpperCase().replace(/\s+/g, '');
             el.value = value;
         } else if (fieldType === 'currency') {
-            if (/euro/i.test(value)) el.value = 'EUR';
-            else if (/d[oó]lar/i.test(value)) el.value = 'USD';
-            toggleCurrencyFields();
+            if (/euro/i.test(value)) setAddCurrency('EUR');
+            else if (/d[oó]lar/i.test(value)) setAddCurrency('USD');
         } else if (fieldType === 'type') {
-            if (/acci[oó]n|stock/i.test(value)) el.value = 'stock';
-            else if (/crypto|cripto/i.test(value)) el.value = 'crypto';
+            if (/acci[oó]n|stock/i.test(value)) setAddType('stock');
+            else if (/crypto|cripto/i.test(value)) setAddType('crypto');
         } else {
             el.value = value;
         }
