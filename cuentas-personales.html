@@ -4052,17 +4052,17 @@
             itemEditandoIndex = -1;
             seleccionarMedioPago('cuenta');
             document.getElementById('modal-title').textContent = tipo === 'ingresos' ? 
-                '📈 Ingresos Extras - ' + MESES_NOMBRES[mesActual] : 
-                '📉 Gastos Extras - ' + MESES_NOMBRES[mesActual];
+                '📈 Ingresos Extras - ' + MESES_NOMBRES[mesActual] + ' · solo este mes' : 
+                '📉 Gastos Extras - ' + MESES_NOMBRES[mesActual] + ' · solo este mes';
             document.getElementById('modal-desglose').style.display = 'block';
             document.getElementById('frecuencia-input').value = 'puntual';
             document.getElementById('frecuencia-input').style.display = 'none';
             document.getElementById('meses-selector-container').style.display = 'none';
             document.getElementById('categoria-selector-container').style.display = 'none';
-            document.getElementById('fecha-fin-container').style.display = 'block';
+            // Los Extras del Mes son SIEMPRE puntuales. Para repetir entre meses/años se usa Programados.
+            document.getElementById('fecha-fin-container').style.display = 'none';
             document.getElementById('tiene-fecha-fin').checked = false;
             document.getElementById('fecha-fin-inputs').style.display = 'none';
-            // Set default end date selectors to current month/year
             document.getElementById('fin-mes-input').value = mesActual;
             document.getElementById('fin-ano-input').value = anoActual;
             mostrarDesglose();
@@ -4126,6 +4126,7 @@
             document.getElementById('tiene-fecha-fin').checked = false;
             seleccionarMedioPago('cuenta');
             itemEditandoIndex = -1;
+            itemEditandoRecurrente = false;
             // Resetear modo edición orden
             if (modoEdicionDesgloseActivo) toggleModoEdicionDesglose();
         }
@@ -4206,7 +4207,7 @@
                 if (recurrentesMes.length > 0) {
                     const secTitle = document.createElement('div');
                     secTitle.style.cssText = 'font-weight:bold;color:#7c3aed;margin-bottom:8px;padding:8px;background:#f5f3ff;border-radius:8px;font-size:0.95em;';
-                    secTitle.textContent = '📅 Extras con fecha de fin (recurrentes)';
+                    secTitle.textContent = '⚠️ Recurrentes antiguos · para nuevos usa Programados';
                     lista.appendChild(secTitle);
                     
                     recurrentesMes.forEach(({ item, idx }) => {
@@ -4502,8 +4503,9 @@
             }
 
             if (concepto && valor >= 0) {
-                // Check if this is an extra with fecha fin
-                if (modalTipo === 'extras' && document.getElementById('tiene-fecha-fin').checked) {
+                // Compatibilidad: solo permite EDITAR recurrentes antiguos.
+                // Nunca crea recurrentes nuevos desde Extras del Mes; para eso se usa Programados.
+                if (modalTipo === 'extras' && itemEditandoRecurrente && document.getElementById('tiene-fecha-fin').checked) {
                     const finMes = parseInt(document.getElementById('fin-mes-input').value);
                     const finAno = parseInt(document.getElementById('fin-ano-input').value);
                     
@@ -4654,6 +4656,7 @@
             document.getElementById('concepto-input').value = item.concepto;
             document.getElementById('valor-input').value = item.valor;
             seleccionarMedioPago(item.medio);
+            document.getElementById('fecha-fin-container').style.display = 'block';
             document.getElementById('tiene-fecha-fin').checked = true;
             document.getElementById('fecha-fin-inputs').style.display = 'flex';
             document.getElementById('fin-mes-input').value = base.mesFin;
