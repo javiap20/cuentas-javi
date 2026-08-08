@@ -6016,10 +6016,12 @@
             (datos.movimientosProgramados || []).forEach((item, idx) => {
                 const efectivo = obtenerMovimientoProgramadoEfectivo(datos, item, idx, anoActual, numMes);
                 if (!efectivo) return;
+                const claveProg = claveMovimientoProgramado(item, idx);
+                const tieneOverrideProg = !!(datos.meses[numMes].programadosOverrides && datos.meses[numMes].programadosOverrides[claveProg]);
                 items.push({
                     concepto: efectivo.concepto, valor: efectivo.valor, medio: normalizarMedioPago(efectivo.medio),
                     tipo: efectivo.tipo === 'ingresos' ? 'ingreso' : 'gasto', categoria: 'Programado',
-                    fuente: 'movimientosProgramados', index: idx, editable: true
+                    fuente: 'movimientosProgramados', index: idx, editable: true, tieneOverride: tieneOverrideProg
                 });
             });
 
@@ -6153,12 +6155,20 @@
                     ovBadge.textContent = '✏️ solo este mes';
                     ovBadge.onclick = (e) => {
                         e.stopPropagation();
-                        if (confirm('¿Restaurar el valor global para "' + item.concepto + '" en este mes?')) {
-                            const key = item.fuente + '_' + item.index;
-                            if (datos.meses[mesVerTodo].overrides) delete datos.meses[mesVerTodo].overrides[key];
+                        if (confirm('¿Restaurar el valor original para "' + item.concepto + '" en este mes?')) {
+                            if (item.fuente === 'movimientosProgramados') {
+                                const baseProg = (datos.movimientosProgramados || [])[item.index];
+                                const keyProg = claveMovimientoProgramado(baseProg, item.index);
+                                if (datos.meses[mesVerTodo].programadosOverrides) {
+                                    delete datos.meses[mesVerTodo].programadosOverrides[keyProg];
+                                }
+                            } else {
+                                const key = item.fuente + '_' + item.index;
+                                if (datos.meses[mesVerTodo].overrides) delete datos.meses[mesVerTodo].overrides[key];
+                            }
                             guardarDatos(); actualizarTodo(); actualizarResumenAnual();
                             abrirModalVerTodoMes(mesVerTodo);
-                            mostrarNotificacion('↩️ Valor global restaurado', 'exito');
+                            mostrarNotificacion('↩️ Valor original restaurado para ' + MESES_NOMBRES[mesVerTodo], 'exito');
                         }
                     };
                     leftDiv.appendChild(ovBadge);
@@ -6175,21 +6185,16 @@
                 const editBtn = document.createElement('button');
                 editBtn.className = 'btn-editar';
                 editBtn.textContent = '✏️';
-                editBtn.title = 'Editar';
+                editBtn.title = item.fuente === 'movimientosProgramados' ? 'Editar solo este mes' : 'Editar';
                 editBtn.onclick = (e) => {
                     e.stopPropagation();
-                    if (item.fuente === 'movimientosProgramados') {
-                        cerrarModalVerTodo();
-                        abrirModalProgramados(item.index);
-                    } else {
-                        editarItemInline(div, item);
-                    }
+                    editarItemInline(div, item);
                 };
 
                 const deleteBtn = document.createElement('button');
                 deleteBtn.className = 'btn-eliminar';
                 deleteBtn.textContent = '🗑️';
-                deleteBtn.title = 'Eliminar';
+                deleteBtn.title = item.fuente === 'movimientosProgramados' ? 'Eliminar el Programado completo' : 'Eliminar';
                 deleteBtn.onclick = () => {
                     if (item.fuente === 'movimientosProgramados') {
                         cerrarModalVerTodo();
@@ -6469,12 +6474,35 @@
                 datos.meses[mesVerTodo].gastosVacacionesExtras[item.index].concepto = nuevoConcepto;
                 datos.meses[mesVerTodo].gastosVacacionesExtras[item.index].valor = nuevoValor;
                 datos.meses[mesVerTodo].gastosVacacionesExtras[item.index].medio = normalizarMedioPago(nuevoMedio);
+            } else if (item.fuente === 'movimientosProgramados') {
+                const baseProg = (datos.movimientosProgramados || [])[item.index];
+                if (!baseProg) {
+                    mostrarNotificacion('❌ No se encontró el Programado original', 'error');
+                    return;
+                }
+                const mesData = datos.meses[mesVerTodo];
+                if (!mesData.programadosOverrides) mesData.programadosOverrides = {};
+                const keyProg = claveMovimientoProgramado(baseProg, item.index);
+                const ovPrevio = mesData.programadosOverrides[keyProg] || {};
+                const forzarEnMes = !!ovPrevio.forzarEnMes || !movimientoProgramadoAplicaEnMes(baseProg, anoActual, mesVerTodo);
+                mesData.programadosOverrides[keyProg] = {
+                    concepto: nuevoConcepto,
+                    valor: nuevoValor,
+                    medio: normalizarMedioPago(nuevoMedio),
+                    tipo: baseProg.tipo,
+                    ...(forzarEnMes ? { forzarEnMes: true } : {})
+                };
             }
             guardarDatos();
             actualizarTodo();
             actualizarResumenAnual();
             abrirModalVerTodoMes(mesVerTodo);
-            mostrarNotificacion('✅ ' + nuevoConcepto + ' actualizado', 'exito');
+            mostrarNotificacion(
+                item.fuente === 'movimientosProgramados'
+                    ? '✅ ' + nuevoConcepto + ' actualizado solo para ' + MESES_NOMBRES[mesVerTodo]
+                    : '✅ ' + nuevoConcepto + ' actualizado',
+                'exito'
+            );
         }
 
         function aplicarEdicionInlineConAlcance(alcance) {
