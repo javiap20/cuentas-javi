@@ -7640,5 +7640,50 @@ function recalcularSimulador() {
             z-index: 12 !important;
         }
     </style>
+
+
+    <!-- Compatibilidad iPad: comparativas sin elementos sticky -->
+    <style>
+        /*
+         * En Safari/iPad, position:sticky dentro de tablas grandes y un modal
+         * con scroll bidireccional puede producir saltos visuales. Priorizamos
+         * un desplazamiento estable: cabeceras y columna Concepto se mueven
+         * junto con el resto de la tabla.
+         */
+        #modal-comparativa-anual .comparativa-table thead,
+        #modal-comparativa-anios .comparativa-table thead,
+        #modal-comparativa-anual .comparativa-table thead th,
+        #modal-comparativa-anios .comparativa-table thead th,
+        #modal-comparativa-anual .comparativa-table th:first-child,
+        #modal-comparativa-anual .comparativa-table td:first-child,
+        #modal-comparativa-anios .comparativa-table th:first-child,
+        #modal-comparativa-anios .comparativa-table td:first-child {
+            position: static !important;
+            top: auto !important;
+            left: auto !important;
+            z-index: auto !important;
+        }
+
+        #modal-comparativa-anual .comparativa-table thead th,
+        #modal-comparativa-anios .comparativa-table thead th {
+            box-shadow: none !important;
+        }
+
+        #modal-comparativa-anual .comparativa-table thead th:first-child,
+        #modal-comparativa-anios .comparativa-table thead th:first-child {
+            background: #172554 !important;
+        }
+
+        /* Scroll sencillo y predecible en dispositivos tactiles. */
+        @media (hover: none) and (pointer: coarse) {
+            #modal-comparativa-anual .comparativa-scroll,
+            #modal-comparativa-anios .comparativa-scroll {
+                -webkit-overflow-scrolling: touch;
+                overscroll-behavior: auto;
+                touch-action: pan-x pan-y;
+            }
+        }
+    </style>
+
 </body>
 </html>
