@@ -2416,62 +2416,12 @@
                 });
                 mes.overrides = overridesLimpios;
             });
-            // El sistema antiguo guardaba en gastosExtras/ingresosExtras la DIFERENCIA entre
-            // el valor editado y el fijo. Detectamos esto si el concepto coincide con un ítem fijo.
-            // Lo convertimos a override y eliminamos el extra para evitar duplicaciones.
-            d.meses.forEach((mes, mIdx) => {
-                if (!mes.overrides) mes.overrides = {};
-                // Gastos extras: buscar coincidencia con gastosFijos
-                mes.gastosExtras = (mes.gastosExtras || []).filter(extra => {
-                    const fijIdx = d.gastosFijos.findIndex(f => f.concepto === extra.concepto);
-                    if (fijIdx >= 0) {
-                        const fijo = d.gastosFijos[fijIdx];
-                        // Solo migrar si no hay ya un override para este ítem
-                        const key = 'gastosFijos_' + fijIdx;
-                        if (!mes.overrides[key]) {
-                            // valor real = valor_fijo + diferencia
-                            const aplica = fijo.frecuencia === 'mensual' || (fijo.frecuencia === 'anual' && fijo.meses && fijo.meses.includes(mIdx));
-                            if (aplica) {
-                                mes.overrides[key] = { concepto: fijo.concepto, valor: fijo.valor + extra.valor };
-                            }
-                        }
-                        return false; // eliminar el extra del array
-                    }
-                    return true;
-                });
-                // Ingresos extras: buscar coincidencia con ingresosFijos
-                mes.ingresosExtras = (mes.ingresosExtras || []).filter(extra => {
-                    const fijIdx = d.ingresosFijos.findIndex(f => f.concepto === extra.concepto);
-                    if (fijIdx >= 0) {
-                        const fijo = d.ingresosFijos[fijIdx];
-                        const key = 'ingresosFijos_' + fijIdx;
-                        if (!mes.overrides[key]) {
-                            const aplica = fijo.frecuencia === 'mensual' || (fijo.frecuencia === 'anual' && fijo.meses && fijo.meses.includes(mIdx));
-                            if (aplica) {
-                                mes.overrides[key] = { concepto: fijo.concepto, valor: fijo.valor + extra.valor };
-                            }
-                        }
-                        return false;
-                    }
-                    return true;
-                });
-                // Vacaciones extras: buscar coincidencia con gastosVacaciones
-                mes.gastosVacacionesExtras = (mes.gastosVacacionesExtras || []).filter(extra => {
-                    const fijIdx = (d.gastosVacaciones || []).findIndex(f => f.concepto === extra.concepto);
-                    if (fijIdx >= 0) {
-                        const fijo = d.gastosVacaciones[fijIdx];
-                        const key = 'gastosVacaciones_' + fijIdx;
-                        if (!mes.overrides[key]) {
-                            const aplica = fijo.frecuencia === 'mensual' || (fijo.frecuencia === 'anual' && fijo.meses && fijo.meses.includes(mIdx));
-                            if (aplica) {
-                                mes.overrides[key] = { concepto: fijo.concepto, valor: fijo.valor + extra.valor };
-                            }
-                        }
-                        return false;
-                    }
-                    return true;
-                });
-            });
+            // IMPORTANTE: no tocar ni reinterpretar los Extras del Mes al cargar/importar.
+            // En el sistema actual es perfectamente valido que un extra tenga el mismo concepto
+            // que una partida fija (ej.: Farmacia fija 20 + Farmacia extra 580 = 600 ese mes).
+            // La antigua migracion de "deltas" convertia automaticamente esos extras en overrides
+            // y los eliminaba de ingresosExtras/gastosExtras/vacacionesExtras al recargar o importar.
+            // Esa heuristica era destructiva y queda desactivada: los extras se conservan tal cual.
         }
 
         function mostrarFuenteDatos(fuente, fechaISO) {
