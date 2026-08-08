@@ -6867,12 +6867,17 @@ function recalcularSimulador() {
         // Guardamos posición Y inicial del toque para calcular delta
         document.addEventListener('touchstart', function(e) {
             if (!isInsideOpenModal(e.target)) return;
+            // Las comparativas tienen un unico scroll propio (horizontal + vertical).
+            // Dejar que Safari/iPad lo gestione de forma nativa evita que este
+            // controlador global intente mover el overlay exterior.
+            if (e.target.closest && e.target.closest('#modal-comparativa-anual .comparativa-scroll, #modal-comparativa-anios .comparativa-scroll')) return;
             var sc = findScrollableAncestor(e.target);
             if (sc) sc._lastTouchY = e.touches[0].clientY;
         }, { passive: true });
 
         document.addEventListener('touchmove', function(e) {
             if (!isInsideOpenModal(e.target)) return;
+            if (e.target.closest && e.target.closest('#modal-comparativa-anual .comparativa-scroll, #modal-comparativa-anios .comparativa-scroll')) return;
 
             var sc = findScrollableAncestor(e.target);
             if (!sc) {
@@ -7288,6 +7293,10 @@ function recalcularSimulador() {
         if (buscador) buscador.value = '';
         construirComparativaAnual();
         document.getElementById('modal-comparativa-anual').style.display = 'block';
+        requestAnimationFrame(function() {
+            const sc = document.getElementById('comparativa-scroll');
+            if (sc) { sc.scrollTop = 0; sc.scrollLeft = 0; }
+        });
     }
 
     function cerrarComparativaAnual() {
@@ -7675,6 +7684,10 @@ function recalcularSimulador() {
         if (buscador) buscador.value = '';
         construirComparativaAnios();
         document.getElementById('modal-comparativa-anios').style.display = 'block';
+        requestAnimationFrame(function() {
+            const sc = document.getElementById('comparativa-anios-scroll');
+            if (sc) { sc.scrollTop = 0; sc.scrollLeft = 0; }
+        });
     }
 
     function cerrarComparativaAnios() {
@@ -8071,6 +8084,76 @@ function recalcularSimulador() {
     </style>
 
 
+
+
+    <!-- iPad/iOS: comparativas con una sola capa de scroll -->
+    <style>
+        @media (hover: none) and (pointer: coarse) {
+            /*
+             * El overlay ocupa exactamente el viewport dinamico. Antes se usaba
+             * 98vh en el contenido + margenes/padding, lo que podia superar la
+             * altura real y recortar el final de la tabla en Safari/iPad.
+             */
+            #modal-comparativa-anual,
+            #modal-comparativa-anios {
+                inset: 0 !important;
+                width: 100vw !important;
+                height: 100dvh !important;
+                min-height: 100dvh !important;
+                padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)) !important;
+                overflow: hidden !important;
+                overscroll-behavior: none !important;
+                touch-action: auto !important;
+            }
+
+            #modal-comparativa-anual .comparativa-modal-content,
+            #modal-comparativa-anios .comparativa-anios-modal-content {
+                width: 100% !important;
+                height: 100% !important;
+                max-height: 100% !important;
+                margin: 0 auto !important;
+                padding: 0 !important;
+                overflow: hidden !important;
+                display: flex !important;
+                flex-direction: column !important;
+                touch-action: auto !important;
+                overscroll-behavior: none !important;
+            }
+
+            /* Esta es la UNICA zona desplazable de cada comparativa. */
+            #modal-comparativa-anual .comparativa-scroll,
+            #modal-comparativa-anios .comparativa-scroll {
+                flex: 1 1 0 !important;
+                min-height: 0 !important;
+                height: auto !important;
+                max-height: none !important;
+                overflow-x: auto !important;
+                overflow-y: auto !important;
+                -webkit-overflow-scrolling: auto !important;
+                overscroll-behavior: contain !important;
+                touch-action: auto !important;
+                padding-bottom: 28px !important;
+            }
+
+            #modal-comparativa-anual .comparativa-toolbar,
+            #modal-comparativa-anios .comparativa-toolbar,
+            #modal-comparativa-anual .comparativa-aviso,
+            #modal-comparativa-anios .comparativa-aviso {
+                flex-shrink: 0 !important;
+            }
+        }
+
+        /* Fallback para navegadores sin unidades dvh. */
+        @supports not (height: 100dvh) {
+            @media (hover: none) and (pointer: coarse) {
+                #modal-comparativa-anual,
+                #modal-comparativa-anios {
+                    height: 100vh !important;
+                    min-height: 100vh !important;
+                }
+            }
+        }
+    </style>
 
     <!-- ══════════ MOVIMIENTOS PROGRAMADOS ══════════ -->
     <div id="modal-programados" class="modal" style="z-index:1250;">
