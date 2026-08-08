@@ -855,6 +855,17 @@
 
         </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+
+<style id="mama-mejoras-css">
+.global-config-section{background:#172235;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:18px 20px;margin-bottom:16px;box-shadow:0 4px 24px rgba(0,0,0,.28)}
+.global-config-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:14px}.global-config-header h2{color:#fff;font-size:1.02em;margin:0 0 4px}.global-config-header p{color:rgba(255,255,255,.43);font-size:.78em;margin:0}.global-config-badge{background:rgba(99,102,241,.16);border:1px solid rgba(129,140,248,.35);color:#c7d2fe;border-radius:20px;padding:4px 10px;font-size:10px;font-weight:800;letter-spacing:.06em;white-space:nowrap}
+.global-config-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.global-config-item{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:12px;min-width:0}.global-config-item.global-income{border-top:3px solid #10b981}.global-config-item.global-expense{border-top:3px solid #ef4444}.global-title{font-weight:800;color:#fff;font-size:.88em;margin-bottom:4px}.global-income .global-title{color:#6ee7b7}.global-expense .global-title{color:#fca5a5}.global-count{font-size:10px;color:rgba(255,255,255,.38);min-height:15px;margin-bottom:8px}.global-config-item button{width:100%;margin:0;padding:7px 9px;font-size:11px;border-radius:7px}.month-context-banner{font-size:11px;font-weight:800;color:#93c5fd;letter-spacing:.08em;text-transform:uppercase;margin:18px 2px 8px}.botones-mensuales{grid-template-columns:1fr!important}.botones-mensuales button{font-size:.82em}
+@media(max-width:1050px){.global-config-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){.global-config-grid{grid-template-columns:1fr}.global-config-header{flex-direction:column}.global-config-badge{align-self:flex-start}}
+
+.mama-comparativa-modal{display:none;position:fixed;inset:0;z-index:1450;background:rgba(2,6,23,.82);padding:10px;overflow:hidden;touch-action:none}.mama-comparativa-box{width:100%;max-width:1540px;height:calc(100vh - 20px);height:calc(100dvh - 20px);margin:0 auto;background:#f8fafc;border-radius:14px;box-shadow:0 20px 70px rgba(0,0,0,.55);display:flex;flex-direction:column;overflow:hidden;touch-action:pan-y}.mama-comparativa-toolbar{flex:0 0 auto;padding:12px 14px;background:#fff;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.mama-comparativa-toolbar h2{margin:0;color:#1e3a8a;font-size:1.05em}.mama-comparativa-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.mama-comparativa-actions input{width:240px!important;margin:0!important;padding:7px 10px!important;border:1px solid #cbd5e1!important}.mama-comparativa-actions button{width:auto;margin:0;padding:7px 12px;font-size:12px}.mama-comparativa-note{padding:7px 14px;background:#eef2ff;color:#475569;font-size:10px;flex:0 0 auto}.mama-comparativa-scroll{flex:1 1 auto;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-x pan-y;background:#fff}.mama-comparativa-table{border-collapse:separate;border-spacing:0;min-width:100%;width:max-content;font-size:11px}.mama-comparativa-table th,.mama-comparativa-table td{padding:6px 9px;border-right:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;text-align:center;white-space:nowrap}.mama-comparativa-table th{background:#1e3a8a;color:#fff;font-weight:800}.mama-comparativa-table td:first-child,.mama-comparativa-table th:first-child{text-align:center;min-width:180px}.mama-comparativa-table .bloque td{font-weight:900;color:#fff;font-size:10px;letter-spacing:.05em;text-transform:uppercase}.mama-comparativa-table .bloque.ing td{background:#047857}.mama-comparativa-table .bloque.gas td{background:#b91c1c}.mama-comparativa-table .bloque.vac td{background:#c2410c}.mama-comparativa-table .subtotal td{font-weight:900;background:#eef2ff}.mama-comparativa-table .balance td{font-weight:900;background:#172554;color:#fff}.mama-comparativa-table .total-col{font-weight:900;background:#fef3c7!important;color:#78350f!important}.mama-comparativa-table .zero{color:#cbd5e1}.mama-comparativa-table .pos{color:#059669;font-weight:700}.mama-comparativa-table .neg{color:#dc2626;font-weight:700}.mama-comparativa-table .proy-head{background:#4338ca}.mama-comparativa-empty{padding:40px;text-align:center;color:#94a3b8}
+@media(max-width:700px){.mama-comparativa-modal{padding:0}.mama-comparativa-box{height:100vh;height:100dvh;border-radius:0}.mama-comparativa-actions input{width:170px!important}.mama-comparativa-table th,.mama-comparativa-table td{padding:6px 7px;font-size:10px}}
+</style>
+
 </head>
 <body>
     <!-- TOP BAR -->
@@ -864,7 +875,6 @@
         </div>
         <div class="topbar-actions">
             <button class="tb-btn" onclick="exportarGastosExcel()" style="background:#16a34a;border-color:#16a34a;color:white;">📊 Excel Gastos</button>
-            <button class="tb-btn" id="btn-regenerar-ano" onclick="regenerarAnoDesdeAnterior()" style="display:none;">🔄 Regenerar año</button>
             <button class="tb-btn success" onclick="exportarDatos()">📥 Exportar</button>
             <button class="tb-btn primary" onclick="document.getElementById('file-input').click()">📤 Importar</button>
             <button class="tb-btn" id="btn-gist-sync" onclick="guardarEnGist(true)" style="background:#6366f1;border-color:#6366f1;display:none;" title="Guardar en Gist">☁️ Guardar Gist</button>
@@ -898,13 +908,50 @@
             <div class="controls-actions">
                 <button class="act-btn" onclick="abrirResumenGlobal()">&#127757; Resumen Global</button>
                 <button class="act-btn" onclick="abrirDesgloseAnual()">&#128203; Desglose Anual</button>
+                <button class="act-btn" onclick="abrirComparativaAnualMama()" style="background:#0f766e;border-color:#0f766e;">&#128202; Comparar 12 meses</button>
+                <button class="act-btn" onclick="abrirComparativaAniosMama()" style="background:#4338ca;border-color:#4338ca;">&#128200; Comparar años</button>
                 <button class="act-btn" onclick="abrirSimulador()" style="background:#7c3aed;border-color:#7c3aed;">&#129514; Simular</button>
             </div>
         </div>
         
+        <!-- PLANIFICACION GLOBAL: independiente del mes seleccionado -->
+        <div class="global-config-section mama-global-config">
+            <div class="global-config-header">
+                <div>
+                    <h2>⚙️ Datos globales / planificación</h2>
+                    <p>Estas partidas forman la base del presupuesto. Los Extras del Mes se añaden aparte en las tarjetas mensuales.</p>
+                </div>
+                <span class="global-config-badge">NO DEPENDE DEL MES</span>
+            </div>
+            <div class="global-config-grid mama-global-grid">
+                <div class="global-config-item global-income">
+                    <div class="global-title">📈 Ingresos fijos</div>
+                    <div class="global-count" id="global-ingresos-fijos-count">0 partidas configuradas</div>
+                    <button class="edit-btn" onclick="abrirModalFijos('ingresos')">✏️ Editar ingresos fijos</button>
+                </div>
+                <div class="global-config-item global-income">
+                    <div class="global-title">🎁 Extras y Bonus</div>
+                    <div class="global-count" id="global-ingresos-bonus-count">0 partidas configuradas</div>
+                    <button class="vacaciones-btn" onclick="abrirModalIngresosBonus()">✏️ Editar extras y bonus</button>
+                </div>
+                <div class="global-config-item global-expense">
+                    <div class="global-title">📉 Gastos fijos</div>
+                    <div class="global-count" id="global-gastos-fijos-count">0 partidas configuradas</div>
+                    <button class="edit-btn" onclick="abrirModalFijos('gastos')">✏️ Editar gastos fijos</button>
+                </div>
+                <div class="global-config-item global-expense">
+                    <div class="global-title">🏖️ Vacaciones</div>
+                    <div class="global-count" id="global-vacaciones-count">0 partidas configuradas</div>
+                    <button class="vacaciones-btn" onclick="abrirModalVacaciones()">✏️ Editar vacaciones</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="month-context-banner" id="month-context-banner">📅 Movimientos específicos del mes</div>
+
         <div class="dashboard">
             <div class="card ingresos">
-                <h2>📈 Ingresos Totales</h2>
+                <h2>📈 Ingresos del mes · <span id="mes-label-ingresos"></span></h2>
                 <div class="desglose-info">
                     <div>
                         <span>Fijos mensuales:</span>
@@ -923,15 +970,13 @@
                         <span id="ingresos-total-display">0€</span>
                     </div>
                 </div>
-                <div id="botones-ingresos" class="botones-grid">
-                    <button class="edit-btn" onclick="abrirModalFijos('ingresos')">✏️ Editar Ingresos Fijos</button>
-                    <button class="vacaciones-btn" onclick="abrirModalIngresosBonus()">🎁 Extras y Bonus</button>
-                    <button class="extras-btn" onclick="abrirModalExtras('ingresos')">➕ Extras del Mes</button>
+                <div id="botones-ingresos" class="botones-grid botones-mensuales">
+                    <button class="extras-btn" onclick="abrirModalExtras('ingresos')">➕ Ingreso extra de <span id="mes-boton-ingreso-extra"></span></button>
                 </div>
             </div>
             
             <div class="card gastos">
-                <h2>📉 Gastos Totales</h2>
+                <h2>📉 Gastos del mes · <span id="mes-label-gastos"></span></h2>
                 <div class="desglose-info">
                     <div>
                         <span>Fijos mensuales:</span>
@@ -950,11 +995,9 @@
                         <span id="gastos-total-display">0€</span>
                     </div>
                 </div>
-                <div id="botones-gastos" class="botones-grid">
-                    <button class="edit-btn" onclick="abrirModalFijos('gastos')">✏️ Editar Gastos Fijos</button>
-                    <button class="extras-btn" onclick="abrirModalExtras('gastos')">➕ Extras del Mes</button>
-                    <button class="vacaciones-btn" onclick="abrirModalVacaciones()">🏖️ Editar Vacaciones</button>
-                    <button class="vacaciones-extras-btn" onclick="abrirModalVacacionesExtras()">🌴 Extras Vacaciones</button>
+                <div id="botones-gastos" class="botones-grid botones-mensuales">
+                    <button class="extras-btn" onclick="abrirModalExtras('gastos')">➕ Gasto extra de <span id="mes-boton-gasto-extra"></span></button>
+                    <button class="vacaciones-extras-btn" onclick="abrirModalVacacionesExtras()">🌴 Extra vacaciones de <span id="mes-boton-vac-extra"></span></button>
                 </div>
             </div>
             
@@ -1744,7 +1787,7 @@
             // Recopilar todos los años con datos
             const anos = [];
             for (let y = 2024; y <= 2040; y++) {
-                const raw = localStorage.getItem('finanzasPersonales_' + y);
+                const raw = localStorage.getItem('finanzasPersonalesMama_' + y);
                 if (raw) anos.push({ ano: y, datos: JSON.parse(raw) });
             }
 
@@ -1926,7 +1969,7 @@
                         datosImportados.ingresosBonus = [];
                     }
                     
-                    if (!datosImportados.saldoInicial) {
+                    if (datosImportados.saldoInicial === undefined || datosImportados.saldoInicial === null || Number.isNaN(Number(datosImportados.saldoInicial))) {
                         datosImportados.saldoInicial = 3052;
                     }
                     
@@ -1957,7 +2000,7 @@
             if (!d.gastosVacaciones) d.gastosVacaciones = [];
             if (d.ingresosBonus === undefined || d.ingresosBonus === null) d.ingresosBonus = [];
             if (!d.incrementos) d.incrementos = { ingresos: 1, gastos: 2 };
-            if (!d.saldoInicial) d.saldoInicial = 3052;
+            if (d.saldoInicial === undefined || d.saldoInicial === null || Number.isNaN(Number(d.saldoInicial))) d.saldoInicial = 3052;
             if (!d.extrasRecurrentes) d.extrasRecurrentes = [];
             if (!d.mesesCerrados) d.mesesCerrados = {};
             d.meses.forEach(mes => { if (!mes.gastosVacacionesExtras) mes.gastosVacacionesExtras = []; });
@@ -2089,7 +2132,6 @@
         }
 
         async function cargarDesdeGist() {
-            // Carga pública (sin token) usando la API de Gist
             try {
                 const resp = await fetch('https://api.github.com/gists/' + GIST_ID, {
                     headers: gistConfigurado() ? { 'Authorization': 'token ' + gistToken() } : {}
@@ -2098,7 +2140,6 @@
                 const gist = await resp.json();
                 const file = gist.files && gist.files[GIST_FILENAME];
                 if (!file) return null;
-                // Si el contenido está truncado, fetch al raw_url
                 let raw = file.content;
                 if (file.truncated) {
                     const rr = await fetch(file.raw_url);
@@ -2108,12 +2149,105 @@
             } catch(e) { return null; }
         }
 
+        const GIST_FORMATO_MAMA_MULTIANO = 'finanzas-mama-multianio-v2';
+
+        function clonarAnoMama(d) {
+            const copia = JSON.parse(JSON.stringify(d || {}));
+            delete copia._exportadoEn;
+            return copia;
+        }
+
+        function contenidoAnoComparableMama(d) {
+            const copia = clonarAnoMama(d);
+            delete copia._modificadoEn;
+            return JSON.stringify(copia);
+        }
+
+        function timestampAnoMama(d, fallback) {
+            if (!d) return 0;
+            const valor = d._modificadoEn || d._exportadoEn || fallback || null;
+            const ts = valor ? new Date(valor).getTime() : 0;
+            return Number.isFinite(ts) ? ts : 0;
+        }
+
+        function normalizarPaqueteGistMama(raw) {
+            if (!raw || typeof raw !== 'object') return { formatoNuevo:false, _exportadoEn:null, anos:{} };
+            if (raw.anos && typeof raw.anos === 'object') {
+                return {
+                    formatoNuevo: raw._formato === GIST_FORMATO_MAMA_MULTIANO || Number(raw._version) >= 2,
+                    _exportadoEn: raw._exportadoEn || null,
+                    anos: raw.anos
+                };
+            }
+            return {
+                formatoNuevo: false,
+                _exportadoEn: raw._exportadoEn || null,
+                anos: { '2026': clonarAnoMama(raw) }
+            };
+        }
+
+        function obtenerAnosLocalesMama() {
+            const anos = {};
+            for (let y = 2026; y <= 2040; y++) {
+                const raw = localStorage.getItem('finanzasPersonalesMama_' + y);
+                if (!raw) continue;
+                try { anos[String(y)] = clonarAnoMama(JSON.parse(raw)); } catch(e) {}
+            }
+            return anos;
+        }
+
+        function fusionarAnosMama(locales, remotos, fechaRemotaGlobal) {
+            const resultado = {};
+            const claves = new Set([...Object.keys(remotos || {}), ...Object.keys(locales || {})]);
+            claves.forEach(clave => {
+                const local = locales && locales[clave] ? clonarAnoMama(locales[clave]) : null;
+                const remoto = remotos && remotos[clave] ? clonarAnoMama(remotos[clave]) : null;
+                if (!local) { if (remoto) resultado[clave] = remoto; return; }
+                if (!remoto) { resultado[clave] = local; return; }
+                resultado[clave] = timestampAnoMama(local, null) > timestampAnoMama(remoto, fechaRemotaGlobal) ? local : remoto;
+            });
+            return resultado;
+        }
+
+        function aplicarAnosLocalesMama(anos) {
+            Object.entries(anos || {}).forEach(([clave, d]) => {
+                const y = parseInt(clave, 10);
+                if (!Number.isInteger(y) || y < 2026 || y > 2040 || !d) return;
+                localStorage.setItem('finanzasPersonalesMama_' + y, JSON.stringify(clonarAnoMama(d)));
+            });
+        }
+
+        function construirPaqueteGistMama(anos) {
+            return {
+                _formato: GIST_FORMATO_MAMA_MULTIANO,
+                _version: 2,
+                _exportadoEn: new Date().toISOString(),
+                anos: anos || obtenerAnosLocalesMama()
+            };
+        }
+
+        function programarGuardadoGist() {
+            if (!gistConfigurado()) return;
+            clearTimeout(window._gistSaveTimer);
+            window._gistSaveTimer = setTimeout(function(){ guardarEnGist(false); }, 2000);
+        }
+
         async function guardarEnGist(manual) {
             if (!gistConfigurado()) {
                 if (manual) mostrarNotificacion('⚠️ Configura primero el token Gist (botón 🔑 Gist)', 'error');
                 return false;
             }
-            const payload = Object.assign({}, datos, { _exportadoEn: new Date().toISOString() });
+            const locales = obtenerAnosLocalesMama();
+            let anosFusionados = locales;
+            try {
+                const remotoRaw = await cargarDesdeGist();
+                if (remotoRaw) {
+                    const remoto = normalizarPaqueteGistMama(remotoRaw);
+                    anosFusionados = fusionarAnosMama(locales, remoto.anos, remoto._exportadoEn);
+                }
+            } catch(e) {}
+
+            const payload = construirPaqueteGistMama(anosFusionados);
             try {
                 const resp = await fetch('https://api.github.com/gists/' + GIST_ID, {
                     method: 'PATCH',
@@ -2124,14 +2258,18 @@
                     body: JSON.stringify({ files: { [GIST_FILENAME]: { content: JSON.stringify(payload, null, 2) } } })
                 });
                 if (resp.ok) {
+                    // Releer los locales por si hubo una edicion mientras esperaba la red y fusionar una vez mas.
+                    const localesFinales = obtenerAnosLocalesMama();
+                    const definitivos = fusionarAnosMama(localesFinales, payload.anos, payload._exportadoEn);
+                    aplicarAnosLocalesMama(definitivos);
+                    if (definitivos[String(anoActual)]) datos = clonarAnoMama(definitivos[String(anoActual)]);
                     localStorage.setItem('gistLastSavedMama', payload._exportadoEn);
-                    if (manual) mostrarNotificacion('☁️ Guardado en Gist correctamente', 'exito');
+                    if (manual) mostrarNotificacion('☁️ Gist actualizado · ' + Object.keys(definitivos).length + ' años guardados', 'exito');
                     mostrarFuenteDatos('gist', payload._exportadoEn);
                     return true;
-                } else {
-                    if (manual) mostrarNotificacion('❌ Error al guardar en Gist (' + resp.status + ')', 'error');
-                    return false;
                 }
+                if (manual) mostrarNotificacion('❌ Error al guardar en Gist (' + resp.status + ')', 'error');
+                return false;
             } catch(e) {
                 if (manual) mostrarNotificacion('❌ Sin conexión al guardar en Gist', 'error');
                 return false;
@@ -2195,81 +2333,52 @@
         //  CARGA DE DATOS (Gist primero)
         // ══════════════════════════════════════════════
         async function cargarDatos() {
-            // Migración datos antiguos
+            // Mantener el espacio local de esta app separado del dashboard personal.
             const datosViejos = localStorage.getItem('finanzasPersonales2');
-            const datosNuevos = localStorage.getItem('finanzasPersonalesMama_2026');
-            if (datosViejos && !datosNuevos) {
+            const datosMama2026 = localStorage.getItem('finanzasPersonalesMama_2026');
+            if (datosViejos && !datosMama2026) {
                 localStorage.setItem('finanzasPersonalesMama_2026', datosViejos);
-                mostrarNotificacion('✅ Datos migrados a sistema multi-año', 'exito');
+                mostrarNotificacion('✅ Datos antiguos migrados a la app de Mama', 'exito');
             }
 
             anoActual = 2026;
             document.getElementById('ano-select').value = 2026;
-
             const hoy = new Date();
             mesActual = hoy.getMonth();
             document.getElementById('mes-select').value = mesActual;
-
             actualizarBtnGist();
-
-            const datosLocales = localStorage.getItem('finanzasPersonalesMama_2026');
-
-            // ── Intentar cargar desde Gist primero ──
             mostrarFuenteDatos('cargando', null);
-            const datosGist = await cargarDesdeGist();
 
-            if (datosGist) {
-                // Tenemos datos del Gist
-                if (datosLocales) {
-                    // Comparar fechas para ver cuál es más reciente
-                    const tsGist  = datosGist._exportadoEn  ? new Date(datosGist._exportadoEn).getTime()  : 0;
-                    const tsLocal = JSON.parse(datosLocales)._exportadoEn
-                        ? new Date(JSON.parse(datosLocales)._exportadoEn).getTime() : 0;
+            const localesAntes = obtenerAnosLocalesMama();
+            const remotoRaw = await cargarDesdeGist();
+            let paqueteAntiguo = false;
+            let localesMasNuevos = false;
 
-                    if (tsLocal > tsGist) {
-                        // Local es más nuevo → preguntar
-                        const usar = confirm(
-                            '⚠️ Tus datos locales son más recientes que los del Gist.\n\n' +
-                            '• Local:  ' + (tsLocal ? new Date(tsLocal).toLocaleString('es-ES') : 'sin fecha') + '\n' +
-                            '• Gist:   ' + (tsGist  ? new Date(tsGist).toLocaleString('es-ES')  : 'sin fecha') + '\n\n' +
-                            '¿Cargar los datos LOCALES?\n' +
-                            '(Pulsa Cancelar para usar los del Gist y perder los cambios locales)'
-                        );
-                        if (usar) {
-                            datos = JSON.parse(datosLocales);
-                            normalizarDatos(datos);
-                            mostrarFuenteDatos('local-nuevo', JSON.parse(datosLocales)._exportadoEn || null);
-                            mostrarNotificacion('💾 Usando datos locales (más recientes). Recuerda guardar en Gist cuando termines.', 'exito');
-                        } else {
-                            datos = datosGist;
-                            normalizarDatos(datos);
-                            localStorage.setItem('finanzasPersonalesMama_2026', JSON.stringify(datos));
-                            mostrarFuenteDatos('gist', datosGist._exportadoEn || null);
-                        }
-                    } else {
-                        // Gist es igual o más nuevo → usar Gist
-                        datos = datosGist;
-                        normalizarDatos(datos);
-                        localStorage.setItem('finanzasPersonalesMama_2026', JSON.stringify(datos));
-                        mostrarFuenteDatos('gist', datosGist._exportadoEn || null);
-                    }
-                } else {
-                    // Sin datos locales → usar Gist directamente
-                    datos = datosGist;
-                    normalizarDatos(datos);
-                    localStorage.setItem('finanzasPersonalesMama_2026', JSON.stringify(datos));
-                    mostrarFuenteDatos('gist', datosGist._exportadoEn || null);
-                }
-            } else if (datosLocales) {
-                // Sin Gist disponible → usar local
-                datos = JSON.parse(datosLocales);
+            if (remotoRaw) {
+                const paquete = normalizarPaqueteGistMama(remotoRaw);
+                paqueteAntiguo = !paquete.formatoNuevo;
+                const fusionados = fusionarAnosMama(localesAntes, paquete.anos, paquete._exportadoEn);
+                Object.keys(localesAntes).forEach(clave => {
+                    const l = localesAntes[clave], r = paquete.anos && paquete.anos[clave];
+                    if (l && !r) localesMasNuevos = true;
+                    else if (l && r && timestampAnoMama(l, null) > timestampAnoMama(r, paquete._exportadoEn)) localesMasNuevos = true;
+                });
+                aplicarAnosLocalesMama(fusionados);
+                if (fusionados['2026']) datos = clonarAnoMama(fusionados['2026']);
                 normalizarDatos(datos);
-                mostrarFuenteDatos('local', null);
-                mostrarNotificacion('⚠️ No se pudo conectar al Gist. Usando datos locales.', 'error');
+                localStorage.setItem('finanzasPersonalesMama_2026', JSON.stringify(datos));
+                mostrarFuenteDatos(localesMasNuevos ? 'local-nuevo' : 'gist', paquete._exportadoEn || null);
             } else {
-                // Sin nada → datos vacíos
+                const local2026 = localStorage.getItem('finanzasPersonalesMama_2026');
+                if (local2026) {
+                    try { datos = JSON.parse(local2026); normalizarDatos(datos); } catch(e) {}
+                }
                 mostrarFuenteDatos('local', null);
+                if (Object.keys(localesAntes).length) mostrarNotificacion('⚠️ No se pudo conectar al Gist. Usando datos locales.', 'error');
             }
+
+            // El viejo Gist de un solo ano se convertira al formato multi-ano en el siguiente guardado.
+            if (gistConfigurado() && (paqueteAntiguo || localesMasNuevos)) programarGuardadoGist();
 
             actualizarTodo();
             actualizarResumenAnual();
@@ -2279,16 +2388,20 @@
         
         let anoActual = 2026;
 
-        function guardarDatos() {
-            // El snapshot NUNCA se toca aquí.
-            // Solo se genera/actualiza en cerrarMes() — cuando el usuario cierra el mes manualmente.
-            // Un mes reabierto (abierto=true) mantiene su snapshot intacto hasta que se cierre de nuevo.
-            localStorage.setItem('finanzasPersonales_' + anoActual, JSON.stringify(datos));
-            // Auto-guardar en Gist si está configurado (con debounce de 2s para no saturar la API)
-            if (gistConfigurado()) {
-                clearTimeout(window._gistSaveTimer);
-                window._gistSaveTimer = setTimeout(function() { guardarEnGist(false); }, 2000);
-            }
+        function guardarDatos(marcarCambio = true, sincronizar = true) {
+            const key = 'finanzasPersonalesMama_' + anoActual;
+            let anterior = null;
+            try {
+                const raw = localStorage.getItem(key);
+                if (raw) anterior = JSON.parse(raw);
+            } catch(e) {}
+            const cambioReal = !anterior || contenidoAnoComparableMama(anterior) !== contenidoAnoComparableMama(datos);
+            if (marcarCambio && cambioReal) datos._modificadoEn = new Date().toISOString();
+            else if (!datos._modificadoEn && anterior && anterior._modificadoEn) datos._modificadoEn = anterior._modificadoEn;
+            delete datos._exportadoEn;
+            localStorage.setItem(key, JSON.stringify(datos));
+            if (sincronizar && marcarCambio && cambioReal) programarGuardadoGist();
+            return cambioReal;
         }
 
         function crearDatosVaciosAno() {
@@ -2299,104 +2412,91 @@
                 gastosFijos: [],
                 gastosVacaciones: [],
                 meses: [],
-                incrementos: { ingresos: 1, gastos: 2 }
+                incrementos: { ingresos: 1, gastos: 2 },
+                extrasRecurrentes: [],
+                mesesCerrados: {}
             };
-            for (let i = 0; i < 12; i++) {
-                d.meses.push({ ingresosExtras: [], gastosExtras: [], gastosVacacionesExtras: [] });
-            }
+            for (let i = 0; i < 12; i++) d.meses.push({ ingresosExtras: [], gastosExtras: [], gastosVacacionesExtras: [] });
             return d;
         }
 
-        function calcularBalanceAcumuladoDeDatos(d, hastaMes) {
-            let acumulado = d.saldoInicial;
+        function calcularBalanceAcumuladoDeDatos(d, hastaMes, anoContexto, saldoInicialForzado) {
+            const anoCalculo = Number.isInteger(anoContexto) ? anoContexto : anoActual;
+            const forzado = saldoInicialForzado !== undefined && saldoInicialForzado !== null && Number.isFinite(Number(saldoInicialForzado));
+            let acumulado = forzado ? Number(saldoInicialForzado) : (Number(d.saldoInicial) || 0);
             for (let i = 0; i <= hastaMes; i++) {
+                const cierre = d.mesesCerrados && d.mesesCerrados[i];
+                if (cierre && cierre.snapshot) {
+                    acumulado += (Number(cierre.snapshot.ingresosTotal) || 0) - (Number(cierre.snapshot.gastosTotal) || 0);
+                    continue;
+                }
+                const mes = (d.meses && d.meses[i]) || { ingresosExtras:[], gastosExtras:[], gastosVacacionesExtras:[] };
+                const ovs = mes.overrides || {};
                 let ingresos = 0, gastos = 0;
-                d.ingresosFijos.forEach(item => {
-                    if (item.frecuencia === 'mensual') ingresos += item.valor;
-                    else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(i)) ingresos += item.valor;
-                });
-                (d.ingresosBonus || []).forEach(item => {
-                    if (item.frecuencia === 'mensual') ingresos += item.valor;
-                    else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(i)) ingresos += item.valor;
-                });
-                d.meses[i].ingresosExtras.forEach(item => ingresos += item.valor);
-                // Extras recurrentes con fecha fin
+                function sumar(arr, fuente, ingreso) {
+                    (arr || []).forEach((item, idx) => {
+                        const ov = ovs[fuente + '_' + idx];
+                        if (ov && ov.eliminado) return;
+                        const aplica = item.frecuencia === 'mensual' ||
+                            (item.frecuencia === 'anual' && item.meses && item.meses.includes(i)) ||
+                            (ov && ov.forzarEnMes);
+                        if (!aplica) return;
+                        const valor = Number(ov && ov.valor !== undefined ? ov.valor : item.valor) || 0;
+                        if (ingreso) ingresos += valor; else gastos += valor;
+                    });
+                }
+                sumar(d.ingresosFijos, 'ingresosFijos', true);
+                sumar(d.ingresosBonus, 'ingresosBonus', true);
+                sumar(d.gastosFijos, 'gastosFijos', false);
+                sumar(d.gastosVacaciones, 'gastosVacaciones', false);
+                (mes.ingresosExtras || []).forEach(x => ingresos += Number(x.valor) || 0);
+                (mes.gastosExtras || []).forEach(x => gastos += Number(x.valor) || 0);
+                (mes.gastosVacacionesExtras || []).forEach(x => gastos += Number(x.valor) || 0);
                 (d.extrasRecurrentes || []).forEach(item => {
-                    // For year-specific calculation, use the current anoActual context
-                    const inicio = item.anoInicio * 12 + item.mesInicio;
-                    const fin = item.anoFin * 12 + item.mesFin;
-                    const actual = anoActual * 12 + i;
+                    const inicio = Number(item.anoInicio) * 12 + Number(item.mesInicio);
+                    const fin = Number(item.anoFin) * 12 + Number(item.mesFin);
+                    const actual = anoCalculo * 12 + i;
                     if (actual >= inicio && actual <= fin) {
-                        if (item.tipo === 'ingresos') ingresos += item.valor;
-                        else gastos += item.valor; 
+                        if (item.tipo === 'ingresos') ingresos += Number(item.valor) || 0;
+                        else gastos += Number(item.valor) || 0;
                     }
                 });
-                d.gastosFijos.forEach(item => {
-                    if (item.frecuencia === 'mensual') gastos += item.valor;
-                    else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(i)) gastos += item.valor;
-                });
-                (d.gastosVacaciones || []).forEach(item => {
-                    if (item.frecuencia === 'mensual') gastos += item.valor;
-                    else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(i)) gastos += item.valor;
-                });
-                d.meses[i].gastosExtras.forEach(item => gastos += item.valor);
-                (d.meses[i].gastosVacacionesExtras || []).forEach(item => gastos += item.valor);
-                acumulado += (ingresos - gastos);
+                acumulado += ingresos - gastos;
             }
             return acumulado;
         }
 
-        function generarDatosAnoSiguiente(datosBase) {
-            // Calcular saldo final de diciembre del año base ANTES de modificar nada
-            const saldoFinalAnoBase = Math.round(calcularBalanceAcumuladoDeDatos(datosBase, 11));
-
-            const nuevo = JSON.parse(JSON.stringify(datosBase)); // deep copy
-
-            const pctIngresos = 1 + ((datosBase.incrementos ? datosBase.incrementos.ingresos : 1) / 100);
-            const pctGastos   = 1 + ((datosBase.incrementos ? datosBase.incrementos.gastos   : 2) / 100);
-
-            // Ingresos fijos
-            nuevo.ingresosFijos = nuevo.ingresosFijos.map(item => ({
-                ...item,
-                valor: Math.round(item.valor * pctIngresos * 100) / 100
-            }));
-
-            // Extras y Bonus ingresos
-            nuevo.ingresosBonus = (nuevo.ingresosBonus || []).map(item => ({
-                ...item,
-                valor: Math.round(item.valor * pctIngresos * 100) / 100
-            }));
-
-            // Gastos fijos: excepto ING
-            nuevo.gastosFijos = nuevo.gastosFijos.map(item => {
-                if (item.concepto && item.concepto.toUpperCase().includes('ING')) {
-                    return item;
-                }
-                return { ...item, valor: Math.round(item.valor * pctGastos * 100) / 100 };
+        function generarDatosAnoSiguiente(datosBase, anoBaseContexto) {
+            const anoBase = Number.isInteger(anoBaseContexto) ? anoBaseContexto : anoActual;
+            const saldoInicioBase = Number.isInteger(anoBaseContexto)
+                ? calcularSaldoInicioRealDelAno(anoBase)
+                : (Number(datosBase.saldoInicial) || 0);
+            const saldoFinalAnoBase = Math.round(calcularBalanceAcumuladoDeDatos(datosBase, 11, anoBase, saldoInicioBase) * 100) / 100;
+            const nuevo = JSON.parse(JSON.stringify(datosBase));
+            delete nuevo._modificadoEn;
+            delete nuevo._exportadoEn;
+            const pctIngresos = 1 + ((datosBase.incrementos ? Number(datosBase.incrementos.ingresos) : 1) || 0) / 100;
+            const pctGastos = 1 + ((datosBase.incrementos ? Number(datosBase.incrementos.gastos) : 2) || 0) / 100;
+            nuevo.ingresosFijos = (nuevo.ingresosFijos || []).map(item => ({ ...item, valor: Math.round((Number(item.valor)||0) * pctIngresos * 100) / 100 }));
+            nuevo.ingresosBonus = (nuevo.ingresosBonus || []).map(item => ({ ...item, valor: Math.round((Number(item.valor)||0) * pctIngresos * 100) / 100 }));
+            nuevo.gastosFijos = (nuevo.gastosFijos || []).map(item => {
+                if (item.concepto && item.concepto.toUpperCase().includes('ING')) return item;
+                return { ...item, valor: Math.round((Number(item.valor)||0) * pctGastos * 100) / 100 };
             });
+            nuevo.gastosVacaciones = (nuevo.gastosVacaciones || []).map(item => ({ ...item, valor: Math.round((Number(item.valor)||0) * pctGastos * 100) / 100 }));
 
-            // Gastos vacaciones
-            nuevo.gastosVacaciones = nuevo.gastosVacaciones.map(item => ({
-                ...item,
-                valor: Math.round(item.valor * pctGastos * 100) / 100
-            }));
-
-            // Extras del mes: NO se pasan al año siguiente (son puntuales)
-            nuevo.meses = nuevo.meses.map(() => ({
-                ingresosExtras: [],
-                gastosExtras: [],
-                gastosVacacionesExtras: []
-            }));
-
-            // El saldo inicial del nuevo año = saldo acumulado al final del año anterior
+            // Regla principal: los extras pertenecen al ano/mes en el que ocurrieron.
+            nuevo.meses = Array.from({ length: 12 }, () => ({ ingresosExtras: [], gastosExtras: [], gastosVacacionesExtras: [] }));
+            // Los recurrentes eran una funcion antigua de Extras; tampoco contaminan el ano siguiente.
+            nuevo.extrasRecurrentes = [];
+            nuevo.mesesCerrados = {};
             nuevo.saldoInicial = saldoFinalAnoBase;
-
             return nuevo;
         }
 
         function regenerarAnoDesdeAnterior() {
             const anoAnterior = anoActual - 1;
-            const guardadoAnterior = localStorage.getItem('finanzasPersonales_' + anoAnterior);
+            const guardadoAnterior = localStorage.getItem('finanzasPersonalesMama_' + anoAnterior);
             if (!guardadoAnterior) {
                 mostrarNotificacion('❌ No hay datos de ' + anoAnterior + ' para regenerar', 'error');
                 return;
@@ -2415,12 +2515,12 @@
             // Solo regenerar desde el año actual en adelante
             const ANOS = [];
             for (let y = anoActual; y <= 2040; y++) {
-                if (localStorage.getItem('finanzasPersonales_' + y) || y === anoActual) ANOS.push(y);
+                if (localStorage.getItem('finanzasPersonalesMama_' + y) || y === anoActual) ANOS.push(y);
             }
             
             // Necesitamos el año anterior como base
             const anoBase = anoActual - 1;
-            const guardadoBase = localStorage.getItem('finanzasPersonales_' + anoBase);
+            const guardadoBase = localStorage.getItem('finanzasPersonalesMama_' + anoBase);
             if (!guardadoBase) {
                 mostrarNotificacion('❌ No hay datos de ' + anoBase + ' para usar como base', 'error');
                 return;
@@ -2450,7 +2550,7 @@
             let nuevoDatos = generarDatosAnoSiguiente(datosBase);
             
             // Conservar extrasRecurrentes si ya existían
-            const rawActual = localStorage.getItem('finanzasPersonales_' + anoActual);
+            const rawActual = localStorage.getItem('finanzasPersonalesMama_' + anoActual);
             if (rawActual) {
                 const datosActual = JSON.parse(rawActual);
                 if (datosActual.extrasRecurrentes && datosActual.extrasRecurrentes.length > 0) {
@@ -2458,7 +2558,7 @@
                 }
             }
             
-            localStorage.setItem('finanzasPersonales_' + anoActual, JSON.stringify(nuevoDatos));
+            localStorage.setItem('finanzasPersonalesMama_' + anoActual, JSON.stringify(nuevoDatos));
             regenerados.push(anoActual);
             
             // Años siguientes: en cadena
@@ -2466,14 +2566,14 @@
                 const anoTarget = ANOS[i];
                 const anoAnterior = ANOS[i - 1];
                 
-                const rawAnterior = localStorage.getItem('finanzasPersonales_' + anoAnterior);
+                const rawAnterior = localStorage.getItem('finanzasPersonalesMama_' + anoAnterior);
                 if (!rawAnterior) continue;
                 
                 datosBase = JSON.parse(rawAnterior);
                 nuevoDatos = generarDatosAnoSiguiente(datosBase);
                 
                 // Conservar extrasRecurrentes del año destino si ya los tiene
-                const rawTarget = localStorage.getItem('finanzasPersonales_' + anoTarget);
+                const rawTarget = localStorage.getItem('finanzasPersonalesMama_' + anoTarget);
                 if (rawTarget) {
                     const datosTarget = JSON.parse(rawTarget);
                     if (datosTarget.extrasRecurrentes && datosTarget.extrasRecurrentes.length > 0) {
@@ -2481,12 +2581,12 @@
                     }
                 }
                 
-                localStorage.setItem('finanzasPersonales_' + anoTarget, JSON.stringify(nuevoDatos));
+                localStorage.setItem('finanzasPersonalesMama_' + anoTarget, JSON.stringify(nuevoDatos));
                 regenerados.push(anoTarget);
             }
 
             // Recargar el año que estaba activo
-            const rawRecargado = localStorage.getItem('finanzasPersonales_' + anoActual);
+            const rawRecargado = localStorage.getItem('finanzasPersonalesMama_' + anoActual);
             if (rawRecargado) {
                 datos = JSON.parse(rawRecargado);
                 if (!datos.extrasRecurrentes) datos.extrasRecurrentes = [];
@@ -2499,46 +2599,35 @@
         }
 
         function cambiarAno() {
-            // Guardar año actual antes de cambiar
-            guardarDatos();
-
+            const anoAnteriorActivo = anoActual;
+            guardarDatos(false, false);
             const nuevoAno = parseInt(document.getElementById('ano-select').value);
-
-            // Cargar datos del nuevo año si existen
-            const guardado = localStorage.getItem('finanzasPersonales_' + nuevoAno);
+            const keyNuevo = 'finanzasPersonalesMama_' + nuevoAno;
+            const guardado = localStorage.getItem(keyNuevo);
             if (guardado) {
                 anoActual = nuevoAno;
-                datos = JSON.parse(guardado);
-                if (!datos.gastosVacaciones) datos.gastosVacaciones = [];
-                if (datos.ingresosBonus === undefined || datos.ingresosBonus === null) datos.ingresosBonus = [];
-                if (!datos.incrementos) datos.incrementos = { ingresos: 1, gastos: 2 };
-                if (!datos.saldoInicial) datos.saldoInicial = 0;
-                datos.meses.forEach(mes => {
-                    if (!mes.gastosVacacionesExtras) mes.gastosVacacionesExtras = [];
-                });
+                try { datos = JSON.parse(guardado); } catch(e) { datos = crearDatosVaciosAno(); }
+                normalizarDatos(datos);
             } else {
-                // Año nuevo: copiar del año anterior con incrementos
-                const anoAnterior = nuevoAno - 1;
-                const guardadoAnterior = localStorage.getItem('finanzasPersonales_' + anoAnterior);
-                if (guardadoAnterior) {
-                    const datosAnterior = JSON.parse(guardadoAnterior);
-                    anoActual = nuevoAno;
-                    datos = generarDatosAnoSiguiente(datosAnterior);
-                    guardarDatos();
-                    mostrarNotificacion('✅ Datos de ' + nuevoAno + ' generados desde ' + anoAnterior + ' (+1% ingresos, +2% gastos)', 'exito');
-                } else {
-                    // No hay datos del año anterior tampoco, empezar vacío
-                    anoActual = nuevoAno;
-                    datos = crearDatosVaciosAno();
-                    guardarDatos();
-                    mostrarNotificacion('⚠️ No hay datos del año anterior. Empezando desde cero para ' + nuevoAno, 'aviso');
+                const anoBase = nuevoAno - 1;
+                const rawBase = localStorage.getItem('finanzasPersonalesMama_' + anoBase);
+                if (!rawBase) {
+                    document.getElementById('ano-select').value = anoAnteriorActivo;
+                    mostrarNotificacion('⚠️ Los años se crean en cadena. Entra primero en ' + anoBase + ' y después en ' + nuevoAno + '.', 'error');
+                    return;
                 }
+                const datosBase = JSON.parse(rawBase);
+                normalizarDatos(datosBase);
+                anoActual = nuevoAno;
+                datos = generarDatosAnoSiguiente(datosBase, anoBase);
+                guardarDatos(true, true);
+                const inc = datosBase.incrementos || { ingresos:1, gastos:2 };
+                mostrarNotificacion('✅ ' + nuevoAno + ' creado desde ' + anoBase + ' · extras mensuales vacíos · +' + inc.ingresos + '% ingresos / +' + inc.gastos + '% gastos', 'exito');
             }
-
+            document.getElementById('ano-select').value = anoActual;
             actualizarTodo();
             actualizarResumenAnual();
             actualizarCategorias();
-            actualizarBotonesRegenerar();
         }
         
         function cambiarMes() {
@@ -2635,55 +2724,17 @@
         }
         
         function calcularSaldoInicioRealDelAno(ano) {
-            // Encadena desde el primer año con datos hasta el año pedido,
-            // para obtener el saldo real 1 Ene (= 31 Dic calculado del año anterior).
             let saldoEncadenado = null;
-            for (let y = 2024; y <= ano; y++) {
-                const raw = localStorage.getItem('finanzasPersonales_' + y);
+            for (let y = 2026; y <= ano; y++) {
+                const raw = localStorage.getItem('finanzasPersonalesMama_' + y);
                 if (!raw) continue;
-                const d = JSON.parse(raw);
-                const saldoInicio = saldoEncadenado !== null ? saldoEncadenado : (d.saldoInicial || 0);
+                let d;
+                try { d = JSON.parse(raw); } catch(e) { continue; }
+                const saldoInicio = saldoEncadenado !== null ? saldoEncadenado : (Number(d.saldoInicial) || 0);
                 if (y === ano) return saldoInicio;
-                let ingAno = 0, gasAno = 0;
-                for (let m = 0; m < 12; m++) {
-                    const cerrado = d.mesesCerrados && d.mesesCerrados[m];
-                    if (cerrado && cerrado.snapshot) {
-                        ingAno += cerrado.snapshot.ingresosTotal || 0;
-                        gasAno += cerrado.snapshot.gastosTotal || 0;
-                    } else {
-                        d.ingresosFijos.forEach(item => {
-                            if (item.frecuencia === 'mensual') ingAno += item.valor;
-                            else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(m)) ingAno += item.valor;
-                        });
-                        (d.ingresosBonus || []).forEach(item => {
-                            if (item.frecuencia === 'mensual') ingAno += item.valor;
-                            else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(m)) ingAno += item.valor;
-                        });
-                        d.meses[m].ingresosExtras.forEach(item => ingAno += item.valor);
-                        d.gastosFijos.forEach(item => {
-                            if (item.frecuencia === 'mensual') gasAno += item.valor;
-                            else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(m)) gasAno += item.valor;
-                        });
-                        (d.gastosVacaciones || []).forEach(item => {
-                            if (item.frecuencia === 'mensual') gasAno += item.valor;
-                            else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(m)) gasAno += item.valor;
-                        });
-                        d.meses[m].gastosExtras.forEach(item => gasAno += item.valor);
-                        (d.meses[m].gastosVacacionesExtras || []).forEach(item => gasAno += item.valor);
-                        (d.extrasRecurrentes || []).forEach(item => {
-                            const inicio = item.anoInicio * 12 + item.mesInicio;
-                            const fin = item.anoFin * 12 + item.mesFin;
-                            const actual = y * 12 + m;
-                            if (actual >= inicio && actual <= fin) {
-                                if (item.tipo === 'ingresos') ingAno += item.valor;
-                                else gasAno += item.valor;
-                            }
-                        });
-                    }
-                }
-                saldoEncadenado = saldoInicio + ingAno - gasAno;
+                saldoEncadenado = Math.round(calcularBalanceAcumuladoDeDatos(d, 11, y, saldoInicio) * 100) / 100;
             }
-            return saldoEncadenado !== null ? saldoEncadenado : (datos.saldoInicial || 0);
+            return saldoEncadenado !== null ? saldoEncadenado : (Number(datos.saldoInicial) || 0);
         }
 
         function calcularBalanceAcumulado(hastaMes) {
@@ -2827,19 +2878,7 @@
         }
 
         
-        function actualizarBotonesRegenerar() {
-            const anoRealSistema = new Date().getFullYear();
-            const btnRegenerarAno = document.getElementById('btn-regenerar-ano');
-            const btnRegenerarTodos = document.getElementById('btn-regenerar-todos');
-            
-            if (anoActual > anoRealSistema) {
-                if (btnRegenerarAno) btnRegenerarAno.style.display = '';
-                if (btnRegenerarTodos) btnRegenerarTodos.style.display = '';
-            } else {
-                if (btnRegenerarAno) btnRegenerarAno.style.display = 'none';
-                if (btnRegenerarTodos) btnRegenerarTodos.style.display = 'none';
-            }
-        }
+        function actualizarBotonesRegenerar() { /* Flujo nuevo: los anos solo se crean de forma consecutiva. */ }
 
         function actualizarBannerMesCerrado() {
             const infoDiv = document.getElementById('mes-cerrado-info');
@@ -3212,20 +3251,18 @@
             tipoActual = tipo;
             modalTipo = 'extras';
             itemEditandoIndex = -1;
-            document.getElementById('modal-title').textContent = tipo === 'ingresos' ? 
-                '📈 Ingresos Extras - ' + MESES_NOMBRES[mesActual] : 
-                '📉 Gastos Extras - ' + MESES_NOMBRES[mesActual];
+            itemEditandoRecurrente = false;
+            document.getElementById('modal-title').textContent = tipo === 'ingresos' ?
+                '📈 Ingreso Extra · solo ' + MESES_NOMBRES[mesActual] :
+                '📉 Gasto Extra · solo ' + MESES_NOMBRES[mesActual];
             document.getElementById('modal-desglose').style.display = 'block';
             document.getElementById('frecuencia-input').value = 'puntual';
             document.getElementById('frecuencia-input').style.display = 'none';
             document.getElementById('meses-selector-container').style.display = 'none';
             document.getElementById('categoria-selector-container').style.display = 'none';
-            document.getElementById('fecha-fin-container').style.display = 'block';
+            document.getElementById('fecha-fin-container').style.display = 'none';
             document.getElementById('tiene-fecha-fin').checked = false;
             document.getElementById('fecha-fin-inputs').style.display = 'none';
-            // Set default end date selectors to current month/year
-            document.getElementById('fin-mes-input').value = mesActual;
-            document.getElementById('fin-ano-input').value = anoActual;
             mostrarDesglose();
         }
         
@@ -3641,117 +3678,40 @@
             const concepto = document.getElementById('concepto-input').value.trim();
             const valor = parseFloat(document.getElementById('valor-input').value) || 0;
             const frecuencia = document.getElementById('frecuencia-input').value;
-            
-            // Bloquear cualquier escritura en meses pasados
-            if (modalTipo === 'extras' || modalTipo === 'vacaciones-extras') {
-                if (esMesPasado(mesActual, anoActual)) {
-                    mostrarNotificacion('🔒 Mes cerrado — los datos son definitivos', 'error');
-                    return;
+            if ((modalTipo === 'extras' || modalTipo === 'vacaciones-extras') && esMesPasado(mesActual, anoActual)) {
+                mostrarNotificacion('🔒 Mes cerrado — los datos son definitivos', 'error'); return;
+            }
+            if (!concepto || valor < 0) return;
+            const item = { concepto, valor };
+            if (modalTipo === 'fijos' || modalTipo === 'vacaciones' || modalTipo === 'ingresos-bonus') {
+                item.frecuencia = frecuencia;
+                if (frecuencia === 'anual') {
+                    const mesesSeleccionados=[];
+                    for(let i=0;i<12;i++){ const cb=document.getElementById('mes-'+i); if(cb&&cb.checked) mesesSeleccionados.push(i); }
+                    if(!mesesSeleccionados.length){ mostrarNotificacion('❌ Selecciona al menos un mes','error'); return; }
+                    item.meses=mesesSeleccionados;
                 }
             }
-
-            if (concepto && valor >= 0) {
-                // Check if this is an extra with fecha fin
-                if (modalTipo === 'extras' && document.getElementById('tiene-fecha-fin').checked) {
-                    const finMes = parseInt(document.getElementById('fin-mes-input').value);
-                    const finAno = parseInt(document.getElementById('fin-ano-input').value);
-                    
-                    // Validate end date is >= start date
-                    const inicio = anoActual * 12 + mesActual;
-                    const fin = finAno * 12 + finMes;
-                    if (fin < inicio) {
-                        mostrarNotificacion('❌ La fecha de fin debe ser igual o posterior al mes actual', 'error');
-                        return;
-                    }
-                    
-                    const recurrente = {
-                        concepto: concepto,
-                        valor: valor,
-                        tipo: tipoActual,
-                        anoInicio: anoActual,
-                        mesInicio: mesActual,
-                        anoFin: finAno,
-                        mesFin: finMes
-                    };
-                    
-                    if (!datos.extrasRecurrentes) datos.extrasRecurrentes = [];
-                    
-                    if (itemEditandoIndex >= 0 && itemEditandoRecurrente) {
-                        datos.extrasRecurrentes[itemEditandoIndex] = recurrente;
-                        mostrarNotificacion('✅ Extra recurrente actualizado', 'exito');
-                    } else {
-                        datos.extrasRecurrentes.push(recurrente);
-                        mostrarNotificacion('✅ Extra recurrente añadido hasta ' + MESES_NOMBRES[finMes] + ' ' + finAno, 'exito');
-                    }
-                    
-                    itemEditandoIndex = -1;
-                    itemEditandoRecurrente = false;
-                    document.getElementById('concepto-input').value = '';
-                    document.getElementById('valor-input').value = '';
-                    document.getElementById('tiene-fecha-fin').checked = false;
-                    document.getElementById('fecha-fin-inputs').style.display = 'none';
-                    mostrarDesglose();
-                    guardarDatos();
-                    actualizarTodo();
-                    actualizarResumenAnual();
-                    return;
-                }
-                
-                const item = { concepto: concepto, valor: valor };
-                
+            if (itemEditandoIndex >= 0) {
                 if (modalTipo === 'fijos' || modalTipo === 'vacaciones' || modalTipo === 'ingresos-bonus') {
-                    item.frecuencia = frecuencia;
-                    
-                    if (frecuencia === 'anual') {
-                        const mesesSeleccionados = [];
-                        for (let i = 0; i < 12; i++) {
-                            const checkbox = document.getElementById('mes-' + i);
-                            if (checkbox && checkbox.checked) {
-                                mesesSeleccionados.push(i);
-                            }
-                        }
-                        
-                        if (mesesSeleccionados.length === 0) {
-                            mostrarNotificacion('❌ Selecciona al menos un mes', 'error');
-                            return;
-                        }
-                        
-                        item.meses = mesesSeleccionados;
-                    }
+                    editandoConcepto=item.concepto; editandoValorNuevo=item.valor; editandoFrecuenciaNueva=item.frecuencia||''; editandoMesesNuevos=item.meses||[];
+                    document.getElementById('alcance-concepto-nombre').textContent=item.concepto;
+                    document.getElementById('alcance-mes-nombre').textContent=MESES_NOMBRES[mesActual];
+                    document.getElementById('alcance-mes-nombre2').textContent=MESES_NOMBRES[mesActual];
+                    document.getElementById('modal-alcance-edicion').style.display='flex'; return;
                 }
-                
-                if (itemEditandoIndex >= 0) {
-                    // Si es un gasto fijo, ingreso fijo o bonus, mostrar modal de alcance
-                    if (modalTipo === 'fijos' || modalTipo === 'vacaciones' || modalTipo === 'ingresos-fijos' || modalTipo === 'ingresos-bonus') {
-                        editandoConcepto = item.concepto;
-                        editandoValorNuevo = item.valor;
-                        editandoFrecuenciaNueva = item.frecuencia || '';
-                        editandoMesesNuevos = item.meses || [];
-                        
-                        document.getElementById('alcance-concepto-nombre').textContent = item.concepto;
-                        document.getElementById('alcance-mes-nombre').textContent = MESES_NOMBRES[mesActual];
-                        document.getElementById('alcance-mes-nombre2').textContent = MESES_NOMBRES[mesActual];
-                        document.getElementById('modal-alcance-edicion').style.display = 'flex';
-                        return;
-                    }
-                    
-                    // Para otros tipos, comportamiento normal
-                    obtenerArrayActual()[itemEditandoIndex] = item;
-                    mostrarNotificacion('✅ Item actualizado', 'exito');
-                    itemEditandoIndex = -1;
-                } else {
-                    obtenerArrayActual().push(item);
-                    mostrarNotificacion('✅ Item agregado', 'exito');
-                }
-                
-                document.getElementById('concepto-input').value = '';
-                document.getElementById('valor-input').value = '';
-                document.getElementById('meses-selector-container').style.display = 'none';
-                mostrarDesglose();
-                guardarDatos();
-                actualizarTodo();
-                actualizarResumenAnual();
+                obtenerArrayActual()[itemEditandoIndex]=item; itemEditandoIndex=-1; mostrarNotificacion('✅ Item actualizado','exito');
+            } else {
+                const arr=obtenerArrayActual();
+                const fuente=fuenteBaseDesdeModalMama();
+                if(fuente){ item._serieId=crearSerieIdMama(fuente); }
+                arr.push(item);
+                let n=0; if(fuente) n=propagarNuevaPartidaMama(fuente,item,arr.length-1,mesActual);
+                mostrarNotificacion('✅ Item agregado' + (n?' · '+n+' años futuros actualizados':''),'exito');
             }
+            document.getElementById('concepto-input').value=''; document.getElementById('valor-input').value='';
+            document.getElementById('meses-selector-container').style.display='none';
+            mostrarDesglose(); guardarDatos(); actualizarTodo(); actualizarResumenAnual();
         }
         
         function eliminarRecurrente(index) {
@@ -4323,6 +4283,135 @@
             editandoValorNuevo = 0;
         }
 
+
+        function fuenteBaseDesdeModalMama() {
+            if (modalTipo === 'ingresos-bonus') return 'ingresosBonus';
+            if (modalTipo === 'vacaciones') return 'gastosVacaciones';
+            if (modalTipo === 'fijos') {
+                if (tipoActual === 'ingresos') return 'ingresosFijos';
+                const sel = document.getElementById('categoria-input');
+                return sel && sel.value !== 'fijos' ? 'gastosVacaciones' : 'gastosFijos';
+            }
+            return null;
+        }
+
+        function arrayBaseMama(d, fuente) {
+            if (!d) return null;
+            if (fuente === 'ingresosFijos') return d.ingresosFijos;
+            if (fuente === 'ingresosBonus') return d.ingresosBonus;
+            if (fuente === 'gastosFijos') return d.gastosFijos;
+            if (fuente === 'gastosVacaciones') return d.gastosVacaciones;
+            return null;
+        }
+
+        function claveSerieMama(t) {
+            return String(t || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ');
+        }
+        function crearSerieIdMama(fuente) { return 'mama_' + fuente + '_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8); }
+        function aplicaPartidaMama(item, mes) {
+            return !!item && (item.frecuencia === 'mensual' || (item.frecuencia === 'anual' && Array.isArray(item.meses) && item.meses.includes(mes)));
+        }
+        function mesesIgualesMama(a,b) {
+            const aa = Array.isArray(a) ? a.map(Number).slice().sort((x,y)=>x-y) : [];
+            const bb = Array.isArray(b) ? b.map(Number).slice().sort((x,y)=>x-y) : [];
+            return aa.length === bb.length && aa.every((v,i)=>v===bb[i]);
+        }
+        function cambiosPartidaMama(a,b) {
+            return { concepto:String(a.concepto||'')!==String(b.concepto||''), valor:Number(a.valor)!==Number(b.valor), frecuencia:String(a.frecuencia||'')!==String(b.frecuencia||''), meses:!mesesIgualesMama(a.meses,b.meses) };
+        }
+        function congelarAntesMama(fuente,index,anterior,nueva,mesInicio) {
+            for (let m=0;m<mesInicio;m++) {
+                if (datos.mesesCerrados && datos.mesesCerrados[m]) continue;
+                const md = datos.meses[m]; if (!md) continue;
+                if (!md.overrides) md.overrides = {};
+                const key = fuente + '_' + index;
+                if (md.overrides[key]) continue;
+                const antes = aplicaPartidaMama(anterior,m), despues = aplicaPartidaMama(nueva,m);
+                if (antes) md.overrides[key] = { concepto:anterior.concepto, valor:Number(anterior.valor)||0, ...(despues?{}:{forzarEnMes:true}) };
+                else if (despues) md.overrides[key] = { concepto:nueva.concepto, valor:0, eliminado:true };
+            }
+        }
+        function buscarSerieMama(arr,serieId,anterior,nueva,indexPreferido) {
+            if (!Array.isArray(arr)) return -1;
+            let idx = arr.findIndex(x=>x && x._serieId===serieId); if (idx>=0) return idx;
+            const claves = new Set([claveSerieMama(anterior&&anterior.concepto),claveSerieMama(nueva&&nueva.concepto)].filter(Boolean));
+            if (Number.isInteger(indexPreferido) && arr[indexPreferido] && claves.has(claveSerieMama(arr[indexPreferido].concepto))) return indexPreferido;
+            for (const c of claves) {
+                const hits=[]; arr.forEach((x,i)=>{ if(x && claveSerieMama(x.concepto)===c) hits.push(i); });
+                if (hits.length===1) return hits[0];
+            }
+            if (Number.isInteger(indexPreferido) && arr[indexPreferido]) return indexPreferido;
+            return -1;
+        }
+        function valorAnoSiguienteMama(valor,fuente,datosBaseAno,concepto) {
+            const v=Number(valor)||0;
+            if (fuente==='gastosFijos' && String(concepto||'').toUpperCase().includes('ING')) return Math.round(v*100)/100;
+            const inc=datosBaseAno.incrementos||{ingresos:1,gastos:2};
+            const pct=(fuente==='ingresosFijos'||fuente==='ingresosBonus')?(Number(inc.ingresos)||0):(Number(inc.gastos)||0);
+            return Math.round(v*(1+pct/100)*100)/100;
+        }
+        function recalcularSaldosFuturosMama(desdeAno, saldoFinPrevio) {
+            for (let y=desdeAno+1;y<=2040;y++) {
+                const key='finanzasPersonalesMama_'+y, raw=localStorage.getItem(key); if(!raw) break;
+                let d; try{d=JSON.parse(raw);}catch(e){break;}
+                d.saldoInicial=Math.round(saldoFinPrevio*100)/100;
+                d._modificadoEn=new Date().toISOString(); delete d._exportadoEn;
+                localStorage.setItem(key,JSON.stringify(d));
+                saldoFinPrevio=calcularBalanceAcumuladoDeDatos(d,11,y,d.saldoInicial);
+            }
+        }
+        function propagarCambioPartidaMama(fuente,index,anterior,nueva,mesInicio) {
+            const arrActual=arrayBaseMama(datos,fuente); if(!arrActual||!arrActual[index]) return 0;
+            const cambios=cambiosPartidaMama(anterior,nueva);
+            const serieId=anterior._serieId||nueva._serieId||crearSerieIdMama(fuente); nueva._serieId=serieId;
+            congelarAntesMama(fuente,index,anterior,nueva,mesInicio); arrActual[index]=nueva;
+            let datosPrevios=datos, valorDerivado=Number(nueva.valor)||0, refAnt=anterior, refNue=nueva, idxPref=index, n=0, seguir=true;
+            let saldoInicio=calcularSaldoInicioRealDelAno(anoActual);
+            let saldoFin=calcularBalanceAcumuladoDeDatos(datos,11,anoActual,saldoInicio);
+            for(let y=anoActual+1;y<=2040;y++){
+                const key='finanzasPersonalesMama_'+y, raw=localStorage.getItem(key); if(!raw) break;
+                let d; try{d=JSON.parse(raw);}catch(e){break;} normalizarDatos(d); d.saldoInicial=Math.round(saldoFin*100)/100;
+                if(seguir){
+                    const arr=arrayBaseMama(d,fuente), idx=buscarSerieMama(arr,serieId,refAnt,refNue,idxPref);
+                    if(idx>=0){
+                        const antes={...arr[idx],meses:Array.isArray(arr[idx].meses)?arr[idx].meses.slice():undefined};
+                        const dest=arr[idx]; dest._serieId=serieId;
+                        if(cambios.valor){ valorDerivado=valorAnoSiguienteMama(valorDerivado,fuente,datosPrevios,refNue.concepto); dest.valor=valorDerivado; } else valorDerivado=Number(dest.valor)||0;
+                        if(cambios.concepto) dest.concepto=nueva.concepto;
+                        if(cambios.frecuencia) dest.frecuencia=nueva.frecuencia;
+                        if(cambios.meses||cambios.frecuencia){ if(nueva.frecuencia==='anual') dest.meses=Array.isArray(nueva.meses)?nueva.meses.slice():[]; else delete dest.meses; }
+                        refAnt=antes; refNue={...dest,meses:Array.isArray(dest.meses)?dest.meses.slice():undefined}; idxPref=idx;
+                    } else seguir=false;
+                }
+                d._modificadoEn=new Date().toISOString(); delete d._exportadoEn; localStorage.setItem(key,JSON.stringify(d)); n++;
+                saldoFin=calcularBalanceAcumuladoDeDatos(d,11,y,d.saldoInicial); datosPrevios=d;
+            }
+            return n;
+        }
+        function propagarNuevaPartidaMama(fuente,item,index,mesInicio) {
+            if(!fuente) return 0;
+            item._serieId=item._serieId||crearSerieIdMama(fuente);
+            // Que una partida nueva no aparezca retroactivamente en los meses anteriores abiertos.
+            for(let m=0;m<mesInicio;m++){
+                if(datos.mesesCerrados&&datos.mesesCerrados[m]) continue;
+                if(!aplicaPartidaMama(item,m)) continue;
+                if(!datos.meses[m].overrides) datos.meses[m].overrides={};
+                datos.meses[m].overrides[fuente+'_'+index]={concepto:item.concepto,valor:0,eliminado:true};
+            }
+            let valor=Number(item.valor)||0, prev=datos, n=0;
+            let saldoInicio=calcularSaldoInicioRealDelAno(anoActual), saldoFin=calcularBalanceAcumuladoDeDatos(datos,11,anoActual,saldoInicio);
+            for(let y=anoActual+1;y<=2040;y++){
+                const key='finanzasPersonalesMama_'+y, raw=localStorage.getItem(key); if(!raw) break;
+                let d; try{d=JSON.parse(raw);}catch(e){break;} normalizarDatos(d); d.saldoInicial=Math.round(saldoFin*100)/100;
+                const arr=arrayBaseMama(d,fuente); if(!Array.isArray(arr)) break;
+                valor=valorAnoSiguienteMama(valor,fuente,prev,item.concepto);
+                const copia={...item,valor:valor,_serieId:item._serieId,meses:Array.isArray(item.meses)?item.meses.slice():undefined};
+                if(copia.frecuencia!=='anual') delete copia.meses;
+                arr.push(copia); d._modificadoEn=new Date().toISOString(); delete d._exportadoEn; localStorage.setItem(key,JSON.stringify(d)); n++;
+                saldoFin=calcularBalanceAcumuladoDeDatos(d,11,y,d.saldoInicial); prev=d;
+            }
+            return n;
+        }
         function aplicarEdicionConAlcance(alcance) {
             if (esMesPasado(mesActual, anoActual)) {
                 mostrarNotificacion('🔒 Mes cerrado — los datos son definitivos', 'error');
@@ -4331,60 +4420,29 @@
                 return;
             }
             if (alcance === 'solo-mes') {
-                // Usar el sistema de overrides: guardar el valor real (absoluto) solo para este mes
                 if (!datos.meses[mesActual].overrides) datos.meses[mesActual].overrides = {};
-                let fuenteOverride;
-                if (modalTipo === 'fijos' && tipoActual === 'gastos') {
-                    fuenteOverride = 'gastosFijos';
-                } else if (modalTipo === 'vacaciones') {
-                    fuenteOverride = 'gastosVacaciones';
-                } else if (modalTipo === 'ingresos-bonus') {
-                    fuenteOverride = 'ingresosBonus';
-                } else {
-                    fuenteOverride = 'ingresosFijos';
-                }
-                const key = fuenteOverride + '_' + itemEditandoIndex;
-                // Detectar si el ítem es anual y no aplica en este mes → forzarEnMes
-                let forzarFijo = false;
-                const arrFijo = fuenteOverride === 'gastosFijos' ? datos.gastosFijos
-                    : fuenteOverride === 'ingresosFijos' ? datos.ingresosFijos
-                    : fuenteOverride === 'gastosVacaciones' ? datos.gastosVacaciones
-                    : fuenteOverride === 'ingresosBonus' ? (datos.ingresosBonus || []) : null;
-                if (arrFijo) {
-                    const itemFijo2 = arrFijo[itemEditandoIndex];
-                    if (itemFijo2 && itemFijo2.frecuencia === 'anual' &&
-                        !(itemFijo2.meses && itemFijo2.meses.includes(mesActual))) {
-                        forzarFijo = true;
-                    }
-                }
-                datos.meses[mesActual].overrides[key] = { concepto: editandoConcepto, valor: editandoValorNuevo, ...(forzarFijo ? { forzarEnMes: true } : {}) };
-                mostrarNotificacion('✅ Actualizado solo para ' + MESES_NOMBRES[mesActual] + ' (' + editandoValorNuevo + '€)', 'exito');
-            } else if (alcance === 'todos-abiertos') {
-                const item = {
-                    concepto: editandoConcepto,
-                    valor: editandoValorNuevo,
-                    frecuencia: editandoFrecuenciaNueva
-                };
-                
-                if (editandoFrecuenciaNueva === 'anual') {
-                    item.meses = editandoMesesNuevos;
-                }
-                
-                obtenerArrayActual()[itemEditandoIndex] = item;
-                mostrarNotificacion('✅ Actualizado en todos los meses abiertos', 'exito');
+                const fuente = fuenteBaseDesdeModalMama() || 'ingresosFijos';
+                const arr = arrayBaseMama(datos, fuente);
+                const base = arr && arr[itemEditandoIndex];
+                const forzar = base && base.frecuencia === 'anual' && !(base.meses && base.meses.includes(mesActual));
+                datos.meses[mesActual].overrides[fuente + '_' + itemEditandoIndex] = { concepto:editandoConcepto, valor:editandoValorNuevo, ...(forzar?{forzarEnMes:true}:{}) };
+                mostrarNotificacion('✅ Actualizado solo para ' + MESES_NOMBRES[mesActual], 'exito');
+            } else {
+                const fuente = fuenteBaseDesdeModalMama();
+                const arr = arrayBaseMama(datos, fuente);
+                const anterior = arr && arr[itemEditandoIndex] ? { ...arr[itemEditandoIndex], meses:Array.isArray(arr[itemEditandoIndex].meses)?arr[itemEditandoIndex].meses.slice():undefined } : null;
+                const item = { concepto:editandoConcepto, valor:editandoValorNuevo, frecuencia:editandoFrecuenciaNueva };
+                if (editandoFrecuenciaNueva === 'anual') item.meses = editandoMesesNuevos.slice();
+                if (anterior && fuente) {
+                    item._serieId = anterior._serieId || crearSerieIdMama(fuente);
+                    const n = propagarCambioPartidaMama(fuente,itemEditandoIndex,anterior,item,mesActual);
+                    mostrarNotificacion('✅ Actualizado desde ' + MESES_NOMBRES[mesActual] + ' en adelante' + (n?' · '+n+' años futuros':'') , 'exito');
+                } else obtenerArrayActual()[itemEditandoIndex] = item;
             }
-            
             document.getElementById('modal-alcance-edicion').style.display = 'none';
-            itemEditandoIndex = -1;
-            editandoConcepto = '';
-            editandoValorNuevo = 0;
-            
-            document.getElementById('concepto-input').value = '';
-            document.getElementById('valor-input').value = '';
-            
-            guardarDatos();
-            actualizarTodo();
-            actualizarResumenAnual();
+            itemEditandoIndex = -1; editandoConcepto=''; editandoValorNuevo=0;
+            document.getElementById('concepto-input').value=''; document.getElementById('valor-input').value='';
+            guardarDatos(); actualizarTodo(); actualizarResumenAnual();
         }
         
         // ============================================
@@ -4926,6 +4984,7 @@
                 const nombresMes = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
                 document.getElementById('inline-alcance-concepto-nombre').textContent = item.concepto + ' → "' + nuevoConcepto + '" / ' + nuevoValor + '€';
                 document.getElementById('inline-alcance-mes-nombre').textContent = nombresMes[mesVerTodo];
+                const mes2 = document.getElementById('inline-alcance-mes-nombre2'); if (mes2) mes2.textContent = nombresMes[mesVerTodo];
                 document.getElementById('modal-alcance-edicion-inline').style.display = 'flex';
                 return;
             }
@@ -4959,59 +5018,26 @@
         function aplicarEdicionInlineConAlcance(alcance) {
             cerrarModalAlcanceInline();
             if (!_edicionPendiente) return;
-            if (esMesPasado(mesVerTodo, anoActual)) {
-                mostrarNotificacion('🔒 Mes cerrado — los datos son definitivos', 'error');
-                _edicionPendiente = null;
-                return;
-            }
-            const { item, nuevoConcepto, nuevoValor } = _edicionPendiente;
-            _edicionPendiente = null;
-
+            if (esMesPasado(mesVerTodo, anoActual)) { mostrarNotificacion('🔒 Mes cerrado — los datos son definitivos','error'); _edicionPendiente=null; return; }
+            const { item, nuevoConcepto, nuevoValor } = _edicionPendiente; _edicionPendiente=null;
             if (alcance === 'solo-mes') {
-                // Guardar override solo para este mes
-                if (!datos.meses[mesVerTodo].overrides) datos.meses[mesVerTodo].overrides = {};
-                const key = item.fuente + '_' + item.index;
-                // Si el ítem es un fijo anual que no incluye este mes, marcarlo con forzarEnMes
-                // para que calcularTotalesMes lo incluya aunque no "aplique" por frecuencia
-                let forzar = false;
-                const fuenteArr = item.fuente === 'gastosFijos' ? datos.gastosFijos
-                    : item.fuente === 'ingresosFijos' ? datos.ingresosFijos
-                    : item.fuente === 'gastosVacaciones' ? datos.gastosVacaciones
-                    : item.fuente === 'ingresosBonus' ? (datos.ingresosBonus || []) : null;
-                if (fuenteArr) {
-                    const itemFijo = fuenteArr[item.index];
-                    if (itemFijo && itemFijo.frecuencia === 'anual' &&
-                        !(itemFijo.meses && itemFijo.meses.includes(mesVerTodo))) {
-                        forzar = true;
-                    }
+                if (!datos.meses[mesVerTodo].overrides) datos.meses[mesVerTodo].overrides={};
+                const key=item.fuente+'_'+item.index;
+                const arr=arrayBaseMama(datos,item.fuente); const base=arr&&arr[item.index];
+                const forzar=base&&base.frecuencia==='anual'&&!(base.meses&&base.meses.includes(mesVerTodo));
+                datos.meses[mesVerTodo].overrides[key]={concepto:nuevoConcepto,valor:nuevoValor,...(forzar?{forzarEnMes:true}:{})};
+                mostrarNotificacion('✅ '+nuevoConcepto+' actualizado solo para '+MESES_NOMBRES[mesVerTodo],'exito');
+            } else if (['ingresosFijos','gastosFijos','gastosVacaciones','ingresosBonus'].includes(item.fuente)) {
+                const arr=arrayBaseMama(datos,item.fuente), anterior=arr&&arr[item.index]?{...arr[item.index],meses:Array.isArray(arr[item.index].meses)?arr[item.index].meses.slice():undefined}:null;
+                if(anterior){
+                    const nueva={...anterior,concepto:nuevoConcepto,valor:nuevoValor,_serieId:anterior._serieId||crearSerieIdMama(item.fuente)};
+                    const n=propagarCambioPartidaMama(item.fuente,item.index,anterior,nueva,mesVerTodo);
+                    mostrarNotificacion('✅ '+nuevoConcepto+' actualizado desde '+MESES_NOMBRES[mesVerTodo]+' en adelante'+(n?' · '+n+' años futuros':''),'exito');
                 }
-                datos.meses[mesVerTodo].overrides[key] = { concepto: nuevoConcepto, valor: nuevoValor, ...(forzar ? { forzarEnMes: true } : {}) };
-                mostrarNotificacion('✅ ' + nuevoConcepto + ' añadido' + (forzar ? ' excepcionalmente' : '') + ' solo para ' + MESES_NOMBRES[mesVerTodo], 'exito');
             } else {
-                // Actualizar el array global (todos los meses)
-                if (item.fuente === 'ingresosFijos') {
-                    datos.ingresosFijos[item.index].concepto = nuevoConcepto;
-                    datos.ingresosFijos[item.index].valor = nuevoValor;
-                } else if (item.fuente === 'gastosFijos') {
-                    datos.gastosFijos[item.index].concepto = nuevoConcepto;
-                    datos.gastosFijos[item.index].valor = nuevoValor;
-                } else if (item.fuente === 'gastosVacaciones') {
-                    datos.gastosVacaciones[item.index].concepto = nuevoConcepto;
-                    datos.gastosVacaciones[item.index].valor = nuevoValor;
-                } else if (item.fuente === 'ingresosBonus') {
-                    datos.ingresosBonus[item.index].concepto = nuevoConcepto;
-                    datos.ingresosBonus[item.index].valor = nuevoValor;
-                } else if (item.fuente === 'extrasRecurrentes') {
-                    datos.extrasRecurrentes[item.index].concepto = nuevoConcepto;
-                    datos.extrasRecurrentes[item.index].valor = nuevoValor;
-                }
-                mostrarNotificacion('✅ ' + nuevoConcepto + ' actualizado en todos los meses', 'exito');
+                aplicarEdicionDirecta(item,nuevoConcepto,nuevoValor); return;
             }
-
-            guardarDatos();
-            actualizarTodo();
-            actualizarResumenAnual();
-            abrirModalVerTodoMes(mesVerTodo);
+            guardarDatos(); actualizarTodo(); actualizarResumenAnual(); abrirModalVerTodoMes(mesVerTodo);
         }
 
         function cerrarModalAlcanceInline() {
@@ -5196,7 +5222,7 @@
                     </button>
                     <button onclick="aplicarEdicionConAlcance('todos-abiertos')" 
                             style="padding: 15px; font-size: 16px; background: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer;">
-                        🔄 Todos los meses abiertos (desde <span id="alcance-mes-nombre2"></span>)
+                        🔄 Desde <span id="alcance-mes-nombre2"></span> en adelante + años futuros
                     </button>
                     <button onclick="cerrarModalAlcance()" 
                             style="padding: 10px; font-size: 14px; background: #999; color: white; border: none; border-radius: 8px; cursor: pointer;">
@@ -5221,7 +5247,7 @@
                     </button>
                     <button onclick="aplicarEdicionInlineConAlcance('todos-abiertos')" 
                             style="padding: 15px; font-size: 16px; background: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer;">
-                        🌍 Todos los meses (valor global)
+                        🔄 Desde <span id="inline-alcance-mes-nombre2"></span> en adelante + años futuros
                     </button>
                     <button onclick="cerrarModalAlcanceInline(); _edicionPendiente = null;" 
                             style="padding: 10px; font-size: 14px; background: #999; color: white; border: none; border-radius: 8px; cursor: pointer;">
@@ -5882,5 +5908,93 @@ function recalcularSimulador() {
         }, { passive: true });
     })();
     </script>
-    </body>
+    
+
+<!-- COMPARATIVAS PORTADAS DESDE LA APP PRINCIPAL -->
+<div id="modal-comparativa-meses-mama" class="mama-comparativa-modal" onclick="cerrarComparativaAnualMama()">
+  <div class="mama-comparativa-box" onclick="event.stopPropagation()">
+    <div class="mama-comparativa-toolbar"><h2>📊 Comparar 12 meses · <span id="comp-meses-ano"></span></h2><div class="mama-comparativa-actions"><input id="comp-meses-buscar" type="text" placeholder="🔎 Buscar concepto" oninput="renderComparativaMesesMama()"><button onclick="cerrarComparativaAnualMama()">✕ Cerrar</button></div></div>
+    <div class="mama-comparativa-note">Meses cerrados usan su foto histórica; los abiertos usan la planificación y extras actuales. La primera columna no es fija para mantener el scroll estable en iPad.</div>
+    <div class="mama-comparativa-scroll" id="comp-meses-scroll"><div id="comp-meses-contenido"></div></div>
+  </div>
+</div>
+<div id="modal-comparativa-anios-mama" class="mama-comparativa-modal" onclick="cerrarComparativaAniosMama()">
+  <div class="mama-comparativa-box" onclick="event.stopPropagation()">
+    <div class="mama-comparativa-toolbar"><h2>📈 Comparar años · 2026–2040</h2><div class="mama-comparativa-actions"><input id="comp-anios-buscar" type="text" placeholder="🔎 Buscar concepto" oninput="renderComparativaAniosMama()"><button onclick="cerrarComparativaAniosMama()">✕ Cerrar</button></div></div>
+    <div class="mama-comparativa-note">Los años guardados son reales. Los que todavía no existen se muestran como proyección y no se guardan. Σ TOTAL suma todos los años visibles.</div>
+    <div class="mama-comparativa-scroll" id="comp-anios-scroll"><div id="comp-anios-contenido"></div></div>
+  </div>
+</div>
+<script id="mama-mejoras-js">
+(function(){
+    function actualizarGlobalMama(){
+        const pares=[['global-ingresos-fijos-count',(datos.ingresosFijos||[]).length,'partida'],['global-ingresos-bonus-count',(datos.ingresosBonus||[]).length,'partida'],['global-gastos-fijos-count',(datos.gastosFijos||[]).length,'partida'],['global-vacaciones-count',(datos.gastosVacaciones||[]).length,'partida']];
+        pares.forEach(function(p){const el=document.getElementById(p[0]);if(el)el.textContent=p[1]+' '+(p[1]===1?p[2]:'partidas')+' configurada'+(p[1]===1?'':'s');});
+        ['mes-label-ingresos','mes-label-gastos','mes-boton-ingreso-extra','mes-boton-gasto-extra','mes-boton-vac-extra'].forEach(function(id){const el=document.getElementById(id);if(el)el.textContent=MESES_NOMBRES[mesActual];});
+        const banner=document.getElementById('month-context-banner'); if(banner) banner.textContent='📅 Movimientos específicos de '+MESES_NOMBRES[mesActual]+' '+anoActual;
+    }
+    const baseActualizar=window.actualizarTodo;
+    window.actualizarTodo=function(){ baseActualizar(); actualizarGlobalMama(); };
+
+    window.abrirComparativaAnualMama=function(){document.getElementById('comp-meses-ano').textContent=anoActual;document.getElementById('comp-meses-buscar').value='';document.getElementById('modal-comparativa-meses-mama').style.display='block';renderComparativaMesesMama();requestAnimationFrame(function(){const s=document.getElementById('comp-meses-scroll');s.scrollTop=0;s.scrollLeft=0;});};
+    window.cerrarComparativaAnualMama=function(){document.getElementById('modal-comparativa-meses-mama').style.display='none';};
+    window.abrirComparativaAniosMama=function(){document.getElementById('comp-anios-buscar').value='';document.getElementById('modal-comparativa-anios-mama').style.display='block';renderComparativaAniosMama();requestAnimationFrame(function(){const s=document.getElementById('comp-anios-scroll');s.scrollTop=0;s.scrollLeft=0;});};
+    window.cerrarComparativaAniosMama=function(){document.getElementById('modal-comparativa-anios-mama').style.display='none';};
+
+    function normConcepto(c){return String(c||'Sin concepto').trim()||'Sin concepto';}
+    function addMapa(mapa,c,v){c=normConcepto(c);mapa[c]=(mapa[c]||0)+(Number(v)||0);}
+    function recAplica(item,ano,mes){const ini=Number(item.anoInicio)*12+Number(item.mesInicio),fin=Number(item.anoFin)*12+Number(item.mesFin),act=ano*12+mes;return act>=ini&&act<=fin;}
+
+    function lineasMesMama(d,ano,mes){
+        const out={ingresos:{},gastos:{},vacaciones:{}};
+        const cerrado=d.mesesCerrados&&d.mesesCerrados[mes];
+        if(cerrado&&cerrado.snapshotItems&&cerrado.snapshotItems.length){
+            cerrado.snapshotItems.forEach(function(x){if(x.eliminado||!Number(x.valor))return;const f=x.fuente;if(f==='ingresosFijos'||f==='ingresosBonus'||f==='ingresosExtras'||(f==='extrasRecurrentes'&&x.tipo==='ingresos'))addMapa(out.ingresos,x.concepto,x.valor);else if(f==='gastosVacaciones'||f==='gastosVacacionesExtras')addMapa(out.vacaciones,x.concepto,x.valor);else addMapa(out.gastos,x.concepto,x.valor);});
+            return out;
+        }
+        if(cerrado&&cerrado.snapshot){const s=cerrado.snapshot;if(s.ingresosFijos)addMapa(out.ingresos,'Ingresos fijos · sin detalle',s.ingresosFijos);if(s.ingresosBonus)addMapa(out.ingresos,'Extras y Bonus · sin detalle',s.ingresosBonus);if(s.ingresosExtras)addMapa(out.ingresos,'Ingresos extra · sin detalle',s.ingresosExtras);if(s.gastosFijos)addMapa(out.gastos,'Gastos fijos · sin detalle',s.gastosFijos);if(s.gastosExtras)addMapa(out.gastos,'Gastos extra · sin detalle',s.gastosExtras);if(s.gastosVacaciones)addMapa(out.vacaciones,'Vacaciones · sin detalle',s.gastosVacaciones);if(s.gastosVacacionesExtras)addMapa(out.vacaciones,'Vacaciones extra · sin detalle',s.gastosVacacionesExtras);return out;}
+        const md=(d.meses&&d.meses[mes])||{ingresosExtras:[],gastosExtras:[],gastosVacacionesExtras:[]},ov=md.overrides||{};
+        function base(arr,fuente,dest){(arr||[]).forEach(function(item,i){const o=ov[fuente+'_'+i];if(o&&o.eliminado)return;const aplica=item.frecuencia==='mensual'||(item.frecuencia==='anual'&&item.meses&&item.meses.includes(mes))||(o&&o.forzarEnMes);if(!aplica)return;addMapa(dest,o&&o.concepto!==undefined?o.concepto:item.concepto,o&&o.valor!==undefined?o.valor:item.valor);});}
+        base(d.ingresosFijos,'ingresosFijos',out.ingresos);base(d.ingresosBonus,'ingresosBonus',out.ingresos);base(d.gastosFijos,'gastosFijos',out.gastos);base(d.gastosVacaciones,'gastosVacaciones',out.vacaciones);
+        (md.ingresosExtras||[]).forEach(x=>addMapa(out.ingresos,x.concepto,x.valor));(md.gastosExtras||[]).forEach(x=>addMapa(out.gastos,x.concepto,x.valor));(md.gastosVacacionesExtras||[]).forEach(x=>addMapa(out.vacaciones,x.concepto,x.valor));
+        (d.extrasRecurrentes||[]).forEach(function(x){if(!recAplica(x,ano,mes))return;addMapa(x.tipo==='ingresos'?out.ingresos:out.gastos,x.concepto,x.valor);});
+        return out;
+    }
+    function euro(v){return formatearMoneda(Number(v)||0);}
+    function tdValor(v,total){const cls=v>0?'pos':v<0?'neg':'zero';return '<td class="'+cls+(total?' total-col':'')+'">'+(Math.abs(v)<0.005?'—':euro(v))+'</td>';}
+    function ordenConceptos(meses,tipo){const seen=new Set(),arr=[];meses.forEach(m=>Object.keys(m[tipo]||{}).forEach(c=>{if(!seen.has(c)){seen.add(c);arr.push(c);}}));return arr;}
+    function bloqueMeses(titulo,tipo,meses,filtro,clase){let html='<tr class="bloque '+clase+'"><td colspan="14">'+titulo+'</td></tr>';const conceptos=ordenConceptos(meses,tipo).filter(c=>!filtro||c.toLowerCase().includes(filtro));conceptos.forEach(function(c){let total=0;html+='<tr><td>'+c+'</td>';for(let m=0;m<12;m++){const v=meses[m][tipo][c]||0;total+=v;html+=tdValor(v,false);}html+=tdValor(total,true)+'</tr>';});let subt=0;html+='<tr class="subtotal"><td>Subtotal '+titulo+'</td>';for(let m=0;m<12;m++){const v=Object.values(meses[m][tipo]).reduce((a,b)=>a+b,0);subt+=v;html+=tdValor(v,false);}html+=tdValor(subt,true)+'</tr>';return html;}
+    window.renderComparativaMesesMama=function(){
+        const filtro=(document.getElementById('comp-meses-buscar').value||'').toLowerCase().trim();const meses=[];for(let m=0;m<12;m++)meses.push(lineasMesMama(datos,anoActual,m));
+        let html='<table class="mama-comparativa-table"><thead><tr><th>Concepto</th>'+MESES_CORTOS.map(x=>'<th>'+x+'</th>').join('')+'<th class="total-col">TOTAL</th></tr></thead><tbody>';
+        html+=bloqueMeses('Ingresos','ingresos',meses,filtro,'ing')+bloqueMeses('Gastos','gastos',meses,filtro,'gas')+bloqueMeses('Vacaciones','vacaciones',meses,filtro,'vac');
+        let bt=0;html+='<tr class="balance"><td>💰 BALANCE MES</td>';for(let m=0;m<12;m++){const ing=Object.values(meses[m].ingresos).reduce((a,b)=>a+b,0),gas=Object.values(meses[m].gastos).reduce((a,b)=>a+b,0)+Object.values(meses[m].vacaciones).reduce((a,b)=>a+b,0),v=ing-gas;bt+=v;html+=tdValor(v,false);}html+=tdValor(bt,true)+'</tr></tbody></table>';document.getElementById('comp-meses-contenido').innerHTML=html;
+    };
+
+    function proyeccionSiguienteMama(base,anoBase,saldoInicioBase){
+        const fin=calcularBalanceAcumuladoDeDatos(base,11,anoBase,saldoInicioBase);const n=JSON.parse(JSON.stringify(base)),pi=1+(((base.incrementos||{}).ingresos??1)/100),pg=1+(((base.incrementos||{}).gastos??2)/100);
+        n.ingresosFijos=(n.ingresosFijos||[]).map(x=>({...x,valor:Math.round((Number(x.valor)||0)*pi*100)/100}));n.ingresosBonus=(n.ingresosBonus||[]).map(x=>({...x,valor:Math.round((Number(x.valor)||0)*pi*100)/100}));n.gastosFijos=(n.gastosFijos||[]).map(x=>String(x.concepto||'').toUpperCase().includes('ING')?x:{...x,valor:Math.round((Number(x.valor)||0)*pg*100)/100});n.gastosVacaciones=(n.gastosVacaciones||[]).map(x=>({...x,valor:Math.round((Number(x.valor)||0)*pg*100)/100}));n.meses=Array.from({length:12},()=>({ingresosExtras:[],gastosExtras:[],gastosVacacionesExtras:[]}));n.extrasRecurrentes=[];n.mesesCerrados={};n.saldoInicial=Math.round(fin*100)/100;delete n._modificadoEn;delete n._exportadoEn;return n;
+    }
+    function construirSerieAniosMama(){
+        const res=[];let prev=null,prevAno=null,prevInicio=null,prevFin=null;
+        for(let y=2026;y<=2040;y++){
+            const raw=localStorage.getItem('finanzasPersonalesMama_'+y);let d=null,proy=false;
+            if(raw){try{d=JSON.parse(raw);}catch(e){d=null;}}
+            if(!d){if(!prev)continue;d=proyeccionSiguienteMama(prev,prevAno,prevInicio);proy=true;}
+            const inicio=prevFin!==null&&prevFin!==undefined?prevFin:(Number(d.saldoInicial)||0);const fin=calcularBalanceAcumuladoDeDatos(d,11,y,inicio);res.push({ano:y,datos:d,proyectado:proy,inicio:inicio,fin:fin});prev=d;prevAno=y;prevInicio=inicio;prevFin=fin;
+        }
+        return res;
+    }
+    function anualPorConcepto(d,ano){const out={ingresos:{},gastos:{},vacaciones:{}};for(let m=0;m<12;m++){const l=lineasMesMama(d,ano,m);['ingresos','gastos','vacaciones'].forEach(t=>Object.entries(l[t]).forEach(([c,v])=>addMapa(out[t],c,v)));}return out;}
+    function bloqueAnios(titulo,tipo,serie,mapas,filtro,clase){const set=[],seen=new Set();mapas.forEach(m=>Object.keys(m[tipo]).forEach(c=>{if(!seen.has(c)){seen.add(c);set.push(c);}}));let html='<tr class="bloque '+clase+'"><td colspan="'+(serie.length+2)+'">'+titulo+'</td></tr>';set.filter(c=>!filtro||c.toLowerCase().includes(filtro)).forEach(function(c){let sum=0;html+='<tr><td>'+c+'</td>';mapas.forEach(function(m){const v=m[tipo][c]||0;sum+=v;html+=tdValor(v,false);});html+=tdValor(sum,true)+'</tr>';});let st=0;html+='<tr class="subtotal"><td>Subtotal '+titulo+'</td>';mapas.forEach(function(m){const v=Object.values(m[tipo]).reduce((a,b)=>a+b,0);st+=v;html+=tdValor(v,false);});html+=tdValor(st,true)+'</tr>';return html;}
+    window.renderComparativaAniosMama=function(){
+        const filtro=(document.getElementById('comp-anios-buscar').value||'').toLowerCase().trim(),serie=construirSerieAniosMama();if(!serie.length){document.getElementById('comp-anios-contenido').innerHTML='<div class="mama-comparativa-empty">No hay años disponibles.</div>';return;}const mapas=serie.map(x=>anualPorConcepto(x.datos,x.ano));let html='<table class="mama-comparativa-table"><thead><tr><th>Concepto</th>'+serie.map(x=>'<th class="'+(x.proyectado?'proy-head':'')+'">'+x.ano+(x.proyectado?' *':'')+'</th>').join('')+'<th class="total-col">Σ TOTAL</th></tr></thead><tbody>';html+=bloqueAnios('Ingresos','ingresos',serie,mapas,filtro,'ing')+bloqueAnios('Gastos','gastos',serie,mapas,filtro,'gas')+bloqueAnios('Vacaciones','vacaciones',serie,mapas,filtro,'vac');let bt=0;html+='<tr class="balance"><td>💰 BALANCE AÑO</td>';mapas.forEach(function(m){const v=Object.values(m.ingresos).reduce((a,b)=>a+b,0)-Object.values(m.gastos).reduce((a,b)=>a+b,0)-Object.values(m.vacaciones).reduce((a,b)=>a+b,0);bt+=v;html+=tdValor(v,false);});html+=tdValor(bt,true)+'</tr></tbody></table>';document.getElementById('comp-anios-contenido').innerHTML=html;
+    };
+
+    // Safari/iPad: impedir que el rebote horizontal arrastre visualmente toda la caja.
+    ['comp-meses-scroll','comp-anios-scroll'].forEach(function(id){const el=document.getElementById(id);let x=0,y=0;el.addEventListener('touchstart',function(e){if(!e.touches[0])return;x=e.touches[0].clientX;y=e.touches[0].clientY;},{passive:true});el.addEventListener('touchmove',function(e){if(!e.touches[0])return;const dx=e.touches[0].clientX-x,dy=e.touches[0].clientY-y;if(Math.abs(dx)>Math.abs(dy)+3){const max=el.scrollWidth-el.clientWidth;if((el.scrollLeft<=0&&dx>0)||(el.scrollLeft>=max-1&&dx<0))e.preventDefault();}x=e.touches[0].clientX;y=e.touches[0].clientY;},{passive:false});});
+})();
+</script>
+
+</body>
 </html>
