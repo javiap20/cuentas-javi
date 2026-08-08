@@ -1073,7 +1073,6 @@
         </div>
         <div class="topbar-actions">
             <button class="tb-btn" onclick="exportarGastosExcel()" style="background:#16a34a;border-color:#16a34a;color:white;">📊 Excel Gastos</button>
-            <button class="tb-btn" id="btn-regenerar-ano" onclick="regenerarAnoDesdeAnterior()" style="display:none;">🔄 Regenerar año</button>
             <button class="tb-btn success" onclick="exportarDatos()">📥 Exportar</button>
             <button class="tb-btn primary" onclick="document.getElementById('file-input').click()">📤 Importar</button>
             <button class="tb-btn" id="btn-gist-sync" onclick="guardarEnGist(true)" style="background:#6366f1;border-color:#6366f1;display:none;" title="Guardar en Gist">☁️ Guardar Gist</button>
@@ -2089,7 +2088,6 @@
             guardarDatos();
             actualizarTodo();
             actualizarResumenAnual();
-        actualizarBotonesRegenerar();
             cerrarModalConfig();
             mostrarNotificacion('✅ Configuración guardada', 'exito');
         }
@@ -2979,115 +2977,6 @@
             return nuevo;
         }
 
-        function regenerarAnoDesdeAnterior() {
-            const anoAnterior = anoActual - 1;
-            const guardadoAnterior = localStorage.getItem('finanzasPersonales_' + anoAnterior);
-            if (!guardadoAnterior) {
-                mostrarNotificacion('❌ No hay datos de ' + anoAnterior + ' para regenerar', 'error');
-                return;
-            }
-            if (!confirm('¿Regenerar ' + anoActual + ' desde ' + anoAnterior + '?\n\nSe perderán los datos actuales de ' + anoActual + '.')) return;
-            const datosAnterior = JSON.parse(guardadoAnterior);
-            datos = generarDatosAnoSiguiente(datosAnterior, anoAnterior);
-            guardarDatos();
-            actualizarTodo();
-            actualizarResumenAnual();
-            actualizarCategorias();
-            mostrarNotificacion('✅ ' + anoActual + ' regenerado desde ' + anoAnterior, 'exito');
-        }
-
-        function regenerarTodosLosAnos() {
-            // Solo regenerar desde el año actual en adelante
-            const ANOS = [];
-            for (let y = anoActual; y <= 2040; y++) {
-                if (localStorage.getItem('finanzasPersonales_' + y) || y === anoActual) ANOS.push(y);
-            }
-            
-            // Necesitamos el año anterior como base
-            const anoBase = anoActual - 1;
-            const guardadoBase = localStorage.getItem('finanzasPersonales_' + anoBase);
-            if (!guardadoBase) {
-                mostrarNotificacion('❌ No hay datos de ' + anoBase + ' para usar como base', 'error');
-                return;
-            }
-
-            if (ANOS.length < 1) {
-                mostrarNotificacion('❌ No hay años para regenerar', 'error');
-                return;
-            }
-
-            if (!confirm(
-                '🔄 REGENERACIÓN EN CADENA\n\n' +
-                'Se regenerarán todos los años desde ' + anoActual + ' en adelante\n' +
-                'usando como base ' + anoBase + ' y aplicando los % de incremento.\n\n' +
-                '⚠️ Los extras puntuales de cada mes se perderán.\n' +
-                'Los extras recurrentes (con fecha fin) se conservan.\n\n' +
-                '¿Continuar?'
-            )) return;
-
-            // Guardar año actual antes de tocar nada
-            guardarDatos();
-
-            let regenerados = [];
-            
-            // Primer año: regenerar desde anoBase
-            let datosBase = JSON.parse(guardadoBase);
-            let nuevoDatos = generarDatosAnoSiguiente(datosBase, anoBase);
-            
-            // Conservar extrasRecurrentes si ya existían
-            const rawActual = localStorage.getItem('finanzasPersonales_' + anoActual);
-            if (rawActual) {
-                const datosActual = JSON.parse(rawActual);
-                if (datosActual.extrasRecurrentes && datosActual.extrasRecurrentes.length > 0) {
-                    nuevoDatos.extrasRecurrentes = datosActual.extrasRecurrentes;
-                }
-            }
-            
-            nuevoDatos._modificadoEn = new Date().toISOString();
-            delete nuevoDatos._exportadoEn;
-            localStorage.setItem('finanzasPersonales_' + anoActual, JSON.stringify(nuevoDatos));
-            regenerados.push(anoActual);
-            
-            // Años siguientes: en cadena
-            for (let i = 1; i < ANOS.length; i++) {
-                const anoTarget = ANOS[i];
-                const anoAnterior = ANOS[i - 1];
-                
-                const rawAnterior = localStorage.getItem('finanzasPersonales_' + anoAnterior);
-                if (!rawAnterior) continue;
-                
-                datosBase = JSON.parse(rawAnterior);
-                nuevoDatos = generarDatosAnoSiguiente(datosBase, anoAnterior);
-                
-                // Conservar extrasRecurrentes del año destino si ya los tiene
-                const rawTarget = localStorage.getItem('finanzasPersonales_' + anoTarget);
-                if (rawTarget) {
-                    const datosTarget = JSON.parse(rawTarget);
-                    if (datosTarget.extrasRecurrentes && datosTarget.extrasRecurrentes.length > 0) {
-                        nuevoDatos.extrasRecurrentes = datosTarget.extrasRecurrentes;
-                    }
-                }
-                
-                nuevoDatos._modificadoEn = new Date().toISOString();
-                delete nuevoDatos._exportadoEn;
-                localStorage.setItem('finanzasPersonales_' + anoTarget, JSON.stringify(nuevoDatos));
-                regenerados.push(anoTarget);
-            }
-
-            // Recargar el año que estaba activo
-            const rawRecargado = localStorage.getItem('finanzasPersonales_' + anoActual);
-            if (rawRecargado) {
-                datos = JSON.parse(rawRecargado);
-                if (!datos.extrasRecurrentes) datos.extrasRecurrentes = [];
-            }
-
-            actualizarTodo();
-            actualizarResumenAnual();
-            actualizarCategorias();
-            programarGuardadoGist();
-            mostrarNotificacion('✅ Regenerados: ' + regenerados.join(', '), 'exito');
-        }
-
         function cambiarAno() {
             // Persistir el estado actual sin marcarlo como cambio: navegar no modifica el año.
             guardarDatos(false, false);
@@ -3136,8 +3025,7 @@
             actualizarTodo();
             actualizarResumenAnual();
             actualizarCategorias();
-            actualizarBotonesRegenerar();
-        }
+            }
         
         function cambiarMes() {
             mesActual = parseInt(document.getElementById('mes-select').value);
@@ -3707,21 +3595,6 @@
             // Ya no cierra meses automáticamente al cargar.
             // Los meses pasados solo se cierran cuando el usuario lo hace manualmente.
             // Esto evita que cualquier cambio en fijos contamine datos de meses pasados.
-        }
-
-        
-        function actualizarBotonesRegenerar() {
-            const anoRealSistema = new Date().getFullYear();
-            const btnRegenerarAno = document.getElementById('btn-regenerar-ano');
-            const btnRegenerarTodos = document.getElementById('btn-regenerar-todos');
-            
-            if (anoActual > anoRealSistema) {
-                if (btnRegenerarAno) btnRegenerarAno.style.display = '';
-                if (btnRegenerarTodos) btnRegenerarTodos.style.display = '';
-            } else {
-                if (btnRegenerarAno) btnRegenerarAno.style.display = 'none';
-                if (btnRegenerarTodos) btnRegenerarTodos.style.display = 'none';
-            }
         }
 
         function actualizarBannerMesCerrado() {
@@ -5352,6 +5225,260 @@
             editandoMedioNuevo = 'cuenta';
         }
 
+        // ──────────────────────────────────────────────────────────────────
+        // PROPAGACIÓN DE PARTIDAS BASE HACIA AÑOS FUTUROS
+        // Un cambio global hecho en un fijo empieza en el mes elegido y se
+        // convierte en la nueva referencia para esa MISMA partida en años
+        // futuros ya creados. No se regeneran años completos ni se tocan
+        // otras partidas.
+        // ──────────────────────────────────────────────────────────────────
+        function fuenteBasePropagable(fuente) {
+            return ['ingresosFijos', 'ingresosBonus', 'gastosFijos', 'gastosVacaciones'].includes(fuente);
+        }
+
+        function obtenerArrayBasePorFuente(d, fuente) {
+            if (!d) return null;
+            if (fuente === 'ingresosFijos') return d.ingresosFijos || [];
+            if (fuente === 'ingresosBonus') return d.ingresosBonus || [];
+            if (fuente === 'gastosFijos') return d.gastosFijos || [];
+            if (fuente === 'gastosVacaciones') return d.gastosVacaciones || [];
+            return null;
+        }
+
+        function fuenteBaseDesdeModalActual() {
+            if (modalTipo === 'ingresos-bonus') return 'ingresosBonus';
+            if (modalTipo === 'vacaciones') return 'gastosVacaciones';
+            if (modalTipo === 'fijos') {
+                if (tipoActual === 'ingresos') return 'ingresosFijos';
+                const selector = document.getElementById('categoria-input');
+                return selector && selector.value !== 'fijos' ? 'gastosVacaciones' : 'gastosFijos';
+            }
+            return null;
+        }
+
+        function claveConceptoSerie(texto) {
+            return String(texto || '').trim().toLowerCase()
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .replace(/\s+/g, ' ');
+        }
+
+        function crearSerieIdBase(fuente) {
+            return 'base_' + fuente + '_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 9);
+        }
+
+        function asegurarSerieIdBase(item, fuente) {
+            if (!item) return null;
+            if (!item._serieId) item._serieId = crearSerieIdBase(fuente);
+            return item._serieId;
+        }
+
+        function partidaBaseAplicaEnMes(item, mes) {
+            if (!item) return false;
+            if (item.frecuencia === 'mensual') return true;
+            if (item.frecuencia === 'anual') return Array.isArray(item.meses) && item.meses.includes(mes);
+            return false;
+        }
+
+        function mesesBaseIguales(a, b) {
+            const aa = Array.isArray(a) ? a.map(Number).slice().sort((x,y)=>x-y) : [];
+            const bb = Array.isArray(b) ? b.map(Number).slice().sort((x,y)=>x-y) : [];
+            return aa.length === bb.length && aa.every((v, i) => v === bb[i]);
+        }
+
+        function cambiosEntrePartidasBase(anterior, nueva) {
+            return {
+                concepto: String(anterior && anterior.concepto || '') !== String(nueva && nueva.concepto || ''),
+                valor: Number(anterior && anterior.valor) !== Number(nueva && nueva.valor),
+                medio: normalizarMedioPago(anterior && anterior.medio) !== normalizarMedioPago(nueva && nueva.medio),
+                frecuencia: String(anterior && anterior.frecuencia || '') !== String(nueva && nueva.frecuencia || ''),
+                meses: !mesesBaseIguales(anterior && anterior.meses, nueva && nueva.meses)
+            };
+        }
+
+        // Si el cambio se hace, por ejemplo, en Agosto, los meses anteriores
+        // que sigan abiertos conservan el valor que tenían antes del cambio.
+        // Los cerrados ya están protegidos por su snapshot y no se tocan.
+        function congelarPartidaBaseAntesDelMes(fuente, index, anterior, nueva, mesInicio) {
+            if (!fuenteBasePropagable(fuente) || !anterior || !nueva) return;
+            for (let m = 0; m < mesInicio; m++) {
+                if (datos.mesesCerrados && datos.mesesCerrados[m]) continue;
+                const mesData = datos.meses && datos.meses[m];
+                if (!mesData) continue;
+                if (!mesData.overrides) mesData.overrides = {};
+                const key = fuente + '_' + index;
+                // Una excepción ya existente representa una decisión concreta
+                // de ese mes; la respetamos.
+                if (mesData.overrides[key]) continue;
+
+                const aplicabaAntes = partidaBaseAplicaEnMes(anterior, m);
+                const aplicaraDespues = partidaBaseAplicaEnMes(nueva, m);
+                if (aplicabaAntes) {
+                    mesData.overrides[key] = {
+                        concepto: anterior.concepto,
+                        valor: Number(anterior.valor) || 0,
+                        medio: normalizarMedioPago(anterior.medio),
+                        ...(aplicaraDespues ? {} : { forzarEnMes: true })
+                    };
+                } else if (aplicaraDespues) {
+                    // La nueva frecuencia incluiría retroactivamente este mes;
+                    // lo anulamos para que el cambio empiece realmente en mesInicio.
+                    mesData.overrides[key] = {
+                        concepto: anterior.concepto || nueva.concepto,
+                        valor: 0,
+                        medio: normalizarMedioPago(anterior.medio || nueva.medio),
+                        eliminado: true
+                    };
+                }
+            }
+        }
+
+        function buscarPartidaBaseEnAno(arr, serieId, referenciaAnterior, referenciaNueva, indexPreferido) {
+            if (!Array.isArray(arr) || arr.length === 0) return -1;
+            let idx = arr.findIndex(x => x && x._serieId && x._serieId === serieId);
+            if (idx >= 0) return idx;
+
+            const claves = new Set([
+                claveConceptoSerie(referenciaAnterior && referenciaAnterior.concepto),
+                claveConceptoSerie(referenciaNueva && referenciaNueva.concepto)
+            ].filter(Boolean));
+
+            // Primero, mismo índice + mismo concepto: es el caso normal de los
+            // años que nacieron como copia planificada del anterior.
+            if (Number.isInteger(indexPreferido) && arr[indexPreferido]) {
+                const c = claveConceptoSerie(arr[indexPreferido].concepto);
+                if (claves.has(c)) return indexPreferido;
+            }
+
+            // Después, coincidencia única por concepto (tolera que el índice se
+            // haya desplazado porque se añadió/eliminó otra partida).
+            for (const clave of claves) {
+                const coincidencias = [];
+                arr.forEach((x, i) => {
+                    if (x && claveConceptoSerie(x.concepto) === clave) coincidencias.push(i);
+                });
+                if (coincidencias.length === 1) return coincidencias[0];
+            }
+
+            // Último recurso para datos antiguos sin id: mismo índice y misma
+            // frecuencia. Así también enlazamos una partida que se renombró en
+            // un año posterior sin confundir arrays claramente distintos.
+            if (Number.isInteger(indexPreferido) && arr[indexPreferido]) {
+                const candidato = arr[indexPreferido];
+                const fRef = String(referenciaAnterior && referenciaAnterior.frecuencia || referenciaNueva && referenciaNueva.frecuencia || '');
+                if (!fRef || String(candidato.frecuencia || '') === fRef) return indexPreferido;
+            }
+            return -1;
+        }
+
+        function redondearCentimos(valor) {
+            return Math.round((Number(valor) || 0) * 100) / 100;
+        }
+
+        function valorPartidaBaseAnoSiguiente(valorBase, fuente, datosBaseAno, conceptoBase) {
+            const valor = Number(valorBase) || 0;
+            // Conserva la excepción histórica de los gastos cuyo concepto lleva ING.
+            if (fuente === 'gastosFijos' && String(conceptoBase || '').toUpperCase().includes('ING')) {
+                return redondearCentimos(valor);
+            }
+            const inc = datosBaseAno && datosBaseAno.incrementos ? datosBaseAno.incrementos : { ingresos: 1, gastos: 2 };
+            const pct = (fuente === 'ingresosFijos' || fuente === 'ingresosBonus')
+                ? (Number(inc.ingresos) || 0)
+                : (Number(inc.gastos) || 0);
+            return redondearCentimos(valor * (1 + pct / 100));
+        }
+
+        function propagarCambioPartidaBase(fuente, index, anterior, nueva, mesInicio) {
+            if (!fuenteBasePropagable(fuente) || !anterior || !nueva) return { anosActualizados: 0 };
+
+            const arrActual = obtenerArrayBasePorFuente(datos, fuente);
+            if (!arrActual || !arrActual[index]) return { anosActualizados: 0 };
+
+            const cambios = cambiosEntrePartidasBase(anterior, nueva);
+            const serieId = anterior._serieId || nueva._serieId || crearSerieIdBase(fuente);
+            nueva._serieId = serieId;
+
+            // El cambio global empieza realmente en el mes elegido, no hacia atrás.
+            congelarPartidaBaseAntesDelMes(fuente, index, anterior, nueva, mesInicio);
+            arrActual[index] = nueva;
+
+            let anosActualizados = 0;
+            let datosPrevios = datos;
+            let valorDerivado = Number(nueva.valor) || 0;
+            let refAnterior = anterior;
+            let refNueva = nueva;
+            let indexPreferido = index;
+            let seguirPartida = true;
+
+            // El saldo de cada 1 de enero también debe quedar encadenado después
+            // del cambio. Partimos del saldo real del año actual.
+            let saldoInicioPrevio = calcularSaldoInicioRealDelAno(anoActual);
+            let saldoFinPrevio = redondearCentimos(
+                calcularBalanceAcumuladoDeDatos(datos, 11, anoActual, saldoInicioPrevio)
+            );
+
+            for (let y = anoActual + 1; y <= 2040; y++) {
+                const keyAno = 'finanzasPersonales_' + y;
+                const raw = localStorage.getItem(keyAno);
+                if (!raw) break; // Los años se crean en cadena; los aún no creados heredarán esta base al nacer.
+
+                let d;
+                try { d = JSON.parse(raw); } catch (e) { break; }
+                if (!d) break;
+                if (!d.incrementos) d.incrementos = { ingresos: 1, gastos: 2 };
+                if (!d.meses) d.meses = [];
+                if (!d.mesesCerrados) d.mesesCerrados = {};
+                normalizarMediosPagoDatos(d);
+
+                // 31 Dic del año anterior = 1 Ene de este año, también en el dato guardado.
+                d.saldoInicial = saldoFinPrevio;
+
+                if (seguirPartida) {
+                    const arrDestino = obtenerArrayBasePorFuente(d, fuente);
+                    const idxDestino = buscarPartidaBaseEnAno(arrDestino, serieId, refAnterior, refNueva, indexPreferido);
+                    if (idxDestino >= 0) {
+                        const antesDestino = { ...arrDestino[idxDestino], meses: Array.isArray(arrDestino[idxDestino].meses) ? arrDestino[idxDestino].meses.slice() : undefined };
+                        const destino = arrDestino[idxDestino];
+                        destino._serieId = serieId;
+
+                        if (cambios.valor) {
+                            valorDerivado = valorPartidaBaseAnoSiguiente(valorDerivado, fuente, datosPrevios, refNueva.concepto);
+                            destino.valor = valorDerivado;
+                        } else {
+                            valorDerivado = Number(destino.valor) || 0;
+                        }
+                        if (cambios.concepto) destino.concepto = nueva.concepto;
+                        if (cambios.medio) destino.medio = normalizarMedioPago(nueva.medio);
+                        if (cambios.frecuencia) destino.frecuencia = nueva.frecuencia;
+                        if (cambios.meses || cambios.frecuencia) {
+                            if (nueva.frecuencia === 'anual') destino.meses = Array.isArray(nueva.meses) ? nueva.meses.slice() : [];
+                            else delete destino.meses;
+                        }
+
+                        refAnterior = antesDestino;
+                        refNueva = { ...destino, meses: Array.isArray(destino.meses) ? destino.meses.slice() : undefined };
+                        indexPreferido = idxDestino;
+                    } else {
+                        // Si esa partida fue eliminada expresamente en un año futuro,
+                        // no la resucitamos ni tocamos otra partida por error.
+                        seguirPartida = false;
+                    }
+                }
+
+                d._modificadoEn = new Date().toISOString();
+                delete d._exportadoEn;
+                localStorage.setItem(keyAno, JSON.stringify(d));
+                anosActualizados++;
+
+                const saldoInicioEsteAno = Number(d.saldoInicial) || 0;
+                saldoFinPrevio = redondearCentimos(
+                    calcularBalanceAcumuladoDeDatos(d, 11, y, saldoInicioEsteAno)
+                );
+                datosPrevios = d;
+            }
+
+            return { anosActualizados };
+        }
+
         function aplicarEdicionConAlcance(alcance) {
             if (esMesPasado(mesActual, anoActual)) {
                 mostrarNotificacion('🔒 Mes cerrado — los datos son definitivos', 'error');
@@ -5389,6 +5516,11 @@
                 datos.meses[mesActual].overrides[key] = { concepto: editandoConcepto, valor: editandoValorNuevo, medio: normalizarMedioPago(editandoMedioNuevo), ...(forzarFijo ? { forzarEnMes: true } : {}) };
                 mostrarNotificacion('✅ Actualizado solo para ' + MESES_NOMBRES[mesActual] + ' (' + editandoValorNuevo + '€)', 'exito');
             } else if (alcance === 'todos-abiertos') {
+                const fuenteBase = fuenteBaseDesdeModalActual();
+                const arrBase = fuenteBase ? obtenerArrayBasePorFuente(datos, fuenteBase) : null;
+                const anterior = arrBase && arrBase[itemEditandoIndex]
+                    ? { ...arrBase[itemEditandoIndex], meses: Array.isArray(arrBase[itemEditandoIndex].meses) ? arrBase[itemEditandoIndex].meses.slice() : undefined }
+                    : null;
                 const item = {
                     concepto: editandoConcepto,
                     valor: editandoValorNuevo,
@@ -5397,11 +5529,20 @@
                 };
                 
                 if (editandoFrecuenciaNueva === 'anual') {
-                    item.meses = editandoMesesNuevos;
+                    item.meses = editandoMesesNuevos.slice();
                 }
-                
-                obtenerArrayActual()[itemEditandoIndex] = item;
-                mostrarNotificacion('✅ Actualizado en todos los meses abiertos', 'exito');
+
+                if (fuenteBase && anterior) {
+                    item._serieId = anterior._serieId || crearSerieIdBase(fuenteBase);
+                    const resultado = propagarCambioPartidaBase(fuenteBase, itemEditandoIndex, anterior, item, mesActual);
+                    const extra = resultado.anosActualizados > 0
+                        ? ' · ' + resultado.anosActualizados + (resultado.anosActualizados === 1 ? ' año futuro actualizado' : ' años futuros actualizados')
+                        : '';
+                    mostrarNotificacion('✅ Actualizado desde ' + MESES_NOMBRES[mesActual] + ' en adelante' + extra, 'exito');
+                } else {
+                    obtenerArrayActual()[itemEditandoIndex] = item;
+                    mostrarNotificacion('✅ Actualizado en todos los meses abiertos', 'exito');
+                }
             }
             
             document.getElementById('modal-alcance-edicion').style.display = 'none';
@@ -6099,29 +6240,31 @@
                 }
                 mostrarNotificacion('✅ ' + nuevoConcepto + ' actualizado solo para ' + MESES_NOMBRES[mesVerTodo], 'exito');
             } else {
-                // Actualizar el array global (todos los meses)
-                if (item.fuente === 'ingresosFijos') {
-                    datos.ingresosFijos[item.index].concepto = nuevoConcepto;
-                    datos.ingresosFijos[item.index].valor = nuevoValor;
-                    datos.ingresosFijos[item.index].medio = normalizarMedioPago(nuevoMedio);
-                } else if (item.fuente === 'gastosFijos') {
-                    datos.gastosFijos[item.index].concepto = nuevoConcepto;
-                    datos.gastosFijos[item.index].valor = nuevoValor;
-                    datos.gastosFijos[item.index].medio = normalizarMedioPago(nuevoMedio);
-                } else if (item.fuente === 'gastosVacaciones') {
-                    datos.gastosVacaciones[item.index].concepto = nuevoConcepto;
-                    datos.gastosVacaciones[item.index].valor = nuevoValor;
-                    datos.gastosVacaciones[item.index].medio = normalizarMedioPago(nuevoMedio);
-                } else if (item.fuente === 'ingresosBonus') {
-                    datos.ingresosBonus[item.index].concepto = nuevoConcepto;
-                    datos.ingresosBonus[item.index].valor = nuevoValor;
-                    datos.ingresosBonus[item.index].medio = normalizarMedioPago(nuevoMedio);
+                if (fuenteBasePropagable(item.fuente)) {
+                    const arrBase = obtenerArrayBasePorFuente(datos, item.fuente);
+                    const anterior = arrBase && arrBase[item.index]
+                        ? { ...arrBase[item.index], meses: Array.isArray(arrBase[item.index].meses) ? arrBase[item.index].meses.slice() : undefined }
+                        : null;
+                    if (anterior) {
+                        const nueva = {
+                            ...anterior,
+                            concepto: nuevoConcepto,
+                            valor: nuevoValor,
+                            medio: normalizarMedioPago(nuevoMedio),
+                            _serieId: anterior._serieId || crearSerieIdBase(item.fuente)
+                        };
+                        const resultado = propagarCambioPartidaBase(item.fuente, item.index, anterior, nueva, mesVerTodo);
+                        const extra = resultado.anosActualizados > 0
+                            ? ' · ' + resultado.anosActualizados + (resultado.anosActualizados === 1 ? ' año futuro actualizado' : ' años futuros actualizados')
+                            : '';
+                        mostrarNotificacion('✅ ' + nuevoConcepto + ' actualizado desde ' + MESES_NOMBRES[mesVerTodo] + extra, 'exito');
+                    }
                 } else if (item.fuente === 'extrasRecurrentes') {
                     datos.extrasRecurrentes[item.index].concepto = nuevoConcepto;
                     datos.extrasRecurrentes[item.index].valor = nuevoValor;
                     datos.extrasRecurrentes[item.index].medio = normalizarMedioPago(nuevoMedio);
+                    mostrarNotificacion('✅ ' + nuevoConcepto + ' actualizado en su periodo recurrente', 'exito');
                 }
-                mostrarNotificacion('✅ ' + nuevoConcepto + ' actualizado en todos los meses', 'exito');
             }
 
             guardarDatos();
@@ -6319,7 +6462,7 @@
                     </button>
                     <button onclick="aplicarEdicionConAlcance('todos-abiertos')" 
                             style="padding: 15px; font-size: 16px; background: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer;">
-                        🔄 Todos los meses abiertos (desde <span id="alcance-mes-nombre2"></span>)
+                        🔄 Desde <span id="alcance-mes-nombre2"></span> en adelante + años futuros
                     </button>
                     <button onclick="cerrarModalAlcance()" 
                             style="padding: 10px; font-size: 14px; background: #999; color: white; border: none; border-radius: 8px; cursor: pointer;">
@@ -6344,7 +6487,7 @@
                     </button>
                     <button onclick="aplicarEdicionInlineConAlcance('todos-abiertos')" 
                             style="padding: 15px; font-size: 16px; background: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer;">
-                        🌍 Todos los meses (valor global)
+                        🌍 Desde este mes en adelante + años futuros
                     </button>
                     <button onclick="cerrarModalAlcanceInline(); _edicionPendiente = null;" 
                             style="padding: 10px; font-size: 14px; background: #999; color: white; border: none; border-radius: 8px; cursor: pointer;">
@@ -7585,7 +7728,7 @@ function recalcularSimulador() {
             <div class="comparativa-toolbar comparativa-anios-toolbar">
                 <div style="min-width:0;">
                     <h2 style="margin:0;color:#1e3a8a;font-size:1.18em;">📈 Comparativa por años · <span id="comparativa-anios-rango"></span></h2>
-                    <div class="comparativa-subtitulo">Cada celda muestra el total anual del concepto. La misma fila se mantiene en todos los años.</div>
+                    <div class="comparativa-subtitulo">Cada celda muestra el total anual del concepto. La misma fila se mantiene en todos los años. La última columna suma el concepto en todo el rango.</div>
                 </div>
                 <div class="comparativa-anios-acciones">
                     <input type="text" id="comparativa-anios-buscador" placeholder="🔎 Buscar concepto (ej. Agua)" oninput="filtrarComparativaAnios()">
@@ -7656,6 +7799,28 @@ function recalcularSimulador() {
             border-radius:8px;
             margin-bottom:10px;
         }
+        #modal-comparativa-anios .comparativa-table th.comparativa-total-rango,
+        #modal-comparativa-anios .comparativa-table td.comparativa-total-rango {
+            width:112px;
+            min-width:112px;
+            max-width:112px;
+            border-left:2px solid #94a3b8;
+            font-weight:900;
+        }
+        #modal-comparativa-anios .comparativa-table thead th.comparativa-total-rango {
+            background:#3730a3 !important;
+            color:white !important;
+            letter-spacing:0.04em;
+        }
+        #modal-comparativa-anios .comparativa-table .comparativa-fila td.comparativa-total-rango {
+            background:#eef2ff !important;
+        }
+        #modal-comparativa-anios .comparativa-table .comparativa-fila.alt td.comparativa-total-rango {
+            background:#e0e7ff !important;
+        }
+        #modal-comparativa-anios .comparativa-table td.comparativa-total-rango.valor-ingreso { color:#047857; }
+        #modal-comparativa-anios .comparativa-table td.comparativa-total-rango.valor-gasto { color:#b91c1c; }
+        #modal-comparativa-anios .comparativa-table td.comparativa-total-rango.valor-vacaciones { color:#c2410c; }
         @media (hover:none) and (pointer:coarse) {
             #modal-comparativa-anios { overflow:hidden !important; }
             #modal-comparativa-anios .comparativa-anios-modal-content {
@@ -7913,22 +8078,41 @@ function recalcularSimulador() {
         function totalBloqueAno(bloque, idxAno) {
             let t=0; porAno[idxAno].bloques[bloque].forEach(function(x){ t += Number(x.total)||0; }); return t;
         }
+        function totalBloqueRango(bloque) {
+            let t=0;
+            for (let i=0; i<anos.length; i++) t += totalBloqueAno(bloque, i);
+            return t;
+        }
+        function totalFilaRango(valores) {
+            let total=0, hayValor=false;
+            (valores || []).forEach(function(v) {
+                if (v === null || v === undefined) return;
+                total += Number(v) || 0;
+                hayValor = true;
+            });
+            return hayValor ? total : null;
+        }
         function celda(v, clase) {
             if (v === null || v === undefined) return '<td class="vacio">&nbsp;</td>';
             return '<td class="'+clase+'">'+comparativaEscaparHTML(formatearMoneda(v))+'</td>';
+        }
+        function celdaTotalRango(v, clase) {
+            if (v === null || v === undefined) return '<td class="vacio comparativa-total-rango">&nbsp;</td>';
+            return '<td class="comparativa-total-rango '+clase+'">'+comparativaEscaparHTML(formatearMoneda(v))+'</td>';
         }
         function renderBloque(clave,titulo,icono,claseValor) {
             const filas=filasOrdenadas(clave);
             let out='<tr class="comparativa-seccion '+clave+'"><td>'+icono+' '+titulo+'</td>';
             for(let i=0;i<anos.length;i++) out+='<td>'+comparativaEscaparHTML(formatearMoneda(totalBloqueAno(clave,i)))+'</td>';
-            out+='</tr>';
+            out+='<td class="comparativa-total-rango">'+comparativaEscaparHTML(formatearMoneda(totalBloqueRango(clave)))+'</td></tr>';
             filas.forEach(function(fila,idx){
                 const normalizado=comparativaClaveConcepto(fila.concepto);
                 out+='<tr class="comparativa-fila comparativa-anios-fila'+(idx%2?' alt':'')+'" data-concepto="'+comparativaEscaparHTML(normalizado)+'"><td title="'+comparativaEscaparHTML(fila.concepto)+'">'+comparativaEscaparHTML(fila.concepto)+'</td>';
                 fila.anos.forEach(function(v){out+=celda(v,claseValor);});
+                out+=celdaTotalRango(totalFilaRango(fila.anos),claseValor);
                 out+='</tr>';
             });
-            if(!filas.length) out+='<tr class="comparativa-fila"><td style="font-style:italic;color:#94a3b8;">Sin partidas</td>'+('<td class="vacio">&nbsp;</td>'.repeat(anos.length))+'</tr>';
+            if(!filas.length) out+='<tr class="comparativa-fila"><td style="font-style:italic;color:#94a3b8;">Sin partidas</td>'+('<td class="vacio">&nbsp;</td>'.repeat(anos.length))+'<td class="vacio comparativa-total-rango">&nbsp;</td></tr>';
             return out;
         }
 
@@ -7938,11 +8122,13 @@ function recalcularSimulador() {
             '<span><i class="comparativa-punto" style="background:#f97316;"></i> Vacaciones</span>'+
             '<span>Celda vacía = el concepto no existe en ese año</span>'+
             '<span><strong>Proy.</strong> = año aún no guardado</span>'+
+            '<span><strong>Σ Total</strong> = suma de todas las columnas, incluidas las proyecciones visibles</span>'+
             '</div><div id="comparativa-anios-sin-resultados" class="comparativa-anios-sin-resultados">No hay conceptos que coincidan con la búsqueda.</div>';
         html+='<table class="comparativa-table"><thead><tr><th>Concepto</th>';
         porAno.forEach(function(pa){
             html+='<th title="'+pa.ano+(pa.proyectado?' · proyección':'')+'">'+pa.ano+(pa.proyectado?'<span class="comparativa-anios-proyectado">Proy.</span>':'')+'</th>';
         });
+        html+='<th class="comparativa-total-rango" title="Suma de todos los años visibles">Σ TOTAL</th>';
         html+='</tr></thead><tbody>';
         html+=renderBloque('ingresos','INGRESOS','📈','valor-ingreso');
         html+=renderBloque('gastos','GASTOS','📉','valor-gasto');
@@ -7950,19 +8136,24 @@ function recalcularSimulador() {
 
         // Resultado final anual: total de ingresos - total de gastos - total de vacaciones.
         html+='<tr class="comparativa-balance"><td>💰 BALANCE AÑO</td>';
+        let balanceRango = 0;
         for(let i=0;i<anos.length;i++) {
             const balance = totalBloqueAno('ingresos',i) - totalBloqueAno('gastos',i) - totalBloqueAno('vacaciones',i);
+            balanceRango += balance;
             const claseBalance = balance > 0 ? 'balance-positivo' : (balance < 0 ? 'balance-negativo' : 'balance-neutro');
             const signo = balance > 0 ? '+' : '';
             html+='<td class="'+claseBalance+'">'+signo+comparativaEscaparHTML(formatearMoneda(balance))+'</td>';
         }
+        const claseBalanceRango = balanceRango > 0 ? 'balance-positivo' : (balanceRango < 0 ? 'balance-negativo' : 'balance-neutro');
+        const signoBalanceRango = balanceRango > 0 ? '+' : '';
+        html+='<td class="comparativa-total-rango '+claseBalanceRango+'">'+signoBalanceRango+comparativaEscaparHTML(formatearMoneda(balanceRango))+'</td>';
         html+='</tr>';
         html+='</tbody></table>';
         contenido.innerHTML=html;
 
         const table=contenido.querySelector('.comparativa-table');
         if(table) {
-            const minWidth=Math.max(1100,235+(anos.length*94));
+            const minWidth=Math.max(1215,235+(anos.length*94)+112);
             table.style.minWidth=minWidth+'px';
         }
         const scroll=document.getElementById('comparativa-anios-scroll');
@@ -8110,6 +8301,8 @@ function recalcularSimulador() {
             #modal-comparativa-anual .comparativa-modal-content,
             #modal-comparativa-anios .comparativa-anios-modal-content {
                 width: 100% !important;
+                max-width: 100% !important;
+                min-width: 0 !important;
                 height: 100% !important;
                 max-height: 100% !important;
                 margin: 0 auto !important;
@@ -8117,8 +8310,10 @@ function recalcularSimulador() {
                 overflow: hidden !important;
                 display: flex !important;
                 flex-direction: column !important;
-                touch-action: auto !important;
-                overscroll-behavior: none !important;
+                overscroll-behavior-x: none !important;
+                overscroll-behavior-y: none !important;
+                transform: translate3d(0,0,0) !important;
+                -webkit-transform: translate3d(0,0,0) !important;
             }
 
             /* Esta es la UNICA zona desplazable de cada comparativa. */
@@ -8131,8 +8326,10 @@ function recalcularSimulador() {
                 overflow-x: auto !important;
                 overflow-y: auto !important;
                 -webkit-overflow-scrolling: auto !important;
-                overscroll-behavior: contain !important;
-                touch-action: auto !important;
+                overscroll-behavior-x: none !important;
+                overscroll-behavior-y: contain !important;
+                touch-action: pan-x pan-y !important;
+                overflow-anchor: none !important;
                 padding-bottom: 28px !important;
             }
 
@@ -8155,6 +8352,53 @@ function recalcularSimulador() {
             }
         }
     </style>
+
+    <!-- iPad/iOS: bloquear el rebote horizontal al llegar a los extremos de las comparativas -->
+    <script>
+    (function() {
+        if (!window.matchMedia || !window.matchMedia('(hover: none) and (pointer: coarse)').matches) return;
+
+        function instalarBloqueo(sc) {
+            if (!sc || sc.dataset.bloqueoReboteX === '1') return;
+            sc.dataset.bloqueoReboteX = '1';
+            var lastX = 0, lastY = 0;
+
+            sc.addEventListener('touchstart', function(e) {
+                if (!e.touches || e.touches.length !== 1) return;
+                lastX = e.touches[0].clientX;
+                lastY = e.touches[0].clientY;
+            }, { passive: true });
+
+            sc.addEventListener('touchmove', function(e) {
+                if (!e.touches || e.touches.length !== 1) return;
+                var x = e.touches[0].clientX;
+                var y = e.touches[0].clientY;
+                var dx = x - lastX;
+                var dy = y - lastY;
+                lastX = x;
+                lastY = y;
+
+                // Solo intervenimos en un gesto claramente horizontal y únicamente
+                // cuando Safari intentaría arrastrar más allá del borde de la tabla.
+                if (Math.abs(dx) <= Math.abs(dy)) return;
+                var maxX = Math.max(0, sc.scrollWidth - sc.clientWidth);
+                var enIzquierda = sc.scrollLeft <= 0.5;
+                var enDerecha = sc.scrollLeft >= maxX - 0.5;
+                if ((enIzquierda && dx > 0) || (enDerecha && dx < 0)) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+        }
+
+        function iniciar() {
+            instalarBloqueo(document.getElementById('comparativa-scroll'));
+            instalarBloqueo(document.getElementById('comparativa-anios-scroll'));
+        }
+
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', iniciar);
+        else iniciar();
+    })();
+    </script>
 
     <!-- ══════════ MOVIMIENTOS PROGRAMADOS ══════════ -->
     <div id="modal-programados" class="modal" style="z-index:1250;">
