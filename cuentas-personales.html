@@ -2819,9 +2819,10 @@
             return d;
         }
 
-        function calcularBalanceAcumuladoDeDatos(d, hastaMes, anoContexto) {
+        function calcularBalanceAcumuladoDeDatos(d, hastaMes, anoContexto, saldoInicialForzado) {
             const anoCalculo = Number.isInteger(anoContexto) ? anoContexto : anoActual;
-            let acumulado = Number(d.saldoInicial) || 0;
+            const tieneSaldoForzado = saldoInicialForzado !== undefined && saldoInicialForzado !== null && Number.isFinite(Number(saldoInicialForzado));
+            let acumulado = tieneSaldoForzado ? Number(saldoInicialForzado) : (Number(d.saldoInicial) || 0);
             for (let i = 0; i <= hastaMes; i++) {
                 const cierre = d.mesesCerrados && d.mesesCerrados[i];
                 if (cierre && cierre.snapshot) {
@@ -2909,8 +2910,15 @@
 
         function generarDatosAnoSiguiente(datosBase, anoBaseContexto) {
             normalizarMediosPagoDatos(datosBase);
-            // Calcular saldo final de diciembre del año base ANTES de modificar nada
-            const saldoFinalAnoBase = Math.round(calcularBalanceAcumuladoDeDatos(datosBase, 11, Number.isInteger(anoBaseContexto) ? anoBaseContexto : anoActual));
+            // Calcular el saldo final con EXACTAMENTE la misma cadena que muestra el dashboard.
+            // Si hay un año anterior disponible, su saldo final real es el saldo inicial de este año.
+            const anoBaseCalculo = Number.isInteger(anoBaseContexto) ? anoBaseContexto : anoActual;
+            const saldoInicioBaseReal = Number.isInteger(anoBaseContexto)
+                ? calcularSaldoInicioRealDelAno(anoBaseCalculo)
+                : (Number(datosBase.saldoInicial) || 0);
+            const saldoFinalAnoBase = Math.round(
+                calcularBalanceAcumuladoDeDatos(datosBase, 11, anoBaseCalculo, saldoInicioBaseReal) * 100
+            ) / 100;
 
             const nuevo = JSON.parse(JSON.stringify(datosBase)); // deep copy
             delete nuevo._modificadoEn;
@@ -3305,61 +3313,19 @@
         }
         
         function calcularSaldoInicioRealDelAno(ano) {
-            // Encadena desde el primer año con datos hasta el año pedido,
-            // para obtener el saldo real 1 Ene (= 31 Dic calculado del año anterior).
+            // Una sola fuente de verdad para el salto 31 Dic -> 1 Ene.
+            // Cada año se calcula con la MISMA función que respeta snapshots, overrides,
+            // recurrentes y movimientos programados. Así no puede existir un salto artificial.
             let saldoEncadenado = null;
             for (let y = 2024; y <= ano; y++) {
                 const raw = localStorage.getItem('finanzasPersonales_' + y);
                 if (!raw) continue;
                 const d = JSON.parse(raw);
-                const saldoInicio = saldoEncadenado !== null ? saldoEncadenado : (d.saldoInicial || 0);
+                const saldoInicio = saldoEncadenado !== null ? saldoEncadenado : (Number(d.saldoInicial) || 0);
                 if (y === ano) return saldoInicio;
-                let ingAno = 0, gasAno = 0;
-                for (let m = 0; m < 12; m++) {
-                    const cerrado = d.mesesCerrados && d.mesesCerrados[m];
-                    if (cerrado && cerrado.snapshot) {
-                        ingAno += cerrado.snapshot.ingresosTotal || 0;
-                        gasAno += cerrado.snapshot.gastosTotal || 0;
-                    } else {
-                        d.ingresosFijos.forEach(item => {
-                            if (item.frecuencia === 'mensual') ingAno += item.valor;
-                            else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(m)) ingAno += item.valor;
-                        });
-                        (d.ingresosBonus || []).forEach(item => {
-                            if (item.frecuencia === 'mensual') ingAno += item.valor;
-                            else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(m)) ingAno += item.valor;
-                        });
-                        d.meses[m].ingresosExtras.forEach(item => ingAno += item.valor);
-                        d.gastosFijos.forEach(item => {
-                            if (item.frecuencia === 'mensual') gasAno += item.valor;
-                            else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(m)) gasAno += item.valor;
-                        });
-                        (d.gastosVacaciones || []).forEach(item => {
-                            if (item.frecuencia === 'mensual') gasAno += item.valor;
-                            else if (item.frecuencia === 'anual' && item.meses && item.meses.includes(m)) gasAno += item.valor;
-                        });
-                        d.meses[m].gastosExtras.forEach(item => gasAno += item.valor);
-                        (d.meses[m].gastosVacacionesExtras || []).forEach(item => gasAno += item.valor);
-                        (d.extrasRecurrentes || []).forEach(item => {
-                            const inicio = item.anoInicio * 12 + item.mesInicio;
-                            const fin = item.anoFin * 12 + item.mesFin;
-                            const actual = y * 12 + m;
-                            if (actual >= inicio && actual <= fin) {
-                                if (item.tipo === 'ingresos') ingAno += item.valor;
-                                else gasAno += item.valor;
-                            }
-                        });
-                        (d.movimientosProgramados || []).forEach((item, idx) => {
-                            const efectivo = obtenerMovimientoProgramadoEfectivo(d, item, idx, y, m);
-                            if (!efectivo) return;
-                            if (efectivo.tipo === 'ingresos') ingAno += efectivo.valor;
-                            else gasAno += efectivo.valor;
-                        });
-                    }
-                }
-                saldoEncadenado = saldoInicio + ingAno - gasAno;
+                saldoEncadenado = calcularBalanceAcumuladoDeDatos(d, 11, y, saldoInicio);
             }
-            return saldoEncadenado !== null ? saldoEncadenado : (datos.saldoInicial || 0);
+            return saldoEncadenado !== null ? saldoEncadenado : (Number(datos.saldoInicial) || 0);
         }
 
         function calcularBalanceAcumulado(hastaMes) {
@@ -4992,7 +4958,7 @@
             }
 
             const balTotal = totalIngresos - totalGastos;
-            const saldoInicioAno = datos.saldoInicial;
+            const saldoInicioAno = calcularSaldoInicioRealDelAno(anoActual);
             const saldoFinAno = acumulado; // acumulado = saldoInicial + suma balances
             const diferenciaAno = saldoFinAno - saldoInicioAno; // = balTotal
             // Tabla resumen 12 meses
