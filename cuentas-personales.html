@@ -116,6 +116,8 @@
         .controls-actions {
             display: flex;
             gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
         }
         .act-btn {
             display: flex;
@@ -343,6 +345,35 @@
         input[type="file"] { display: none; }
         button { padding: 12px 24px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1em; font-weight: bold; transition: background 0.3s; width: 100%; margin-top: 10px; }
         button:hover { background: #5568d3; }
+
+        /* Barra superior de acciones: siempre compacta y en una sola linea.
+           Esta regla va despues del estilo generico de button para que este no vuelva a
+           convertir cada accion en un boton de ancho completo. */
+        .controls-actions {
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: nowrap !important;
+            gap: 6px !important;
+            width: 100%;
+            max-width: 100%;
+            overflow-x: auto;
+            padding: 1px 0 4px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .controls-actions::-webkit-scrollbar { display: none; }
+        .controls-actions > .act-btn {
+            width: auto !important;
+            min-width: 0 !important;
+            flex: 0 0 auto !important;
+            margin: 0 !important;
+            padding: 6px 10px !important;
+            border-radius: 999px !important;
+            font-size: 0.72em !important;
+            line-height: 1.05 !important;
+            white-space: nowrap !important;
+        }
         button.add-btn { width: calc(15% - 5px); margin-top: 0; padding: 10px; }
         button.edit-btn { background: #f59e0b; margin-top: 5px; }
         button.edit-btn:hover { background: #d97706; }
@@ -1106,6 +1137,7 @@
             <div class="controls-actions">
                 <button class="act-btn" onclick="abrirResumenGlobal()">&#127757; Resumen Global</button>
                 <button class="act-btn" onclick="abrirDesgloseAnual()">&#128203; Desglose Anual</button>
+                <button class="act-btn" onclick="abrirFlujoContinuo()" style="background:#0e7490;border-color:#0e7490;">&#128220; Flujo continuo</button>
                 <button class="act-btn" onclick="abrirComparativaAnual()" style="background:#0f766e;border-color:#0f766e;">&#128202; Comparar 12 meses</button>
                 <button class="act-btn" onclick="abrirComparativaAnios()" style="background:#4338ca;border-color:#4338ca;">&#128200; Comparar años</button>
                 <button class="act-btn" onclick="abrirSimulador()" style="background:#7c3aed;border-color:#7c3aed;">&#129514; Simular</button>
@@ -7322,14 +7354,14 @@ function recalcularSimulador() {
             // Las comparativas tienen un unico scroll propio (horizontal + vertical).
             // Dejar que Safari/iPad lo gestione de forma nativa evita que este
             // controlador global intente mover el overlay exterior.
-            if (e.target.closest && e.target.closest('#modal-comparativa-anual .comparativa-scroll, #modal-comparativa-anios .comparativa-scroll')) return;
+            if (e.target.closest && e.target.closest('#modal-comparativa-anual .comparativa-scroll, #modal-comparativa-anios .comparativa-scroll, #modal-flujo-continuo .flujo-continuo-scroll')) return;
             var sc = findScrollableAncestor(e.target);
             if (sc) sc._lastTouchY = e.touches[0].clientY;
         }, { passive: true });
 
         document.addEventListener('touchmove', function(e) {
             if (!isInsideOpenModal(e.target)) return;
-            if (e.target.closest && e.target.closest('#modal-comparativa-anual .comparativa-scroll, #modal-comparativa-anios .comparativa-scroll')) return;
+            if (e.target.closest && e.target.closest('#modal-comparativa-anual .comparativa-scroll, #modal-comparativa-anios .comparativa-scroll, #modal-flujo-continuo .flujo-continuo-scroll')) return;
 
             var sc = findScrollableAncestor(e.target);
             if (!sc) {
@@ -9089,6 +9121,397 @@ function recalcularSimulador() {
             acts.appendChild(edit); acts.appendChild(del);
             row.appendChild(izq); row.appendChild(val); row.appendChild(acts); cont.appendChild(row);
         });
+    }
+    </script>
+
+
+    <!-- CONTINUOUS CASH FLOW / LEDGER -->
+    <div id="modal-flujo-continuo" class="modal" style="z-index:1360;">
+        <div class="modal-content flujo-continuo-modal-content">
+            <div class="flujo-continuo-toolbar">
+                <div style="min-width:0;">
+                    <h2 style="margin:0;color:#0f3d56;font-size:1.2em;">&#128220; Flujo continuo desde 1 Ene 2027</h2>
+                    <div id="flujo-continuo-subtitulo" style="font-size:10px;color:#64748b;margin-top:3px;line-height:1.4;"></div>
+                </div>
+                <div class="flujo-continuo-acciones">
+                    <button id="flujo-btn-negativo" type="button" onclick="irPrimerNegativoFlujo()" style="display:none;">&#9888; Ir al primer negativo</button>
+                    <span class="close" onclick="cerrarFlujoContinuo()" title="Cerrar">&times;</span>
+                </div>
+            </div>
+            <div id="flujo-continuo-aviso" class="flujo-continuo-aviso"></div>
+            <div id="flujo-continuo-scroll" class="flujo-continuo-scroll">
+                <div id="flujo-continuo-contenido"></div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .flujo-continuo-modal-content {
+            width:92%;
+            max-width:930px;
+            height:94vh;
+            max-height:94vh;
+            margin:2vh auto;
+            padding:0 !important;
+            overflow:hidden !important;
+            display:flex;
+            flex-direction:column;
+            color:#1f2937;
+            text-align:center;
+        }
+        .flujo-continuo-toolbar {
+            flex-shrink:0;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            gap:14px;
+            padding:14px 18px;
+            border-bottom:1px solid #e2e8f0;
+            background:#f8fafc;
+            position:relative;
+            text-align:center;
+        }
+        .flujo-continuo-toolbar > div:first-child { text-align:center; }
+        .flujo-continuo-acciones {
+            display:flex;
+            align-items:center;
+            gap:10px;
+            flex-shrink:0;
+            position:absolute;
+            right:16px;
+            top:50%;
+            transform:translateY(-50%);
+        }
+        #flujo-btn-negativo {
+            width:auto !important;
+            margin:0 !important;
+            padding:6px 10px !important;
+            border-radius:8px !important;
+            background:#dc2626 !important;
+            color:#fff !important;
+            font-size:10px !important;
+            font-weight:800 !important;
+        }
+        .flujo-continuo-aviso {
+            display:none;
+            flex-shrink:0;
+            padding:8px 18px;
+            background:#fff7ed;
+            border-bottom:1px solid #fed7aa;
+            color:#9a3412;
+            font-size:10px;
+            line-height:1.45;
+            text-align:center;
+        }
+        .flujo-continuo-scroll {
+            flex:1 1 0;
+            min-height:0;
+            overflow:auto;
+            -webkit-overflow-scrolling:touch;
+            overscroll-behavior:contain;
+            padding:12px 14px 24px;
+            background:#f8fafc;
+        }
+        .flujo-tabla {
+            width:790px;
+            max-width:100%;
+            min-width:720px;
+            margin:0 auto;
+            table-layout:fixed;
+            border-collapse:separate;
+            border-spacing:0;
+            background:#fff;
+            border:1px solid #e2e8f0;
+            border-radius:10px;
+            overflow:hidden;
+            font-size:12px;
+        }
+        .flujo-tabla th {
+            padding:8px 10px;
+            background:#0f3d56;
+            color:#fff;
+            font-size:10px;
+            text-transform:uppercase;
+            letter-spacing:.04em;
+            text-align:center;
+            border-bottom:1px solid #0c3247;
+        }
+        .flujo-tabla td {
+            padding:6px 10px;
+            border-bottom:1px solid #f1f5f9;
+            vertical-align:middle;
+            text-align:center;
+        }
+        .flujo-tabla tr:last-child td { border-bottom:none; }
+        .flujo-periodo { width:115px;color:#64748b;font-size:10px;font-weight:800;white-space:nowrap;text-align:center; }
+        .flujo-concepto { width:245px;max-width:245px;color:#334155;font-weight:600;text-align:center;overflow-wrap:anywhere; }
+        .flujo-tipo { width:105px;text-align:center;white-space:nowrap; }
+        .flujo-importe { width:125px;text-align:center;font-weight:800;white-space:nowrap; }
+        .flujo-saldo { width:140px;text-align:center;font-weight:900;white-space:nowrap;color:#0f3d56; }
+        .flujo-ingreso .flujo-importe { color:#059669; }
+        .flujo-gasto .flujo-importe { color:#dc2626; }
+        .flujo-vacaciones .flujo-importe { color:#ea580c; }
+        .flujo-badge {
+            display:inline-flex;
+            align-items:center;
+            padding:2px 7px;
+            border-radius:12px;
+            font-size:9px;
+            font-weight:800;
+        }
+        .flujo-badge.ingreso { background:#dcfce7;color:#15803d; }
+        .flujo-badge.gasto { background:#fee2e2;color:#b91c1c; }
+        .flujo-badge.vacaciones { background:#ffedd5;color:#c2410c; }
+        .flujo-inicio td { background:#eff6ff !important;border-bottom:1px solid #bfdbfe !important;font-weight:800; }
+        .flujo-inicio .flujo-periodo { color:#1d4ed8; }
+        .flujo-mes-nuevo td { background:#f2fbf5 !important;border-top:1px solid #e2f5e8 !important; }
+        .flujo-mes-nuevo .flujo-periodo { color:#0f766e;font-weight:900; }
+        .flujo-cruce-negativo td { background:#fff1f2 !important;border-top:1px solid #fecdd3;border-bottom:1px solid #fecdd3; }
+        .flujo-cruce-negativo .flujo-saldo { color:#be123c; }
+        .flujo-alerta-inline {
+            display:inline-flex;
+            margin-left:6px;
+            padding:2px 6px;
+            border-radius:10px;
+            background:#be123c;
+            color:#fff;
+            font-size:8px;
+            font-weight:900;
+            white-space:nowrap;
+        }
+        .flujo-fin-ano td {
+            padding:10px !important;
+            font-weight:900 !important;
+            border-top:2px solid transparent !important;
+            border-bottom:3px solid #fff !important;
+        }
+        .flujo-fin-ano.positivo td { background:#dcfce7 !important;color:#166534 !important;border-top-color:#22c55e !important; }
+        .flujo-fin-ano.negativo td { background:#fee2e2 !important;color:#991b1b !important;border-top-color:#ef4444 !important; }
+        .flujo-fin-ano.neutro td { background:#e2e8f0 !important;color:#334155 !important;border-top-color:#94a3b8 !important; }
+        .flujo-fin-ano .flujo-saldo { color:inherit !important;font-size:13px; }
+        .flujo-sin-datos { padding:50px 20px;text-align:center;color:#64748b;background:#fff;border-radius:10px;border:1px solid #e2e8f0; }
+        @media (max-width:760px) {
+            .flujo-continuo-toolbar { align-items:center;flex-wrap:wrap;padding:11px 12px; }
+            .flujo-continuo-acciones { position:static;transform:none;width:100%;justify-content:center; }
+            .flujo-continuo-scroll { padding:8px; }
+            .flujo-tabla { min-width:680px;font-size:11px; }
+        }
+        @media (hover:none) and (pointer:coarse) {
+            #modal-flujo-continuo {
+                inset:0 !important;
+                width:100vw !important;
+                height:100dvh !important;
+                min-height:100dvh !important;
+                padding:max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)) !important;
+                overflow:hidden !important;
+                overscroll-behavior:none !important;
+                touch-action:auto !important;
+            }
+            #modal-flujo-continuo .flujo-continuo-modal-content {
+                width:100% !important;
+                max-width:100% !important;
+                height:100% !important;
+                max-height:100% !important;
+                margin:0 !important;
+                overflow:hidden !important;
+            }
+            #modal-flujo-continuo .flujo-continuo-scroll {
+                flex:1 1 0 !important;
+                min-height:0 !important;
+                overflow-x:auto !important;
+                overflow-y:auto !important;
+                -webkit-overflow-scrolling:auto !important;
+                overscroll-behavior-x:none !important;
+                overscroll-behavior-y:contain !important;
+                touch-action:pan-x pan-y !important;
+                overflow-anchor:none !important;
+            }
+        }
+        @supports not (height:100dvh) {
+            @media (hover:none) and (pointer:coarse) {
+                #modal-flujo-continuo { height:100vh !important;min-height:100vh !important; }
+            }
+        }
+    </style>
+
+    <script>
+    var _flujoPrimerNegativoId = '';
+
+    function abrirFlujoContinuo() {
+        construirFlujoContinuo();
+        var modal = document.getElementById('modal-flujo-continuo');
+        if (modal) modal.style.display = 'block';
+        requestAnimationFrame(function() {
+            var sc = document.getElementById('flujo-continuo-scroll');
+            if (sc) { sc.scrollTop = 0; sc.scrollLeft = 0; }
+        });
+    }
+
+    function cerrarFlujoContinuo() {
+        var modal = document.getElementById('modal-flujo-continuo');
+        if (modal) modal.style.display = 'none';
+    }
+
+    function irPrimerNegativoFlujo() {
+        if (!_flujoPrimerNegativoId) return;
+        var el = document.getElementById(_flujoPrimerNegativoId);
+        if (el && el.scrollIntoView) el.scrollIntoView({ behavior:'smooth', block:'center', inline:'nearest' });
+    }
+
+    function flujoObtenerOrdenMes(mes) {
+        try {
+            if (window.ordenPersonalizado && Array.isArray(window.ordenPersonalizado[mes])) return window.ordenPersonalizado[mes];
+            var raw = localStorage.getItem('ordenMovimientos');
+            if (!raw) return [];
+            var obj = JSON.parse(raw);
+            return obj && Array.isArray(obj[mes]) ? obj[mes] : [];
+        } catch(e) { return []; }
+    }
+
+    function flujoOrdenarPartidas(partidas, mes) {
+        var orden = flujoObtenerOrdenMes(mes);
+        if (!orden.length) return partidas;
+        return partidas.map(function(item, idx) { return { item:item, idx:idx }; }).sort(function(a,b) {
+            var ka = a.item.concepto + '_' + a.item.tipoOrden;
+            var kb = b.item.concepto + '_' + b.item.tipoOrden;
+            var ia = orden.indexOf(ka), ib = orden.indexOf(kb);
+            if (ia < 0 && ib < 0) return a.idx - b.idx;
+            if (ia < 0) return 1;
+            if (ib < 0) return -1;
+            if (ia !== ib) return ia - ib;
+            return a.idx - b.idx;
+        }).map(function(x){ return x.item; });
+    }
+
+    function flujoDatosAnoExistente(ano) {
+        if (ano === anoActual) return JSON.parse(JSON.stringify(datos));
+        var raw = localStorage.getItem('finanzasPersonales_' + ano);
+        if (!raw) return null;
+        try { return JSON.parse(raw); } catch(e) { return null; }
+    }
+
+    function flujoAniosConsecutivos() {
+        var anos = [];
+        for (var y=2027; y<=2040; y++) {
+            var existe = (y === anoActual) || !!localStorage.getItem('finanzasPersonales_' + y);
+            if (!existe) break;
+            anos.push(y);
+        }
+        return anos;
+    }
+
+    function construirFlujoContinuo() {
+        var contenido = document.getElementById('flujo-continuo-contenido');
+        var aviso = document.getElementById('flujo-continuo-aviso');
+        var subtitulo = document.getElementById('flujo-continuo-subtitulo');
+        var btnNeg = document.getElementById('flujo-btn-negativo');
+        _flujoPrimerNegativoId = '';
+        if (btnNeg) btnNeg.style.display = 'none';
+
+        var anos = flujoAniosConsecutivos();
+        if (!anos.length) {
+            if (subtitulo) subtitulo.textContent = 'Primero debe existir 2027.';
+            if (aviso) aviso.style.display = 'none';
+            if (contenido) contenido.innerHTML = '<div class="flujo-sin-datos">Todav\u00eda no existe 2027. Entra primero en 2027 para generarlo y vuelve a abrir este flujo.</div>';
+            return;
+        }
+
+        if (subtitulo) subtitulo.textContent = anos[0] + ' - ' + anos[anos.length-1] + ' \u00b7 movimiento a movimiento \u00b7 saldo encadenado';
+        if (aviso) {
+            aviso.style.display = 'block';
+            aviso.innerHTML = '<strong>Nota:</strong> la app guarda el mes, no el d\u00eda exacto. Por eso este flujo detecta el movimiento que hace caer el saldo, pero no inventa una fecha diaria. Dentro de cada mes respeta el orden de <strong>Ver Todo</strong> si lo has personalizado.';
+        }
+
+        var saldo = Number(calcularSaldoInicioRealDelAno(2027)) || 0;
+        var saldoInicial = saldo;
+        var primerNegTexto = '';
+        var filaId = 0;
+        var html = '<table class="flujo-tabla"><thead><tr>' +
+            '<th>Periodo</th><th>Concepto</th><th>Tipo</th><th>Importe</th><th>Saldo</th>' +
+            '</tr></thead><tbody>';
+
+        var inicioNeg = saldo < 0;
+        if (inicioNeg) {
+            _flujoPrimerNegativoId = 'flujo-primer-negativo';
+            primerNegTexto = 'El saldo ya es negativo al comenzar 2027.';
+        }
+        html += '<tr id="' + (inicioNeg ? _flujoPrimerNegativoId : '') + '" class="flujo-inicio' + (inicioNeg ? ' flujo-cruce-negativo' : '') + '">' +
+            '<td class="flujo-periodo">1 Ene 2027</td>' +
+            '<td class="flujo-concepto">Saldo inicial</td>' +
+            '<td class="flujo-tipo">-</td>' +
+            '<td class="flujo-importe">-</td>' +
+            '<td class="flujo-saldo">' + comparativaEscaparHTML(formatearMoneda(saldo)) + (inicioNeg ? '<span class="flujo-alerta-inline">PRIMER NEGATIVO</span>' : '') + '</td></tr>';
+
+        for (var ai=0; ai<anos.length; ai++) {
+            var ano = anos[ai];
+            var d = flujoDatosAnoExistente(ano);
+            if (!d) break;
+            if (!d.meses) d.meses = [];
+            while (d.meses.length < 12) d.meses.push({ ingresosExtras:[], gastosExtras:[], gastosVacacionesExtras:[] });
+            if (!d.mesesCerrados) d.mesesCerrados = {};
+            if (!d.ingresosFijos) d.ingresosFijos = [];
+            if (!d.ingresosBonus) d.ingresosBonus = [];
+            if (!d.gastosFijos) d.gastosFijos = [];
+            if (!d.gastosVacaciones) d.gastosVacaciones = [];
+            if (!d.extrasRecurrentes) d.extrasRecurrentes = [];
+            if (!d.movimientosProgramados) d.movimientosProgramados = [];
+
+            for (var m=0; m<12; m++) {
+                var part = obtenerPartidasComparativaMesDatos(d, ano, m);
+                var movs = [];
+                (part.ingresos || []).forEach(function(x) {
+                    movs.push({ concepto:x.concepto, valor:Number(x.valor)||0, signo:1, clase:'ingreso', etiqueta:'Ingreso', tipoOrden:'ingreso' });
+                });
+                (part.gastos || []).forEach(function(x) {
+                    movs.push({ concepto:x.concepto, valor:Number(x.valor)||0, signo:-1, clase:'gasto', etiqueta:'Gasto', tipoOrden:'gasto' });
+                });
+                (part.vacaciones || []).forEach(function(x) {
+                    movs.push({ concepto:x.concepto, valor:Number(x.valor)||0, signo:-1, clase:'vacaciones', etiqueta:'Vacaciones', tipoOrden:'gasto' });
+                });
+                movs = flujoOrdenarPartidas(movs, m);
+
+                var primeroMes = true;
+                movs.forEach(function(mov) {
+                    var saldoAntes = saldo;
+                    var firmado = mov.signo * mov.valor;
+                    saldo += firmado;
+                    filaId += 1;
+                    var cruceNeg = !_flujoPrimerNegativoId && saldoAntes >= 0 && saldo < 0;
+                    var id = '';
+                    if (cruceNeg) {
+                        id = 'flujo-primer-negativo';
+                        _flujoPrimerNegativoId = id;
+                        primerNegTexto = MESES_NOMBRES[m] + ' ' + ano + ': ' + mov.concepto + ' deja el saldo en ' + formatearMoneda(saldo) + '.';
+                    }
+                    var periodo = primeroMes ? (MESES_CORTOS[m] + ' ' + ano) : '';
+                    var clases = 'flujo-' + mov.clase + (primeroMes ? ' flujo-mes-nuevo' : '') + (cruceNeg ? ' flujo-cruce-negativo' : '');
+                    var importeTxt = (firmado > 0 ? '+' : '-') + formatearMoneda(Math.abs(firmado));
+                    html += '<tr' + (id ? ' id="' + id + '"' : '') + ' class="' + clases + '">' +
+                        '<td class="flujo-periodo">' + comparativaEscaparHTML(periodo) + '</td>' +
+                        '<td class="flujo-concepto">' + comparativaEscaparHTML(mov.concepto) + (cruceNeg ? '<span class="flujo-alerta-inline">PRIMER NEGATIVO</span>' : '') + '</td>' +
+                        '<td class="flujo-tipo"><span class="flujo-badge ' + mov.clase + '">' + mov.etiqueta + '</span></td>' +
+                        '<td class="flujo-importe">' + comparativaEscaparHTML(importeTxt) + '</td>' +
+                        '<td class="flujo-saldo" style="color:' + (saldo < 0 ? '#be123c' : '#0f3d56') + ';">' + comparativaEscaparHTML(formatearMoneda(saldo)) + '</td>' +
+                        '</tr>';
+                    primeroMes = false;
+                });
+            }
+
+            var claseFin = saldo > 0 ? 'positivo' : (saldo < 0 ? 'negativo' : 'neutro');
+            html += '<tr class="flujo-fin-ano ' + claseFin + '">' +
+                '<td class="flujo-periodo">31 Dic ' + ano + '</td>' +
+                '<td class="flujo-concepto" colspan="3">Saldo final ' + ano + '</td>' +
+                '<td class="flujo-saldo">' + comparativaEscaparHTML(formatearMoneda(saldo)) + '</td></tr>';
+        }
+        html += '</tbody></table>';
+        contenido.innerHTML = html;
+
+        if (_flujoPrimerNegativoId) {
+            if (btnNeg) btnNeg.style.display = '';
+            if (subtitulo && primerNegTexto) subtitulo.textContent += ' \u00b7 ' + primerNegTexto;
+        } else if (subtitulo) {
+            subtitulo.textContent += ' \u00b7 No aparece ning\u00fan saldo negativo en el rango.';
+        }
     }
     </script>
 
