@@ -2768,6 +2768,7 @@
             actualizarResumenAnual();
             actualizarCategorias();
             cerrarMesesPasadosAutomaticamente();
+            ofrecerReinicioFuturosLimpiosV1();
         }
         
         let anoActual = 2026;
@@ -2921,6 +2922,8 @@
             const nuevo = JSON.parse(JSON.stringify(datosBase)); // deep copy
             delete nuevo._modificadoEn;
             delete nuevo._exportadoEn;
+            // La marca de la limpieza unica solo pertenece a 2026, no a los anos generados.
+            delete nuevo._migracionFuturosLimpiosV1;
 
             const pctIngresos = 1 + ((datosBase.incrementos ? datosBase.incrementos.ingresos : 1) / 100);
             const pctGastos   = 1 + ((datosBase.incrementos ? datosBase.incrementos.gastos   : 2) / 100);
@@ -2967,6 +2970,12 @@
                 gastosVacacionesExtras: []
             }));
 
+            // Sistema nuevo: un Extra del Mes nunca atraviesa de ano.
+            // Los antiguos "extras recurrentes" tampoco se heredan: si algo debe repetirse,
+            // se define expresamente en Programados. Los que existan siguen siendo historicos
+            // dentro del ano en que fueron creados, pero no contaminan el ano siguiente.
+            nuevo.extrasRecurrentes = [];
+
             // MUY IMPORTANTE: los cierres pertenecen exclusivamente al año en que se hicieron.
             // Un año nuevo hereda la PLANIFICACION, nunca la foto/cierre de Enero, Febrero, etc.
             nuevo.mesesCerrados = {};
@@ -2975,6 +2984,109 @@
             nuevo.saldoInicial = saldoFinalAnoBase;
 
             return nuevo;
+        }
+
+        function reinicioFuturosLimpiosV1Hecho() {
+            if (localStorage.getItem('migracionFuturosLimpiosV1') === 'ok') return true;
+            try {
+                const raw = localStorage.getItem('finanzasPersonales_2026');
+                if (!raw) return false;
+                const d = JSON.parse(raw);
+                return !!(d && d._migracionFuturosLimpiosV1);
+            } catch (e) {
+                return false;
+            }
+        }
+
+        function ofrecerReinicioFuturosLimpiosV1() {
+            if (window._reinicioFuturosLimpiosV1Ofrecido || reinicioFuturosLimpiosV1Hecho()) return;
+            window._reinicioFuturosLimpiosV1Ofrecido = true;
+
+            setTimeout(function() {
+                const aceptar = confirm(
+                    '🧹 LIMPIEZA ÚNICA DE AÑOS FUTUROS\n\n' +
+                    '2026 se conservará EXACTAMENTE como está.\n\n' +
+                    'Se borrarán y recrearán 2027–2040 desde cero, en cadena, usando la lógica actual:\n' +
+                    '• Los Extras del Mes NO se copiarán.\n' +
+                    '• Los antiguos extras recurrentes NO se copiarán.\n' +
+                    '• Los fijos/planificados se heredarán con sus incrementos.\n' +
+                    '• Solo los Programados marcados para repetirse continuarán.\n' +
+                    '• Todos los meses futuros quedarán abiertos.\n\n' +
+                    'Esto sustituirá los datos actuales de 2027–2040 y después actualizará el Gist.\n\n' +
+                    '¿Hacer la limpieza ahora?'
+                );
+                if (aceptar) reiniciarFuturosLimpiosDesde2026();
+            }, 250);
+        }
+
+        async function reiniciarFuturosLimpiosDesde2026() {
+            clearTimeout(window._gistSaveTimer);
+
+            const raw2026 = localStorage.getItem('finanzasPersonales_2026');
+            if (!raw2026) {
+                mostrarNotificacion('❌ No encuentro los datos de 2026 para reconstruir los años futuros', 'error');
+                return;
+            }
+
+            let base2026;
+            try {
+                base2026 = JSON.parse(raw2026);
+            } catch (e) {
+                mostrarNotificacion('❌ Los datos guardados de 2026 no se pueden leer', 'error');
+                return;
+            }
+
+            normalizarDatos(base2026);
+            normalizarMediosPagoDatos(base2026);
+
+            const ahora = Date.now();
+            base2026._migracionFuturosLimpiosV1 = true;
+            base2026._modificadoEn = new Date(ahora).toISOString();
+            delete base2026._exportadoEn;
+            localStorage.setItem('finanzasPersonales_2026', JSON.stringify(base2026));
+
+            let datosBase = base2026;
+            for (let y = 2027; y <= 2040; y++) {
+                const nuevo = generarDatosAnoSiguiente(datosBase, y - 1);
+                // Doble garantia: ningun extra puntual ni recurrente antiguo cruza de ano.
+                nuevo.extrasRecurrentes = [];
+                (nuevo.meses || []).forEach(m => {
+                    m.ingresosExtras = [];
+                    m.gastosExtras = [];
+                    m.gastosVacacionesExtras = [];
+                    delete m.overrides;
+                    delete m.recurrentesOverrides;
+                    delete m.programadosOverrides;
+                });
+                nuevo.mesesCerrados = {};
+                nuevo._modificadoEn = new Date(ahora + (y - 2026)).toISOString();
+                delete nuevo._exportadoEn;
+                localStorage.setItem('finanzasPersonales_' + y, JSON.stringify(nuevo));
+                datosBase = nuevo;
+            }
+
+            localStorage.setItem('migracionFuturosLimpiosV1', 'ok');
+
+            // Volvemos a 2026, que es la única fuente histórica que hemos conservado.
+            anoActual = 2026;
+            datos = base2026;
+            const selectorAno = document.getElementById('ano-select');
+            if (selectorAno) selectorAno.value = '2026';
+            actualizarTodo();
+            actualizarResumenAnual();
+            actualizarCategorias();
+
+            if (gistConfigurado()) {
+                mostrarNotificacion('🧹 2027–2040 recreados limpios · actualizando Gist…', 'exito');
+                const guardado = await guardarEnGist(false);
+                if (guardado) {
+                    mostrarNotificacion('✅ Limpieza terminada · 2026 conservado y 2027–2040 guardados limpios en Gist', 'exito');
+                } else {
+                    mostrarNotificacion('⚠️ Años recreados en este dispositivo, pero no se pudo actualizar el Gist. Usa ☁️ Guardar Gist cuando tengas conexión.', 'error');
+                }
+            } else {
+                mostrarNotificacion('✅ 2027–2040 recreados limpios. Configura el token y guarda el Gist para subirlos.', 'exito');
+            }
         }
 
         function cambiarAno() {
