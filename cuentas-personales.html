@@ -1458,7 +1458,7 @@
             meses: [],
             incrementos: { ingresos: 1, gastos: 2 },
             extrasRecurrentes: [],  // { concepto, valor, tipo:'ingresos'|'gastos', anoInicio, mesInicio, anoFin, mesFin }
-            movimientosProgramados: [], // { id, concepto, valor, tipo, medio, meses:[...], repetirCadaAno, anoOrigen }
+            movimientosProgramados: [], // { id, concepto, valor, tipo, medio, meses:[...], repetirCadaAno, anoOrigen, mesFin?, anoFin? }
             mesesCerrados: {}       // { "0": { cerradoEn, snapshot:{...totales}, balanceAcumulado }, ... }
         };
         
@@ -2341,6 +2341,18 @@
                 item.meses = item.meses.map(Number).filter(m => Number.isInteger(m) && m >= 0 && m < 12);
                 item.repetirCadaAno = !!item.repetirCadaAno;
                 if (!Number.isInteger(item.anoOrigen)) item.anoOrigen = anoActual || 2026;
+                // Fecha fin opcional para programados. Si uno de los dos datos no es valido,
+                // se considera que no hay fecha fin (compatibilidad con programados antiguos).
+                const mesFinProg = Number(item.mesFin);
+                const anoFinProg = Number(item.anoFin);
+                if (Number.isInteger(mesFinProg) && mesFinProg >= 0 && mesFinProg < 12 &&
+                    Number.isInteger(anoFinProg) && anoFinProg >= 2024 && anoFinProg <= 2040) {
+                    item.mesFin = mesFinProg;
+                    item.anoFin = anoFinProg;
+                } else {
+                    delete item.mesFin;
+                    delete item.anoFin;
+                }
             });
             if (!d.mesesCerrados) d.mesesCerrados = {};
             d.meses.forEach(mes => { if (!mes.gastosVacacionesExtras) mes.gastosVacacionesExtras = []; });
@@ -2935,8 +2947,9 @@
 
             // Programados: solo pasan al año siguiente los marcados "Repetir cada año"
             // y conservan EXACTAMENTE el mismo importe (no llevan incremento IPC).
+            const anoDestinoProgramados = (Number.isInteger(anoBaseContexto) ? anoBaseContexto : anoActual) + 1;
             nuevo.movimientosProgramados = (datosBase.movimientosProgramados || [])
-                .filter(item => item && item.repetirCadaAno)
+                .filter(item => item && item.repetirCadaAno && movimientoProgramadoTieneAplicacionEnAno(item, anoDestinoProgramados))
                 .map(item => ({ ...item, medio: normalizarMedioPago(item.medio) }));
 
             // Extras del mes: NO se pasan al año siguiente (son puntuales).
@@ -3154,11 +3167,33 @@
             return item && item.id ? String(item.id) : ('idx_' + idx);
         }
 
+        function movimientoProgramadoTieneFechaFin(item) {
+            return !!item && item.anoFin !== null && item.anoFin !== undefined && item.mesFin !== null && item.mesFin !== undefined &&
+                Number.isInteger(Number(item.anoFin)) && Number(item.anoFin) >= 2024 && Number(item.anoFin) <= 2040 &&
+                Number.isInteger(Number(item.mesFin)) && Number(item.mesFin) >= 0 && Number(item.mesFin) < 12;
+        }
+
+        function movimientoProgramadoTieneAplicacionEnAno(item, ano) {
+            if (!item || !Array.isArray(item.meses) || item.meses.length === 0) return false;
+            const origen = Number(item.anoOrigen);
+            if (Number.isInteger(origen) && ano < origen) return false;
+            if (!item.repetirCadaAno && Number.isInteger(origen) && ano !== origen) return false;
+            if (!movimientoProgramadoTieneFechaFin(item)) return true;
+            const anoFin = Number(item.anoFin);
+            const mesFin = Number(item.mesFin);
+            if (ano < anoFin) return true;
+            if (ano > anoFin) return false;
+            return item.meses.some(function(m) { return Number(m) <= mesFin; });
+        }
+
         function movimientoProgramadoAplicaEnMes(item, ano, mes) {
             if (!item || !Array.isArray(item.meses) || !item.meses.includes(mes)) return false;
-            // Cada año guarda su propia plantilla. anoOrigen se conserva como metadato
-            // para saber desde cuándo nació la recurrencia, pero no limita una copia ya
-            // presente en un año posterior.
+            if (!movimientoProgramadoTieneAplicacionEnAno(item, ano)) return false;
+            if (movimientoProgramadoTieneFechaFin(item)) {
+                const actual = ano * 12 + mes;
+                const fin = Number(item.anoFin) * 12 + Number(item.mesFin);
+                if (actual > fin) return false;
+            }
             return true;
         }
 
@@ -7696,7 +7731,7 @@ function recalcularSimulador() {
 
     // Genera solo una PLANTILLA de planificación para comparar años que aún no han sido guardados.
     // No escribe nada en localStorage ni modifica el dashboard real.
-    function proyectarDatosAnoComparativa(base) {
+    function proyectarDatosAnoComparativa(base, anoDestino) {
         const nuevo = JSON.parse(JSON.stringify(base || crearDatosVaciosAno()));
         if (!nuevo.incrementos) nuevo.incrementos = { ingresos:1, gastos:2 };
         const pctIng = 1 + ((nuevo.incrementos.ingresos == null ? 1 : nuevo.incrementos.ingresos) / 100);
@@ -7721,7 +7756,7 @@ function recalcularSimulador() {
         nuevo.mesesCerrados = {};
         if (!nuevo.extrasRecurrentes) nuevo.extrasRecurrentes = [];
         nuevo.movimientosProgramados = (base && base.movimientosProgramados ? base.movimientosProgramados : [])
-            .filter(function(item){ return item && item.repetirCadaAno; })
+            .filter(function(item){ return item && item.repetirCadaAno && movimientoProgramadoTieneAplicacionEnAno(item, anoDestino); })
             .map(function(item){ return Object.assign({}, item, { medio: normalizarMedioPago(item.medio) }); });
         return nuevo;
     }
@@ -7753,7 +7788,7 @@ function recalcularSimulador() {
                 return { datos:d, proyectado:false };
             } catch(e) {}
         }
-        if (baseAnterior) return { datos:proyectarDatosAnoComparativa(baseAnterior), proyectado:true };
+        if (baseAnterior) return { datos:proyectarDatosAnoComparativa(baseAnterior, ano), proyectado:true };
         return { datos:crearDatosVaciosAno(), proyectado:true };
     }
 
@@ -8189,7 +8224,10 @@ function recalcularSimulador() {
                 </div>
 
                 <div style="margin-top:13px;">
-                    <div class="programados-label" style="margin-bottom:7px;">Meses en los que debe aparecer</div>
+                    <div class="programados-meses-cabecera">
+                        <div class="programados-label">Meses en los que debe aparecer</div>
+                        <button type="button" class="programados-todos-btn" onclick="seleccionarTodosMesesProgramados()">✓ Todos los meses</button>
+                    </div>
                     <div id="programados-meses" class="programados-meses"></div>
                 </div>
 
@@ -8202,6 +8240,23 @@ function recalcularSimulador() {
                         <option value="solo">Solo este año</option>
                         <option value="cada-ano">Repetir cada año</option>
                     </select>
+                </div>
+
+                <div class="programados-fin">
+                    <div>
+                        <strong>Fecha fin (opcional)</strong>
+                        <small>Ideal para pagos mensuales temporales. Si se repite cada año, dejarla vacía significa que continuará sin límite.</small>
+                    </div>
+                    <div class="programados-fin-selects">
+                        <select id="programado-fin-mes" onchange="actualizarEstadoFinProgramado()">
+                            <option value="">Sin fecha fin</option>
+                            <option value="0">Enero</option><option value="1">Febrero</option><option value="2">Marzo</option>
+                            <option value="3">Abril</option><option value="4">Mayo</option><option value="5">Junio</option>
+                            <option value="6">Julio</option><option value="7">Agosto</option><option value="8">Septiembre</option>
+                            <option value="9">Octubre</option><option value="10">Noviembre</option><option value="11">Diciembre</option>
+                        </select>
+                        <select id="programado-fin-ano" disabled></select>
+                    </div>
                 </div>
 
                 <div class="programados-form-actions">
@@ -8225,12 +8280,20 @@ function recalcularSimulador() {
         .programados-linea .programados-label { margin-right:3px; }
         .programado-medio-btn { width:auto !important;margin:0 !important;padding:6px 11px !important;border-radius:8px !important;border:1px solid #cbd5e1 !important;background:white !important;color:#475569 !important;font-size:11px !important;box-shadow:none !important; }
         .programado-medio-btn.activo { background:#1e3a8a !important;border-color:#1e3a8a !important;color:white !important; }
+        .programados-meses-cabecera { display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:7px; }
+        .programados-todos-btn { width:auto !important;margin:0 !important;padding:5px 10px !important;border:1px solid #c4b5fd !important;border-radius:7px !important;background:#f5f3ff !important;color:#6d28d9 !important;font-size:10px !important;font-weight:800 !important;box-shadow:none !important; }
         .programados-meses { display:grid;grid-template-columns:repeat(6,1fr);gap:6px; }
         .programados-mes { display:flex;align-items:center;justify-content:center;gap:5px;background:white;border:1px solid #e2e8f0;border-radius:7px;padding:6px 4px;font-size:11px;color:#475569;cursor:pointer; }
         .programados-mes input { width:auto !important;margin:0 !important; }
         .programados-repeticion { margin-top:12px;padding:10px 11px;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:9px;display:grid;grid-template-columns:1fr 210px;gap:12px;align-items:center; }
         .programados-repeticion strong { display:block;color:#5b21b6;font-size:12px;margin-bottom:2px; }
         .programados-repeticion small { display:block;color:#7c3aed;font-size:10px;line-height:1.35; }
+        .programados-fin { margin-top:10px;padding:10px 11px;background:#fff7ed;border:1px solid #fed7aa;border-radius:9px;display:grid;grid-template-columns:1fr 260px;gap:12px;align-items:center; }
+        .programados-fin strong { display:block;color:#9a3412;font-size:12px;margin-bottom:2px; }
+        .programados-fin small { display:block;color:#c2410c;font-size:10px;line-height:1.35; }
+        .programados-fin-selects { display:grid;grid-template-columns:1fr 92px;gap:7px; }
+        .programados-fin select { width:100% !important;margin:0 !important;padding:8px 9px !important;border:1px solid #fdba74 !important;border-radius:8px !important;background:white !important;color:#1f2937 !important;font-size:12px !important; }
+        .programados-fin select:disabled { background:#f8fafc !important;color:#94a3b8 !important;border-color:#e2e8f0 !important; }
         .programados-form-actions { display:flex;gap:8px;margin-top:12px; }
         .programados-form-actions button { margin:0 !important;padding:9px 13px !important;font-size:12px !important; }
         #programado-btn-guardar { background:#7c3aed; }
@@ -8254,6 +8317,7 @@ function recalcularSimulador() {
             .programados-concepto-field { grid-column:1/-1;grid-row:1; }
             .programados-meses { grid-template-columns:repeat(4,1fr); }
             .programados-repeticion { grid-template-columns:1fr; }
+            .programados-fin { grid-template-columns:1fr; }
             .programado-item { grid-template-columns:1fr auto; }
             .programado-item-actions { grid-column:1/-1;justify-content:flex-end; }
         }
@@ -8297,10 +8361,59 @@ function recalcularSimulador() {
         });
     }
 
+    function seleccionarTodosMesesProgramados() {
+        for (var i = 0; i < 12; i++) {
+            var cb = document.getElementById('programado-mes-' + i);
+            if (cb) cb.checked = true;
+        }
+    }
+
+    function construirAniosFinProgramado(anoSeleccionado) {
+        var sel = document.getElementById('programado-fin-ano');
+        if (!sel) return;
+        var elegido = (anoSeleccionado === null || anoSeleccionado === undefined || anoSeleccionado === '') ? NaN : Number(anoSeleccionado);
+        sel.innerHTML = '<option value="">Año</option>';
+        var inicio = Number.isInteger(elegido) ? Math.min(anoActual, elegido) : anoActual;
+        inicio = Math.max(2024, inicio);
+        for (var y = inicio; y <= 2040; y++) {
+            var op = document.createElement('option');
+            op.value = y; op.textContent = y;
+            sel.appendChild(op);
+        }
+        if (Number.isInteger(elegido) && elegido >= inicio && elegido <= 2040) sel.value = String(elegido);
+    }
+
+    function prepararFechaFinProgramado(mesFin, anoFin) {
+        var mesSel = document.getElementById('programado-fin-mes');
+        var anoSel = document.getElementById('programado-fin-ano');
+        if (!mesSel || !anoSel) return;
+        construirAniosFinProgramado(anoFin);
+        var tiene = mesFin !== null && mesFin !== undefined && anoFin !== null && anoFin !== undefined &&
+            Number.isInteger(Number(mesFin)) && Number(mesFin) >= 0 && Number(mesFin) < 12 &&
+            Number.isInteger(Number(anoFin)) && Number(anoFin) >= 2024 && Number(anoFin) <= 2040;
+        mesSel.value = tiene ? String(Number(mesFin)) : '';
+        anoSel.disabled = !tiene;
+        anoSel.value = tiene ? String(Number(anoFin)) : '';
+    }
+
+    function actualizarEstadoFinProgramado() {
+        var mesSel = document.getElementById('programado-fin-mes');
+        var anoSel = document.getElementById('programado-fin-ano');
+        if (!mesSel || !anoSel) return;
+        if (mesSel.value === '') {
+            anoSel.value = '';
+            anoSel.disabled = true;
+            return;
+        }
+        anoSel.disabled = false;
+        if (!anoSel.options.length || anoSel.options.length === 1) construirAniosFinProgramado(anoActual);
+        if (!anoSel.value) anoSel.value = String(anoActual);
+    }
+
     function abrirModalProgramados(index) {
         asegurarProgramados();
         document.getElementById('programados-subtitulo').textContent =
-            'Elige meses concretos de ' + anoActual + '. Puedes repetir la misma planificación cada año sin aplicar el incremento configurado.';
+            'Elige los meses, si se repite y, si quieres, hasta que mes y año debe durar. Los programados no llevan incremento IPC.';
         _programadoEditandoIndex = Number.isInteger(index) ? index : -1;
         if (_programadoEditandoIndex >= 0 && datos.movimientosProgramados[_programadoEditandoIndex]) {
             var item = datos.movimientosProgramados[_programadoEditandoIndex];
@@ -8310,6 +8423,7 @@ function recalcularSimulador() {
             document.getElementById('programado-repeticion').value = item.repetirCadaAno ? 'cada-ano' : 'solo';
             seleccionarMedioProgramado(item.medio);
             construirMesesProgramados(item.meses || []);
+            prepararFechaFinProgramado(item.mesFin, item.anoFin);
             document.getElementById('programado-btn-guardar').textContent = '💾 Guardar cambios';
             document.getElementById('programado-btn-cancelar').style.display = '';
         } else {
@@ -8332,6 +8446,7 @@ function recalcularSimulador() {
         var rep = document.getElementById('programado-repeticion'); if (rep) rep.value = 'solo';
         if (document.getElementById('programado-medio')) seleccionarMedioProgramado('cuenta');
         if (document.getElementById('programados-meses')) construirMesesProgramados([]);
+        if (document.getElementById('programado-fin-mes')) prepararFechaFinProgramado(null, null);
         var bg = document.getElementById('programado-btn-guardar'); if (bg) bg.textContent = '➕ Añadir programado';
         var bc = document.getElementById('programado-btn-cancelar'); if (bc) bc.style.display = 'none';
         if (render !== false && document.getElementById('programados-lista')) renderizarProgramados();
@@ -8346,7 +8461,9 @@ function recalcularSimulador() {
                 var d = JSON.parse(raw);
                 if (!d.movimientosProgramados) d.movimientosProgramados = [];
                 d.movimientosProgramados = d.movimientosProgramados.filter(function(x){ return !x || x.id !== id; });
-                if (itemO && itemO.repetirCadaAno) d.movimientosProgramados.push(JSON.parse(JSON.stringify(itemO)));
+                if (itemO && itemO.repetirCadaAno && movimientoProgramadoTieneAplicacionEnAno(itemO, y)) {
+                    d.movimientosProgramados.push(JSON.parse(JSON.stringify(itemO)));
+                }
                 normalizarMediosPagoDatos(d);
                 d._modificadoEn = new Date().toISOString();
                 delete d._exportadoEn;
@@ -8361,11 +8478,25 @@ function recalcularSimulador() {
         var valor = parseFloat(document.getElementById('programado-valor').value);
         var tipo = document.getElementById('programado-tipo').value === 'ingresos' ? 'ingresos' : 'gastos';
         var medio = normalizarMedioPago(document.getElementById('programado-medio').value);
+        var repetirCadaAno = document.getElementById('programado-repeticion').value === 'cada-ano';
+        var finMesRaw = document.getElementById('programado-fin-mes').value;
+        var finAnoRaw = document.getElementById('programado-fin-ano').value;
+        var mesFin = finMesRaw === '' ? null : Number(finMesRaw);
+        var anoFin = finMesRaw === '' ? null : Number(finAnoRaw);
         var meses = [];
         for (var i=0;i<12;i++) { var cb=document.getElementById('programado-mes-'+i); if(cb && cb.checked) meses.push(i); }
         if (!concepto) { mostrarNotificacion('❌ Escribe un concepto', 'error'); return; }
         if (!isFinite(valor) || valor < 0) { mostrarNotificacion('❌ Introduce un importe válido', 'error'); return; }
         if (!meses.length) { mostrarNotificacion('❌ Selecciona al menos un mes', 'error'); return; }
+        if (mesFin !== null && (!Number.isInteger(mesFin) || mesFin < 0 || mesFin > 11 || !Number.isInteger(anoFin))) {
+            mostrarNotificacion('❌ Elige correctamente el mes y año final', 'error'); return;
+        }
+        if (anoFin !== null && anoFin < anoActual) {
+            mostrarNotificacion('❌ La fecha fin no puede ser anterior a ' + anoActual, 'error'); return;
+        }
+        if (!repetirCadaAno && anoFin !== null && anoFin > anoActual) {
+            mostrarNotificacion('❌ Para terminar en un año posterior, selecciona “Repetir cada año”', 'error'); return;
+        }
         var anterior = _programadoEditandoIndex >= 0 ? lista[_programadoEditandoIndex] : null;
         var item = {
             id: anterior && anterior.id ? anterior.id : generarIdProgramado(),
@@ -8374,9 +8505,13 @@ function recalcularSimulador() {
             tipo: tipo,
             medio: medio,
             meses: meses,
-            repetirCadaAno: document.getElementById('programado-repeticion').value === 'cada-ano',
-            anoOrigen: anoActual
+            repetirCadaAno: repetirCadaAno,
+            anoOrigen: anterior && Number.isInteger(anterior.anoOrigen) ? anterior.anoOrigen : anoActual,
+            ...(mesFin !== null ? { mesFin: mesFin, anoFin: anoFin } : {})
         };
+        if (!movimientoProgramadoTieneAplicacionEnAno(item, anoActual)) {
+            mostrarNotificacion('❌ La fecha fin queda antes de todos los meses seleccionados', 'error'); return;
+        }
         if (_programadoEditandoIndex >= 0) lista[_programadoEditandoIndex] = item;
         else lista.push(item);
 
@@ -8386,8 +8521,9 @@ function recalcularSimulador() {
         actualizarTodo();
         actualizarResumenAnual();
         actualizarCategorias();
+        var textoFin = movimientoProgramadoTieneFechaFin(item) ? ' · hasta ' + MESES_CORTOS[item.mesFin] + ' ' + item.anoFin : '';
         mostrarNotificacion((_programadoEditandoIndex >= 0 ? '✅ Programado actualizado' : '✅ Programado añadido') +
-            (item.repetirCadaAno ? ' · repetirá cada año sin IPC' : ' · solo ' + anoActual), 'exito');
+            (item.repetirCadaAno ? ' · repetirá cada año sin IPC' : ' · solo ' + anoActual) + textoFin, 'exito');
         cancelarEdicionProgramado(false);
         renderizarProgramados();
     }
@@ -8421,10 +8557,12 @@ function recalcularSimulador() {
             var titulo = document.createElement('div'); titulo.className='programado-item-titulo';
             titulo.textContent = (item.tipo === 'ingresos' ? '📈 ' : '📉 ') + item.concepto;
             var badge=document.createElement('span'); badge.className='programado-badge';
-            badge.textContent=item.repetirCadaAno?'Cada año · sin IPC':'Solo '+anoActual;
+            var finTxt = movimientoProgramadoTieneFechaFin(item) ? (' · hasta ' + MESES_CORTOS[Number(item.mesFin)] + ' ' + Number(item.anoFin)) : '';
+            badge.textContent=(item.repetirCadaAno ? 'Cada año' : 'Solo '+anoActual) + finTxt;
             titulo.appendChild(badge);
             var meta=document.createElement('div'); meta.className='programado-item-meta';
-            meta.textContent=(item.meses||[]).map(function(m){return MESES_CORTOS[m];}).join(', ')+' · '+etiquetaMedioPago(item.medio);
+            var mesesTxt = (item.meses||[]).length === 12 ? 'Todos los meses' : (item.meses||[]).map(function(m){return MESES_CORTOS[m];}).join(', ');
+            meta.textContent=mesesTxt+' · '+etiquetaMedioPago(item.medio)+' · sin IPC';
             izq.appendChild(titulo); izq.appendChild(meta);
             var val=document.createElement('div'); val.className='programado-item-valor'; val.textContent=formatearMoneda(item.valor);
             var acts=document.createElement('div'); acts.className='programado-item-actions';
