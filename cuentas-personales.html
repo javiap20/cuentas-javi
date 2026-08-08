@@ -3907,60 +3907,226 @@
         }
     }
 
-    // Calcula el responsable del primer mes negativo.
-    // Considera extras puntuales, programados y vacaciones del propio mes y del anterior.
-    // Nunca gastos fijos mensuales ni extrasRecurrentes.
+    // Busca GASTOS ANOMALOS alrededor del primer mes negativo.
+    // IMPORTANTE: una partida fija tambien puede ser la causa si ese mes se dispara.
+    // Solo excluimos los movimientos Programados, porque ya son importes previstos de antemano.
     function calcularCategoriasCulpables(numMes) {
-        const candidatos = []; // { concepto, valor, etiqueta }
+        function normalizarClaveAnomalia(texto) {
+            return String(texto || '')
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, ' ')
+                .trim();
+        }
 
-        const mesesARevisar = numMes > 0
-            ? [numMes - 1, numMes]
-            : [numMes];
+        function normalizarPeriodoAnomalia(ano, mes) {
+            let a = ano;
+            let m = mes;
+            while (m < 0) { m += 12; a--; }
+            while (m > 11) { m -= 12; a++; }
+            return { ano: a, mes: m };
+        }
 
-        mesesARevisar.forEach(m => {
-            const esMesAnterior = (m === numMes - 1);
-            const sufijo = esMesAnterior ? ' (mes ant.)' : '';
+        function obtenerDatosAnoAnomalia(ano) {
+            if (ano === anoActual) return datos;
+            try {
+                const raw = localStorage.getItem('finanzasPersonales_' + ano);
+                return raw ? JSON.parse(raw) : null;
+            } catch (e) {
+                return null;
+            }
+        }
 
-            // 1. Gastos extras puntuales del mes
-            (datos.meses[m].gastosExtras || []).forEach(item => {
-                candidatos.push({ concepto: item.concepto + sufijo, valor: item.valor });
+        // Devuelve TODOS los gastos reales del mes agrupados por concepto, excepto Programados.
+        // Esto permite detectar, por ejemplo, Farmacia 20 -> 600 o Comida 300 -> 1000 aunque
+        // Farmacia/Comida vivan dentro de gastosFijos. Si hay fijo + extra con el mismo nombre,
+        // se suman y se analizan como una sola partida real de ese mes.
+        function obtenerGastosAnalizablesPeriodo(ano, mes) {
+            const d = obtenerDatosAnoAnomalia(ano);
+            const mapa = new Map();
+            if (!d || !Array.isArray(d.meses) || !d.meses[mes]) return mapa;
+
+            function agregar(concepto, valor, fuente) {
+                const num = Number(valor) || 0;
+                if (num <= 0) return;
+                const clave = normalizarClaveAnomalia(concepto);
+                if (!clave) return;
+                const existente = mapa.get(clave);
+                if (existente) {
+                    existente.valor += num;
+                    if (fuente && !existente.fuentes.includes(fuente)) existente.fuentes.push(fuente);
+                } else {
+                    mapa.set(clave, {
+                        clave,
+                        concepto: String(concepto || 'Gasto'),
+                        valor: num,
+                        fuentes: fuente ? [fuente] : []
+                    });
+                }
+            }
+
+            // Mes cerrado: snapshotItems es la foto exacta del gasto real de ese mes.
+            const cierre = d.mesesCerrados && d.mesesCerrados[mes];
+            if (cierre && Array.isArray(cierre.snapshotItems) && cierre.snapshotItems.length > 0) {
+                cierre.snapshotItems.forEach(item => {
+                    if (!item || item.eliminado || Number(item.valor) <= 0) return;
+                    // Programados nunca son una anomalia: estaban previstos.
+                    if (item.fuente === 'movimientosProgramados') return;
+
+                    const esIngreso = item.fuente === 'ingresosFijos' ||
+                        item.fuente === 'ingresosBonus' ||
+                        item.fuente === 'ingresosExtras' ||
+                        (item.fuente === 'extrasRecurrentes' && item.tipo === 'ingresos');
+                    if (esIngreso) return;
+
+                    const esGasto = item.fuente === 'gastosFijos' ||
+                        item.fuente === 'gastosVacaciones' ||
+                        item.fuente === 'gastosExtras' ||
+                        item.fuente === 'gastosVacacionesExtras' ||
+                        (item.fuente === 'extrasRecurrentes' && item.tipo === 'gastos') ||
+                        item.tipo === 'gastos';
+                    if (esGasto) agregar(item.concepto, item.valor, item.fuente);
+                });
+                return mapa;
+            }
+
+            const mesData = d.meses[mes] || {};
+            const overrides = mesData.overrides || {};
+
+            function agregarFijos(arr, fuente) {
+                (arr || []).forEach((item, idx) => {
+                    if (!item) return;
+                    const ov = overrides[fuente + '_' + idx];
+                    if (ov && ov.eliminado) return;
+                    const aplica = item.frecuencia === 'mensual' ||
+                        (item.frecuencia === 'anual' && Array.isArray(item.meses) && item.meses.includes(mes)) ||
+                        (ov && ov.forzarEnMes);
+                    if (!aplica) return;
+                    const concepto = ov && ov.concepto !== undefined ? ov.concepto : item.concepto;
+                    const valor = ov && ov.valor !== undefined ? ov.valor : item.valor;
+                    agregar(concepto, valor, fuente);
+                });
+            }
+
+            agregarFijos(d.gastosFijos, 'gastosFijos');
+            agregarFijos(d.gastosVacaciones, 'gastosVacaciones');
+
+            (mesData.gastosExtras || []).forEach(item => {
+                if (!item) return;
+                // Al reabrir un mes algunos Programados pueden quedar representados temporalmente
+                // como gastosExtras: tambien los excluimos aqui.
+                if (item._reaperturaOrigen === 'movimientosProgramados') return;
+                agregar(item.concepto, item.valor, item._reaperturaOrigen || 'gastosExtras');
+            });
+            (mesData.gastosVacacionesExtras || []).forEach(item => {
+                if (!item) return;
+                if (item._reaperturaOrigen === 'movimientosProgramados') return;
+                agregar(item.concepto, item.valor, item._reaperturaOrigen || 'gastosVacacionesExtras');
             });
 
-            // 2. Gastos de vacaciones puntuales del mes
-            (datos.meses[m].gastosVacacionesExtras || []).forEach(item => {
-                candidatos.push({ concepto: '🏖️ ' + item.concepto + sufijo, valor: item.valor });
-            });
-
-            // 3. Movimientos programados de gasto que aplican en este mes
-            (datos.movimientosProgramados || []).forEach((item, idx) => {
-                const efectivo = obtenerMovimientoProgramadoEfectivo(datos, item, idx, anoActual, m);
+            // Recurrentes antiguos: si aun existen en 2026 se comportan como gasto real y pueden
+            // explicar un negativo. Los Programados siguen quedando fuera por completo.
+            (d.extrasRecurrentes || []).forEach((item, idx) => {
+                const efectivo = obtenerExtraRecurrenteEfectivo(d, item, idx, ano, mes);
                 if (efectivo && efectivo.tipo === 'gastos') {
-                    candidatos.push({ concepto: '📅 ' + efectivo.concepto + sufijo, valor: efectivo.valor });
+                    agregar(efectivo.concepto, efectivo.valor, 'extrasRecurrentes');
                 }
             });
 
-            // 4. Gastos de vacaciones fijos/anuales que aplican solo a este mes
-            //    (frecuencia === 'anual' → son gastos de vacaciones planificados, no son "fijos" mensuales)
-            const overrides = datos.meses[m].overrides || {};
-            (datos.gastosVacaciones || []).forEach((item, idx) => {
-                const ov = overrides['gastosVacaciones_' + idx];
-                if (ov && ov.eliminado) return;
-                const aplica = (item.frecuencia === 'anual' && item.meses && item.meses.includes(m)) ||
-                               (ov && ov.forzarEnMes);
-                if (!aplica) return;
-                const valor = ov ? ov.valor : item.valor;
-                const concepto = ov ? ov.concepto : item.concepto;
-                candidatos.push({ concepto: '🏖️ ' + concepto + sufijo, valor });
+            return mapa;
+        }
+
+        function historialConcepto(ano, mes, clave) {
+            const historial = [];
+            // Hasta 8 meses anteriores: suficiente para distinguir un nivel habitual de un pico
+            // y bastante robusto si el cambio empezo hace 2-3 meses.
+            for (let delta = 1; delta <= 8; delta++) {
+                const p = normalizarPeriodoAnomalia(ano, mes - delta);
+                const gasto = obtenerGastosAnalizablesPeriodo(p.ano, p.mes).get(clave);
+                historial.push({
+                    delta,
+                    ano: p.ano,
+                    mes: p.mes,
+                    valor: gasto ? Number(gasto.valor) || 0 : 0
+                });
+            }
+            return historial;
+        }
+
+        function mediana(valores) {
+            if (!valores.length) return 0;
+            const ordenados = valores.slice().sort((a, b) => a - b);
+            const mitad = Math.floor(ordenados.length / 2);
+            return ordenados.length % 2
+                ? ordenados[mitad]
+                : (ordenados[mitad - 1] + ordenados[mitad]) / 2;
+        }
+
+        const candidatos = [];
+        // Revisamos el mes que entra en negativo y los dos anteriores: el gasto que agoto el
+        // colchon puede haberse producido uno o dos meses antes del cruce por debajo de cero.
+        for (let antiguedad = 0; antiguedad <= 2; antiguedad++) {
+            const periodo = normalizarPeriodoAnomalia(anoActual, numMes - antiguedad);
+            const gastos = obtenerGastosAnalizablesPeriodo(periodo.ano, periodo.mes);
+
+            gastos.forEach(gasto => {
+                const historial = historialConcepto(periodo.ano, periodo.mes, gasto.clave);
+                const aparecioUltimosDos = historial.some(h => h.delta <= 2 && h.valor > 0);
+                const valoresPrevios = historial.filter(h => h.valor > 0).map(h => h.valor);
+                const mediaPrevia = valoresPrevios.length
+                    ? valoresPrevios.reduce((a, b) => a + b, 0) / valoresPrevios.length
+                    : 0;
+                const valorHabitual = mediana(valoresPrevios);
+                const exceso = valorHabitual > 0 ? gasto.valor - valorHabitual : gasto.valor;
+
+                // Pico: al menos 50% por encima de su nivel habitual y 30 EUR de diferencia.
+                // La mediana evita que uno o dos meses ya altos oculten una subida importante.
+                const esPico = valorHabitual > 0 && gasto.valor >= valorHabitual * 1.5 && exceso >= 30;
+                // Nuevo/reaparecido: no existio en los dos meses inmediatamente anteriores.
+                const esNuevoReciente = !aparecioUltimosDos;
+                if (!esPico && !esNuevoReciente) return;
+
+                let detalle = '';
+                if (esNuevoReciente) {
+                    detalle = 'no aparecio en los 2 meses previos';
+                    if (mediaPrevia > 0) detalle += ' · media anterior ' + formatearMoneda(mediaPrevia);
+                }
+                if (esPico) {
+                    const picoTxt = 'habitual ' + formatearMoneda(valorHabitual) + ' · +' + formatearMoneda(exceso);
+                    detalle = detalle ? detalle + ' · ' + picoTxt : picoTxt;
+                }
+
+                let sufijoMes = '';
+                if (antiguedad === 1) sufijoMes = ' (' + MESES_CORTOS[periodo.mes] + ', mes ant.)';
+                if (antiguedad === 2) sufijoMes = ' (' + MESES_CORTOS[periodo.mes] + ', hace 2 meses)';
+                if (periodo.ano !== anoActual) sufijoMes = ' (' + MESES_CORTOS[periodo.mes] + ' ' + periodo.ano + ')';
+
+                candidatos.push({
+                    clave: gasto.clave,
+                    concepto: gasto.concepto + sufijoMes,
+                    valor: gasto.valor,
+                    detalle,
+                    impacto: Math.max(0, exceso),
+                    antiguedad
+                });
             });
+        }
+
+        // Una misma partida puede salir en mas de un mes; mostramos su desviacion mas fuerte.
+        const mejoresPorConcepto = new Map();
+        candidatos.forEach(c => {
+            const previo = mejoresPorConcepto.get(c.clave);
+            if (!previo || c.impacto > previo.impacto ||
+                (c.impacto === previo.impacto && c.antiguedad < previo.antiguedad)) {
+                mejoresPorConcepto.set(c.clave, c);
+            }
         });
 
-        // Ordenar por valor descendente y devolver top 3
-        return candidatos
-            .filter(c => c.valor > 0)
-            .sort((a, b) => b.valor - a.valor)
+        return Array.from(mejoresPorConcepto.values())
+            .sort((a, b) => (b.impacto - a.impacto) || (a.antiguedad - b.antiguedad) || (b.valor - a.valor))
             .slice(0, 3);
     }
-    
+
     // Mostrar alerta de meses negativos si existe
     if (primerMesNegativo !== null) {
         const alertaDiv = document.createElement('div');
@@ -3971,7 +4137,7 @@
         titulo.innerHTML = '<span>⚠️</span> PRIMER MES EN NEGATIVO: <span style="color: #dc2626;">' + MESES_NOMBRES[primerMesNegativo.mes] + ' · ' + formatearMoneda(primerMesNegativo.balance) + '</span>';
         alertaDiv.appendChild(titulo);
 
-        // Responsables del negativo (solo gastos extras y vacaciones)
+        // Posibles causas = gastos reales que se salen de su comportamiento habitual; solo Programados quedan fuera.
         const culpables = calcularCategoriasCulpables(primerMesNegativo.mes);
         if (culpables.length > 0) {
             const culpDiv = document.createElement('div');
@@ -3980,15 +4146,14 @@
                 const tag = document.createElement('span');
                 const bg = i === 0 ? '#dc2626' : i === 1 ? '#f97316' : '#f59e0b';
                 tag.style.cssText = `background:${bg};color:white;font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;display:flex;align-items:center;gap:4px;`;
-                tag.innerHTML = (i === 0 ? '🎯 Posible causa: ' : '') + c.concepto + ' <strong>' + formatearMoneda(c.valor) + '</strong>';
+                tag.textContent = (i === 0 ? '🎯 Posible causa: ' : '') + c.concepto + ' ' + formatearMoneda(c.valor) + ' · ' + c.detalle;
                 culpDiv.appendChild(tag);
             });
             alertaDiv.appendChild(culpDiv);
         } else {
-            // Sin gastos extras ni vacaciones identificables → el desequilibrio viene de la base fija
             const sinCulpDiv = document.createElement('div');
             sinCulpDiv.style.cssText = 'font-size:12px;color:#991b1b;margin-bottom:12px;font-style:italic;';
-            sinCulpDiv.textContent = 'No hay gastos extras ni vacaciones identificables en este mes ni en el anterior. El desequilibrio proviene de la estructura fija de ingresos/gastos.';
+            sinCulpDiv.textContent = 'No detecto ningún gasto claramente nuevo o muy por encima de su nivel habitual en el mes del negativo ni en los dos anteriores. Los Programados se excluyen de esta alerta porque ya estaban previstos.';
             alertaDiv.appendChild(sinCulpDiv);
         }
         
