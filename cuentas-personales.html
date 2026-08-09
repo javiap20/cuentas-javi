@@ -8587,7 +8587,7 @@ function recalcularSimulador() {
             const claseCerrado = pa.cerradoCompleto ? ' comparativa-periodo-cerrado' : '';
             const detalleCierre = (!pa.proyectado && pa.mesesCerrados > 0) ? (' · '+pa.mesesCerrados+'/12 meses cerrados') : '';
             const badgeCierre = (!pa.proyectado && pa.mesesCerrados > 0 && !pa.cerradoCompleto) ? '<span class="comparativa-anios-cierre-badge">'+pa.mesesCerrados+'/12 cerr.</span>' : '';
-            html+='<th class="'+claseCerrado.trim()+'" title="'+pa.ano+(pa.proyectado?' · proyección':'')+detalleCierre+'">'+pa.ano+(pa.proyectado?'<span class="comparativa-anios-proyectado">Proy.</span>':'')+badgeCierre+'</th>';
+            html+='<th class="'+claseCerrado.trim()+'" title="'+pa.ano+(pa.proyectado?' · proyección':'')+detalleCierre+'">'+pa.ano+' ('+(pa.ano-1972)+')'+(pa.proyectado?'<span class="comparativa-anios-proyectado">Proy.</span>':'')+badgeCierre+'</th>';
         });
         html+='<th class="comparativa-total-rango" title="Suma de todos los años visibles">Σ TOTAL</th>';
         html+='</tr></thead><tbody>';
@@ -9531,7 +9531,7 @@ function recalcularSimulador() {
 
             const esActual = ano === anoCalendario;
             filas += '<tr class="' + (esActual ? 'analisis-fila-actual' : '') + '">' +
-                '<td class="analisis-ano">' + ano + (esActual ? '<span class="analisis-badge-actual">AHORA</span>' : '') + '</td>' +
+                '<td class="analisis-ano">' + ano + ' (' + (ano - 1972) + ')' + (esActual ? '<span class="analisis-badge-actual">AHORA</span>' : '') + '</td>' +
                 '<td>' + primerHtml + '</td>' +
                 '<td>' + minimoHtml + '</td>' +
                 '<td>' + saldoFinalHtml + '</td>' +
@@ -11295,6 +11295,72 @@ function recalcularSimulador() {
                 #modal-flujo-continuo,
                 #modal-analisis-financiero { height:100vh !important;min-height:100vh !important; }
             }
+        }
+    </style>
+
+
+    <!-- Aprovechar el ancho real en Flujo y Analisis -->
+    <style id="flujo-analisis-aprovechar-espacio-final">
+        #modal-analisis-financiero .analisis-tabla {
+            width:calc(100% - 24px) !important;
+            max-width:1400px !important;
+            min-width:1080px !important;
+            table-layout:fixed !important;
+        }
+        #modal-analisis-financiero .analisis-tabla th:nth-child(1),
+        #modal-analisis-financiero .analisis-tabla td:nth-child(1) { width:10% !important; }
+        #modal-analisis-financiero .analisis-tabla th:nth-child(2),
+        #modal-analisis-financiero .analisis-tabla td:nth-child(2) { width:21% !important; }
+        #modal-analisis-financiero .analisis-tabla th:nth-child(3),
+        #modal-analisis-financiero .analisis-tabla td:nth-child(3) { width:21% !important; }
+        #modal-analisis-financiero .analisis-tabla th:nth-child(4),
+        #modal-analisis-financiero .analisis-tabla td:nth-child(4) { width:16% !important; }
+        #modal-analisis-financiero .analisis-tabla th:nth-child(5),
+        #modal-analisis-financiero .analisis-tabla td:nth-child(5) { width:32% !important; }
+        #modal-analisis-financiero .analisis-tabla td {
+            padding:10px 16px !important;
+        }
+        #modal-analisis-financiero .analisis-tabla td:nth-child(2),
+        #modal-analisis-financiero .analisis-tabla td:nth-child(3),
+        #modal-analisis-financiero .analisis-tabla td:nth-child(4),
+        #modal-analisis-financiero .analisis-tabla td:nth-child(5) {
+            white-space:nowrap !important;
+        }
+        #modal-analisis-financiero .analisis-prevision-principal,
+        #modal-analisis-financiero .analisis-prevision-detalle {
+            display:inline !important;
+            margin:0 !important;
+            line-height:1.35 !important;
+            white-space:nowrap !important;
+            overflow-wrap:normal !important;
+        }
+        #modal-analisis-financiero .analisis-prevision-detalle {
+            margin-left:7px !important;
+        }
+        #modal-analisis-financiero .analisis-prevision-detalle::before {
+            content:"\00b7\00a0";
+        }
+
+        #modal-flujo-continuo .flujo-tabla {
+            width:calc(100% - 24px) !important;
+            max-width:1450px !important;
+            min-width:960px !important;
+            table-layout:fixed !important;
+        }
+        #modal-flujo-continuo .flujo-tabla th,
+        #modal-flujo-continuo .flujo-tabla td {
+            padding-left:16px !important;
+            padding-right:16px !important;
+        }
+        #modal-flujo-continuo .flujo-periodo { width:15% !important; }
+        #modal-flujo-continuo .flujo-concepto { width:38% !important;max-width:none !important;overflow-wrap:normal !important; }
+        #modal-flujo-continuo .flujo-tipo { width:15% !important; }
+        #modal-flujo-continuo .flujo-importe { width:15% !important; }
+        #modal-flujo-continuo .flujo-saldo { width:17% !important; }
+
+        @media (max-width:760px) {
+            #modal-analisis-financiero .analisis-tabla { min-width:980px !important; }
+            #modal-flujo-continuo .flujo-tabla { min-width:900px !important; }
         }
     </style>
 
