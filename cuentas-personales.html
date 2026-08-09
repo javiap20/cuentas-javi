@@ -7467,15 +7467,14 @@ function recalcularSimulador() {
             // Las comparativas tienen un unico scroll propio (horizontal + vertical).
             // Dejar que Safari/iPad lo gestione de forma nativa evita que este
             // controlador global intente mover el overlay exterior.
-            // Desglose Anual usa tambien su propio scroll nativo en iPad.
-            if (e.target.closest && e.target.closest('#modal-comparativa-anual, #modal-comparativa-anios, #modal-analisis-financiero, #modal-editor-comparativa, #modal-flujo-continuo .flujo-continuo-scroll, #modal-desglose-anual')) return;
+            if (e.target.closest && e.target.closest('#modal-comparativa-anual, #modal-comparativa-anios, #modal-analisis-financiero, #modal-editor-comparativa, #modal-flujo-continuo .flujo-continuo-scroll')) return;
             var sc = findScrollableAncestor(e.target);
             if (sc) sc._lastTouchY = e.touches[0].clientY;
         }, { passive: true });
 
         document.addEventListener('touchmove', function(e) {
             if (!isInsideOpenModal(e.target)) return;
-            if (e.target.closest && e.target.closest('#modal-comparativa-anual, #modal-comparativa-anios, #modal-analisis-financiero, #modal-editor-comparativa, #modal-flujo-continuo .flujo-continuo-scroll, #modal-desglose-anual')) return;
+            if (e.target.closest && e.target.closest('#modal-comparativa-anual, #modal-comparativa-anios, #modal-analisis-financiero, #modal-editor-comparativa, #modal-flujo-continuo .flujo-continuo-scroll')) return;
 
             var sc = findScrollableAncestor(e.target);
             if (!sc) {
@@ -11239,6 +11238,62 @@ function recalcularSimulador() {
         @supports not (height:100dvh) {
             @media (hover:none) and (pointer:coarse) {
                 #modal-desglose-anual { height:100vh !important;min-height:100vh !important; }
+            }
+        }
+    </style>
+
+
+    <!-- Ajuste final: Flujo continuo y Analisis a ancho grande uniforme -->
+    <style id="flujo-analisis-ancho-completo-final">
+        #modal-flujo-continuo .flujo-continuo-modal-content,
+        #modal-analisis-financiero .analisis-financiero-content {
+            width:calc(100vw - 28px) !important;
+            max-width:1880px !important;
+            min-width:0 !important;
+            height:calc(100vh - 24px) !important;
+            max-height:calc(100vh - 24px) !important;
+            margin:12px auto !important;
+        }
+
+        /* El contenido sigue centrado: ganamos lienzo sin estirar artificialmente las tablas. */
+        #modal-flujo-continuo .flujo-continuo-scroll,
+        #modal-analisis-financiero .analisis-financiero-scroll {
+            width:auto !important;
+            box-sizing:border-box !important;
+        }
+        #modal-flujo-continuo #flujo-continuo-contenido,
+        #modal-analisis-financiero #analisis-financiero-contenido {
+            width:100% !important;
+            text-align:center !important;
+            box-sizing:border-box !important;
+        }
+
+        @media (hover:none) and (pointer:coarse) {
+            #modal-flujo-continuo,
+            #modal-analisis-financiero {
+                inset:0 !important;
+                width:100vw !important;
+                height:100dvh !important;
+                min-height:100dvh !important;
+                margin:0 !important;
+                padding:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left)) !important;
+                overflow:hidden !important;
+            }
+            #modal-flujo-continuo .flujo-continuo-modal-content,
+            #modal-analisis-financiero .analisis-financiero-content {
+                width:100% !important;
+                max-width:100% !important;
+                min-width:0 !important;
+                height:100% !important;
+                max-height:100% !important;
+                min-height:0 !important;
+                margin:0 !important;
+            }
+        }
+        @supports not (height:100dvh) {
+            @media (hover:none) and (pointer:coarse) {
+                #modal-flujo-continuo,
+                #modal-analisis-financiero { height:100vh !important;min-height:100vh !important; }
             }
         }
     </style>
