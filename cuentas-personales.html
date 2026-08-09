@@ -11368,5 +11368,79 @@ function recalcularSimulador() {
         }
     </style>
 
+    <!-- ══════════ AJUSTE FINAL: scroll estable en iPad para "Comparar 12 meses" / "Comparar años" ══════════
+         Motivo: las reglas anteriores dejaban el gesto táctil en modo libre (touch-action: pan-x pan-y),
+         lo que en iPad se siente como si la tabla "flotara" y se pudiera arrastrar en cualquier dirección,
+         con rebote elástico al llegar al borde derecho. Esta capa, al ser la última del documento, gana
+         sobre todas las anteriores para estas dos tablas:
+         - Vertical: lo sigue gestionando Safari de forma nativa (suave, con inercia).
+         - Horizontal: se gestiona a mano con JS, con el eje bloqueado según el primer gesto y sin
+           poder desplazarse más allá de los bordes de la tabla (sin rebote). -->
+    <style id="comparativas-scroll-estable-final">
+        @media (hover:none) and (pointer:coarse) {
+            #modal-comparativa-anual .comparativa-scroll,
+            #modal-comparativa-anios .comparativa-scroll {
+                touch-action: pan-y !important;
+                overscroll-behavior: contain !important;
+                -webkit-overflow-scrolling: touch !important;
+            }
+        }
+    </style>
+    <script>
+    (function() {
+        if (!window.matchMedia || !window.matchMedia('(hover:none) and (pointer:coarse)').matches) return;
+
+        function activarArrastreEstable(el) {
+            if (!el || el.dataset.scrollEstableFinal === '1') return;
+            el.dataset.scrollEstableFinal = '1';
+
+            var startX = 0, startY = 0, startScrollLeft = 0, eje = null;
+            var UMBRAL = 8; // px de movimiento antes de decidir si el gesto es horizontal o vertical
+
+            el.addEventListener('touchstart', function(e) {
+                if (!e.touches || e.touches.length !== 1) { eje = null; return; }
+                startX = e.touches[0].clientX;
+                startY = e.touches[0].clientY;
+                startScrollLeft = el.scrollLeft;
+                eje = null;
+            }, { passive: true });
+
+            el.addEventListener('touchmove', function(e) {
+                if (!e.touches || e.touches.length !== 1) return;
+                var x = e.touches[0].clientX;
+                var y = e.touches[0].clientY;
+                var dx = x - startX;
+                var dy = y - startY;
+
+                if (eje === null) {
+                    if (Math.abs(dx) < UMBRAL && Math.abs(dy) < UMBRAL) return;
+                    eje = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+                }
+                // Gesto vertical: lo gestiona Safari de forma nativa (touch-action: pan-y). No tocamos nada.
+                if (eje === 'y') return;
+
+                // Gesto horizontal: lo gestionamos a mano, con tope duro (sin rebote elastico).
+                e.preventDefault();
+                var maxScrollLeft = Math.max(0, el.scrollWidth - el.clientWidth);
+                var nuevo = startScrollLeft - dx;
+                if (nuevo < 0) nuevo = 0;
+                if (nuevo > maxScrollLeft) nuevo = maxScrollLeft;
+                el.scrollLeft = nuevo;
+            }, { passive: false });
+
+            el.addEventListener('touchend', function() { eje = null; }, { passive: true });
+            el.addEventListener('touchcancel', function() { eje = null; }, { passive: true });
+        }
+
+        function iniciar() {
+            activarArrastreEstable(document.getElementById('comparativa-scroll'));
+            activarArrastreEstable(document.getElementById('comparativa-anios-scroll'));
+        }
+
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', iniciar);
+        else iniciar();
+    })();
+    </script>
+
 </body>
 </html>
