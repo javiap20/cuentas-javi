@@ -5131,8 +5131,8 @@
 
     <!-- Modal Desglose Anual -->
     <div id="modal-desglose-anual" class="modal" style="z-index:1100;display:none;" onclick="cerrarDesgloseAnual()">
-        <div class="modal-content" style="max-width:900px;max-height:90vh;padding:0;overflow:hidden;display:flex;flex-direction:column;" onclick="event.stopPropagation()">
-            <div style="padding:20px 25px 15px;border-bottom:2px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+        <div class="modal-content desglose-anual-modal-content" style="max-width:900px;max-height:90vh;padding:0;overflow:hidden;display:flex;flex-direction:column;" onclick="event.stopPropagation()">
+            <div class="desglose-anual-toolbar" style="padding:20px 25px 15px;border-bottom:2px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
                 <h2 id="desglose-anual-titulo" style="margin:0;color:#1e3a8a;font-size:1.3em;">📋 Desglose Anual</h2>
                 <div style="display:flex;align-items:center;gap:12px;">
                     <input type="text" id="desglose-buscador" placeholder="🔍 Buscar concepto..." oninput="filtrarDesglose()" style="width:200px;padding:8px 12px;border:2px solid #e5e7eb;border-radius:8px;font-size:0.9em;margin:0;">
@@ -5140,7 +5140,7 @@
                 </div>
             </div>
             <div id="desglose-anual-resumen" style="padding:12px 25px;background:#f8faff;border-bottom:1px solid #e5e7eb;flex-shrink:0;font-size:0.88em;"></div>
-            <div id="desglose-anual-contenido" style="overflow-y:auto;padding:20px 25px;flex:1;-webkit-overflow-scrolling:touch;"></div>
+            <div id="desglose-anual-contenido" class="desglose-anual-scroll" style="overflow-y:auto;padding:20px 25px;flex:1;-webkit-overflow-scrolling:touch;"></div>
         </div>
     </div>
 
@@ -5300,7 +5300,7 @@
             // Se guarda en variable global para que renderizarDesgloseAnual la inserte al principio
             window._tablaResumenMesesHTML = `
                 <div style="background:#f0f4ff;border-radius:14px;padding:16px 20px;margin:0 0 28px 0;border:1px solid #c7d2fe;">
-                    <div style="overflow-x:auto;">
+                    <div>
                     <table style="width:100%;border-collapse:collapse;font-size:0.84em;">
                         <thead>
                             <tr style="background:#1e3a8a;color:white;">
@@ -9321,12 +9321,12 @@ function recalcularSimulador() {
                 </div>
                 <span class="close" onclick="cerrarAnalisisFinanciero()" title="Cerrar">&times;</span>
             </div>
-            <div class="analisis-financiero-nota">
-                <strong>Previsión:</strong> cada año futuro es provisional hasta que llega su 1 de enero. En la primera carga de la app de ese año se congela su saldo previsto a 31 de diciembre y ya no cambia aunque después modifiques Config. Desde ahí se compara contra la previsión actual después de tus cambios reales.
-                <br><strong>Primer negativo / punto más bajo:</strong> usan el mismo orden de movimientos que <em>Flujo continuo</em>, por lo que pueden detectar una caída dentro del mes aunque ese mes termine recuperándose.
-            </div>
             <div id="analisis-financiero-scroll" class="analisis-financiero-scroll">
                 <div id="analisis-financiero-contenido"></div>
+                <div class="analisis-financiero-nota">
+                    <strong>Previsión:</strong> cada año futuro es provisional hasta que llega su 1 de enero. En la primera carga de la app de ese año se congela su saldo previsto a 31 de diciembre y ya no cambia aunque después modifiques Config. Desde ahí se compara contra la previsión actual después de tus cambios reales.
+                    <br><strong>Primer negativo / punto más bajo:</strong> usan el mismo orden de movimientos que <em>Flujo continuo</em>, por lo que pueden detectar una caída dentro del mes aunque ese mes termine recuperándose.
+                </div>
             </div>
         </div>
     </div>
@@ -9562,9 +9562,9 @@ function recalcularSimulador() {
                     <span class="close" onclick="cerrarFlujoContinuo()" title="Cerrar">&times;</span>
                 </div>
             </div>
-            <div id="flujo-continuo-aviso" class="flujo-continuo-aviso"></div>
             <div id="flujo-continuo-scroll" class="flujo-continuo-scroll">
                 <div id="flujo-continuo-contenido"></div>
+                <div id="flujo-continuo-aviso" class="flujo-continuo-aviso"></div>
             </div>
         </div>
     </div>
@@ -11100,6 +11100,144 @@ function recalcularSimulador() {
                     height:100vh !important;
                     min-height:100vh !important;
                 }
+            }
+        }
+    </style>
+
+
+    <!-- Ajuste final: Desglose anual grande/una sola hoja + notas al final -->
+    <style id="desglose-anual-grande-notas-abajo-final">
+        /* Desglose anual: mismo enfoque de las comparativas grandes. */
+        #modal-desglose-anual {
+            overflow:hidden !important;
+        }
+        #modal-desglose-anual .desglose-anual-modal-content {
+            width:calc(100vw - 28px) !important;
+            max-width:1880px !important;
+            height:calc(100vh - 24px) !important;
+            max-height:calc(100vh - 24px) !important;
+            margin:12px auto !important;
+            padding:0 !important;
+            overflow:hidden !important;
+            display:flex !important;
+            flex-direction:column !important;
+            border-radius:15px !important;
+            background:#fff !important;
+            box-shadow:0 20px 60px rgba(0,0,0,.5) !important;
+        }
+        #modal-desglose-anual .desglose-anual-toolbar {
+            flex:0 0 auto !important;
+            width:auto !important;
+            box-sizing:border-box !important;
+        }
+        #modal-desglose-anual #desglose-anual-resumen {
+            flex:0 0 auto !important;
+            width:auto !important;
+            box-sizing:border-box !important;
+        }
+        #modal-desglose-anual .desglose-anual-scroll {
+            flex:1 1 0 !important;
+            min-height:0 !important;
+            width:auto !important;
+            overflow-x:auto !important;
+            overflow-y:auto !important;
+            -webkit-overflow-scrolling:touch !important;
+            overscroll-behavior:contain !important;
+            touch-action:pan-x pan-y !important;
+            box-sizing:border-box !important;
+        }
+        /* El contenido usa una anchura amplia pero legible y queda centrado. */
+        #modal-desglose-anual .desglose-anual-scroll > div,
+        #modal-desglose-anual .desglose-anual-scroll > p {
+            width:min(1380px,100%) !important;
+            max-width:1380px !important;
+            margin-left:auto !important;
+            margin-right:auto !important;
+            box-sizing:border-box !important;
+        }
+        #modal-desglose-anual .desglose-anual-scroll table,
+        #modal-desglose-anual .desglose-anual-scroll thead,
+        #modal-desglose-anual .desglose-anual-scroll tbody,
+        #modal-desglose-anual .desglose-anual-scroll tr,
+        #modal-desglose-anual .desglose-anual-scroll th,
+        #modal-desglose-anual .desglose-anual-scroll td {
+            position:static !important;
+            top:auto !important;
+            left:auto !important;
+            right:auto !important;
+            z-index:auto !important;
+            transform:none !important;
+            -webkit-transform:none !important;
+        }
+
+        /* Las explicaciones de Analisis y Flujo ya no ocupan la cabecera: van al final del scroll. */
+        #modal-analisis-financiero .analisis-financiero-nota {
+            display:block !important;
+            width:790px !important;
+            max-width:100% !important;
+            min-width:720px !important;
+            margin:14px auto 0 !important;
+            padding:9px 16px !important;
+            border:1px solid #fed7aa !important;
+            border-radius:9px !important;
+            background:#fff7ed !important;
+            box-sizing:border-box !important;
+            position:static !important;
+        }
+        #modal-flujo-continuo .flujo-continuo-aviso {
+            width:790px !important;
+            max-width:100% !important;
+            min-width:720px !important;
+            margin:14px auto 0 !important;
+            padding:9px 16px !important;
+            border:1px solid #fed7aa !important;
+            border-radius:9px !important;
+            background:#fff7ed !important;
+            box-sizing:border-box !important;
+            position:static !important;
+        }
+
+        @media (hover:none) and (pointer:coarse) {
+            #modal-desglose-anual {
+                inset:0 !important;
+                width:100vw !important;
+                height:100dvh !important;
+                min-height:100dvh !important;
+                margin:0 !important;
+                padding:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left)) !important;
+                overflow:hidden !important;
+                overscroll-behavior:none !important;
+                touch-action:auto !important;
+            }
+            #modal-desglose-anual .desglose-anual-modal-content {
+                width:100% !important;
+                max-width:100% !important;
+                min-width:0 !important;
+                height:100% !important;
+                max-height:100% !important;
+                min-height:0 !important;
+                margin:0 !important;
+                overflow:hidden !important;
+            }
+            #modal-desglose-anual .desglose-anual-scroll {
+                flex:1 1 0 !important;
+                min-height:0 !important;
+                overflow-x:auto !important;
+                overflow-y:auto !important;
+                -webkit-overflow-scrolling:auto !important;
+                overscroll-behavior-x:none !important;
+                overscroll-behavior-y:contain !important;
+                touch-action:pan-x pan-y !important;
+                overflow-anchor:none !important;
+            }
+            #modal-analisis-financiero .analisis-financiero-nota,
+            #modal-flujo-continuo .flujo-continuo-aviso {
+                margin-top:12px !important;
+            }
+        }
+        @supports not (height:100dvh) {
+            @media (hover:none) and (pointer:coarse) {
+                #modal-desglose-anual { height:100vh !important;min-height:100vh !important; }
             }
         }
     </style>
