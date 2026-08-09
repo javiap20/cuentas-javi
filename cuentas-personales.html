@@ -7515,14 +7515,14 @@ function recalcularSimulador() {
             // Las comparativas tienen un unico scroll propio (horizontal + vertical).
             // Dejar que Safari/iPad lo gestione de forma nativa evita que este
             // controlador global intente mover el overlay exterior.
-            if (e.target.closest && e.target.closest('#modal-comparativa-anual, #modal-comparativa-anios, #modal-analisis-financiero, #modal-editor-comparativa, #modal-flujo-continuo .flujo-continuo-scroll, #modal-desglose-anual .desglose-anual-scroll')) return;
+            if (e.target.closest && e.target.closest('#modal-comparativa-anual, #modal-comparativa-anios, #modal-analisis-financiero, #modal-editor-comparativa, #modal-flujo-continuo .flujo-continuo-scroll, #modal-desglose-anual .desglose-anual-scroll, #modal-resumen-global .resumen-global-scroll')) return;
             var sc = findScrollableAncestor(e.target);
             if (sc) sc._lastTouchY = e.touches[0].clientY;
         }, { passive: true });
 
         document.addEventListener('touchmove', function(e) {
             if (!isInsideOpenModal(e.target)) return;
-            if (e.target.closest && e.target.closest('#modal-comparativa-anual, #modal-comparativa-anios, #modal-analisis-financiero, #modal-editor-comparativa, #modal-flujo-continuo .flujo-continuo-scroll, #modal-desglose-anual .desglose-anual-scroll')) return;
+            if (e.target.closest && e.target.closest('#modal-comparativa-anual, #modal-comparativa-anios, #modal-analisis-financiero, #modal-editor-comparativa, #modal-flujo-continuo .flujo-continuo-scroll, #modal-desglose-anual .desglose-anual-scroll, #modal-resumen-global .resumen-global-scroll')) return;
 
             var sc = findScrollableAncestor(e.target);
             if (!sc) {
