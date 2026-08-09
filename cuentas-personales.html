@@ -1138,6 +1138,7 @@
                 <button class="act-btn" onclick="abrirResumenGlobal()">&#127757; Resumen Global</button>
                 <button class="act-btn" onclick="abrirDesgloseAnual()">&#128203; Desglose Anual</button>
                 <button class="act-btn" onclick="abrirFlujoContinuo()" style="background:#0e7490;border-color:#0e7490;">&#128220; Flujo continuo</button>
+                <button class="act-btn" onclick="abrirAnalisisFinanciero()" style="background:#b45309;border-color:#b45309;">&#129517; Análisis</button>
                 <button class="act-btn" onclick="abrirComparativaAnual()" style="background:#0f766e;border-color:#0f766e;">&#128202; Comparar 12 meses</button>
                 <button class="act-btn" onclick="abrirComparativaAnios()" style="background:#4338ca;border-color:#4338ca;">&#128200; Comparar años</button>
                 <button class="act-btn" onclick="abrirSimulador()" style="background:#7c3aed;border-color:#7c3aed;">&#129514; Simular</button>
@@ -1345,17 +1346,17 @@
                 <input type="number" id="saldo-inicial-input" placeholder="3052" step="1">
                 <div class="help-text" id="saldo-help-text">Este es el balance con el que empiezas el año 2026</div>
                 <hr style="margin:15px 0;border:none;border-top:1px solid #e5e7eb;">
-                <label>📈 % Incremento ingresos al pasar de año (se aplica al regenerar):</label>
+                <label>📈 % Incremento ingresos al pasar de año:</label>
                 <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
                     <input type="number" id="incremento-ingresos-input" placeholder="1" step="0.1" min="0" max="20" style="width:100px;">
                     <span style="color:#64748b;font-size:0.9em;">% (por defecto 1%)</span>
                 </div>
-                <label>📉 % Incremento gastos al pasar de año (excepto ING):</label>
+                <label>📉 % Incremento gastos al pasar de año (excepto Programados):</label>
                 <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
                     <input type="number" id="incremento-gastos-input" placeholder="2" step="0.1" min="0" max="20" style="width:100px;">
                     <span style="color:#64748b;font-size:0.9em;">% (por defecto 2%)</span>
                 </div>
-                <div class="help-text">Estos % se guardan para este año y se usan al generar el año siguiente</div>
+                <div class="help-text">Al guardar, estos % se aplican también a los años futuros que ya tengas creados, recalculándolos en cadena. Los Programados conservan siempre su importe exacto; no se borran extras ni meses cerrados.</div>
             </div>
             <button onclick="guardarConfiguracion()">💾 Guardar Configuración</button>
         </div>
@@ -2108,6 +2109,104 @@
             document.getElementById('modal-config').style.display = 'none';
         }
         
+        // Busca la misma partida base en el año siguiente de forma conservadora.
+        // Priorizamos _serieId; para datos antiguos sin id usamos mismo índice+concepto
+        // o una coincidencia única por concepto. Nunca emparejamos solo por posición.
+        function buscarPartidaParaRecalculoConfig(arr, referencia, fuente, indexPreferido, usados) {
+            if (!Array.isArray(arr) || !referencia) return -1;
+            const serieId = asegurarSerieIdBase(referencia, fuente);
+            let idx = arr.findIndex((x, i) => x && !usados.has(i) && x._serieId && x._serieId === serieId);
+            if (idx >= 0) return idx;
+
+            const clave = claveConceptoSerie(referencia.concepto);
+            if (Number.isInteger(indexPreferido) && arr[indexPreferido] && !usados.has(indexPreferido) &&
+                claveConceptoSerie(arr[indexPreferido].concepto) === clave) {
+                return indexPreferido;
+            }
+
+            const coincidencias = [];
+            arr.forEach((x, i) => {
+                if (x && !usados.has(i) && claveConceptoSerie(x.concepto) === clave) coincidencias.push(i);
+            });
+            return coincidencias.length === 1 ? coincidencias[0] : -1;
+        }
+
+        // Convierte los porcentajes de Config en una fórmula viva para los años ya creados.
+        // Recalcula únicamente las partidas base que pasan de año; conserva extras mensuales,
+        // Programados, overrides y snapshots de meses cerrados. Los saldos iniciales vuelven
+        // a encadenarse tras cada recalculo: 31 Dic del año anterior = 1 Ene del siguiente.
+        function recalcularAniosFuturosPorConfiguracion() {
+            const fuentes = ['ingresosFijos', 'ingresosBonus', 'gastosFijos', 'gastosVacaciones'];
+            let datosPrevios = datos;
+            let saldoInicioPrevio = calcularSaldoInicioRealDelAno(anoActual);
+            let saldoFinPrevio = redondearCentimos(
+                calcularBalanceAcumuladoDeDatos(datos, 11, anoActual, saldoInicioPrevio)
+            );
+            let anosActualizados = 0;
+            let partidasActualizadas = 0;
+
+            // Aseguramos ids en el año que sirve de ancla. guardarDatos() los persistirá.
+            fuentes.forEach(fuente => {
+                (obtenerArrayBasePorFuente(datosPrevios, fuente) || []).forEach(item => asegurarSerieIdBase(item, fuente));
+            });
+
+            for (let y = anoActual + 1; y <= 2040; y++) {
+                const key = 'finanzasPersonales_' + y;
+                const raw = localStorage.getItem(key);
+                if (!raw) break; // Los años se crean consecutivamente en esta app.
+
+                let d;
+                try { d = JSON.parse(raw); } catch (e) { break; }
+                if (!d) break;
+                normalizarDatos(d);
+
+                // El porcentaje pasa a ser global desde el año actual hacia delante.
+                d.incrementos = {
+                    ingresos: Number(datos.incrementos && datos.incrementos.ingresos) || 0,
+                    gastos: Number(datos.incrementos && datos.incrementos.gastos) || 0
+                };
+
+                // Reencadenar el saldo antes de calcular el final de este año.
+                d.saldoInicial = saldoFinPrevio;
+
+                fuentes.forEach(fuente => {
+                    const arrPrevio = obtenerArrayBasePorFuente(datosPrevios, fuente) || [];
+                    const arrDestino = obtenerArrayBasePorFuente(d, fuente) || [];
+                    const usados = new Set();
+
+                    arrPrevio.forEach((ref, idxPrevio) => {
+                        if (!ref) return;
+                        const idxDestino = buscarPartidaParaRecalculoConfig(arrDestino, ref, fuente, idxPrevio, usados);
+                        if (idxDestino < 0) return; // Si se eliminó en ese año, no la resucitamos.
+
+                        const destino = arrDestino[idxDestino];
+                        destino._serieId = asegurarSerieIdBase(ref, fuente);
+                        const nuevoValor = valorPartidaBaseAnoSiguiente(ref.valor, fuente, datosPrevios, ref.concepto);
+                        if (Number(destino.valor) !== Number(nuevoValor)) partidasActualizadas++;
+                        destino.valor = nuevoValor;
+                        usados.add(idxDestino);
+                    });
+
+                    // Las partidas que nacieron expresamente en este año quedan como ancla
+                    // para el siguiente, sin ser reescritas hacia atrás.
+                    arrDestino.forEach(item => asegurarSerieIdBase(item, fuente));
+                });
+
+                d._modificadoEn = new Date().toISOString();
+                delete d._exportadoEn;
+                localStorage.setItem(key, JSON.stringify(d));
+                anosActualizados++;
+
+                const saldoInicioEsteAno = Number(d.saldoInicial) || 0;
+                saldoFinPrevio = redondearCentimos(
+                    calcularBalanceAcumuladoDeDatos(d, 11, y, saldoInicioEsteAno)
+                );
+                datosPrevios = d;
+            }
+
+            return { anosActualizados, partidasActualizadas };
+        }
+
         function guardarConfiguracion() {
             const saldoInicial = parseFloat(document.getElementById('saldo-inicial-input').value) || 0;
             datos.saldoInicial = saldoInicial;
@@ -2117,11 +2216,17 @@
                 ingresos: isNaN(pIngresos) ? 1 : pIngresos,
                 gastos: isNaN(pGastos) ? 2 : pGastos
             };
+
+            const recalculo = recalcularAniosFuturosPorConfiguracion();
             guardarDatos();
             actualizarTodo();
             actualizarResumenAnual();
             cerrarModalConfig();
-            mostrarNotificacion('✅ Configuración guardada', 'exito');
+
+            const detalle = recalculo.anosActualizados > 0
+                ? ' · ' + recalculo.anosActualizados + (recalculo.anosActualizados === 1 ? ' año futuro recalculado' : ' años futuros recalculados')
+                : '';
+            mostrarNotificacion('✅ Configuración guardada' + detalle, 'exito');
         }
         
         function abrirResumenGlobal() {
@@ -2260,11 +2365,11 @@
                 totalGastos += gasAno;
 
                 filas += '<tr>' +
-                    '<td style="font-weight:600;text-align:center;">' + ano + '</td>' +
+                    '<td style="font-weight:600;text-align:center;">' + ano + ' (' + (ano - 1972) + ')</td>' +
                     '<td style="color:#6b7280;text-align:center;">' + formatearMoneda(saldoInicio) + '</td>' +
                     '<td style="color:#10b981;font-weight:600;text-align:center;">' + formatearMoneda(ingAno) + '</td>' +
                     '<td style="color:#ef4444;font-weight:600;text-align:center;">' + formatearMoneda(gasAno) + '</td>' +
-                    '<td style="color:' + (diff >= 0 ? '#10b981' : '#ef4444') + ';font-weight:700;text-align:center;">' + formatearMoneda(diff) + '</td>' +
+                    '<td style="color:' + (diff >= 0 ? '#10b981' : '#ef4444') + ';font-weight:400;text-align:center;">' + formatearMoneda(diff) + '</td>' +
                     '<td style="color:' + (saldoFinal >= 0 ? '#10b981' : '#ef4444') + ';font-weight:700;text-align:center;">' + formatearMoneda(saldoFinal) + '</td>' +
                 '</tr>';
             });
@@ -2286,7 +2391,7 @@
                 '<td></td>' +
                 '<td style="padding:12px 8px;text-align:center;color:#10b981;">' + formatearMoneda(totalIngresos) + '</td>' +
                 '<td style="padding:12px 8px;text-align:center;color:#ef4444;">' + formatearMoneda(totalGastos) + '</td>' +
-                '<td style="padding:12px 8px;text-align:center;color:' + (diffTotal >= 0 ? '#10b981' : '#ef4444') + ';">' + formatearMoneda(diffTotal) + '</td>' +
+                '<td style="padding:12px 8px;text-align:center;color:' + (diffTotal >= 0 ? '#10b981' : '#ef4444') + ';font-weight:400;">' + formatearMoneda(diffTotal) + '</td>' +
                 '<td></td>' +
                 '</tr></tfoot>' +
                 '</table>';
@@ -2408,10 +2513,10 @@
                     else { overridesLimpios[key] = ov; return; } // fuente desconocida, conservar
                     if (idx >= arrFuente.length) return; // índice fuera de rango, descartar
                     const itemFijo = arrFuente[idx];
-                    // Si el concepto del override no coincide con el del ítem fijo,
-                    // es un override sucio del sistema antiguo → descartar
-                    if (ov.concepto && ov.concepto !== itemFijo.concepto) return;
-                    // Override válido: conservar
+                    // En el sistema actual un override mensual puede cambiar también el concepto
+                    // (por ejemplo, renombrar una partida SOLO en agosto). No lo descartamos por
+                    // diferir del concepto base: basta con que apunte a una partida existente.
+                    // La antigua limpieza por nombre era otra heurística legacy destructiva.
                     overridesLimpios[key] = ov;
                 });
                 mes.overrides = overridesLimpios;
@@ -2676,6 +2781,62 @@
         }
 
         // ══════════════════════════════════════════════
+        //  ANÁLISIS · PREVISIÓN BASE ANUAL
+        // ══════════════════════════════════════════════
+        // La previsión de cada año se congela una sola vez cuando ese año comienza.
+        // Como este HTML no puede ejecutarse mientras está cerrado, "1 de enero" significa
+        // la primera carga de la app en ese año, antes de que el usuario pueda editar nada.
+        // Los años futuros NO se congelan: siguen siendo provisionales y responden a Config.
+        function leerPrevisionBaseAnalisis(d) {
+            const p = d && d._analisisPrevisionBase;
+            if (!p || !Number.isFinite(Number(p.saldo31Dic))) return null;
+            return {
+                saldo31Dic: Number(p.saldo31Dic),
+                fijadaEn: p.fijadaEn || null,
+                ano: Number(p.ano) || null,
+                version: Number(p.version) || 1
+            };
+        }
+
+        function asegurarPrevisionAnalisisAnoEnCurso(anoCalendarioForzado) {
+            const anoCalendario = Number.isInteger(anoCalendarioForzado)
+                ? anoCalendarioForzado
+                : new Date().getFullYear();
+            if (anoCalendario < 2027 || anoCalendario > 2040) return 0;
+
+            const key = 'finanzasPersonales_' + anoCalendario;
+            const raw = localStorage.getItem(key);
+            if (!raw) return 0;
+
+            let d;
+            try { d = JSON.parse(raw); } catch (e) { return 0; }
+            if (!d || leerPrevisionBaseAnalisis(d)) return 0;
+
+            normalizarDatos(d);
+            const saldoInicio = calcularSaldoInicioRealDelAno(anoCalendario);
+            const saldo31Dic = redondearCentimos(
+                calcularBalanceAcumuladoDeDatos(d, 11, anoCalendario, saldoInicio)
+            );
+            const ahora = new Date().toISOString();
+            d._analisisPrevisionBase = {
+                saldo31Dic: saldo31Dic,
+                fijadaEn: ahora,
+                ano: anoCalendario,
+                version: 1
+            };
+            d._modificadoEn = ahora;
+            delete d._exportadoEn;
+            localStorage.setItem(key, JSON.stringify(d));
+
+            // Si justo estamos trabajando sobre ese año, mantener también el objeto en memoria.
+            if (anoActual === anoCalendario) {
+                datos._analisisPrevisionBase = JSON.parse(JSON.stringify(d._analisisPrevisionBase));
+                datos._modificadoEn = d._modificadoEn;
+            }
+            return 1;
+        }
+
+        // ══════════════════════════════════════════════
         //  CARGA DE DATOS (Gist primero)
         // ══════════════════════════════════════════════
         async function cargarDatos() {
@@ -2740,9 +2901,13 @@
                 mostrarNotificacion('🔓 Corregidos ' + cierresReparados + ' cierres heredados de años futuros', 'exito');
             }
 
-            // Si acabamos de leer el viejo Gist de un solo año, o hay años locales que todavía
-            // no estaban en la nube, migramos automáticamente al paquete multi-año.
-            if (gistConfigurado() && (paqueteEraAntiguo || huboLocalesMasNuevos || cierresReparados > 0)) {
+            // Fijar la previsión base del año real en curso (desde 2027) antes de que el
+            // usuario pueda hacer cambios. Los años futuros permanecen provisionales.
+            const previsionAnalisisFijada = asegurarPrevisionAnalisisAnoEnCurso();
+
+            // Si acabamos de leer el viejo Gist de un solo año, hay años locales más nuevos,
+            // hemos reparado cierres o acabamos de fijar una previsión, sincronizamos el paquete.
+            if (gistConfigurado() && (paqueteEraAntiguo || huboLocalesMasNuevos || cierresReparados > 0 || previsionAnalisisFijada > 0)) {
                 programarGuardadoGist();
             }
 
@@ -2904,6 +3069,7 @@
             const nuevo = JSON.parse(JSON.stringify(datosBase)); // deep copy
             delete nuevo._modificadoEn;
             delete nuevo._exportadoEn;
+            delete nuevo._analisisPrevisionBase; // cada año congela su propia previsión al comenzar
             // La marca de la limpieza unica solo pertenece a 2026, no a los anos generados.
             delete nuevo._migracionFuturosLimpiosV1;
 
@@ -2922,13 +3088,12 @@
                 valor: Math.round(item.valor * pctIngresos * 100) / 100
             }));
 
-            // Gastos fijos: excepto ING
-            nuevo.gastosFijos = nuevo.gastosFijos.map(item => {
-                if (item.concepto && item.concepto.toUpperCase().includes('ING')) {
-                    return item;
-                }
-                return { ...item, valor: Math.round(item.valor * pctGastos * 100) / 100 };
-            });
+            // Gastos fijos: todos reciben el incremento configurado.
+            // La única familia planificada que conserva el importe exacto son los Programados.
+            nuevo.gastosFijos = nuevo.gastosFijos.map(item => ({
+                ...item,
+                valor: Math.round(item.valor * pctGastos * 100) / 100
+            }));
 
             // Gastos vacaciones
             nuevo.gastosVacaciones = nuevo.gastosVacaciones.map(item => ({
@@ -5638,10 +5803,8 @@
 
         function valorPartidaBaseAnoSiguiente(valorBase, fuente, datosBaseAno, conceptoBase) {
             const valor = Number(valorBase) || 0;
-            // Conserva la excepción histórica de los gastos cuyo concepto lleva ING.
-            if (fuente === 'gastosFijos' && String(conceptoBase || '').toUpperCase().includes('ING')) {
-                return redondearCentimos(valor);
-            }
+            // Los Programados no pasan por esta función: conservan siempre su importe exacto.
+            // El resto de partidas base usa el porcentaje de ingresos o gastos correspondiente.
             const inc = datosBaseAno && datosBaseAno.incrementos ? datosBaseAno.incrementos : { ingresos: 1, gastos: 2 };
             const pct = (fuente === 'ingresosFijos' || fuente === 'ingresosBonus')
                 ? (Number(inc.ingresos) || 0)
@@ -7629,7 +7792,8 @@ function recalcularSimulador() {
             letter-spacing: 0.02em;
             min-width: 88px;
         }
-        .comparativa-table thead th.mes-cerrado { background: #334155; }
+        /* Un mes cerrado no altera la cabecera: todos los meses conservan azul + blanco. */
+        .comparativa-table thead th.mes-cerrado { background:#1e3a8a !important; color:#ffffff !important; }
         .comparativa-table thead th.mes-activo { box-shadow: inset 0 -3px 0 #f59e0b; }
         .comparativa-table th:first-child,
         .comparativa-table td:first-child {
@@ -7950,7 +8114,7 @@ function recalcularSimulador() {
             out += '</tr>';
             filas.forEach(function(fila, idx) {
                 const normalizado = comparativaClaveConcepto(fila.concepto);
-                out += '<tr class="comparativa-fila comparativa-meses-fila' + (idx % 2 ? ' alt' : '') + '" data-concepto="' + comparativaEscaparHTML(normalizado) + '"><td title="' + comparativaEscaparHTML(fila.concepto) + '">' + comparativaEscaparHTML(fila.concepto) + '</td>';
+                out += '<tr class="comparativa-fila comparativa-meses-fila' + (idx % 2 ? ' alt' : '') + '" data-bloque="' + clave + '" data-concepto="' + comparativaEscaparHTML(normalizado) + '"><td title="' + comparativaEscaparHTML(fila.concepto) + '">' + comparativaEscaparHTML(fila.concepto) + '</td>';
                 fila.meses.forEach(function(v) { out += celdaValor(v, claseValor); });
                 out += '</tr>';
             });
@@ -7964,14 +8128,14 @@ function recalcularSimulador() {
             '<span><i class="comparativa-punto" style="background:#22c55e;"></i> Ingresos</span>' +
             '<span><i class="comparativa-punto" style="background:#ef4444;"></i> Gastos</span>' +
             '<span><i class="comparativa-punto" style="background:#f97316;"></i> Vacaciones</span>' +
-            '<span>🔒 mes cerrado</span><span>Celda vacía = ese concepto no existe en ese mes</span>' +
+            '<span>🔒 cifras grises = mes cerrado · solo lectura</span><span>✏️ toca una cifra de un mes abierto para editarla</span><span>Celda vacía = ese concepto no existe en ese mes</span>' +
             '</div><div id="comparativa-meses-sin-resultados" class="comparativa-meses-sin-resultados">No hay conceptos que coincidan con la búsqueda.</div>';
 
         html += '<table class="comparativa-table"><thead><tr><th>Concepto</th>';
         for (let m = 0; m < 12; m++) {
             const cerrado = esMesCerrado(m);
             const activo = m === mesActual;
-            html += '<th class="' + (cerrado ? 'mes-cerrado ' : '') + (activo ? 'mes-activo' : '') + '" title="' + MESES_NOMBRES[m] + (cerrado ? ' · cerrado' : '') + '">' + (cerrado ? '🔒 ' : '') + MESES_CORTOS[m] + '</th>';
+            html += '<th class="' + (cerrado ? 'mes-cerrado ' : '') + (activo ? 'mes-activo' : '') + '" title="' + MESES_NOMBRES[m] + (cerrado ? ' · cerrado' : '') + '">' + MESES_CORTOS[m] + '</th>';
         }
         html += '</tr></thead><tbody>';
         html += renderBloque('ingresos', 'INGRESOS', '📈', 'valor-ingreso');
@@ -7991,6 +8155,7 @@ function recalcularSimulador() {
         html += '</tbody></table>';
 
         contenido.innerHTML = html;
+        comparativaPrepararCeldasMeses();
         const scroll = document.getElementById('comparativa-scroll');
         if (scroll) { scroll.scrollTop = 0; scroll.scrollLeft = 0; }
     }
@@ -8165,7 +8330,6 @@ function recalcularSimulador() {
             return Object.assign({}, item, { valor: Math.round((Number(item.valor)||0) * pctIng * 100) / 100 });
         });
         nuevo.gastosFijos = (nuevo.gastosFijos || []).map(function(item) {
-            if (item.concepto && String(item.concepto).toUpperCase().includes('ING')) return Object.assign({}, item);
             return Object.assign({}, item, { valor: Math.round((Number(item.valor)||0) * pctGas * 100) / 100 });
         });
         nuevo.gastosVacaciones = (nuevo.gastosVacaciones || []).map(function(item) {
@@ -8175,6 +8339,7 @@ function recalcularSimulador() {
             return { ingresosExtras:[], gastosExtras:[], gastosVacacionesExtras:[] };
         });
         nuevo.mesesCerrados = {};
+        delete nuevo._analisisPrevisionBase;
         if (!nuevo.extrasRecurrentes) nuevo.extrasRecurrentes = [];
         nuevo.movimientosProgramados = (base && base.movimientosProgramados ? base.movimientosProgramados : [])
             .filter(function(item){ return item && item.repetirCadaAno && movimientoProgramadoTieneAplicacionEnAno(item, anoDestino); })
@@ -8321,7 +8486,8 @@ function recalcularSimulador() {
                     });
                 });
             }
-            porAno.push({ ano:ano, datos:d, bloques:anuales, proyectado:cargado.proyectado });
+            const mesesCerrados = cargado.proyectado ? 0 : Array.from({length:12}, function(_,m){ return d.mesesCerrados && d.mesesCerrados[m] ? 1 : 0; }).reduce(function(a,b){ return a+b; },0);
+            porAno.push({ ano:ano, datos:d, bloques:anuales, proyectado:cargado.proyectado, mesesCerrados:mesesCerrados, cerradoCompleto:(!cargado.proyectado && mesesCerrados===12) });
             baseAnterior = d;
         });
 
@@ -8397,7 +8563,7 @@ function recalcularSimulador() {
             out+='<td class="comparativa-total-rango">'+comparativaEscaparHTML(formatearMoneda(totalBloqueRango(clave)))+'</td></tr>';
             filas.forEach(function(fila,idx){
                 const normalizado=comparativaClaveConcepto(fila.concepto);
-                out+='<tr class="comparativa-fila comparativa-anios-fila'+(idx%2?' alt':'')+'" data-concepto="'+comparativaEscaparHTML(normalizado)+'"><td title="'+comparativaEscaparHTML(fila.concepto)+'">'+comparativaEscaparHTML(fila.concepto)+'</td>';
+                out+='<tr class="comparativa-fila comparativa-anios-fila'+(idx%2?' alt':'')+'" data-bloque="'+clave+'" data-concepto="'+comparativaEscaparHTML(normalizado)+'"><td title="'+comparativaEscaparHTML(fila.concepto)+'">'+comparativaEscaparHTML(fila.concepto)+'</td>';
                 fila.anos.forEach(function(v){out+=celda(v,claseValor);});
                 out+=celdaTotalRango(totalFilaRango(fila.anos),claseValor);
                 out+='</tr>';
@@ -8413,10 +8579,15 @@ function recalcularSimulador() {
             '<span>Celda vacía = el concepto no existe en ese año</span>'+
             '<span><strong>Proy.</strong> = año aún no guardado</span>'+
             '<span><strong>Σ Total</strong> = suma de todas las columnas, incluidas las proyecciones visibles</span>'+
+            '<span>🔒 fondo claro = año completamente cerrado · solo lectura</span>'+
+            '<span>✏️ toca una cifra de un año guardado para ver y editar sus meses abiertos</span>'+
             '</div><div id="comparativa-anios-sin-resultados" class="comparativa-anios-sin-resultados">No hay conceptos que coincidan con la búsqueda.</div>';
         html+='<table class="comparativa-table"><thead><tr><th>Concepto</th>';
         porAno.forEach(function(pa){
-            html+='<th title="'+pa.ano+(pa.proyectado?' · proyección':'')+'">'+pa.ano+(pa.proyectado?'<span class="comparativa-anios-proyectado">Proy.</span>':'')+'</th>';
+            const claseCerrado = pa.cerradoCompleto ? ' comparativa-periodo-cerrado' : '';
+            const detalleCierre = (!pa.proyectado && pa.mesesCerrados > 0) ? (' · '+pa.mesesCerrados+'/12 meses cerrados') : '';
+            const badgeCierre = (!pa.proyectado && pa.mesesCerrados > 0 && !pa.cerradoCompleto) ? '<span class="comparativa-anios-cierre-badge">'+pa.mesesCerrados+'/12 cerr.</span>' : '';
+            html+='<th class="'+claseCerrado.trim()+'" title="'+pa.ano+(pa.proyectado?' · proyección':'')+detalleCierre+'">'+pa.ano+(pa.proyectado?'<span class="comparativa-anios-proyectado">Proy.</span>':'')+badgeCierre+'</th>';
         });
         html+='<th class="comparativa-total-rango" title="Suma de todos los años visibles">Σ TOTAL</th>';
         html+='</tr></thead><tbody>';
@@ -8440,6 +8611,8 @@ function recalcularSimulador() {
         html+='</tr>';
         html+='</tbody></table>';
         contenido.innerHTML=html;
+        window._comparativaAniosMeta = porAno.map(function(pa){ return { ano:pa.ano, proyectado:pa.proyectado, mesesCerrados:pa.mesesCerrados, cerradoCompleto:pa.cerradoCompleto }; });
+        comparativaPrepararCeldasAnios();
 
         const table=contenido.querySelector('.comparativa-table');
         if(table) {
@@ -8450,6 +8623,67 @@ function recalcularSimulador() {
         if(scroll){scroll.scrollTop=0;scroll.scrollLeft=0;}
     }
 
+
+    /* ══ Comparativas editables + periodos cerrados en tono claro ══ */
+    </script>
+    <style>
+        /* Meses cerrados: el estado de cierre SOLO apaga las cifras.
+           No modifica ningún fondo: cabecera, filas, subtotales y balance conservan
+           exactamente sus colores originales. Cerrado = mesesCerrados del dashboard. */
+        #modal-comparativa-anual .comparativa-table td.comparativa-periodo-cerrado {
+            color:#9ca3af !important;
+        }
+
+        /* En Comparar años conservamos el sombreado de periodos cerrados. */
+        #modal-comparativa-anios .comparativa-table td.comparativa-periodo-cerrado {
+            background:#f1f5f9 !important;
+            color:#64748b !important;
+        }
+        #modal-comparativa-anios .comparativa-table .comparativa-fila.alt td.comparativa-periodo-cerrado {
+            background:#e9eef5 !important;
+        }
+        #modal-comparativa-anios .comparativa-table .comparativa-seccion.ingresos td.comparativa-periodo-cerrado { background:#f0fdf4 !important;color:#4d7c5d !important; }
+        #modal-comparativa-anios .comparativa-table .comparativa-seccion.gastos td.comparativa-periodo-cerrado { background:#fff1f2 !important;color:#9f5d65 !important; }
+        #modal-comparativa-anios .comparativa-table .comparativa-seccion.vacaciones td.comparativa-periodo-cerrado { background:#fff7ed !important;color:#a26a43 !important; }
+        #modal-comparativa-anios .comparativa-table .comparativa-balance td.comparativa-periodo-cerrado.balance-positivo { background:#d1fae5 !important;color:#166534 !important; }
+        #modal-comparativa-anios .comparativa-table .comparativa-balance td.comparativa-periodo-cerrado.balance-negativo { background:#fee2e2 !important;color:#991b1b !important; }
+        #modal-comparativa-anios .comparativa-table .comparativa-balance td.comparativa-periodo-cerrado.balance-neutro { background:#e2e8f0 !important;color:#475569 !important; }
+        #modal-comparativa-anios .comparativa-table thead th.comparativa-periodo-cerrado {
+            background:#cbd5e1 !important;color:#334155 !important;
+        }
+        .comparativa-anios-cierre-badge {
+            display:inline-block;margin-left:4px;font-size:7.5px;line-height:1;padding:2px 4px;border-radius:8px;
+            background:rgba(255,255,255,.18);color:#e2e8f0;vertical-align:1px;font-weight:800;
+        }
+        .comparativa-editable-cell { cursor:pointer; position:relative; transition:background .12s ease, box-shadow .12s ease; }
+        .comparativa-editable-cell:hover { box-shadow:inset 0 0 0 2px #60a5fa; background:#eff6ff !important; }
+        .comparativa-editable-cell::after { content:'✎'; position:absolute; right:3px; top:1px; font-size:7px; color:#94a3b8; opacity:.45; }
+
+        #modal-editor-comparativa { z-index:1600; }
+        #modal-editor-comparativa .comparativa-editor-content { max-width:860px;width:94vw;padding:20px 22px;max-height:90vh;overflow:auto; }
+        .comp-editor-sub { color:#64748b;font-size:12px;line-height:1.45;margin:3px 0 12px; }
+        .comp-editor-nota { background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af;padding:8px 10px;border-radius:8px;font-size:10.5px;line-height:1.4;margin-bottom:11px; }
+        .comp-editor-mes { border:1px solid #e2e8f0;border-radius:10px;margin:0 0 9px;overflow:hidden;background:white; }
+        .comp-editor-mes.cerrado { background:#f8fafc;border-color:#cbd5e1; }
+        .comp-editor-mes-head { display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;background:#f8fafc;color:#334155;font-size:11px;font-weight:900; }
+        .comp-editor-mes.cerrado .comp-editor-mes-head { background:#e9eef5;color:#64748b; }
+        .comp-editor-total { font-size:10px;font-weight:800;white-space:nowrap; }
+        .comp-editor-item { display:grid;grid-template-columns:minmax(150px,1.3fr) 110px 105px 105px auto;gap:7px;align-items:center;padding:8px 9px;border-top:1px solid #eef2f7; }
+        .comp-editor-item input,.comp-editor-item select { width:100% !important;margin:0 !important;padding:7px 8px !important;border:1px solid #cbd5e1 !important;border-radius:7px !important;background:white !important;color:#334155 !important;font-size:11px !important; }
+        .comp-editor-item .comp-editor-cat { font-size:9px;color:#64748b;font-weight:800;text-transform:uppercase;letter-spacing:.03em; }
+        .comp-editor-item button { width:auto !important;margin:0 !important;padding:7px 9px !important;background:#2563eb !important;font-size:10px !important;white-space:nowrap; }
+        .comp-editor-item.solo-lectura { grid-template-columns:minmax(160px,1.4fr) 105px 105px; color:#64748b; }
+        .comp-editor-item.solo-lectura .comp-editor-valor { text-align:right;font-weight:800; }
+        @media(max-width:700px){
+            #modal-editor-comparativa .comparativa-editor-content { width:98vw;padding:15px 12px; }
+            .comp-editor-item { grid-template-columns:1fr 96px; }
+            .comp-editor-item .comp-editor-cat { grid-column:1/-1; }
+            .comp-editor-item select { grid-column:1; }
+            .comp-editor-item button { grid-column:2;grid-row:2; }
+            .comp-editor-item.solo-lectura { grid-template-columns:1fr auto; }
+        }
+    </style>
+    <script>
     function filtrarComparativaAnios() {
         const input=document.getElementById('comparativa-anios-buscador');
         const q=comparativaClaveConcepto(input ? input.value : '');
@@ -9075,6 +9309,245 @@ function recalcularSimulador() {
     </script>
 
 
+
+    <!-- ══════════ ANÁLISIS FINANCIERO ══════════ -->
+    <div id="modal-analisis-financiero" class="modal" style="z-index:1355;">
+        <div class="modal-content analisis-financiero-content">
+            <div class="analisis-financiero-toolbar">
+                <div>
+                    <h2 style="margin:0;color:#7c2d12;font-size:1.2em;">&#129517; Análisis</h2>
+                    <div id="analisis-financiero-subtitulo" class="analisis-financiero-subtitulo"></div>
+                </div>
+                <span class="close" onclick="cerrarAnalisisFinanciero()" title="Cerrar">&times;</span>
+            </div>
+            <div class="analisis-financiero-nota">
+                <strong>Previsión:</strong> cada año futuro es provisional hasta que llega su 1 de enero. En la primera carga de la app de ese año se congela su saldo previsto a 31 de diciembre y ya no cambia aunque después modifiques Config. Desde ahí se compara contra la previsión actual después de tus cambios reales.
+                <br><strong>Primer negativo / punto más bajo:</strong> usan el mismo orden de movimientos que <em>Flujo continuo</em>, por lo que pueden detectar una caída dentro del mes aunque ese mes termine recuperándose.
+            </div>
+            <div id="analisis-financiero-scroll" class="analisis-financiero-scroll">
+                <div id="analisis-financiero-contenido"></div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .analisis-financiero-content {
+            width:94%;max-width:1040px;height:90vh;max-height:90vh;margin:4vh auto;
+            padding:0 !important;overflow:hidden !important;display:flex;flex-direction:column;color:#1f2937;
+        }
+        .analisis-financiero-toolbar {
+            flex-shrink:0;display:flex;align-items:center;justify-content:center;position:relative;
+            padding:14px 48px;border-bottom:1px solid #fed7aa;background:#fffaf5;text-align:center;
+        }
+        .analisis-financiero-toolbar .close { position:absolute;right:18px;top:50%;transform:translateY(-50%); }
+        .analisis-financiero-subtitulo { margin-top:3px;font-size:10px;color:#78716c;line-height:1.4; }
+        .analisis-financiero-nota {
+            flex-shrink:0;padding:9px 16px;background:#fffbeb;border-bottom:1px solid #fde68a;
+            color:#92400e;font-size:10px;line-height:1.45;text-align:center;
+        }
+        .analisis-financiero-scroll {
+            flex:1 1 0;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+            padding:14px;background:#f8fafc;
+        }
+        .analisis-tabla {
+            width:900px;max-width:100%;min-width:790px;margin:0 auto;border-collapse:separate;border-spacing:0;
+            background:white;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;font-size:12px;
+        }
+        .analisis-tabla th { padding:9px 8px;background:#1e293b;color:white;font-size:10px;text-transform:uppercase;letter-spacing:.035em;text-align:center; }
+        .analisis-tabla td { padding:9px 8px;border-bottom:1px solid #f1f5f9;text-align:center;vertical-align:middle; }
+        .analisis-tabla tr:last-child td { border-bottom:none; }
+        .analisis-ano { font-weight:900;color:#334155;white-space:nowrap; }
+        .analisis-negativo { color:#be123c;font-weight:800; }
+        .analisis-sin-negativo { color:#15803d;font-weight:700; }
+        .analisis-minimo { font-weight:800; }
+        .analisis-saldo-final { font-weight:900;white-space:nowrap; }
+        .analisis-prevision-principal { display:block;font-weight:900;font-size:12px;white-space:nowrap; }
+        .analisis-prevision-detalle { display:block;margin-top:2px;font-size:9px;color:#64748b;line-height:1.35;white-space:normal; }
+        .analisis-mejor { color:#15803d; }
+        .analisis-peor { color:#be123c; }
+        .analisis-igual { color:#475569; }
+        .analisis-provisional { color:#1d4ed8; }
+        .analisis-sin-base { color:#94a3b8; }
+        .analisis-badge-actual { display:inline-flex;margin-left:5px;padding:2px 6px;border-radius:10px;background:#fef3c7;color:#92400e;font-size:8px;font-weight:900;vertical-align:middle; }
+        .analisis-vacio { padding:45px 20px;text-align:center;color:#64748b;background:white;border:1px solid #e2e8f0;border-radius:10px; }
+        @media (hover:none) and (pointer:coarse) {
+            #modal-analisis-financiero { inset:0 !important;width:100vw !important;height:100dvh !important;min-height:100dvh !important;padding:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left)) !important;overflow:hidden !important;overscroll-behavior:none !important; }
+            #modal-analisis-financiero .analisis-financiero-content { width:100% !important;max-width:100% !important;height:100% !important;max-height:100% !important;margin:0 !important;overflow:hidden !important; }
+            #modal-analisis-financiero .analisis-financiero-scroll { flex:1 1 0 !important;min-height:0 !important;overflow-x:auto !important;overflow-y:auto !important;-webkit-overflow-scrolling:auto !important;overscroll-behavior:contain !important;touch-action:pan-x pan-y !important; }
+        }
+        @supports not (height:100dvh) {
+            @media (hover:none) and (pointer:coarse) { #modal-analisis-financiero { height:100vh !important;min-height:100vh !important; } }
+        }
+    </style>
+
+    <script>
+    function abrirAnalisisFinanciero() {
+        const fijada = asegurarPrevisionAnalisisAnoEnCurso();
+        if (fijada > 0 && gistConfigurado()) programarGuardadoGist();
+        construirAnalisisFinanciero();
+        const modal = document.getElementById('modal-analisis-financiero');
+        if (modal) modal.style.display = 'block';
+        requestAnimationFrame(function(){
+            const sc = document.getElementById('analisis-financiero-scroll');
+            if (sc) { sc.scrollTop = 0; sc.scrollLeft = 0; }
+        });
+    }
+
+    function cerrarAnalisisFinanciero() {
+        const modal = document.getElementById('modal-analisis-financiero');
+        if (modal) modal.style.display = 'none';
+    }
+
+    function analisisDatosAno(ano) {
+        if (ano === anoActual) return JSON.parse(JSON.stringify(datos));
+        const raw = localStorage.getItem('finanzasPersonales_' + ano);
+        if (!raw) return null;
+        try { return JSON.parse(raw); } catch(e) { return null; }
+    }
+
+    function analisisAniosConsecutivos() {
+        const anos = [];
+        for (let y=2027; y<=2040; y++) {
+            const existe = (y === anoActual) || !!localStorage.getItem('finanzasPersonales_' + y);
+            if (!existe) break;
+            anos.push(y);
+        }
+        return anos;
+    }
+
+    function analisisMovimientosMes(d, ano, mes) {
+        const part = obtenerPartidasComparativaMesDatos(d, ano, mes);
+        let movs = [];
+        (part.ingresos || []).forEach(function(x){ movs.push({ concepto:x.concepto, valor:Number(x.valor)||0, signo:1, tipoOrden:'ingreso' }); });
+        (part.gastos || []).forEach(function(x){ movs.push({ concepto:x.concepto, valor:Number(x.valor)||0, signo:-1, tipoOrden:'gasto' }); });
+        (part.vacaciones || []).forEach(function(x){ movs.push({ concepto:x.concepto, valor:Number(x.valor)||0, signo:-1, tipoOrden:'gasto' }); });
+        return flujoOrdenarPartidas(movs, mes);
+    }
+
+    function analisisMetricasAno(d, ano, saldoInicio) {
+        let saldo = Number(saldoInicio) || 0;
+        let primerNegativo = saldo < 0 ? { tipo:'inicio', mes:0, saldo:saldo } : null;
+        let minimo = null;
+        let mesMinimo = null;
+
+        for (let m=0; m<12; m++) {
+            const movs = analisisMovimientosMes(d, ano, m);
+            movs.forEach(function(mov){
+                saldo += (Number(mov.signo)||0) * (Number(mov.valor)||0);
+                if (!primerNegativo && saldo < 0) primerNegativo = { tipo:'mes', mes:m, saldo:saldo };
+                if (minimo === null || saldo < minimo) {
+                    minimo = saldo;
+                    mesMinimo = m;
+                }
+            });
+        }
+        return {
+            saldoInicio: redondearCentimos(Number(saldoInicio)||0),
+            saldoFinal: redondearCentimos(saldo),
+            primerNegativo: primerNegativo,
+            minimo: minimo === null ? null : redondearCentimos(minimo),
+            mesMinimo: mesMinimo
+        };
+    }
+
+    function analisisSignoMoneda(valor) {
+        const n = redondearCentimos(Number(valor)||0);
+        if (n > 0) return '+' + formatearMoneda(n);
+        return formatearMoneda(n);
+    }
+
+    function construirAnalisisFinanciero() {
+        const contenido = document.getElementById('analisis-financiero-contenido');
+        const subtitulo = document.getElementById('analisis-financiero-subtitulo');
+        const anos = analisisAniosConsecutivos();
+        const anoCalendario = new Date().getFullYear();
+
+        if (!anos.length) {
+            if (subtitulo) subtitulo.textContent = 'Primero debe existir 2027.';
+            if (contenido) contenido.innerHTML = '<div class="analisis-vacio">Todavía no existe 2027. Entra primero en 2027 para generarlo y vuelve a abrir Análisis.</div>';
+            return;
+        }
+
+        if (subtitulo) subtitulo.textContent = anos[0] + ' - ' + anos[anos.length-1] + ' · seguimiento anual del saldo y de la previsión';
+        let saldoInicio = Number(calcularSaldoInicioRealDelAno(anos[0])) || 0;
+        let filas = '';
+
+        anos.forEach(function(ano){
+            const d = analisisDatosAno(ano);
+            if (!d) return;
+            if (!d.meses) d.meses = [];
+            while (d.meses.length < 12) d.meses.push({ ingresosExtras:[], gastosExtras:[], gastosVacacionesExtras:[] });
+            if (!d.mesesCerrados) d.mesesCerrados = {};
+            if (!d.ingresosFijos) d.ingresosFijos = [];
+            if (!d.ingresosBonus) d.ingresosBonus = [];
+            if (!d.gastosFijos) d.gastosFijos = [];
+            if (!d.gastosVacaciones) d.gastosVacaciones = [];
+            if (!d.extrasRecurrentes) d.extrasRecurrentes = [];
+            if (!d.movimientosProgramados) d.movimientosProgramados = [];
+
+            const met = analisisMetricasAno(d, ano, saldoInicio);
+            saldoInicio = met.saldoFinal;
+            const base = leerPrevisionBaseAnalisis(d);
+
+            let primerHtml;
+            if (!met.primerNegativo) {
+                primerHtml = '<span class="analisis-sin-negativo">Sin negativo</span>';
+            } else if (met.primerNegativo.tipo === 'inicio') {
+                primerHtml = '<span class="analisis-negativo">Ene · ya empieza negativo</span>' +
+                    '<span class="analisis-prevision-detalle">' + comparativaEscaparHTML(formatearMoneda(met.primerNegativo.saldo)) + '</span>';
+            } else {
+                primerHtml = '<span class="analisis-negativo">' + MESES_NOMBRES[met.primerNegativo.mes] + '</span>' +
+                    '<span class="analisis-prevision-detalle">Primer cruce: ' + comparativaEscaparHTML(formatearMoneda(met.primerNegativo.saldo)) + '</span>';
+            }
+
+            let minimoHtml = '<span class="analisis-sin-base">—</span>';
+            if (met.minimo !== null && met.mesMinimo !== null) {
+                const claseMin = met.minimo < 0 ? 'analisis-peor' : 'analisis-igual';
+                minimoHtml = '<span class="analisis-minimo ' + claseMin + '">' + MESES_NOMBRES[met.mesMinimo] + '</span>' +
+                    '<span class="analisis-prevision-detalle">' + comparativaEscaparHTML(formatearMoneda(met.minimo)) + '</span>';
+            }
+
+            const claseSaldo = met.saldoFinal < 0 ? 'analisis-peor' : 'analisis-mejor';
+            const saldoFinalHtml = '<span class="analisis-saldo-final ' + claseSaldo + '">' + comparativaEscaparHTML(formatearMoneda(met.saldoFinal)) + '</span>';
+
+            let previsionHtml = '';
+            if (base) {
+                const desvio = redondearCentimos(met.saldoFinal - base.saldo31Dic);
+                const clase = desvio > 0 ? 'analisis-mejor' : (desvio < 0 ? 'analisis-peor' : 'analisis-igual');
+                const palabra = desvio > 0 ? ' mejor' : (desvio < 0 ? ' peor' : ' · en línea');
+                previsionHtml = '<span class="analisis-prevision-principal ' + clase + '">' + comparativaEscaparHTML(analisisSignoMoneda(desvio)) + palabra + '</span>' +
+                    '<span class="analisis-prevision-detalle">Base ' + comparativaEscaparHTML(formatearMoneda(base.saldo31Dic)) + ' · actual ' + comparativaEscaparHTML(formatearMoneda(met.saldoFinal)) + '</span>';
+            } else if (ano > anoCalendario) {
+                previsionHtml = '<span class="analisis-prevision-principal analisis-provisional">' + comparativaEscaparHTML(formatearMoneda(met.saldoFinal)) + '</span>' +
+                    '<span class="analisis-prevision-detalle">Provisional · se fijará al comenzar ' + ano + '</span>';
+            } else if (ano === anoCalendario && ano >= 2027) {
+                previsionHtml = '<span class="analisis-prevision-principal analisis-sin-base">Pendiente de fijar</span>' +
+                    '<span class="analisis-prevision-detalle">Se fijará en la próxima carga de la app.</span>';
+            } else {
+                previsionHtml = '<span class="analisis-prevision-principal analisis-sin-base">Sin base histórica</span>' +
+                    '<span class="analisis-prevision-detalle">No se inventa una previsión retroactiva.</span>';
+            }
+
+            const esActual = ano === anoCalendario;
+            filas += '<tr class="' + (esActual ? 'analisis-fila-actual' : '') + '">' +
+                '<td class="analisis-ano">' + ano + (esActual ? '<span class="analisis-badge-actual">AHORA</span>' : '') + '</td>' +
+                '<td>' + primerHtml + '</td>' +
+                '<td>' + minimoHtml + '</td>' +
+                '<td>' + saldoFinalHtml + '</td>' +
+                '<td>' + previsionHtml + '</td>' +
+                '</tr>';
+        });
+
+        contenido.innerHTML = '<table class="analisis-tabla"><thead><tr>' +
+            '<th style="width:105px;">Año</th>' +
+            '<th style="width:190px;">Primer negativo</th>' +
+            '<th style="width:190px;">Mes con dato más bajo</th>' +
+            '<th style="width:145px;">Saldo 31 Dic</th>' +
+            '<th>Previsión</th>' +
+            '</tr></thead><tbody>' + filas + '</tbody></table>';
+    }
+    </script>
+
     <!-- CONTINUOUS CASH FLOW / LEDGER -->
     <div id="modal-flujo-continuo" class="modal" style="z-index:1360;">
         <div class="modal-content flujo-continuo-modal-content">
@@ -9462,6 +9935,248 @@ function recalcularSimulador() {
         } else if (subtitulo) {
             subtitulo.textContent += ' \u00b7 No aparece ning\u00fan saldo negativo en el rango.';
         }
+    }
+    </script>
+
+
+
+    <!-- ══════════ EDITOR DESDE COMPARATIVAS ══════════ -->
+    <div id="modal-editor-comparativa" class="modal" style="display:none;" onclick="cerrarEditorComparativa()">
+        <div class="modal-content comparativa-editor-content" onclick="event.stopPropagation()">
+            <span class="close" onclick="cerrarEditorComparativa()">&times;</span>
+            <h2 id="comp-editor-titulo" style="margin:0;color:#1e3a8a;font-size:1.15em;">✏️ Editar desde comparativa</h2>
+            <div id="comp-editor-sub" class="comp-editor-sub"></div>
+            <div class="comp-editor-nota">Los cambios hechos aquí afectan <strong>solo al mes concreto</strong>. Los meses cerrados son históricos y quedan en solo lectura. Los años proyectados no se pueden editar hasta que existan realmente.</div>
+            <div id="comp-editor-contenido"></div>
+        </div>
+    </div>
+
+    <script>
+    var _compEditorCtx = null;
+
+    function comparativaBloqueSnapshot(item) {
+        if (!item) return 'gastos';
+        if (item.fuente === 'gastosVacaciones' || item.fuente === 'gastosVacacionesExtras') return 'vacaciones';
+        const esIngreso = item.fuente === 'ingresosFijos' || item.fuente === 'ingresosBonus' || item.fuente === 'ingresosExtras' ||
+            (item.fuente === 'extrasRecurrentes' && item.tipo === 'ingresos') ||
+            (item.fuente === 'movimientosProgramados' && item.tipo === 'ingresos');
+        return esIngreso ? 'ingresos' : 'gastos';
+    }
+
+    function comparativaEtiquetaFuente(fuente) {
+        const mapa = {
+            ingresosFijos:'Ingreso fijo', ingresosBonus:'Extra / Bonus fijo', gastosFijos:'Gasto fijo', gastosVacaciones:'Vacaciones',
+            ingresosExtras:'Ingreso extra', gastosExtras:'Gasto extra', gastosVacacionesExtras:'Vacación extra',
+            extrasRecurrentes:'Recurrente antiguo', movimientosProgramados:'Programado'
+        };
+        return mapa[fuente] || fuente || 'Movimiento';
+    }
+
+    function comparativaDetalleConceptoMes(d, ano, mes, bloque, claveConcepto) {
+        const out = [];
+        if (!d || !Array.isArray(d.meses) || !d.meses[mes]) return out;
+        const cierre = d.mesesCerrados && d.mesesCerrados[mes];
+        function coincide(concepto) { return comparativaClaveConcepto(concepto) === claveConcepto; }
+        function push(o) { if (o && coincide(o.concepto) && o.bloque === bloque) out.push(o); }
+
+        if (cierre && Array.isArray(cierre.snapshotItems) && cierre.snapshotItems.length) {
+            cierre.snapshotItems.forEach(function(x) {
+                if (!x || x.eliminado) return;
+                push({ bloque:comparativaBloqueSnapshot(x), concepto:x.concepto, valor:Number(x.valor)||0, medio:resolverMedioSnapshot(x,mes,d), fuente:x.fuente, index:x.idx, categoria:comparativaEtiquetaFuente(x.fuente), editable:false });
+            });
+            return out;
+        }
+        if (cierre && cierre.snapshot) {
+            return out; // cierre antiguo: no existe detalle seguro por concepto
+        }
+
+        const md = d.meses[mes];
+        const ovs = md.overrides || {};
+        function addFijos(arr, fuente, bloqueItem) {
+            (arr || []).forEach(function(item,idx){
+                const ov=ovs[fuente+'_'+idx];
+                if (ov && ov.eliminado) return;
+                const aplica=item && (item.frecuencia==='mensual' || (item.frecuencia==='anual' && item.meses && item.meses.includes(mes)) || (ov && ov.forzarEnMes));
+                if (!aplica) return;
+                push({ bloque:bloqueItem, concepto:ov&&ov.concepto!==undefined?ov.concepto:item.concepto, valor:Number(ov&&ov.valor!==undefined?ov.valor:item.valor)||0,
+                    medio:normalizarMedioPago(ov&&ov.medio!==undefined?ov.medio:item.medio), fuente:fuente,index:idx,categoria:comparativaEtiquetaFuente(fuente),editable:true });
+            });
+        }
+        addFijos(d.ingresosFijos,'ingresosFijos','ingresos');
+        addFijos(d.ingresosBonus,'ingresosBonus','ingresos');
+        addFijos(d.gastosFijos,'gastosFijos','gastos');
+        addFijos(d.gastosVacaciones,'gastosVacaciones','vacaciones');
+
+        (md.ingresosExtras||[]).forEach(function(x,idx){ push({bloque:'ingresos',concepto:x.concepto,valor:Number(x.valor)||0,medio:normalizarMedioPago(x.medio),fuente:'ingresosExtras',index:idx,categoria:'Ingreso extra',editable:true}); });
+        (md.gastosExtras||[]).forEach(function(x,idx){ push({bloque:'gastos',concepto:x.concepto,valor:Number(x.valor)||0,medio:normalizarMedioPago(x.medio),fuente:'gastosExtras',index:idx,categoria:'Gasto extra',editable:true}); });
+        (md.gastosVacacionesExtras||[]).forEach(function(x,idx){ push({bloque:'vacaciones',concepto:x.concepto,valor:Number(x.valor)||0,medio:normalizarMedioPago(x.medio),fuente:'gastosVacacionesExtras',index:idx,categoria:'Vacación extra',editable:true}); });
+
+        (d.extrasRecurrentes||[]).forEach(function(item,idx){
+            const ef=obtenerExtraRecurrenteEfectivo(d,item,idx,ano,mes); if(!ef)return;
+            push({bloque:ef.tipo==='ingresos'?'ingresos':'gastos',concepto:ef.concepto,valor:Number(ef.valor)||0,medio:normalizarMedioPago(ef.medio),fuente:'extrasRecurrentes',index:idx,categoria:'Recurrente antiguo',editable:true});
+        });
+        (d.movimientosProgramados||[]).forEach(function(item,idx){
+            const ef=obtenerMovimientoProgramadoEfectivo(d,item,idx,ano,mes); if(!ef)return;
+            push({bloque:ef.tipo==='ingresos'?'ingresos':'gastos',concepto:ef.concepto,valor:Number(ef.valor)||0,medio:normalizarMedioPago(ef.medio),fuente:'movimientosProgramados',index:idx,categoria:'Programado',editable:true});
+        });
+        return out;
+    }
+
+    function comparativaPrepararCeldasMeses() {
+        const table=document.querySelector('#comparativa-contenido .comparativa-table');
+        if(!table)return;
+        const cerradoMes=[];
+        // Solo cuentan como cerrados los meses marcados como tales en el dashboard.
+        // No inferimos cierres por fecha/calendario.
+        for(let m=0;m<12;m++) cerradoMes[m]=!!(datos.mesesCerrados && datos.mesesCerrados[m]);
+        Array.from(table.rows).forEach(function(row){
+            for(let m=0;m<12;m++){
+                const cell=row.cells[m+1]; if(!cell)continue;
+                if(cerradoMes[m]) cell.classList.add('comparativa-periodo-cerrado');
+            }
+        });
+        table.querySelectorAll('.comparativa-meses-fila').forEach(function(row){
+            const bloque=row.getAttribute('data-bloque');
+            const clave=row.getAttribute('data-concepto');
+            for(let m=0;m<12;m++){
+                const cell=row.cells[m+1]; if(!cell || cell.classList.contains('vacio'))continue;
+                if(cerradoMes[m]) { cell.title=MESES_NOMBRES[m]+' cerrado · solo lectura'; continue; }
+                cell.classList.add('comparativa-editable-cell');
+                cell.dataset.compAno=String(anoActual); cell.dataset.compMes=String(m); cell.dataset.compBloque=bloque; cell.dataset.compConcepto=clave;
+                cell.title='Editar '+row.cells[0].textContent.trim()+' solo en '+MESES_NOMBRES[m];
+                cell.onclick=function(e){e.stopPropagation();abrirEditorComparativaDesdeCelda(this);};
+            }
+        });
+    }
+
+    function comparativaPrepararCeldasAnios() {
+        const table=document.querySelector('#comparativa-anios-contenido .comparativa-table');
+        const meta=window._comparativaAniosMeta||[];
+        if(!table||!meta.length)return;
+        Array.from(table.rows).forEach(function(row){
+            meta.forEach(function(m,i){ const cell=row.cells[i+1]; if(cell && m.cerradoCompleto) cell.classList.add('comparativa-periodo-cerrado'); });
+        });
+        table.querySelectorAll('.comparativa-anios-fila').forEach(function(row){
+            const bloque=row.getAttribute('data-bloque'); const clave=row.getAttribute('data-concepto');
+            meta.forEach(function(m,i){
+                const cell=row.cells[i+1]; if(!cell || cell.classList.contains('vacio'))return;
+                if(m.proyectado){cell.title=m.ano+' es una proyección · créalo para poder editarlo';return;}
+                if(m.cerradoCompleto){cell.title=m.ano+' cerrado · solo lectura';return;}
+                cell.classList.add('comparativa-editable-cell');
+                cell.dataset.compAno=String(m.ano); cell.dataset.compBloque=bloque; cell.dataset.compConcepto=clave;
+                cell.title='Ver y editar '+row.cells[0].textContent.trim()+' en '+m.ano+' por meses';
+                cell.onclick=function(e){e.stopPropagation();abrirEditorComparativaDesdeCelda(this);};
+            });
+        });
+    }
+
+    function comparativaCargarAnoEditable(ano) {
+        if(ano===anoActual) return datos;
+        const raw=localStorage.getItem('finanzasPersonales_'+ano);
+        if(!raw)return null;
+        try {
+            const d=JSON.parse(raw);
+            if(!d.meses)d.meses=[];
+            while(d.meses.length<12)d.meses.push({ingresosExtras:[],gastosExtras:[],gastosVacacionesExtras:[]});
+            d.meses.forEach(function(m){if(!m.ingresosExtras)m.ingresosExtras=[];if(!m.gastosExtras)m.gastosExtras=[];if(!m.gastosVacacionesExtras)m.gastosVacacionesExtras=[];});
+            if(!d.mesesCerrados)d.mesesCerrados={};
+            if(!d.ingresosFijos)d.ingresosFijos=[];if(!d.ingresosBonus)d.ingresosBonus=[];if(!d.gastosFijos)d.gastosFijos=[];if(!d.gastosVacaciones)d.gastosVacaciones=[];
+            if(!d.extrasRecurrentes)d.extrasRecurrentes=[];if(!d.movimientosProgramados)d.movimientosProgramados=[];
+            return d;
+        } catch(e){return null;}
+    }
+
+    function abrirEditorComparativaDesdeCelda(cell) {
+        const ano=Number(cell.dataset.compAno); const mes=cell.dataset.compMes!==undefined && cell.dataset.compMes!==''?Number(cell.dataset.compMes):null;
+        const bloque=cell.dataset.compBloque; const clave=cell.dataset.compConcepto;
+        const row=cell.closest('tr'); const concepto=row&&row.cells[0]?row.cells[0].textContent.trim():clave;
+        abrirEditorComparativa(ano,mes,bloque,clave,concepto);
+    }
+
+    function abrirEditorComparativa(ano,mes,bloque,clave,concepto) {
+        const d=comparativaCargarAnoEditable(ano);
+        if(!d){mostrarNotificacion('⚠️ Ese año todavía es una proyección. Créalo primero para poder editarlo.','error');return;}
+        _compEditorCtx={ano:ano,mes:mes,bloque:bloque,clave:clave,concepto:concepto};
+        document.getElementById('comp-editor-titulo').textContent='✏️ '+concepto+' · '+ano;
+        document.getElementById('comp-editor-sub').textContent=mes===null?'Edición por meses del concepto seleccionado. Los cambios no alteran otros meses ni otros años.':MESES_NOMBRES[mes]+' '+ano+' · edición solo de este mes.';
+        renderEditorComparativa();
+        document.getElementById('modal-editor-comparativa').style.display='block';
+    }
+
+    function cerrarEditorComparativa(){document.getElementById('modal-editor-comparativa').style.display='none';_compEditorCtx=null;}
+
+    function renderEditorComparativa() {
+        if(!_compEditorCtx)return;
+        const c=_compEditorCtx; const d=comparativaCargarAnoEditable(c.ano); const cont=document.getElementById('comp-editor-contenido');
+        if(!d){cont.innerHTML='<div class="comp-editor-nota">Año no disponible.</div>';return;}
+        const meses=c.mes===null?Array.from({length:12},function(_,i){return i;}):[c.mes];
+        let html=''; let encontrados=0;
+        meses.forEach(function(m){
+            const cerrado=!!(d.mesesCerrados&&d.mesesCerrados[m]);
+            const detalles=comparativaDetalleConceptoMes(d,c.ano,m,c.bloque,c.clave);
+            if(!detalles.length)return;
+            encontrados+=detalles.length;
+            const total=detalles.reduce(function(a,x){return a+(Number(x.valor)||0);},0);
+            html+='<div class="comp-editor-mes'+(cerrado?' cerrado':'')+'"><div class="comp-editor-mes-head"><span>'+(cerrado?'🔒 ':'')+MESES_NOMBRES[m]+' '+c.ano+'</span><span class="comp-editor-total">'+comparativaEscaparHTML(formatearMoneda(total))+'</span></div>';
+            detalles.forEach(function(it){
+                const editable=!cerrado&&it.editable;
+                if(!editable){
+                    html+='<div class="comp-editor-item solo-lectura"><div><strong>'+comparativaEscaparHTML(it.concepto)+'</strong><div class="comp-editor-cat">'+comparativaEscaparHTML(it.categoria)+'</div></div><div>'+comparativaEscaparHTML(normalizarMedioPago(it.medio)==='tarjeta'?'💳 Tarjeta':'🏦 Cuenta')+'</div><div class="comp-editor-valor">'+comparativaEscaparHTML(formatearMoneda(it.valor))+'</div></div>';
+                    return;
+                }
+                html+='<div class="comp-editor-item" data-ano="'+c.ano+'" data-mes="'+m+'" data-fuente="'+comparativaEscaparHTML(it.fuente)+'" data-index="'+it.index+'">'+
+                    '<div><input class="comp-edit-concepto" type="text" value="'+comparativaEscaparHTML(it.concepto)+'"><div class="comp-editor-cat">'+comparativaEscaparHTML(it.categoria)+'</div></div>'+
+                    '<input class="comp-edit-valor" type="number" min="0" step="0.01" value="'+(Number(it.valor)||0)+'">'+
+                    '<select class="comp-edit-medio"><option value="cuenta"'+(normalizarMedioPago(it.medio)==='cuenta'?' selected':'')+'>🏦 Cuenta</option><option value="tarjeta"'+(normalizarMedioPago(it.medio)==='tarjeta'?' selected':'')+'>💳 Tarjeta</option></select>'+
+                    '<span style="font-size:9px;color:#64748b;text-align:center;">Solo '+MESES_CORTOS[m]+'</span>'+
+                    '<button type="button" onclick="guardarEdicionComparativaLinea(this)">💾 Guardar</button></div>';
+            });
+            html+='</div>';
+        });
+        if(!encontrados) html='<div class="comp-editor-nota">No hay detalle editable para este concepto. Si procede de un cierre antiguo, aquella versión solo guardaba totales agrupados.</div>';
+        cont.innerHTML=html;
+    }
+
+    function comparativaGuardarLineaEnDatos(d,ano,mes,fuente,index,concepto,valor,medio){
+        const md=d.meses[mes]; if(!md)return false; medio=normalizarMedioPago(medio);
+        const fijas={ingresosFijos:d.ingresosFijos||[],ingresosBonus:d.ingresosBonus||[],gastosFijos:d.gastosFijos||[],gastosVacaciones:d.gastosVacaciones||[]};
+        if(Object.prototype.hasOwnProperty.call(fijas,fuente)){
+            const arr=fijas[fuente]; const base=arr[index]; if(!base)return false;
+            if(!md.overrides)md.overrides={}; const key=fuente+'_'+index; const anterior=md.overrides[key]||{};
+            const forzar=!!anterior.forzarEnMes || (base.frecuencia==='anual' && !(base.meses&&base.meses.includes(mes)));
+            md.overrides[key]={concepto:concepto,valor:valor,medio:medio,...(forzar?{forzarEnMes:true}:{})}; return true;
+        }
+        if(fuente==='ingresosExtras'||fuente==='gastosExtras'||fuente==='gastosVacacionesExtras'){
+            const arr=md[fuente]||[]; if(!arr[index])return false; arr[index]={...arr[index],concepto:concepto,valor:valor,medio:medio}; return true;
+        }
+        if(fuente==='extrasRecurrentes'){
+            const base=(d.extrasRecurrentes||[])[index]; if(!base)return false; if(!md.recurrentesOverrides)md.recurrentesOverrides={};
+            const ant=md.recurrentesOverrides[index]||{}; md.recurrentesOverrides[index]={concepto:concepto,valor:valor,medio:medio,tipo:base.tipo,...(ant.forzarEnMes?{forzarEnMes:true}:{})}; return true;
+        }
+        if(fuente==='movimientosProgramados'){
+            const base=(d.movimientosProgramados||[])[index]; if(!base)return false; if(!md.programadosOverrides)md.programadosOverrides={};
+            const key=claveMovimientoProgramado(base,index); const ant=md.programadosOverrides[key]||{};
+            md.programadosOverrides[key]={concepto:concepto,valor:valor,medio:medio,tipo:base.tipo,...(ant.forzarEnMes?{forzarEnMes:true}:{})}; return true;
+        }
+        return false;
+    }
+
+    function guardarEdicionComparativaLinea(btn){
+        const linea=btn.closest('.comp-editor-item'); if(!linea)return;
+        const ano=Number(linea.dataset.ano), mes=Number(linea.dataset.mes), fuente=linea.dataset.fuente, index=Number(linea.dataset.index);
+        const concepto=(linea.querySelector('.comp-edit-concepto').value||'').trim(); const valor=Number(linea.querySelector('.comp-edit-valor').value); const medio=linea.querySelector('.comp-edit-medio').value;
+        if(!concepto){mostrarNotificacion('⚠️ Escribe un concepto','error');return;} if(!Number.isFinite(valor)||valor<0){mostrarNotificacion('⚠️ Importe no válido','error');return;}
+        const d=comparativaCargarAnoEditable(ano); if(!d)return;
+        if(d.mesesCerrados&&d.mesesCerrados[mes]){mostrarNotificacion('🔒 '+MESES_NOMBRES[mes]+' está cerrado y es histórico','error');renderEditorComparativa();return;}
+        if(!comparativaGuardarLineaEnDatos(d,ano,mes,fuente,index,concepto,Math.round(valor*100)/100,medio)){mostrarNotificacion('❌ No se pudo localizar la partida','error');return;}
+        if(ano===anoActual){ datos=d; guardarDatos(); actualizarTodo(); actualizarResumenAnual(); actualizarCategorias(); }
+        else { normalizarMediosPagoDatos(d); d._modificadoEn=new Date().toISOString(); delete d._exportadoEn; localStorage.setItem('finanzasPersonales_'+ano,JSON.stringify(d)); programarGuardadoGist(); }
+        if(document.getElementById('modal-comparativa-anual').style.display!=='none') construirComparativaAnual();
+        if(document.getElementById('modal-comparativa-anios').style.display!=='none') construirComparativaAnios();
+        // Si al renombrar cambia la clave de la fila, cerramos el editor para evitar apuntar a una clave antigua.
+        if(comparativaClaveConcepto(concepto)!==_compEditorCtx.clave){ cerrarEditorComparativa(); mostrarNotificacion('✅ '+concepto+' actualizado solo en '+MESES_NOMBRES[mes]+' '+ano,'exito'); return; }
+        renderEditorComparativa();
+        mostrarNotificacion('✅ '+concepto+' actualizado solo en '+MESES_NOMBRES[mes]+' '+ano,'exito');
     }
     </script>
 
