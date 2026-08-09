@@ -7467,14 +7467,14 @@ function recalcularSimulador() {
             // Las comparativas tienen un unico scroll propio (horizontal + vertical).
             // Dejar que Safari/iPad lo gestione de forma nativa evita que este
             // controlador global intente mover el overlay exterior.
-            if (e.target.closest && e.target.closest('#modal-comparativa-anual .comparativa-scroll, #modal-comparativa-anios .comparativa-scroll, #modal-flujo-continuo .flujo-continuo-scroll')) return;
+            if (e.target.closest && e.target.closest('#modal-comparativa-anual, #modal-comparativa-anios, #modal-analisis-financiero, #modal-editor-comparativa, #modal-flujo-continuo .flujo-continuo-scroll')) return;
             var sc = findScrollableAncestor(e.target);
             if (sc) sc._lastTouchY = e.touches[0].clientY;
         }, { passive: true });
 
         document.addEventListener('touchmove', function(e) {
             if (!isInsideOpenModal(e.target)) return;
-            if (e.target.closest && e.target.closest('#modal-comparativa-anual .comparativa-scroll, #modal-comparativa-anios .comparativa-scroll, #modal-flujo-continuo .flujo-continuo-scroll')) return;
+            if (e.target.closest && e.target.closest('#modal-comparativa-anual, #modal-comparativa-anios, #modal-analisis-financiero, #modal-editor-comparativa, #modal-flujo-continuo .flujo-continuo-scroll')) return;
 
             var sc = findScrollableAncestor(e.target);
             if (!sc) {
@@ -8915,8 +8915,9 @@ function recalcularSimulador() {
         }
 
         function iniciar() {
-            instalarBloqueo(document.getElementById('comparativa-scroll'));
-            instalarBloqueo(document.getElementById('comparativa-anios-scroll'));
+            // iPad: las comparativas usan ahora el overlay del modal como UNICO scroll.
+            // No instalamos preventDefault en contenedores internos: Safari gestiona el gesto de forma nativa.
+            return;
         }
 
         if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', iniciar);
@@ -9953,6 +9954,20 @@ function recalcularSimulador() {
 
     <script>
     var _compEditorCtx = null;
+    var _compEditorOrigenModal = null;
+    var _compEditorOrigenScroll = null;
+
+    function comparativaModalVisible(id) {
+        var el = document.getElementById(id);
+        return !!(el && window.getComputedStyle(el).display !== 'none');
+    }
+
+    function comparativaScrollerActual(tipo) {
+        var tactil = window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+        if (tipo === 'meses') return tactil ? document.getElementById('modal-comparativa-anual') : document.getElementById('comparativa-scroll');
+        if (tipo === 'anios') return tactil ? document.getElementById('modal-comparativa-anios') : document.getElementById('comparativa-anios-scroll');
+        return null;
+    }
 
     function comparativaBloqueSnapshot(item) {
         if (!item) return 'gastos';
@@ -10100,10 +10115,46 @@ function recalcularSimulador() {
         document.getElementById('comp-editor-titulo').textContent='✏️ '+concepto+' · '+ano;
         document.getElementById('comp-editor-sub').textContent=mes===null?'Edición por meses del concepto seleccionado. Los cambios no alteran otros meses ni otros años.':MESES_NOMBRES[mes]+' '+ano+' · edición solo de este mes.';
         renderEditorComparativa();
-        document.getElementById('modal-editor-comparativa').style.display='block';
+
+        // En iPad una segunda capa modal sobre la comparativa vuelve el gesto ambiguo.
+        // Ocultamos temporalmente la comparativa de origen: solo queda UNA superficie visible y desplazable.
+        _compEditorOrigenModal = null;
+        _compEditorOrigenScroll = null;
+        if (comparativaModalVisible('modal-comparativa-anios')) _compEditorOrigenModal = 'anios';
+        else if (comparativaModalVisible('modal-comparativa-anual')) _compEditorOrigenModal = 'meses';
+        if (_compEditorOrigenModal) {
+            var scOrigen = comparativaScrollerActual(_compEditorOrigenModal);
+            if (scOrigen) _compEditorOrigenScroll = { top: scOrigen.scrollTop || 0, left: scOrigen.scrollLeft || 0 };
+            var idOrigen = _compEditorOrigenModal === 'anios' ? 'modal-comparativa-anios' : 'modal-comparativa-anual';
+            var modalOrigen = document.getElementById(idOrigen);
+            if (modalOrigen) modalOrigen.style.display = 'none';
+        }
+
+        var editor = document.getElementById('modal-editor-comparativa');
+        editor.style.display='block';
+        editor.scrollTop = 0;
+        editor.scrollLeft = 0;
     }
 
-    function cerrarEditorComparativa(){document.getElementById('modal-editor-comparativa').style.display='none';_compEditorCtx=null;}
+    function cerrarEditorComparativa(){
+        var editor=document.getElementById('modal-editor-comparativa');
+        if(editor) editor.style.display='none';
+        _compEditorCtx=null;
+
+        var origen=_compEditorOrigenModal;
+        var pos=_compEditorOrigenScroll;
+        _compEditorOrigenModal=null;
+        _compEditorOrigenScroll=null;
+        if(!origen) return;
+
+        var idOrigen=origen==='anios'?'modal-comparativa-anios':'modal-comparativa-anual';
+        var modalOrigen=document.getElementById(idOrigen);
+        if(modalOrigen) modalOrigen.style.display='block';
+        requestAnimationFrame(function(){
+            var sc=comparativaScrollerActual(origen);
+            if(sc && pos){ sc.scrollTop=pos.top||0; sc.scrollLeft=pos.left||0; }
+        });
+    }
 
     function renderEditorComparativa() {
         if(!_compEditorCtx)return;
@@ -10171,14 +10222,231 @@ function recalcularSimulador() {
         if(!comparativaGuardarLineaEnDatos(d,ano,mes,fuente,index,concepto,Math.round(valor*100)/100,medio)){mostrarNotificacion('❌ No se pudo localizar la partida','error');return;}
         if(ano===anoActual){ datos=d; guardarDatos(); actualizarTodo(); actualizarResumenAnual(); actualizarCategorias(); }
         else { normalizarMediosPagoDatos(d); d._modificadoEn=new Date().toISOString(); delete d._exportadoEn; localStorage.setItem('finanzasPersonales_'+ano,JSON.stringify(d)); programarGuardadoGist(); }
-        if(document.getElementById('modal-comparativa-anual').style.display!=='none') construirComparativaAnual();
-        if(document.getElementById('modal-comparativa-anios').style.display!=='none') construirComparativaAnios();
+        if(_compEditorOrigenModal==='meses' || document.getElementById('modal-comparativa-anual').style.display!=='none') construirComparativaAnual();
+        if(_compEditorOrigenModal==='anios' || document.getElementById('modal-comparativa-anios').style.display!=='none') construirComparativaAnios();
         // Si al renombrar cambia la clave de la fila, cerramos el editor para evitar apuntar a una clave antigua.
         if(comparativaClaveConcepto(concepto)!==_compEditorCtx.clave){ cerrarEditorComparativa(); mostrarNotificacion('✅ '+concepto+' actualizado solo en '+MESES_NOMBRES[mes]+' '+ano,'exito'); return; }
         renderEditorComparativa();
         mostrarNotificacion('✅ '+concepto+' actualizado solo en '+MESES_NOMBRES[mes]+' '+ano,'exito');
     }
     </script>
+
+
+    <!-- iPad: modales de datos en UNA sola capa desplazable -->
+    <style id="ipad-modal-una-capa">
+    @media (hover: none) and (pointer: coarse) {
+        /*
+         * Safari/iPad funciona de forma mucho mas estable cuando no hay un scroll
+         * vertical del modal + otro scroll bidireccional dentro. En estas vistas
+         * el UNICO elemento con overflow es el overlay .modal. Todo lo demas
+         * forma una superficie continua que se arrastra como una hoja grande.
+         */
+        #modal-comparativa-anual,
+        #modal-comparativa-anios,
+        #modal-analisis-financiero,
+        #modal-editor-comparativa {
+            inset: 0 !important;
+            width: 100vw !important;
+            height: 100dvh !important;
+            min-height: 100dvh !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow-x: auto !important;
+            overflow-y: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+            overscroll-behavior: auto !important;
+            touch-action: pan-x pan-y !important;
+        }
+
+        #modal-comparativa-anual .comparativa-modal-content,
+        #modal-comparativa-anios .comparativa-anios-modal-content,
+        #modal-analisis-financiero .analisis-financiero-content,
+        #modal-editor-comparativa .comparativa-editor-content {
+            height: auto !important;
+            max-height: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border-radius: 0 !important;
+            overflow: visible !important;
+            transform: none !important;
+            -webkit-transform: none !important;
+            box-shadow: none !important;
+        }
+
+        /* Meses y anos: toolbar + aviso + tabla pertenecen a la misma hoja. */
+        #modal-comparativa-anual .comparativa-modal-content,
+        #modal-comparativa-anios .comparativa-anios-modal-content {
+            display: block !important;
+            width: max-content !important;
+            min-width: 100vw !important;
+            max-width: none !important;
+            min-height: 100dvh !important;
+            background: #ffffff !important;
+        }
+        #modal-comparativa-anual .comparativa-toolbar,
+        #modal-comparativa-anios .comparativa-toolbar,
+        #modal-comparativa-anual .comparativa-aviso,
+        #modal-comparativa-anios .comparativa-aviso {
+            position: static !important;
+            width: 100vw !important;
+            max-width: 100vw !important;
+            box-sizing: border-box !important;
+        }
+        #modal-comparativa-anual .comparativa-scroll,
+        #modal-comparativa-anios .comparativa-scroll {
+            display: block !important;
+            width: max-content !important;
+            min-width: 100% !important;
+            height: auto !important;
+            min-height: 0 !important;
+            max-height: none !important;
+            overflow: visible !important;
+            padding: 10px 12px 28px !important;
+            -webkit-overflow-scrolling: auto !important;
+            overscroll-behavior: auto !important;
+            touch-action: auto !important;
+        }
+        #modal-comparativa-anual .comparativa-table {
+            width: 1370px !important;
+            min-width: 1370px !important;
+            max-width: none !important;
+            overflow: visible !important;
+        }
+        #modal-comparativa-anios .comparativa-table {
+            width: 1700px !important;
+            min-width: 1700px !important;
+            max-width: none !important;
+            overflow: visible !important;
+        }
+
+        /* Nada queda pegado: cabecera, primera columna y totales viajan con la tabla. */
+        #modal-comparativa-anual .comparativa-table thead,
+        #modal-comparativa-anios .comparativa-table thead,
+        #modal-comparativa-anual .comparativa-table th,
+        #modal-comparativa-anual .comparativa-table td,
+        #modal-comparativa-anios .comparativa-table th,
+        #modal-comparativa-anios .comparativa-table td {
+            position: static !important;
+            top: auto !important;
+            left: auto !important;
+            right: auto !important;
+            z-index: auto !important;
+        }
+        #modal-comparativa-anual .comparativa-table thead th,
+        #modal-comparativa-anios .comparativa-table thead th {
+            box-shadow: none !important;
+        }
+
+        /* Analisis: exactamente la misma filosofia, una tabla dentro del overlay. */
+        #modal-analisis-financiero .analisis-financiero-content {
+            display: block !important;
+            width: max-content !important;
+            min-width: 100vw !important;
+            max-width: none !important;
+            min-height: 100dvh !important;
+            background: #f8fafc !important;
+        }
+        #modal-analisis-financiero .analisis-financiero-toolbar,
+        #modal-analisis-financiero .analisis-financiero-nota {
+            position: static !important;
+            width: 100vw !important;
+            max-width: 100vw !important;
+            box-sizing: border-box !important;
+        }
+        #modal-analisis-financiero .analisis-financiero-scroll {
+            display: block !important;
+            width: max-content !important;
+            min-width: 100% !important;
+            height: auto !important;
+            min-height: 0 !important;
+            max-height: none !important;
+            overflow: visible !important;
+            padding: 12px 12px 30px !important;
+            -webkit-overflow-scrolling: auto !important;
+            overscroll-behavior: auto !important;
+            touch-action: auto !important;
+        }
+        #modal-analisis-financiero .analisis-tabla {
+            width: 900px !important;
+            min-width: 900px !important;
+            max-width: none !important;
+            margin: 0 12px 0 0 !important;
+            overflow: visible !important;
+        }
+        #modal-analisis-financiero .analisis-tabla thead,
+        #modal-analisis-financiero .analisis-tabla th,
+        #modal-analisis-financiero .analisis-tabla td {
+            position: static !important;
+            top: auto !important;
+            left: auto !important;
+            z-index: auto !important;
+        }
+
+        /*
+         * Editor: se muestra solo (la comparativa de debajo se oculta temporalmente)
+         * y las lineas se comportan como filas de tabla. Un concepto largo ya no
+         * crea una segunda zona de scroll ni obliga a cambiar de capa con el dedo.
+         */
+        #modal-editor-comparativa .comparativa-editor-content {
+            display: block !important;
+            width: 920px !important;
+            min-width: 100vw !important;
+            max-width: none !important;
+            min-height: 100dvh !important;
+            padding: 18px 18px 32px !important;
+            box-sizing: border-box !important;
+            background: #ffffff !important;
+        }
+        #modal-editor-comparativa #comp-editor-contenido {
+            width: 100% !important;
+            min-width: 0 !important;
+            overflow: visible !important;
+        }
+        #modal-editor-comparativa .comp-editor-mes {
+            width: 100% !important;
+            min-width: 840px !important;
+            overflow: visible !important;
+        }
+        #modal-editor-comparativa .comp-editor-item {
+            display: grid !important;
+            grid-template-columns: minmax(300px, 1fr) 120px 120px 92px auto !important;
+            min-width: 820px !important;
+            gap: 8px !important;
+            align-items: center !important;
+        }
+        #modal-editor-comparativa .comp-editor-item.solo-lectura {
+            grid-template-columns: minmax(300px, 1fr) 140px 120px !important;
+        }
+        #modal-editor-comparativa .comp-editor-item .comp-editor-cat,
+        #modal-editor-comparativa .comp-editor-item select,
+        #modal-editor-comparativa .comp-editor-item button {
+            grid-column: auto !important;
+            grid-row: auto !important;
+        }
+        #modal-editor-comparativa .comp-editor-item input,
+        #modal-editor-comparativa .comp-editor-item select {
+            min-width: 0 !important;
+        }
+    }
+
+    @supports not (height: 100dvh) {
+        @media (hover: none) and (pointer: coarse) {
+            #modal-comparativa-anual,
+            #modal-comparativa-anios,
+            #modal-analisis-financiero,
+            #modal-editor-comparativa {
+                height: 100vh !important;
+                min-height: 100vh !important;
+            }
+            #modal-comparativa-anual .comparativa-modal-content,
+            #modal-comparativa-anios .comparativa-anios-modal-content,
+            #modal-analisis-financiero .analisis-financiero-content,
+            #modal-editor-comparativa .comparativa-editor-content {
+                min-height: 100vh !important;
+            }
+        }
+    }
+    </style>
 
 </body>
 </html>
