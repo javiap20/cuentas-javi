@@ -1328,13 +1328,54 @@
     
     <!-- Modal Resumen Global -->
     <div id="modal-resumen-global" class="modal">
-        <div class="modal-content" style="max-width:900px;">
-            <span class="close" onclick="cerrarResumenGlobal()">&times;</span>
-            <h2 style="margin-bottom:20px;color:#1e3a8a;border-bottom:2px solid #4f46e5;padding-bottom:10px;">🌍 Resumen Global — Todos los Años</h2>
-            <div id="resumen-global-contenido"></div>
-            <button onclick="cerrarResumenGlobal()" style="margin-top:20px;">Cerrar</button>
+        <div class="modal-content resumen-global-modal-content">
+            <div class="resumen-global-toolbar">
+                <div style="min-width:0;">
+                    <h2 style="margin:0;color:#1e3a8a;font-size:1.2em;">&#127757; Resumen Global — Todos los Años</h2>
+                    <div id="resumen-global-subtitulo" class="resumen-global-subtitulo"></div>
+                </div>
+                <span class="close" onclick="cerrarResumenGlobal()" title="Cerrar">&times;</span>
+            </div>
+            <div id="resumen-global-scroll" class="resumen-global-scroll">
+                <div id="resumen-global-contenido"></div>
+            </div>
         </div>
     </div>
+
+    <style>
+        .resumen-global-modal-content {
+            width:92%;max-width:900px;height:90vh;max-height:90vh;margin:4vh auto;
+            padding:0 !important;overflow:hidden !important;display:flex;flex-direction:column;
+            color:#1f2937;text-align:center;
+        }
+        .resumen-global-toolbar {
+            flex-shrink:0;display:flex;align-items:center;justify-content:center;position:relative;
+            padding:14px 48px;border-bottom:1px solid #e2e8f0;background:#f8fafc;text-align:center;
+        }
+        .resumen-global-toolbar .close { position:absolute;right:18px;top:50%;transform:translateY(-50%); }
+        .resumen-global-subtitulo { margin-top:3px;font-size:10px;color:#78716c;line-height:1.4; }
+        .resumen-global-scroll {
+            flex:1 1 0;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+            padding:14px;background:#f8fafc;
+        }
+        .resumen-global-tabla {
+            width:100%;max-width:820px;min-width:0;margin:0 auto;border-collapse:separate;border-spacing:0;
+            background:white;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;font-size:13px;
+        }
+        .resumen-global-tabla th { padding:11px 8px;background:#1e293b;color:white;font-size:10px;text-transform:uppercase;letter-spacing:.035em;text-align:center; }
+        .resumen-global-tabla td { padding:10px 8px;border-bottom:1px solid #f1f5f9;text-align:center;vertical-align:middle; }
+        .resumen-global-tabla tbody tr:last-child td { border-bottom:none; }
+        .resumen-global-tabla tfoot td { padding:11px 8px;background:#0f172a;color:white;font-weight:700; }
+        .resumen-global-vacio { padding:45px 20px;text-align:center;color:#64748b; }
+        @media (hover:none) and (pointer:coarse) {
+            #modal-resumen-global { inset:0 !important;width:100vw !important;height:100dvh !important;min-height:100dvh !important;padding:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left)) !important;overflow:hidden !important;overscroll-behavior:none !important; }
+            #modal-resumen-global .resumen-global-modal-content { width:100% !important;max-width:100% !important;height:100% !important;max-height:100% !important;margin:0 !important;overflow:hidden !important; }
+            #modal-resumen-global .resumen-global-scroll { flex:1 1 0 !important;min-height:0 !important;overflow-x:auto !important;overflow-y:auto !important;-webkit-overflow-scrolling:auto !important;overscroll-behavior:contain !important;touch-action:pan-y !important; }
+        }
+        @supports not (height:100dvh) {
+            @media (hover:none) and (pointer:coarse) { #modal-resumen-global { height:100vh !important;min-height:100vh !important; } }
+        }
+    </style>
 
     <!-- Modal Configuración -->
     <div id="modal-config" class="modal">
@@ -2232,6 +2273,10 @@
         function abrirResumenGlobal() {
             construirResumenGlobal();
             document.getElementById('modal-resumen-global').style.display = 'block';
+            requestAnimationFrame(function(){
+                const sc = document.getElementById('resumen-global-scroll');
+                if (sc) { sc.scrollTop = 0; sc.scrollLeft = 0; }
+            });
         }
 
         function cerrarResumenGlobal() {
@@ -2247,10 +2292,13 @@
             }
 
             const contenido = document.getElementById('resumen-global-contenido');
+            const subtitulo = document.getElementById('resumen-global-subtitulo');
             if (anos.length === 0) {
-                contenido.innerHTML = '<p style="text-align:center;color:#6b7280;padding:40px;">No hay datos guardados en ningún año.</p>';
+                if (subtitulo) subtitulo.textContent = '';
+                contenido.innerHTML = '<div class="resumen-global-vacio">No hay datos guardados en ningún año.</div>';
                 return;
             }
+            if (subtitulo) subtitulo.textContent = anos[0].ano + '–' + anos[anos.length - 1].ano + ' · ' + anos.length + (anos.length === 1 ? ' año' : ' años');
 
             // Función auxiliar para calcular totales de un mes (igual que calcularTotalesMes pero para datos externos)
             function calcularTotalesMesExterno(d, numMes, ano) {
@@ -2365,33 +2413,33 @@
                 totalGastos += gasAno;
 
                 filas += '<tr>' +
-                    '<td style="font-weight:600;text-align:center;">' + ano + ' (' + (ano - 1972) + ')</td>' +
-                    '<td style="color:#6b7280;text-align:center;">' + formatearMoneda(saldoInicio) + '</td>' +
-                    '<td style="color:#10b981;font-weight:600;text-align:center;">' + formatearMoneda(ingAno) + '</td>' +
-                    '<td style="color:#ef4444;font-weight:600;text-align:center;">' + formatearMoneda(gasAno) + '</td>' +
-                    '<td style="color:' + (diff >= 0 ? '#10b981' : '#ef4444') + ';font-weight:400;text-align:center;">' + formatearMoneda(diff) + '</td>' +
-                    '<td style="color:' + (saldoFinal >= 0 ? '#10b981' : '#ef4444') + ';font-weight:700;text-align:center;">' + formatearMoneda(saldoFinal) + '</td>' +
+                    '<td style="font-weight:700;color:#334155;">' + ano + ' (' + (ano - 1972) + ')</td>' +
+                    '<td style="color:#6b7280;">' + formatearMoneda(saldoInicio) + '</td>' +
+                    '<td style="color:#10b981;font-weight:600;">' + formatearMoneda(ingAno) + '</td>' +
+                    '<td style="color:#ef4444;font-weight:600;">' + formatearMoneda(gasAno) + '</td>' +
+                    '<td style="color:' + (diff >= 0 ? '#10b981' : '#ef4444') + ';">' + formatearMoneda(diff) + '</td>' +
+                    '<td style="color:' + (saldoFinal >= 0 ? '#10b981' : '#ef4444') + ';font-weight:800;">' + formatearMoneda(saldoFinal) + '</td>' +
                 '</tr>';
             });
 
             const diffTotal = totalIngresos - totalGastos;
-            contenido.innerHTML = 
-                '<table style="width:100%;border-collapse:collapse;font-size:14px;">' +
-                '<thead><tr style="background:#1e293b;color:white;">' +
-                '<th style="padding:12px 8px;text-align:center;">Año</th>' +
-                '<th style="padding:12px 8px;text-align:center;">Saldo 1 Ene</th>' +
-                '<th style="padding:12px 8px;text-align:center;">Ingresos</th>' +
-                '<th style="padding:12px 8px;text-align:center;">Gastos</th>' +
-                '<th style="padding:12px 8px;text-align:center;">Diferencia</th>' +
-                '<th style="padding:12px 8px;text-align:center;">Saldo 31 Dic</th>' +
+            contenido.innerHTML =
+                '<table class="resumen-global-tabla">' +
+                '<thead><tr>' +
+                '<th>Año</th>' +
+                '<th>Saldo 1 Ene</th>' +
+                '<th>Ingresos</th>' +
+                '<th>Gastos</th>' +
+                '<th>Diferencia</th>' +
+                '<th>Saldo 31 Dic</th>' +
                 '</tr></thead>' +
                 '<tbody>' + filas + '</tbody>' +
-                '<tfoot><tr style="background:#0f172a;color:white;font-weight:700;">' +
-                '<td style="padding:12px 8px;text-align:center;">TOTAL</td>' +
+                '<tfoot><tr>' +
+                '<td>TOTAL</td>' +
                 '<td></td>' +
-                '<td style="padding:12px 8px;text-align:center;color:#10b981;">' + formatearMoneda(totalIngresos) + '</td>' +
-                '<td style="padding:12px 8px;text-align:center;color:#ef4444;">' + formatearMoneda(totalGastos) + '</td>' +
-                '<td style="padding:12px 8px;text-align:center;color:' + (diffTotal >= 0 ? '#10b981' : '#ef4444') + ';font-weight:400;">' + formatearMoneda(diffTotal) + '</td>' +
+                '<td style="color:#34d399;">' + formatearMoneda(totalIngresos) + '</td>' +
+                '<td style="color:#f87171;">' + formatearMoneda(totalGastos) + '</td>' +
+                '<td style="color:' + (diffTotal >= 0 ? '#34d399' : '#f87171') + ';">' + formatearMoneda(diffTotal) + '</td>' +
                 '<td></td>' +
                 '</tr></tfoot>' +
                 '</table>';
