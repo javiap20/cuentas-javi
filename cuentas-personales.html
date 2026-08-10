@@ -3011,7 +3011,7 @@
                 const anoBase = parseInt(String(obj.ano_base || '2026'), 10);
                 if (!Number.isInteger(anoBase) || anoBase < 2024 || anoBase > 2040) throw new Error('Año base no válido en ' + id);
                 const frecuencia = String(obj.frecuencia || '').trim().toLowerCase();
-                if (!['mensual','anual'].includes(frecuencia)) throw new Error('Frecuencia no válida en ' + id + ': ' + frecuencia);
+                if (!['mensual','anual','semanal'].includes(frecuencia)) throw new Error('Frecuencia no válida en ' + id + ': ' + frecuencia);
                 const meses = frecuencia === 'anual' ? parsearMesesMaster(obj.meses) : [];
                 if (frecuencia === 'anual' && meses.length === 0) throw new Error('Faltan meses en la partida anual ' + id);
                 const activoTxt = String(obj.activo === undefined || obj.activo === null || obj.activo === '' ? '1' : obj.activo).trim().toLowerCase();
@@ -3262,7 +3262,7 @@
                 if (!f.id || ids.has(f.id)) throw new Error('Copia local Master no válida');
                 ids.add(f.id);
                 if (!FUENTES_MASTER.includes(f.grupo) || !f.concepto || !Number.isFinite(f.valorBase) ||
-                    !Number.isInteger(f.anoBase) || !['mensual','anual'].includes(f.frecuencia)) {
+                    !Number.isInteger(f.anoBase) || !['mensual','anual','semanal'].includes(f.frecuencia)) {
                     throw new Error('Copia local Master no válida');
                 }
             });
@@ -3367,10 +3367,79 @@
             return (Array.isArray(meses) ? meses.map(Number).slice().sort((a,b)=>a-b) : []).join('|');
         }
 
-        function valorMasterParaAno(fila, ano, incrementosPorAno) {
+        function obtenerEstadoPartidasMaster(mapaDatos) {
+            const anos = Object.keys(mapaDatos || {}).map(Number).filter(Number.isInteger).sort((a,b)=>b-a);
+            for (const y of anos) {
+                const meta = mapaDatos[y] && mapaDatos[y]._masterXLSX;
+                if (meta && meta.partidas && typeof meta.partidas === 'object') {
+                    try { return JSON.parse(JSON.stringify(meta.partidas)); } catch(e) { return meta.partidas; }
+                }
+            }
+            return {};
+        }
+
+        // El Excel representa el importe VIGENTE. No obliga al usuario a mantener un historico de tarifas.
+        // Si un valor cambia respecto al ultimo Master aplicado, ese importe pasa a ser la nueva base
+        // del ano real en curso. Los meses cerrados siguen usando su snapshot y no se alteran;
+        // los anos posteriores vuelven a aplicar CONFIG a partir de esa nueva base.
+        function construirEstadoPartidasMaster(mapaDatos) {
+            const previo = obtenerEstadoPartidasMaster(mapaDatos);
+            const anoReal = new Date().getFullYear();
+            const estado = {};
+
+            (_masterCSVEstado.filas || []).forEach(fila => {
+                if (!fila || !fila.id) return;
+                const anterior = previo[fila.id] || null;
+                const valorExcel = Number(fila.valorBase) || 0;
+                const frecuencia = String(fila.frecuencia || 'mensual');
+                const grupo = String(fila.grupo || '');
+                const activo = !!fila.activo;
+
+                let anoAncla;
+                if (!anterior) {
+                    // Primera vez que vemos esta partida: su valor vigente empieza en el ano actual
+                    // (o en ano_base si la partida esta programada para comenzar mas adelante).
+                    anoAncla = Math.max(Number(fila.anoBase) || 2026, anoReal);
+                } else {
+                    const valorAnterior = Number(anterior.valorExcel);
+                    const cambioValor = !Number.isFinite(valorAnterior) || Math.abs(valorAnterior - valorExcel) > 0.000001;
+                    const cambioFrecuencia = String(anterior.frecuencia || '') !== frecuencia;
+                    const cambioGrupo = String(anterior.grupo || '') !== grupo;
+                    const reactivada = anterior.activo === false && activo;
+
+                    if (cambioValor || cambioFrecuencia || cambioGrupo || reactivada) {
+                        anoAncla = Math.max(Number(fila.anoBase) || 2026, anoReal);
+                    } else {
+                        const anclaAnterior = Number(anterior.anoAncla);
+                        anoAncla = Number.isFinite(anclaAnterior) ? anclaAnterior : Math.max(Number(fila.anoBase) || 2026, anoReal);
+                        if (anoAncla < (Number(fila.anoBase) || 2026)) anoAncla = Number(fila.anoBase) || 2026;
+                    }
+                }
+
+                estado[fila.id] = {
+                    valorExcel,
+                    anoAncla,
+                    activo,
+                    frecuencia,
+                    grupo,
+                    anoBase: Number(fila.anoBase) || 2026
+                };
+            });
+            return estado;
+        }
+
+        function valorMasterParaAno(fila, ano, incrementosPorAno, estadoPartida) {
             if (ano < fila.anoBase) return null;
             let valor = Number(fila.valorBase) || 0;
-            for (let y = fila.anoBase; y < ano; y++) {
+            let anoAncla = estadoPartida && Number(estadoPartida.anoAncla);
+            if (!Number.isFinite(anoAncla)) anoAncla = Number(fila.anoBase) || 2026;
+            anoAncla = Math.max(Number(fila.anoBase) || 2026, anoAncla);
+
+            // Si quedo algun mes antiguo abierto, tambien recibe el valor vigente del Excel.
+            // Es intencionado: el usuario decide que meses son historicos cerrandolos.
+            if (ano <= anoAncla) return valor;
+
+            for (let y = anoAncla; y < ano; y++) {
                 let inc = incrementosPorAno[y];
                 if (!inc) {
                     for (let yy = y - 1; yy >= 2024 && !inc; yy--) inc = incrementosPorAno[yy];
@@ -3384,20 +3453,95 @@
             return valor;
         }
 
-        function construirPartidaMaster(fila, ano, incrementosPorAno) {
-            const valor = valorMasterParaAno(fila, ano, incrementosPorAno);
-            if (valor === null) return null;
+        // Frecuencia Master "semanal": el valor del Excel es IMPORTE POR SEMANA.
+        // Cada mes financiero va del día 21 del mes anterior al día 20 del mes actual,
+        // ambos incluidos, y se cuentan los VIERNES del intervalo.
+        function contarViernesPeriodoMaster(ano, mes) {
+            const inicio = new Date(ano, mes - 1, 21, 12, 0, 0, 0);
+            const fin = new Date(ano, mes, 20, 12, 0, 0, 0);
+            let total = 0;
+            for (let d = new Date(inicio.getTime()); d <= fin; d.setDate(d.getDate() + 1)) {
+                if (d.getDay() === 5) total++;
+            }
+            return total;
+        }
+
+        function construirPartidaMaster(fila, ano, incrementosPorAno, estadoPartida) {
+            const valorMaster = valorMasterParaAno(fila, ano, incrementosPorAno, estadoPartida);
+            if (valorMaster === null) return null;
+            const esSemanal = fila.frecuencia === 'semanal';
             const item = {
                 concepto: fila.concepto,
-                valor,
+                // Internamente se conserva como mensual para que toda la lógica histórica
+                // siga funcionando. El valor exacto de cada mes llega mediante override automático.
+                valor: esSemanal ? Math.round(valorMaster * 4 * 100) / 100 : valorMaster,
                 medio: normalizarMedioPago(fila.medio),
-                frecuencia: fila.frecuencia,
+                frecuencia: esSemanal ? 'mensual' : fila.frecuencia,
                 _masterId: fila.id,
                 _serieId: 'master:' + fila.id,
                 _masterAnoBase: fila.anoBase
             };
+            if (esSemanal) {
+                item._masterFrecuencia = 'semanal';
+                item._masterValorSemanal = valorMaster;
+                item._masterCorte = '21-20';
+                item._masterDiaSemana = 5; // viernes
+            }
             if (fila.frecuencia === 'anual') item.meses = fila.meses.slice();
             return item;
+        }
+
+        function sincronizarOverridesSemanalesMaster(d, ano, fuente) {
+            if (!d || !fuenteGestionadaPorMaster(fuente) || !Array.isArray(d[fuente])) return;
+            if (!Array.isArray(d.meses)) d.meses = [];
+
+            for (let mes = 0; mes < 12; mes++) {
+                if (!d.meses[mes]) d.meses[mes] = { ingresosExtras:[], gastosExtras:[], gastosVacacionesExtras:[] };
+                const md = d.meses[mes];
+                if (!md.overrides) md.overrides = {};
+                const cerrado = !!(d.mesesCerrados && d.mesesCerrados[mes]);
+
+                d[fuente].forEach((item, idx) => {
+                    const key = fuente + '_' + idx;
+                    const ov = md.overrides[key];
+                    const esSemanal = item && item._masterFrecuencia === 'semanal';
+
+                    if (!esSemanal) {
+                        // Si una partida dejó de ser semanal en el Excel, quitar solo
+                        // los overrides derivados automáticamente. Los manuales se respetan.
+                        if (ov && ov._masterSemanalAuto) delete md.overrides[key];
+                        return;
+                    }
+
+                    // Un mes cerrado es una foto real e inmutable. No lo reconstruimos.
+                    if (cerrado) return;
+
+                    // Un cambio manual "solo este mes" siempre gana al cálculo semanal.
+                    if (ov && !ov._masterSemanalAuto) return;
+
+                    const viernes = contarViernesPeriodoMaster(ano, mes);
+                    const valorSemanal = Number(item._masterValorSemanal) || 0;
+                    const valorMes = Math.round(viernes * valorSemanal * 100) / 100;
+                    md.overrides[key] = {
+                        concepto: item.concepto,
+                        valor: valorMes,
+                        medio: normalizarMedioPago(item.medio),
+                        _masterSemanalAuto: true,
+                        _masterViernes: viernes,
+                        _masterValorSemanal: valorSemanal
+                    };
+                });
+            }
+        }
+
+        function detalleSemanalMaster(item, ov, ano, mes) {
+            if (!item || item._masterFrecuencia !== 'semanal') return '';
+            if (ov && !ov._masterSemanalAuto) return '';
+            const viernes = ov && ov._masterSemanalAuto && Number.isFinite(Number(ov._masterViernes))
+                ? Number(ov._masterViernes)
+                : contarViernesPeriodoMaster(ano, mes);
+            const semanal = Number(item._masterValorSemanal) || 0;
+            return viernes + ' viernes × ' + formatearMoneda(semanal);
         }
 
         function mapearIndicesMaster(arrAnterior, arrNuevo) {
@@ -3448,15 +3592,16 @@
             });
         }
 
-        function reconciliarFuenteMaster(d, ano, fuente, incrementosPorAno) {
+        function reconciliarFuenteMaster(d, ano, fuente, incrementosPorAno, estadoPartidas) {
             const filas = _masterCSVEstado.filas
                 .filter(f => f.activo && f.grupo === fuente && ano >= f.anoBase)
                 .slice().sort((a,b) => (a.orden - b.orden) || (a._fila - b._fila));
-            const nuevo = filas.map(f => construirPartidaMaster(f, ano, incrementosPorAno)).filter(Boolean);
+            const nuevo = filas.map(f => construirPartidaMaster(f, ano, incrementosPorAno, estadoPartidas && estadoPartidas[f.id])).filter(Boolean);
             const anterior = Array.isArray(d[fuente]) ? d[fuente] : [];
             const mapa = mapearIndicesMaster(anterior, nuevo);
             remapearOverridesFuenteMaster(d, fuente, mapa);
             d[fuente] = nuevo;
+            sincronizarOverridesSemanalesMaster(d, ano, fuente);
         }
 
         function obtenerDatosAnoMaster(ano) {
@@ -3492,6 +3637,7 @@
             });
             if (!incrementosPorAno[2026]) incrementosPorAno[2026] = { ingresos:1, gastos:2 };
 
+            const estadoPartidas = construirEstadoPartidasMaster(mapaDatos);
             const ahora = new Date().toISOString();
             let actualizados = 0;
             let previoAno = null;
@@ -3507,9 +3653,9 @@
                     d.saldoInicial = Math.round(saldoFinalPrevio * 100) / 100;
                 }
 
-                FUENTES_MASTER.forEach(fuente => reconciliarFuenteMaster(d, y, fuente, incrementosPorAno));
+                FUENTES_MASTER.forEach(fuente => reconciliarFuenteMaster(d, y, fuente, incrementosPorAno, estadoPartidas));
                 normalizarMediosPagoDatos(d);
-                d._masterXLSX = { version:1, hash:_masterCSVEstado.hash, url:MASTER_CSV_URL };
+                d._masterXLSX = { version:2, hash:_masterCSVEstado.hash, url:MASTER_CSV_URL, partidas:estadoPartidas };
                 delete d._masterCSV;
 
                 const saldoInicio = Number(d.saldoInicial) || 0;
@@ -5577,7 +5723,9 @@
                 if (item.frecuencia) {
                     const infoFrecuencia = document.createElement('div');
                     infoFrecuencia.className = 'info-frecuencia';
-                    if (item.frecuencia === 'mensual') {
+                    if (item._masterFrecuencia === 'semanal') {
+                        infoFrecuencia.textContent = '📅 Semanal · viernes del 21 al 20';
+                    } else if (item.frecuencia === 'mensual') {
                         infoFrecuencia.textContent = '📅 Todos los meses';
                     } else if (item.frecuencia === 'anual' && item.meses) {
                         const mesesTexto = item.meses.map(m => MESES_CORTOS[m]).join(', ');
@@ -5597,7 +5745,9 @@
 
                 const valorSpan = document.createElement('span');
                 valorSpan.className = 'valor';
-                valorSpan.textContent = formatearMoneda(item.valor);
+                valorSpan.textContent = item._masterFrecuencia === 'semanal'
+                    ? (formatearMoneda(item._masterValorSemanal) + ' / sem')
+                    : formatearMoneda(item.valor);
                 
                 const editBtn = document.createElement('button');
                 editBtn.className = 'edit-item-btn';
@@ -6829,7 +6979,7 @@
                 const valor = ov ? ov.valor : item.valor;
                 const concepto = ov ? ov.concepto : item.concepto;
                 const medio = ov && ov.medio !== undefined ? ov.medio : item.medio;
-                items.push({ concepto, valor, medio: normalizarMedioPago(medio), tipo: 'ingreso', categoria: 'Ingreso Fijo', fuente: 'ingresosFijos', index: idx, editable: true, tieneOverride: !!ov });
+                items.push({ concepto, valor, medio: normalizarMedioPago(medio), tipo: 'ingreso', categoria: 'Ingreso Fijo', fuente: 'ingresosFijos', index: idx, editable: true, tieneOverride: !!ov && !ov._masterSemanalAuto, detalleSemanal: detalleSemanalMaster(item, ov, anoActual, numMes) });
             });
 
             datos.gastosFijos.forEach((item, idx) => {
@@ -6842,7 +6992,7 @@
                 const valor = ov ? ov.valor : item.valor;
                 const concepto = ov ? ov.concepto : item.concepto;
                 const medio = ov && ov.medio !== undefined ? ov.medio : item.medio;
-                items.push({ concepto, valor, medio: normalizarMedioPago(medio), tipo: 'gasto', categoria: 'Gasto Fijo', fuente: 'gastosFijos', index: idx, editable: true, tieneOverride: !!ov });
+                items.push({ concepto, valor, medio: normalizarMedioPago(medio), tipo: 'gasto', categoria: 'Gasto Fijo', fuente: 'gastosFijos', index: idx, editable: true, tieneOverride: !!ov && !ov._masterSemanalAuto, detalleSemanal: detalleSemanalMaster(item, ov, anoActual, numMes) });
             });
 
             datos.gastosVacaciones.forEach((item, idx) => {
@@ -6855,7 +7005,7 @@
                 const valor = ov ? ov.valor : item.valor;
                 const concepto = ov ? ov.concepto : item.concepto;
                 const medio = ov && ov.medio !== undefined ? ov.medio : item.medio;
-                items.push({ concepto, valor, medio: normalizarMedioPago(medio), tipo: 'gasto', categoria: 'Vacaciones', fuente: 'gastosVacaciones', index: idx, editable: true, tieneOverride: !!ov });
+                items.push({ concepto, valor, medio: normalizarMedioPago(medio), tipo: 'gasto', categoria: 'Vacaciones', fuente: 'gastosVacaciones', index: idx, editable: true, tieneOverride: !!ov && !ov._masterSemanalAuto, detalleSemanal: detalleSemanalMaster(item, ov, anoActual, numMes) });
             });
 
             (datos.ingresosBonus || []).forEach((item, idx) => {
@@ -6868,7 +7018,7 @@
                 const valor = ov ? ov.valor : item.valor;
                 const concepto = ov ? ov.concepto : item.concepto;
                 const medio = ov && ov.medio !== undefined ? ov.medio : item.medio;
-                items.push({ concepto, valor, medio: normalizarMedioPago(medio), tipo: 'ingreso', categoria: 'Bonus', fuente: 'ingresosBonus', index: idx, editable: true, tieneOverride: !!ov });
+                items.push({ concepto, valor, medio: normalizarMedioPago(medio), tipo: 'ingreso', categoria: 'Bonus', fuente: 'ingresosBonus', index: idx, editable: true, tieneOverride: !!ov && !ov._masterSemanalAuto, detalleSemanal: detalleSemanalMaster(item, ov, anoActual, numMes) });
             });
 
             const mesData = datos.meses[numMes];
@@ -7033,6 +7183,14 @@
                 badge.textContent = item.categoria;
                 leftDiv.appendChild(badge);
 
+                if (item.detalleSemanal) {
+                    const semanalBadge = document.createElement('span');
+                    semanalBadge.title = 'Presupuesto semanal del Master: periodo del 21 del mes anterior al 20 de este mes.';
+                    semanalBadge.style.cssText = 'margin-left:4px;background:#e0f2fe;color:#075985;font-size:9px;font-weight:700;padding:1px 5px;border-radius:10px;white-space:nowrap;flex-shrink:0;';
+                    semanalBadge.textContent = '📅 ' + item.detalleSemanal;
+                    leftDiv.appendChild(semanalBadge);
+                }
+
                 if (item.tieneOverride) {
                     const ovBadge = document.createElement('span');
                     ovBadge.title = 'Valor o medio modificado solo para este mes. Clic para restaurar el valor global.';
@@ -7050,6 +7208,9 @@
                             } else {
                                 const key = item.fuente + '_' + item.index;
                                 if (datos.meses[mesVerTodo].overrides) delete datos.meses[mesVerTodo].overrides[key];
+                                if (fuenteGestionadaPorMaster(item.fuente)) {
+                                    sincronizarOverridesSemanalesMaster(datos, anoActual, item.fuente);
+                                }
                             }
                             guardarDatos(); actualizarTodo(); actualizarResumenAnual();
                             abrirModalVerTodoMes(mesVerTodo);
@@ -7885,6 +8046,7 @@ function construirInputsSimulador() {
     }
 
     function freqSub(item) {
+        if (item._masterFrecuencia === 'semanal') return 'semanal · viernes 21–20';
         if (item.frecuencia === 'mensual') return 'mensual (x12)';
         if (item.frecuencia === 'anual' && item.meses) return 'meses: ' + item.meses.map(function(x) { return MESES_CORTOS[x]; }).join(', ');
         return 'puntual';
