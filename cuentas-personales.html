@@ -3038,21 +3038,207 @@
             return { filas, hash: hashMasterSimple(canonicoFilasMaster(filas)) };
         }
 
-        async function parsearMasterXLSX(buffer) {
-            if (typeof ExcelJS === 'undefined') throw new Error('No está disponible la librería de Excel');
-            const wb = new ExcelJS.Workbook();
-            await wb.xlsx.load(buffer);
-            const ws = wb.getWorksheet('MASTER') || wb.worksheets[0];
-            if (!ws) throw new Error('El Excel no contiene hojas');
-            const tabla = [];
-            const maxCols = Math.max(Number(ws.columnCount) || 0, 11);
-            for (let r = 1; r <= ws.rowCount; r++) {
-                const row = ws.getRow(r);
-                const vals = [];
-                for (let c = 1; c <= maxCols; c++) vals.push(valorCeldaMasterExcel(row.getCell(c)));
-                tabla.push(vals);
+        // Lector XLSX nativo para el Master. No depende de CDN ni de ExcelJS.
+        // Lee directamente el contenedor ZIP/OOXML del .xlsx y solo extrae los valores de la hoja MASTER.
+        function masterXMLDecodificar(s) {
+            return String(s || '')
+                .replace(/&#x([0-9a-fA-F]+);/g, function(_, h) { return String.fromCodePoint(parseInt(h, 16)); })
+                .replace(/&#([0-9]+);/g, function(_, d) { return String.fromCodePoint(parseInt(d, 10)); })
+                .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"')
+                .replace(/&apos;/g, "'").replace(/&amp;/g, '&');
+        }
+
+        function masterXMLAtributos(txt) {
+            const out = {};
+            const re = /([:\w.-]+)\s*=\s*"([^"]*)"/g;
+            let m;
+            while ((m = re.exec(txt || ''))) out[m[1]] = masterXMLDecodificar(m[2]);
+            return out;
+        }
+
+        function masterXMLTextosT(xml) {
+            const partes = [];
+            const re = /<t\b[^>]*>([\s\S]*?)<\/t>/g;
+            let m;
+            while ((m = re.exec(xml || ''))) partes.push(masterXMLDecodificar(m[1]));
+            return partes.join('');
+        }
+
+        function masterColumnaExcelAIndice(ref) {
+            const m = String(ref || '').match(/^([A-Z]+)/i);
+            if (!m) return -1;
+            let n = 0;
+            for (const ch of m[1].toUpperCase()) n = n * 26 + (ch.charCodeAt(0) - 64);
+            return n - 1;
+        }
+
+        async function masterXLSXExtraerEntrada(buffer, nombreBuscado) {
+            const u8 = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
+            const dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
+            let eocd = -1;
+            const desde = Math.max(0, u8.length - 0x10000 - 22);
+            for (let i = u8.length - 22; i >= desde; i--) {
+                if (dv.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
             }
-            return validarYNormalizarTablaMaster(tabla);
+            if (eocd < 0) throw new Error('El archivo no parece un XLSX válido');
+
+            const total = dv.getUint16(eocd + 10, true);
+            let pos = dv.getUint32(eocd + 16, true);
+            const decoder = new TextDecoder('utf-8');
+
+            for (let i = 0; i < total; i++) {
+                if (dv.getUint32(pos, true) !== 0x02014b50) throw new Error('Directorio interno XLSX no válido');
+                const metodo = dv.getUint16(pos + 10, true);
+                const tamComp = dv.getUint32(pos + 20, true);
+                const lenNombre = dv.getUint16(pos + 28, true);
+                const lenExtra = dv.getUint16(pos + 30, true);
+                const lenComentario = dv.getUint16(pos + 32, true);
+                const offsetLocal = dv.getUint32(pos + 42, true);
+                const nombre = decoder.decode(u8.subarray(pos + 46, pos + 46 + lenNombre));
+
+                if (nombre === nombreBuscado) {
+                    if (dv.getUint32(offsetLocal, true) !== 0x04034b50) throw new Error('Entrada interna XLSX no válida');
+                    const localNombre = dv.getUint16(offsetLocal + 26, true);
+                    const localExtra = dv.getUint16(offsetLocal + 28, true);
+                    const inicio = offsetLocal + 30 + localNombre + localExtra;
+                    const comprimido = u8.subarray(inicio, inicio + tamComp);
+                    if (metodo === 0) return comprimido.slice();
+                    if (metodo === 8) {
+                        if (typeof DecompressionStream === 'undefined') throw new Error('Este navegador no ofrece descompresión ZIP nativa');
+                        const ds = new DecompressionStream('deflate-raw');
+                        const flujo = new Blob([comprimido]).stream().pipeThrough(ds);
+                        return new Uint8Array(await new Response(flujo).arrayBuffer());
+                    }
+                    throw new Error('Compresión XLSX no soportada (' + metodo + ')');
+                }
+                pos += 46 + lenNombre + lenExtra + lenComentario;
+            }
+            return null;
+        }
+
+        async function masterXLSXLeerXML(buffer, nombre, opcional) {
+            const bytes = await masterXLSXExtraerEntrada(buffer, nombre);
+            if (!bytes) {
+                if (opcional) return '';
+                throw new Error('Falta ' + nombre + ' dentro del Excel');
+            }
+            return new TextDecoder('utf-8').decode(bytes);
+        }
+
+        function masterXLSXResolverRuta(target) {
+            let t = String(target || '').replace(/\\/g, '/');
+            if (t.startsWith('/')) return t.slice(1);
+            if (t.startsWith('xl/')) return t;
+            return 'xl/' + t.replace(/^\.\//, '');
+        }
+
+        async function masterXLSXTablaNativa(buffer) {
+            const workbookXML = await masterXLSXLeerXML(buffer, 'xl/workbook.xml', false);
+            const relsXML = await masterXLSXLeerXML(buffer, 'xl/_rels/workbook.xml.rels', false);
+
+            let rid = '';
+            let sm;
+            const sheetRe = /<sheet\b([^>]*)\/?\s*>/g;
+            while ((sm = sheetRe.exec(workbookXML))) {
+                const a = masterXMLAtributos(sm[1]);
+                if (String(a.name || '').trim().toUpperCase() === 'MASTER') {
+                    rid = a['r:id'] || a.Id || '';
+                    break;
+                }
+            }
+
+            let target = '';
+            let rm;
+            const relRe = /<Relationship\b([^>]*)\/?\s*>/g;
+            while ((rm = relRe.exec(relsXML))) {
+                const a = masterXMLAtributos(rm[1]);
+                const esHoja = /worksheet$/i.test(a.Type || '');
+                if ((rid && a.Id === rid) || (!rid && esHoja)) {
+                    target = a.Target || '';
+                    if (rid || target) break;
+                }
+            }
+
+            const rutaHoja = target ? masterXLSXResolverRuta(target) : 'xl/worksheets/sheet1.xml';
+            const sheetXML = await masterXLSXLeerXML(buffer, rutaHoja, false);
+            const sharedXML = await masterXLSXLeerXML(buffer, 'xl/sharedStrings.xml', true);
+            const shared = [];
+            if (sharedXML) {
+                const siRe = /<si\b[^>]*>([\s\S]*?)<\/si>/g;
+                let si;
+                while ((si = siRe.exec(sharedXML))) shared.push(masterXMLTextosT(si[1]));
+            }
+
+            const tabla = [];
+            const rowRe = /<row\b([^>]*)>([\s\S]*?)<\/row>/g;
+            let rowM;
+            while ((rowM = rowRe.exec(sheetXML))) {
+                const rowAttrs = masterXMLAtributos(rowM[1]);
+                const numFila = parseInt(rowAttrs.r || String(tabla.length + 1), 10) || (tabla.length + 1);
+                while (tabla.length < numFila) tabla.push([]);
+                const vals = tabla[numFila - 1];
+                const cellRe = /<c\b([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g;
+                let cm;
+                while ((cm = cellRe.exec(rowM[2]))) {
+                    const a = masterXMLAtributos(cm[1]);
+                    const idx = masterColumnaExcelAIndice(a.r);
+                    if (idx < 0) continue;
+                    const body = cm[2] || '';
+                    const tipo = a.t || '';
+                    let valor = '';
+                    if (tipo === 'inlineStr') {
+                        valor = masterXMLTextosT(body);
+                    } else {
+                        const vm = body.match(/<v\b[^>]*>([\s\S]*?)<\/v>/);
+                        const raw = vm ? masterXMLDecodificar(vm[1]) : '';
+                        if (tipo === 's') {
+                            const si = parseInt(raw, 10);
+                            valor = Number.isInteger(si) && shared[si] !== undefined ? shared[si] : '';
+                        } else if (tipo === 'b') {
+                            valor = raw === '1';
+                        } else if (tipo === 'str') {
+                            valor = raw;
+                        } else if (raw !== '') {
+                            const n = Number(raw);
+                            valor = Number.isFinite(n) ? n : raw;
+                        }
+                    }
+                    vals[idx] = valor;
+                }
+            }
+            return tabla;
+        }
+
+        async function parsearMasterXLSX(buffer) {
+            let errorNativo = null;
+            try {
+                const tabla = await masterXLSXTablaNativa(buffer);
+                return validarYNormalizarTablaMaster(tabla);
+            } catch (e) {
+                errorNativo = e;
+            }
+
+            // Fallback para navegadores antiguos: si ExcelJS sí está disponible, utilizarlo.
+            if (typeof ExcelJS !== 'undefined') {
+                try {
+                    const wb = new ExcelJS.Workbook();
+                    await wb.xlsx.load(buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer));
+                    const ws = wb.getWorksheet('MASTER') || wb.worksheets[0];
+                    if (!ws) throw new Error('El Excel no contiene hojas');
+                    const tabla = [];
+                    const maxCols = Math.max(Number(ws.columnCount) || 0, 11);
+                    for (let r = 1; r <= ws.rowCount; r++) {
+                        const row = ws.getRow(r);
+                        const vals = [];
+                        for (let c = 1; c <= maxCols; c++) vals.push(valorCeldaMasterExcel(row.getCell(c)));
+                        tabla.push(vals);
+                    }
+                    return validarYNormalizarTablaMaster(tabla);
+                } catch (eExcelJS) {
+                    throw new Error('No pude leer el Excel: ' + (eExcelJS.message || eExcelJS) + ' · lector nativo: ' + (errorNativo && errorNativo.message || errorNativo));
+                }
+            }
+            throw new Error('No pude leer el Excel: ' + (errorNativo && errorNativo.message || errorNativo || 'error desconocido'));
         }
 
         function parsearMasterDesdeCache(filasCache) {
@@ -3102,7 +3288,9 @@
                 el.style.color = '#fbbf24';
                 return;
             }
-            el.textContent = '⚠️ Master Excel no disponible · usando la planificación guardada · clic para reintentar';
+            const err = String(d.error || '').trim();
+            el.textContent = '⚠️ Master Excel no disponible' + (err ? ' · ' + err : '') + ' · clic para reintentar';
+            el.title = err || 'Clic para reintentar la lectura de finanzas-master.xlsx';
             el.style.color = '#f87171';
         }
 
@@ -3163,10 +3351,11 @@
                 }
             } catch (eCache) {}
 
-            _masterCSVEstado = { activo:false, filas:[], hash:null, fuente:null, cargadoEn:null, error:String(errorServidor && errorServidor.message || 'No disponible') };
-            mostrarEstadoMaster('error');
+            const detalleError = String(errorServidor && errorServidor.message || 'No disponible');
+            _masterCSVEstado = { activo:false, filas:[], hash:null, fuente:null, cargadoEn:null, error:detalleError };
+            mostrarEstadoMaster('error', { error:detalleError });
             actualizarUIEdicionMaster();
-            if (esManual) mostrarNotificacion('❌ No se pudo cargar finanzas-master.xlsx y no hay una copia local válida', 'error');
+            if (esManual) mostrarNotificacion('❌ No se pudo cargar finanzas-master.xlsx · ' + detalleError, 'error');
             return { ok:false, error:errorServidor };
         }
 
