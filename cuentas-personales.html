@@ -3466,6 +3466,13 @@
             return total;
         }
 
+        function valorMensualSemanalMaster(item, ano, mes) {
+            if (!item || item._masterFrecuencia !== 'semanal') return null;
+            const viernes = contarViernesPeriodoMaster(ano, mes);
+            const valorSemanal = Number(item._masterValorSemanal) || 0;
+            return Math.round(viernes * valorSemanal * 100) / 100;
+        }
+
         function construirPartidaMaster(fila, ano, incrementosPorAno, estadoPartida) {
             const valorMaster = valorMasterParaAno(fila, ano, incrementosPorAno, estadoPartida);
             if (valorMaster === null) return null;
@@ -3521,7 +3528,7 @@
 
                     const viernes = contarViernesPeriodoMaster(ano, mes);
                     const valorSemanal = Number(item._masterValorSemanal) || 0;
-                    const valorMes = Math.round(viernes * valorSemanal * 100) / 100;
+                    const valorMes = valorMensualSemanalMaster(item, ano, mes);
                     md.overrides[key] = {
                         concepto: item.concepto,
                         valor: valorMes,
@@ -5724,7 +5731,8 @@
                     const infoFrecuencia = document.createElement('div');
                     infoFrecuencia.className = 'info-frecuencia';
                     if (item._masterFrecuencia === 'semanal') {
-                        infoFrecuencia.textContent = '📅 Semanal · viernes del 21 al 20';
+                        const viernesMes = contarViernesPeriodoMaster(anoActual, mesActual);
+                        infoFrecuencia.textContent = '📅 ' + MESES_NOMBRES[mesActual] + ' · ' + viernesMes + ' viernes × ' + formatearMoneda(item._masterValorSemanal) + ' / sem';
                     } else if (item.frecuencia === 'mensual') {
                         infoFrecuencia.textContent = '📅 Todos los meses';
                     } else if (item.frecuencia === 'anual' && item.meses) {
@@ -5745,9 +5753,13 @@
 
                 const valorSpan = document.createElement('span');
                 valorSpan.className = 'valor';
-                valorSpan.textContent = item._masterFrecuencia === 'semanal'
-                    ? (formatearMoneda(item._masterValorSemanal) + ' / sem')
-                    : formatearMoneda(item.valor);
+                if (item._masterFrecuencia === 'semanal') {
+                    const valorMesSemanal = valorMensualSemanalMaster(item, anoActual, mesActual);
+                    valorSpan.textContent = formatearMoneda(valorMesSemanal);
+                    valorSpan.title = 'Master: ' + formatearMoneda(item._masterValorSemanal) + ' por semana · ' + contarViernesPeriodoMaster(anoActual, mesActual) + ' viernes entre el 21 y el 20';
+                } else {
+                    valorSpan.textContent = formatearMoneda(item.valor);
+                }
                 
                 const editBtn = document.createElement('button');
                 editBtn.className = 'edit-item-btn';
