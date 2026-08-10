@@ -3457,8 +3457,8 @@
         // Cada mes financiero va del día 21 del mes anterior al día 20 del mes actual,
         // ambos incluidos, y se cuentan los VIERNES del intervalo.
         function contarViernesPeriodoMaster(ano, mes) {
-            const inicio = new Date(ano, mes - 1, 21, 12, 0, 0, 0);
-            const fin = new Date(ano, mes, 20, 12, 0, 0, 0);
+            const inicio = new Date(ano, mes - 1, 22, 12, 0, 0, 0);
+            const fin = new Date(ano, mes, 21, 12, 0, 0, 0);
             let total = 0;
             for (let d = new Date(inicio.getTime()); d <= fin; d.setDate(d.getDate() + 1)) {
                 if (d.getDay() === 5) total++;
@@ -3491,7 +3491,7 @@
             if (esSemanal) {
                 item._masterFrecuencia = 'semanal';
                 item._masterValorSemanal = valorMaster;
-                item._masterCorte = '21-20';
+                item._masterCorte = '22-21';
                 item._masterDiaSemana = 5; // viernes
             }
             if (fila.frecuencia === 'anual') item.meses = fila.meses.slice();
@@ -5756,7 +5756,7 @@
                 if (item._masterFrecuencia === 'semanal') {
                     const valorMesSemanal = valorMensualSemanalMaster(item, anoActual, mesActual);
                     valorSpan.textContent = formatearMoneda(valorMesSemanal);
-                    valorSpan.title = 'Master: ' + formatearMoneda(item._masterValorSemanal) + ' por semana · ' + contarViernesPeriodoMaster(anoActual, mesActual) + ' viernes entre el 21 y el 20';
+                    valorSpan.title = 'Master: ' + formatearMoneda(item._masterValorSemanal) + ' por semana · ' + contarViernesPeriodoMaster(anoActual, mesActual) + ' viernes entre el 22 y el 21';
                 } else {
                     valorSpan.textContent = formatearMoneda(item.valor);
                 }
