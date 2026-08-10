@@ -2275,6 +2275,9 @@
 
             const recalculo = recalcularAniosFuturosPorConfiguracion();
             guardarDatos();
+            // Con Master activo, reconstruir tambien sus automatismos mensuales con el nuevo CONFIG.
+            // Esto actualiza inmediatamente Casa Madrid (IPC desde octubre) y cualquier partida semanal.
+            if (masterCSVEstaActivo()) aplicarMasterATodosLosAnios();
             actualizarTodo();
             actualizarResumenAnual();
             cerrarModalConfig();
@@ -2911,6 +2914,8 @@
         const MASTER_CSV_URL = 'finanzas-master.xlsx';
         const MASTER_CSV_CACHE_KEY = 'finanzasMasterXLSX_ultimoValido_v1';
         const FUENTES_MASTER = ['ingresosFijos', 'ingresosBonus', 'gastosFijos', 'gastosVacaciones'];
+        const MASTER_ID_CASA_MADRID = 'gas_casa_madrid';
+        const MASTER_CASA_MADRID_MES_IPC = 9; // Octubre (0=enero): adelanta aqui el IPC del ano siguiente.
         let _masterCSVEstado = { activo:false, filas:[], hash:null, fuente:null, cargadoEn:null, error:null };
 
         function masterCSVEstaActivo() {
@@ -3454,7 +3459,7 @@
         }
 
         // Frecuencia Master "semanal": el valor del Excel es IMPORTE POR SEMANA.
-        // Cada mes financiero va del día 21 del mes anterior al día 20 del mes actual,
+        // Cada mes financiero va del día 22 del mes anterior al día 21 del mes actual,
         // ambos incluidos, y se cuentan los VIERNES del intervalo.
         function contarViernesPeriodoMaster(ano, mes) {
             const inicio = new Date(ano, mes - 1, 22, 12, 0, 0, 0);
@@ -3477,10 +3482,11 @@
             const valorMaster = valorMasterParaAno(fila, ano, incrementosPorAno, estadoPartida);
             if (valorMaster === null) return null;
             const esSemanal = fila.frecuencia === 'semanal';
+            const esCasaMadridIPC = fila.id === MASTER_ID_CASA_MADRID && fila.frecuencia === 'mensual';
             const item = {
                 concepto: fila.concepto,
                 // Internamente se conserva como mensual para que toda la lógica histórica
-                // siga funcionando. El valor exacto de cada mes llega mediante override automático.
+                // siga funcionando. Los importes especiales de cada mes llegan mediante override automático.
                 valor: esSemanal ? Math.round(valorMaster * 4 * 100) / 100 : valorMaster,
                 medio: normalizarMedioPago(fila.medio),
                 frecuencia: esSemanal ? 'mensual' : fila.frecuencia,
@@ -3493,6 +3499,15 @@
                 item._masterValorSemanal = valorMaster;
                 item._masterCorte = '22-21';
                 item._masterDiaSemana = 5; // viernes
+            }
+            if (esCasaMadridIPC) {
+                // Casa Madrid: enero-septiembre usa el valor del ano; octubre-diciembre
+                // adelanta ya el valor del ano siguiente (IPC de gastos de la transicion).
+                // Se identifica por ID estable, por lo que renombrar el concepto en Excel no rompe la regla.
+                const valorSiguiente = valorMasterParaAno(fila, ano + 1, incrementosPorAno, estadoPartida);
+                item._masterIPCAdelantado = true;
+                item._masterIPCDesdeMes = MASTER_CASA_MADRID_MES_IPC;
+                item._masterValorSiguienteAno = Number.isFinite(Number(valorSiguiente)) ? Number(valorSiguiente) : valorMaster;
             }
             if (fila.frecuencia === 'anual') item.meses = fila.meses.slice();
             return item;
@@ -3536,6 +3551,50 @@
                         _masterSemanalAuto: true,
                         _masterViernes: viernes,
                         _masterValorSemanal: valorSemanal
+                    };
+                });
+            }
+        }
+
+        function sincronizarOverridesIPCAdelantadoMaster(d, ano, fuente) {
+            if (!d || !fuenteGestionadaPorMaster(fuente) || !Array.isArray(d[fuente])) return;
+            if (!Array.isArray(d.meses)) d.meses = [];
+
+            for (let mes = 0; mes < 12; mes++) {
+                if (!d.meses[mes]) d.meses[mes] = { ingresosExtras:[], gastosExtras:[], gastosVacacionesExtras:[] };
+                const md = d.meses[mes];
+                if (!md.overrides) md.overrides = {};
+                const cerrado = !!(d.mesesCerrados && d.mesesCerrados[mes]);
+
+                d[fuente].forEach((item, idx) => {
+                    const key = fuente + '_' + idx;
+                    const ov = md.overrides[key];
+                    const esCasaMadrid = item && item._masterId === MASTER_ID_CASA_MADRID && item._masterIPCAdelantado === true;
+                    const desdeMes = esCasaMadrid ? Number(item._masterIPCDesdeMes) : MASTER_CASA_MADRID_MES_IPC;
+                    const aplicaAdelanto = esCasaMadrid && Number.isInteger(desdeMes) && mes >= desdeMes;
+
+                    // Un mes cerrado es historia: ni creamos ni limpiamos overrides en el.
+                    if (cerrado) return;
+
+                    if (!aplicaAdelanto) {
+                        // Si la regla deja de aplicar, retirar solo nuestro override automatico.
+                        // Cualquier decision manual del usuario permanece intacta.
+                        if (ov && ov._masterIPCAuto) delete md.overrides[key];
+                        return;
+                    }
+
+                    // Un cambio manual "solo este mes" siempre gana al automatismo de Casa Madrid.
+                    if (ov && !ov._masterIPCAuto) return;
+
+                    const valorSiguiente = Number(item._masterValorSiguienteAno);
+                    if (!Number.isFinite(valorSiguiente)) return;
+                    md.overrides[key] = {
+                        concepto: item.concepto,
+                        valor: Math.round(valorSiguiente * 100) / 100,
+                        medio: normalizarMedioPago(item.medio),
+                        _masterIPCAuto: true,
+                        _masterIPCDesdeMes: desdeMes,
+                        _masterIPCAnoDestino: ano + 1
                     };
                 });
             }
@@ -3609,6 +3668,7 @@
             remapearOverridesFuenteMaster(d, fuente, mapa);
             d[fuente] = nuevo;
             sincronizarOverridesSemanalesMaster(d, ano, fuente);
+            sincronizarOverridesIPCAdelantadoMaster(d, ano, fuente);
         }
 
         function obtenerDatosAnoMaster(ano) {
@@ -6991,7 +7051,7 @@
                 const valor = ov ? ov.valor : item.valor;
                 const concepto = ov ? ov.concepto : item.concepto;
                 const medio = ov && ov.medio !== undefined ? ov.medio : item.medio;
-                items.push({ concepto, valor, medio: normalizarMedioPago(medio), tipo: 'ingreso', categoria: 'Ingreso Fijo', fuente: 'ingresosFijos', index: idx, editable: true, tieneOverride: !!ov && !ov._masterSemanalAuto, detalleSemanal: detalleSemanalMaster(item, ov, anoActual, numMes) });
+                items.push({ concepto, valor, medio: normalizarMedioPago(medio), tipo: 'ingreso', categoria: 'Ingreso Fijo', fuente: 'ingresosFijos', index: idx, editable: true, tieneOverride: !!ov && !ov._masterSemanalAuto && !ov._masterIPCAuto, detalleSemanal: detalleSemanalMaster(item, ov, anoActual, numMes) });
             });
 
             datos.gastosFijos.forEach((item, idx) => {
@@ -7004,7 +7064,7 @@
                 const valor = ov ? ov.valor : item.valor;
                 const concepto = ov ? ov.concepto : item.concepto;
                 const medio = ov && ov.medio !== undefined ? ov.medio : item.medio;
-                items.push({ concepto, valor, medio: normalizarMedioPago(medio), tipo: 'gasto', categoria: 'Gasto Fijo', fuente: 'gastosFijos', index: idx, editable: true, tieneOverride: !!ov && !ov._masterSemanalAuto, detalleSemanal: detalleSemanalMaster(item, ov, anoActual, numMes) });
+                items.push({ concepto, valor, medio: normalizarMedioPago(medio), tipo: 'gasto', categoria: 'Gasto Fijo', fuente: 'gastosFijos', index: idx, editable: true, tieneOverride: !!ov && !ov._masterSemanalAuto && !ov._masterIPCAuto, detalleSemanal: detalleSemanalMaster(item, ov, anoActual, numMes) });
             });
 
             datos.gastosVacaciones.forEach((item, idx) => {
@@ -7017,7 +7077,7 @@
                 const valor = ov ? ov.valor : item.valor;
                 const concepto = ov ? ov.concepto : item.concepto;
                 const medio = ov && ov.medio !== undefined ? ov.medio : item.medio;
-                items.push({ concepto, valor, medio: normalizarMedioPago(medio), tipo: 'gasto', categoria: 'Vacaciones', fuente: 'gastosVacaciones', index: idx, editable: true, tieneOverride: !!ov && !ov._masterSemanalAuto, detalleSemanal: detalleSemanalMaster(item, ov, anoActual, numMes) });
+                items.push({ concepto, valor, medio: normalizarMedioPago(medio), tipo: 'gasto', categoria: 'Vacaciones', fuente: 'gastosVacaciones', index: idx, editable: true, tieneOverride: !!ov && !ov._masterSemanalAuto && !ov._masterIPCAuto, detalleSemanal: detalleSemanalMaster(item, ov, anoActual, numMes) });
             });
 
             (datos.ingresosBonus || []).forEach((item, idx) => {
@@ -7030,7 +7090,7 @@
                 const valor = ov ? ov.valor : item.valor;
                 const concepto = ov ? ov.concepto : item.concepto;
                 const medio = ov && ov.medio !== undefined ? ov.medio : item.medio;
-                items.push({ concepto, valor, medio: normalizarMedioPago(medio), tipo: 'ingreso', categoria: 'Bonus', fuente: 'ingresosBonus', index: idx, editable: true, tieneOverride: !!ov && !ov._masterSemanalAuto, detalleSemanal: detalleSemanalMaster(item, ov, anoActual, numMes) });
+                items.push({ concepto, valor, medio: normalizarMedioPago(medio), tipo: 'ingreso', categoria: 'Bonus', fuente: 'ingresosBonus', index: idx, editable: true, tieneOverride: !!ov && !ov._masterSemanalAuto && !ov._masterIPCAuto, detalleSemanal: detalleSemanalMaster(item, ov, anoActual, numMes) });
             });
 
             const mesData = datos.meses[numMes];
@@ -7197,7 +7257,7 @@
 
                 if (item.detalleSemanal) {
                     const semanalBadge = document.createElement('span');
-                    semanalBadge.title = 'Presupuesto semanal del Master: periodo del 21 del mes anterior al 20 de este mes.';
+                    semanalBadge.title = 'Presupuesto semanal del Master: periodo del 22 del mes anterior al 21 de este mes.';
                     semanalBadge.style.cssText = 'margin-left:4px;background:#e0f2fe;color:#075985;font-size:9px;font-weight:700;padding:1px 5px;border-radius:10px;white-space:nowrap;flex-shrink:0;';
                     semanalBadge.textContent = '📅 ' + item.detalleSemanal;
                     leftDiv.appendChild(semanalBadge);
@@ -7222,6 +7282,7 @@
                                 if (datos.meses[mesVerTodo].overrides) delete datos.meses[mesVerTodo].overrides[key];
                                 if (fuenteGestionadaPorMaster(item.fuente)) {
                                     sincronizarOverridesSemanalesMaster(datos, anoActual, item.fuente);
+                                    sincronizarOverridesIPCAdelantadoMaster(datos, anoActual, item.fuente);
                                 }
                             }
                             guardarDatos(); actualizarTodo(); actualizarResumenAnual();
