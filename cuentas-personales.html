@@ -1134,6 +1134,7 @@
                 </select>
             </div>
             <div id="datos-fuente-info" style="font-size:0.75em; color:rgba(255,255,255,0.38); letter-spacing:0.04em; text-align:center; min-height:1.2em;"></div>
+            <div id="master-fuente-info" onclick="recargarMasterManual()" title="Clic para volver a leer finanzas-master.csv" style="font-size:0.72em;color:rgba(255,255,255,0.38);letter-spacing:0.035em;text-align:center;min-height:1.2em;cursor:pointer;user-select:none;">🧾 Master CSV · pendiente</div>
             <div class="controls-actions">
                 <button class="act-btn" onclick="abrirResumenGlobal()">&#127757; Resumen Global</button>
                 <button class="act-btn" onclick="abrirDesgloseAnual()">&#128203; Desglose Anual</button>
@@ -1408,6 +1409,7 @@
         <div class="modal-content">
             <span class="close" onclick="cerrarModal()">&times;</span>
             <h2 id="modal-title">Desglose</h2>
+            <div id="master-modal-aviso" style="display:none;margin:10px 0 12px;padding:8px 12px;background:#eef2ff;border:1px solid #c7d2fe;border-radius:9px;color:#3730a3;font-size:12px;font-weight:700;text-align:center;">🧾 Gestionado por finanzas-master.csv · para cambiar esta planificación, edita el CSV y pulsa “Master CSV” arriba. Las excepciones de un solo mes siguen editándose desde Ver Todo.</div>
             
             <div id="form-container">
                 <div class="add-item-form">
@@ -1480,6 +1482,19 @@
         </div>
     </div>
     
+    <style id="master-csv-readonly-style">
+        #modal-desglose.master-lectura .add-item-form,
+        #modal-desglose.master-lectura #medio-pago-selector,
+        #modal-desglose.master-lectura #categoria-selector-container,
+        #modal-desglose.master-lectura #meses-selector-container,
+        #modal-desglose.master-lectura #fecha-fin-container,
+        #modal-desglose.master-lectura #btn-modo-edicion-desglose,
+        #modal-desglose.master-lectura .edit-item-btn,
+        #modal-desglose.master-lectura .delete-btn { display:none !important; }
+        #modal-desglose.master-lectura #desglose-lista .desglose-item { cursor:default !important; }
+        #modal-desglose.master-lectura #desglose-lista .desglose-item span[style*="cursor:grab"] { display:none !important; }
+    </style>
+
     <!-- Modal Detalle Categoría -->
     <div id="modal-detalle-categoria" class="modal">
         <div class="modal-content">
@@ -2496,6 +2511,10 @@
                     datos = datosImportados;
                     normalizarDatos(datos);
                     guardarDatos();
+                    if (masterCSVEstaActivo()) {
+                        const masterImport = aplicarMasterATodosLosAnios();
+                        if (masterImport.anosActualizados > 0 && gistConfigurado()) programarGuardadoGist();
+                    }
                     actualizarTodo();
                     actualizarResumenAnual();
                     actualizarCategorias();
@@ -2885,9 +2904,438 @@
         }
 
         // ══════════════════════════════════════════════
-        //  CARGA DE DATOS (Gist primero)
+        //  MASTER CSV · FUENTE DE VERDAD DE LA PLANIFICACIÓN BASE
+        // ══════════════════════════════════════════════
+        // El fichero se busca junto al HTML. En GitHub Pages basta con subir ambos
+        // a la misma carpeta: cuentas-personales.html + finanzas-master.csv.
+        const MASTER_CSV_URL = 'finanzas-master.csv';
+        const MASTER_CSV_CACHE_KEY = 'finanzasMasterCSV_ultimoValido_v1';
+        const FUENTES_MASTER = ['ingresosFijos', 'ingresosBonus', 'gastosFijos', 'gastosVacaciones'];
+        let _masterCSVEstado = { activo:false, filas:[], hash:null, fuente:null, cargadoEn:null, error:null };
+
+        function masterCSVEstaActivo() {
+            return !!(_masterCSVEstado && _masterCSVEstado.activo && Array.isArray(_masterCSVEstado.filas));
+        }
+
+        function fuenteGestionadaPorMaster(fuente) {
+            return FUENTES_MASTER.includes(fuente);
+        }
+
+        function hashMasterSimple(texto) {
+            let h = 2166136261;
+            for (let i = 0; i < texto.length; i++) {
+                h ^= texto.charCodeAt(i);
+                h = Math.imul(h, 16777619);
+            }
+            return ('00000000' + (h >>> 0).toString(16)).slice(-8);
+        }
+
+        function parsearCSVConComillas(texto, delimitador) {
+            const filas = [];
+            let fila = [];
+            let campo = '';
+            let entreComillas = false;
+            const t = String(texto || '').replace(/^\uFEFF/, '');
+            for (let i = 0; i < t.length; i++) {
+                const ch = t[i];
+                if (entreComillas) {
+                    if (ch === '"') {
+                        if (t[i + 1] === '"') { campo += '"'; i++; }
+                        else entreComillas = false;
+                    } else {
+                        campo += ch;
+                    }
+                    continue;
+                }
+                if (ch === '"') { entreComillas = true; continue; }
+                if (ch === delimitador) { fila.push(campo); campo = ''; continue; }
+                if (ch === '\n') { fila.push(campo); filas.push(fila); fila = []; campo = ''; continue; }
+                if (ch !== '\r') campo += ch;
+            }
+            if (campo.length || fila.length) { fila.push(campo); filas.push(fila); }
+            return filas;
+        }
+
+        function detectarDelimitadorMaster(texto) {
+            const primera = String(texto || '').replace(/^\uFEFF/, '').split(/\r?\n/).find(l => l.trim()) || '';
+            const candidatos = [';', '\t', ','];
+            candidatos.sort((a, b) => primera.split(b).length - primera.split(a).length);
+            return candidatos[0];
+        }
+
+        function parsearValorMaster(valor) {
+            let s = String(valor === undefined || valor === null ? '' : valor).trim();
+            s = s.replace(/\s/g, '').replace(/€/g, '');
+            if (!s) return NaN;
+            if (s.includes(',') && s.includes('.')) {
+                s = s.replace(/\./g, '').replace(',', '.');
+            } else if (s.includes(',')) {
+                s = s.replace(',', '.');
+            } else if (/^-?\d{1,3}(\.\d{3})+$/.test(s)) {
+                s = s.replace(/\./g, '');
+            }
+            const n = Number(s);
+            return Number.isFinite(n) ? n : NaN;
+        }
+
+        function parsearMesesMaster(valor) {
+            const txt = String(valor || '').trim();
+            if (!txt) return [];
+            return Array.from(new Set(txt.split(/[|,\s]+/)
+                .map(x => parseInt(x, 10))
+                .filter(n => Number.isInteger(n) && n >= 1 && n <= 12)
+                .map(n => n - 1))).sort((a,b) => a-b);
+        }
+
+        function parsearMasterCSV(texto) {
+            const delim = detectarDelimitadorMaster(texto);
+            const tabla = parsearCSVConComillas(texto, delim).filter(f => f.some(c => String(c || '').trim() !== ''));
+            if (!tabla.length) throw new Error('CSV vacío');
+
+            const cab = tabla[0].map(x => String(x || '').replace(/^\uFEFF/, '').trim().toLowerCase());
+            const requeridas = ['id','grupo','concepto','valor_base','ano_base','frecuencia','meses','medio','activo','orden'];
+            requeridas.forEach(col => { if (!cab.includes(col)) throw new Error('Falta la columna "' + col + '"'); });
+
+            const ids = new Set();
+            const filas = [];
+            for (let r = 1; r < tabla.length; r++) {
+                const vals = tabla[r];
+                const obj = {};
+                cab.forEach((h, i) => { obj[h] = String(vals[i] === undefined ? '' : vals[i]).trim(); });
+                const id = (obj.id || '').trim();
+                // Las filas vacías se ignoran. También aceptamos rótulos visuales como
+                // “INGRESOS”, “GASTOS” o “VACACIONES” escritos en la primera columna:
+                // si no tienen grupo/concepto/importe/frecuencia son solo separadores de Excel.
+                if (!id) continue;
+                const esRotuloVisual = !String(obj.grupo || '').trim() && !String(obj.concepto || '').trim() &&
+                    !String(obj.valor_base || '').trim() && !String(obj.frecuencia || '').trim();
+                if (esRotuloVisual) continue;
+                if (ids.has(id)) throw new Error('ID duplicado: ' + id);
+                ids.add(id);
+
+                const grupo = (obj.grupo || '').trim();
+                if (!FUENTES_MASTER.includes(grupo)) throw new Error('Grupo no válido en ' + id + ': ' + grupo);
+                const concepto = (obj.concepto || '').trim();
+                if (!concepto) throw new Error('Concepto vacío en ' + id);
+                const valorBase = parsearValorMaster(obj.valor_base);
+                if (!Number.isFinite(valorBase)) throw new Error('Importe no válido en ' + id + ': ' + obj.valor_base);
+                const anoBase = parseInt(obj.ano_base || '2026', 10);
+                if (!Number.isInteger(anoBase) || anoBase < 2024 || anoBase > 2040) throw new Error('Año base no válido en ' + id);
+                const frecuencia = (obj.frecuencia || '').trim().toLowerCase();
+                if (!['mensual','anual'].includes(frecuencia)) throw new Error('Frecuencia no válida en ' + id + ': ' + frecuencia);
+                const meses = frecuencia === 'anual' ? parsearMesesMaster(obj.meses) : [];
+                if (frecuencia === 'anual' && meses.length === 0) throw new Error('Faltan meses en la partida anual ' + id);
+                const activoTxt = (obj.activo || '1').trim().toLowerCase();
+                const activo = !['0','false','no','inactivo'].includes(activoTxt);
+                const ordenNum = Number(obj.orden);
+                const tipoInferido = (grupo === 'ingresosFijos' || grupo === 'ingresosBonus') ? 'ingreso' : 'gasto';
+
+                filas.push({
+                    id,
+                    tipo: (obj.tipo || tipoInferido).trim().toLowerCase(),
+                    grupo,
+                    concepto,
+                    valorBase,
+                    anoBase,
+                    frecuencia,
+                    meses,
+                    medio: normalizarMedioPago((obj.medio || 'cuenta').toLowerCase()),
+                    activo,
+                    orden: Number.isFinite(ordenNum) ? ordenNum : r,
+                    _fila: r + 1
+                });
+            }
+            if (!filas.length) throw new Error('No hay partidas con id en el CSV');
+            const canonico = JSON.stringify(filas.map(f => ({
+                id:f.id,tipo:f.tipo,grupo:f.grupo,concepto:f.concepto,valorBase:f.valorBase,
+                anoBase:f.anoBase,frecuencia:f.frecuencia,meses:f.meses,medio:f.medio,activo:f.activo,orden:f.orden
+            })));
+            return { filas, hash: hashMasterSimple(canonico), delimitador: delim };
+        }
+
+        function mostrarEstadoMaster(estado, detalle) {
+            const el = document.getElementById('master-fuente-info');
+            if (!el) return;
+            const d = detalle || {};
+            if (estado === 'cargando') {
+                el.textContent = '⏳ Cargando Master CSV…';
+                el.style.color = 'rgba(255,255,255,0.45)';
+                return;
+            }
+            if (estado === 'servidor') {
+                el.textContent = '🧾 Master CSV · ' + (d.partidas || 0) + ' partidas · servidor · clic para recargar';
+                el.style.color = '#6ee7b7';
+                return;
+            }
+            if (estado === 'cache') {
+                el.textContent = '🧾 Master CSV · copia local válida · ' + (d.partidas || 0) + ' partidas · clic para reintentar';
+                el.style.color = '#fbbf24';
+                return;
+            }
+            el.textContent = '⚠️ Master CSV no disponible · usando la planificación guardada · clic para reintentar';
+            el.style.color = '#f87171';
+        }
+
+        function actualizarUIEdicionMaster() {
+            const activo = masterCSVEstaActivo();
+            const botones = [
+                ['button[onclick="abrirModalFijos(\'ingresos\')"]', '👁️ Ver ingresos fijos'],
+                ['button[onclick="abrirModalIngresosBonus()"]', '👁️ Ver extras y bonus'],
+                ['button[onclick="abrirModalFijos(\'gastos\')"]', '👁️ Ver gastos fijos'],
+                ['button[onclick="abrirModalVacaciones()"]', '👁️ Ver vacaciones']
+            ];
+            botones.forEach(([sel, textoMaster]) => {
+                const btn = document.querySelector(sel);
+                if (!btn) return;
+                if (!btn.dataset.textoSinMaster) btn.dataset.textoSinMaster = btn.textContent;
+                btn.textContent = activo ? textoMaster : btn.dataset.textoSinMaster;
+                btn.title = activo ? 'Esta planificación se gestiona en finanzas-master.csv' : '';
+            });
+        }
+
+        function configurarModalMasterLectura(debeSerMaster) {
+            const modal = document.getElementById('modal-desglose');
+            const aviso = document.getElementById('master-modal-aviso');
+            const activo = !!debeSerMaster && masterCSVEstaActivo();
+            if (modal) modal.classList.toggle('master-lectura', activo);
+            if (aviso) aviso.style.display = activo ? 'block' : 'none';
+        }
+
+        async function cargarMasterCSV(esManual) {
+            mostrarEstadoMaster('cargando');
+            let errorServidor = null;
+            try {
+                const sep = MASTER_CSV_URL.includes('?') ? '&' : '?';
+                const resp = await fetch(MASTER_CSV_URL + sep + '_master=' + Date.now(), { cache:'no-store' });
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                const texto = await resp.text();
+                const parsed = parsearMasterCSV(texto);
+                const cargadoEn = new Date().toISOString();
+                localStorage.setItem(MASTER_CSV_CACHE_KEY, JSON.stringify({ texto, cargadoEn }));
+                _masterCSVEstado = { activo:true, filas:parsed.filas, hash:parsed.hash, fuente:'servidor', cargadoEn, error:null };
+                mostrarEstadoMaster('servidor', { partidas: parsed.filas.filter(f => f.activo).length });
+                actualizarUIEdicionMaster();
+                return { ok:true, fuente:'servidor', hash:parsed.hash };
+            } catch (e) {
+                errorServidor = e;
+            }
+
+            try {
+                const rawCache = localStorage.getItem(MASTER_CSV_CACHE_KEY);
+                if (rawCache) {
+                    const cache = JSON.parse(rawCache);
+                    const parsed = parsearMasterCSV(cache.texto || '');
+                    _masterCSVEstado = { activo:true, filas:parsed.filas, hash:parsed.hash, fuente:'cache', cargadoEn:cache.cargadoEn || null, error:String(errorServidor && errorServidor.message || '') };
+                    mostrarEstadoMaster('cache', { partidas: parsed.filas.filter(f => f.activo).length });
+                    actualizarUIEdicionMaster();
+                    if (esManual) mostrarNotificacion('⚠️ No se pudo leer el CSV del servidor. Mantengo la última copia Master válida.', 'error');
+                    return { ok:true, fuente:'cache', hash:parsed.hash, aviso:errorServidor };
+                }
+            } catch (eCache) {}
+
+            _masterCSVEstado = { activo:false, filas:[], hash:null, fuente:null, cargadoEn:null, error:String(errorServidor && errorServidor.message || 'No disponible') };
+            mostrarEstadoMaster('error');
+            actualizarUIEdicionMaster();
+            if (esManual) mostrarNotificacion('❌ No se pudo cargar finanzas-master.csv y no hay una copia local válida', 'error');
+            return { ok:false, error:errorServidor };
+        }
+
+        function claveConceptoMaster(texto) {
+            return String(texto || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ');
+        }
+
+        function claveMesesMaster(meses) {
+            return (Array.isArray(meses) ? meses.map(Number).slice().sort((a,b)=>a-b) : []).join('|');
+        }
+
+        function valorMasterParaAno(fila, ano, incrementosPorAno) {
+            if (ano < fila.anoBase) return null;
+            let valor = Number(fila.valorBase) || 0;
+            for (let y = fila.anoBase; y < ano; y++) {
+                let inc = incrementosPorAno[y];
+                if (!inc) {
+                    for (let yy = y - 1; yy >= 2024 && !inc; yy--) inc = incrementosPorAno[yy];
+                }
+                inc = inc || { ingresos:1, gastos:2 };
+                const pct = (fila.grupo === 'ingresosFijos' || fila.grupo === 'ingresosBonus')
+                    ? (Number(inc.ingresos) || 0)
+                    : (Number(inc.gastos) || 0);
+                valor = Math.round(valor * (1 + pct / 100) * 100) / 100;
+            }
+            return valor;
+        }
+
+        function construirPartidaMaster(fila, ano, incrementosPorAno) {
+            const valor = valorMasterParaAno(fila, ano, incrementosPorAno);
+            if (valor === null) return null;
+            const item = {
+                concepto: fila.concepto,
+                valor,
+                medio: normalizarMedioPago(fila.medio),
+                frecuencia: fila.frecuencia,
+                _masterId: fila.id,
+                _serieId: 'master:' + fila.id,
+                _masterAnoBase: fila.anoBase
+            };
+            if (fila.frecuencia === 'anual') item.meses = fila.meses.slice();
+            return item;
+        }
+
+        function mapearIndicesMaster(arrAnterior, arrNuevo) {
+            const mapa = new Map();
+            const usados = new Set();
+            const porId = new Map();
+            arrNuevo.forEach((item, idx) => { if (item && item._masterId) porId.set(item._masterId, idx); });
+
+            function tomarUnico(predicate) {
+                const c = [];
+                arrNuevo.forEach((x, i) => { if (!usados.has(i) && predicate(x)) c.push(i); });
+                return c.length === 1 ? c[0] : -1;
+            }
+
+            (arrAnterior || []).forEach((old, idxOld) => {
+                if (!old) return;
+                let idxNuevo = -1;
+                const idOld = old._masterId || (String(old._serieId || '').startsWith('master:') ? String(old._serieId).slice(7) : '');
+                if (idOld && porId.has(idOld) && !usados.has(porId.get(idOld))) idxNuevo = porId.get(idOld);
+
+                const concepto = claveConceptoMaster(old.concepto);
+                const frecuencia = String(old.frecuencia || '');
+                const meses = claveMesesMaster(old.meses);
+                if (idxNuevo < 0) idxNuevo = tomarUnico(x => claveConceptoMaster(x.concepto) === concepto && String(x.frecuencia || '') === frecuencia && claveMesesMaster(x.meses) === meses);
+                if (idxNuevo < 0) idxNuevo = tomarUnico(x => claveConceptoMaster(x.concepto) === concepto && String(x.frecuencia || '') === frecuencia);
+                if (idxNuevo < 0) idxNuevo = tomarUnico(x => claveConceptoMaster(x.concepto) === concepto);
+
+                if (idxNuevo >= 0) {
+                    mapa.set(idxOld, idxNuevo);
+                    usados.add(idxNuevo);
+                }
+            });
+            return mapa;
+        }
+
+        function remapearOverridesFuenteMaster(d, fuente, mapaIndices) {
+            (d.meses || []).forEach(mes => {
+                if (!mes || !mes.overrides) return;
+                const nuevos = {};
+                Object.entries(mes.overrides).forEach(([key, ov]) => {
+                    const m = key.match(/^(.+)_(\d+)$/);
+                    if (!m || m[1] !== fuente) { nuevos[key] = ov; return; }
+                    const idxOld = parseInt(m[2], 10);
+                    if (!mapaIndices.has(idxOld)) return; // la partida ya no existe en el Master
+                    nuevos[fuente + '_' + mapaIndices.get(idxOld)] = ov;
+                });
+                mes.overrides = nuevos;
+            });
+        }
+
+        function reconciliarFuenteMaster(d, ano, fuente, incrementosPorAno) {
+            const filas = _masterCSVEstado.filas
+                .filter(f => f.activo && f.grupo === fuente && ano >= f.anoBase)
+                .slice().sort((a,b) => (a.orden - b.orden) || (a._fila - b._fila));
+            const nuevo = filas.map(f => construirPartidaMaster(f, ano, incrementosPorAno)).filter(Boolean);
+            const anterior = Array.isArray(d[fuente]) ? d[fuente] : [];
+            const mapa = mapearIndicesMaster(anterior, nuevo);
+            remapearOverridesFuenteMaster(d, fuente, mapa);
+            d[fuente] = nuevo;
+        }
+
+        function obtenerDatosAnoMaster(ano) {
+            if (ano === anoActual && datos) return JSON.parse(JSON.stringify(datos));
+            const raw = localStorage.getItem('finanzasPersonales_' + ano);
+            if (!raw) return null;
+            try { return JSON.parse(raw); } catch(e) { return null; }
+        }
+
+        function aplicarMasterATodosLosAnios() {
+            if (!masterCSVEstaActivo()) return { anosActualizados:0, anosProcesados:0 };
+
+            const mapaDatos = {};
+            for (let y = 2026; y <= 2040; y++) {
+                const d = obtenerDatosAnoMaster(y);
+                if (d) mapaDatos[y] = d;
+            }
+            // En una instalación totalmente nueva puede no existir todavía la clave 2026.
+            if (!mapaDatos[2026] && anoActual === 2026 && datos) mapaDatos[2026] = JSON.parse(JSON.stringify(datos));
+
+            const anos = Object.keys(mapaDatos).map(Number).filter(Number.isInteger).sort((a,b)=>a-b);
+            if (!anos.length) return { anosActualizados:0, anosProcesados:0 };
+
+            const incrementosPorAno = {};
+            anos.forEach(y => {
+                const inc = mapaDatos[y] && mapaDatos[y].incrementos;
+                const ing = Number(inc && inc.ingresos);
+                const gas = Number(inc && inc.gastos);
+                incrementosPorAno[y] = {
+                    ingresos: Number.isFinite(ing) ? ing : 1,
+                    gastos: Number.isFinite(gas) ? gas : 2
+                };
+            });
+            if (!incrementosPorAno[2026]) incrementosPorAno[2026] = { ingresos:1, gastos:2 };
+
+            const ahora = new Date().toISOString();
+            let actualizados = 0;
+            let previoAno = null;
+            let saldoFinalPrevio = null;
+
+            anos.forEach(y => {
+                const d = mapaDatos[y];
+                normalizarDatos(d);
+                const antes = contenidoAnoComparable(d);
+
+                // El saldo también se vuelve a encadenar después de cualquier cambio de planificación.
+                if (saldoFinalPrevio !== null && previoAno !== null && y === previoAno + 1) {
+                    d.saldoInicial = Math.round(saldoFinalPrevio * 100) / 100;
+                }
+
+                FUENTES_MASTER.forEach(fuente => reconciliarFuenteMaster(d, y, fuente, incrementosPorAno));
+                normalizarMediosPagoDatos(d);
+                d._masterCSV = { version:1, hash:_masterCSVEstado.hash, url:MASTER_CSV_URL };
+
+                const saldoInicio = Number(d.saldoInicial) || 0;
+                saldoFinalPrevio = Math.round(calcularBalanceAcumuladoDeDatos(d, 11, y, saldoInicio) * 100) / 100;
+                previoAno = y;
+
+                const despues = contenidoAnoComparable(d);
+                if (antes !== despues) {
+                    d._modificadoEn = ahora;
+                    delete d._exportadoEn;
+                    actualizados++;
+                }
+                localStorage.setItem('finanzasPersonales_' + y, JSON.stringify(d));
+            });
+
+            const activoRaw = localStorage.getItem('finanzasPersonales_' + anoActual);
+            if (activoRaw) {
+                try { datos = JSON.parse(activoRaw); normalizarDatos(datos); } catch(e) {}
+            }
+            actualizarUIEdicionMaster();
+            return { anosActualizados:actualizados, anosProcesados:anos.length };
+        }
+
+        async function recargarMasterManual() {
+            // Guardar la vista activa por seguridad antes de reconciliar todos los años.
+            try { guardarDatos(false, false); } catch(e) {}
+            const carga = await cargarMasterCSV(true);
+            if (!carga.ok) return;
+            const aplicado = aplicarMasterATodosLosAnios();
+            if (aplicado.anosActualizados > 0 && gistConfigurado()) programarGuardadoGist();
+            actualizarTodo();
+            actualizarResumenAnual();
+            actualizarCategorias();
+            if (carga.fuente === 'servidor') {
+                mostrarNotificacion('🧾 Master actualizado · ' + aplicado.anosActualizados + (aplicado.anosActualizados === 1 ? ' año recalculado' : ' años recalculados'), 'exito');
+            }
+        }
+
+        // ══════════════════════════════════════════════
+        //  CARGA DE DATOS (Master primero; después Gist/local)
         // ══════════════════════════════════════════════
         async function cargarDatos() {
+            // La planificación maestra se lee ANTES que el Gist. Se aplica después de cargar
+            // la realidad (cierres, extras, overrides...) para que estos datos particulares se conserven.
+            const cargaMasterInicial = await cargarMasterCSV(false);
+
             // Migración de la antigua clave local de 2026.
             const datosViejos = localStorage.getItem('finanzasPersonales2');
             const datosNuevos = localStorage.getItem('finanzasPersonales_2026');
@@ -2943,6 +3391,10 @@
                 if (Object.keys(localesAntes).length) mostrarNotificacion('⚠️ No se pudo conectar al Gist. Usando datos locales.', 'error');
             }
 
+            // MASTER: sustituye únicamente la planificación estructural de los meses ABIERTOS.
+            // Los snapshots de meses cerrados, Extras, Programados y overrides se conservan.
+            const masterAplicado = cargaMasterInicial.ok ? aplicarMasterATodosLosAnios() : { anosActualizados:0, anosProcesados:0 };
+
             // Corregir cierres heredados de versiones antiguas y marcarlos como modificación real.
             const cierresReparados = repararCierresHeredadosGuardados();
             if (cierresReparados > 0) {
@@ -2955,7 +3407,7 @@
 
             // Si acabamos de leer el viejo Gist de un solo año, hay años locales más nuevos,
             // hemos reparado cierres o acabamos de fijar una previsión, sincronizamos el paquete.
-            if (gistConfigurado() && (paqueteEraAntiguo || huboLocalesMasNuevos || cierresReparados > 0 || previsionAnalisisFijada > 0)) {
+            if (gistConfigurado() && (paqueteEraAntiguo || huboLocalesMasNuevos || cierresReparados > 0 || previsionAnalisisFijada > 0 || masterAplicado.anosActualizados > 0)) {
                 programarGuardadoGist();
             }
 
@@ -2963,7 +3415,9 @@
             actualizarResumenAnual();
             actualizarCategorias();
             cerrarMesesPasadosAutomaticamente();
-            ofrecerReinicioFuturosLimpiosV1();
+            // Con Master activo ya no necesitamos la antigua limpieza destructiva de futuros:
+            // la reconciliación del CSV deja la planificación correcta sin borrar Extras/Programados.
+            if (!masterCSVEstaActivo()) ofrecerReinicioFuturosLimpiosV1();
         }
         
         let anoActual = 2026;
@@ -3329,6 +3783,10 @@
                 }
             }
 
+            if (masterCSVEstaActivo()) {
+                const masterCambioAno = aplicarMasterATodosLosAnios();
+                if (masterCambioAno.anosActualizados > 0 && gistConfigurado()) programarGuardadoGist();
+            }
             actualizarTodo();
             actualizarResumenAnual();
             actualizarCategorias();
@@ -4500,6 +4958,7 @@
             tipoActual = tipo;
             modalTipo = 'fijos';
             itemEditandoIndex = -1;
+            configurarModalMasterLectura(true);
             seleccionarMedioPago('cuenta');
             document.getElementById('modal-title').textContent = tipo === 'ingresos' ? '📈 Ingresos Fijos' : '📉 Gastos Fijos';
             document.getElementById('modal-desglose').style.display = 'block';
@@ -4522,6 +4981,7 @@
             tipoActual = tipo;
             modalTipo = 'extras';
             itemEditandoIndex = -1;
+            configurarModalMasterLectura(false);
             seleccionarMedioPago('cuenta');
             document.getElementById('modal-title').textContent = tipo === 'ingresos' ? 
                 '📈 Ingresos Extras - ' + MESES_NOMBRES[mesActual] + ' · solo este mes' : 
@@ -4544,6 +5004,7 @@
             tipoActual = 'ingresos';
             modalTipo = 'ingresos-bonus';
             itemEditandoIndex = -1;
+            configurarModalMasterLectura(true);
             seleccionarMedioPago('cuenta');
             document.getElementById('modal-title').textContent = '🎁 Extras y Bonus - Ingresos';
             document.getElementById('modal-desglose').style.display = 'block';
@@ -4559,6 +5020,7 @@
             tipoActual = 'gastos';
             modalTipo = 'vacaciones';
             itemEditandoIndex = -1;
+            configurarModalMasterLectura(true);
             seleccionarMedioPago('cuenta');
             document.getElementById('modal-title').textContent = '🏖️ Gastos de Vacaciones';
             document.getElementById('modal-desglose').style.display = 'block';
@@ -4574,6 +5036,7 @@
             tipoActual = 'gastos';
             modalTipo = 'vacaciones-extras';
             itemEditandoIndex = -1;
+            configurarModalMasterLectura(false);
             seleccionarMedioPago('cuenta');
             document.getElementById('modal-title').textContent = '🌴 Extra Vacaciones - ' + MESES_NOMBRES[mesActual];
             document.getElementById('modal-desglose').style.display = 'block';
@@ -4599,6 +5062,7 @@
             seleccionarMedioPago('cuenta');
             itemEditandoIndex = -1;
             itemEditandoRecurrente = false;
+            configurarModalMasterLectura(false);
             // Resetear modo edición orden
             if (modoEdicionDesgloseActivo) toggleModoEdicionDesglose();
         }
@@ -4961,6 +5425,10 @@
         }
         
         function agregarItem() {
+            if (masterCSVEstaActivo() && ['fijos','vacaciones','ingresos-bonus'].includes(modalTipo)) {
+                mostrarNotificacion('🧾 Esta planificación se edita en finanzas-master.csv', 'error');
+                return;
+            }
             const concepto = document.getElementById('concepto-input').value.trim();
             const valor = parseFloat(document.getElementById('valor-input').value) || 0;
             const frecuencia = document.getElementById('frecuencia-input').value;
@@ -5138,6 +5606,10 @@
         }
         
         function eliminarItem(index) {
+            if (masterCSVEstaActivo() && ['fijos','vacaciones','ingresos-bonus'].includes(modalTipo)) {
+                mostrarNotificacion('🧾 Para eliminar una partida estructural, quítala o pon activo=0 en finanzas-master.csv', 'error');
+                return;
+            }
             if (confirm('¿Seguro que quieres eliminar este item?')) {
                 obtenerArrayActual().splice(index, 1);
                 mostrarDesglose();
@@ -6637,8 +7109,11 @@
             const esFijo = ['ingresosFijos', 'gastosFijos', 'gastosVacaciones', 'ingresosBonus', 'extrasRecurrentes'].includes(item.fuente);
 
             if (esFijo) {
-                // Guardar datos pendientes y mostrar modal de alcance
+                // Guardar datos pendientes y mostrar modal de alcance. Con Master, los fijos
+                // solo pueden modificarse como excepción del mes; la base vive en el CSV.
                 _edicionPendiente = { item, nuevoConcepto, nuevoValor, nuevoMedio: normalizarMedioPago(nuevoMedio) };
+                const btnTodosMaster = document.getElementById('inline-alcance-todos-btn');
+                if (btnTodosMaster) btnTodosMaster.style.display = (masterCSVEstaActivo() && fuenteGestionadaPorMaster(item.fuente)) ? 'none' : 'block';
                 const nombresMes = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
                 document.getElementById('inline-alcance-concepto-nombre').textContent = item.concepto + ' → "' + nuevoConcepto + '" / ' + nuevoValor + '€ · ' + etiquetaMedioPago(nuevoMedio);
                 document.getElementById('inline-alcance-mes-nombre').textContent = nombresMes[mesVerTodo];
@@ -6708,6 +7183,11 @@
             }
             const { item, nuevoConcepto, nuevoValor, nuevoMedio } = _edicionPendiente;
             _edicionPendiente = null;
+
+            if (masterCSVEstaActivo() && fuenteGestionadaPorMaster(item.fuente) && alcance !== 'solo-mes') {
+                mostrarNotificacion('🧾 El valor global lo manda finanzas-master.csv. Puedes cambiar solo este mes desde aquí.', 'error');
+                return;
+            }
 
             if (alcance === 'solo-mes') {
                 // Guardar override solo para este mes
@@ -6860,6 +7340,8 @@
 
             if (esFijo) {
                 _eliminacionPendiente = item;
+                const btnEliminarTodosMaster = document.getElementById('inline-eliminar-todos-btn');
+                if (btnEliminarTodosMaster) btnEliminarTodosMaster.style.display = (masterCSVEstaActivo() && fuenteGestionadaPorMaster(item.fuente)) ? 'none' : 'block';
                 const nombresMes = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
                 document.getElementById('inline-eliminar-concepto-nombre').textContent = '"' + item.concepto + '"';
                 document.getElementById('inline-eliminar-mes-nombre').textContent = nombresMes[mesVerTodo];
@@ -6903,6 +7385,11 @@
             _eliminacionPendiente = null;
             if (esMesPasado(mesVerTodo, anoActual)) {
                 mostrarNotificacion('🔒 Mes cerrado — los datos son definitivos', 'error');
+                return;
+            }
+
+            if (masterCSVEstaActivo() && fuenteGestionadaPorMaster(item.fuente) && alcance !== 'solo-mes') {
+                mostrarNotificacion('🧾 Para eliminar la partida global, usa activo=0 o elimina la línea en finanzas-master.csv', 'error');
                 return;
             }
 
@@ -6986,7 +7473,7 @@
                             style="padding: 15px; font-size: 16px; background: #2196F3; color: white; border: none; border-radius: 8px; cursor: pointer;">
                         🎯 Solo este mes (<span id="inline-alcance-mes-nombre"></span>)
                     </button>
-                    <button onclick="aplicarEdicionInlineConAlcance('todos-abiertos')" 
+                    <button id="inline-alcance-todos-btn" onclick="aplicarEdicionInlineConAlcance('todos-abiertos')" 
                             style="padding: 15px; font-size: 16px; background: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer;">
                         🌍 Desde este mes en adelante + años futuros
                     </button>
@@ -7010,7 +7497,7 @@
                             style="padding: 15px; font-size: 16px; background: #f59e0b; color: white; border: none; border-radius: 8px; cursor: pointer;">
                         🎯 Solo este mes (<span id="inline-eliminar-mes-nombre"></span>)
                     </button>
-                    <button onclick="aplicarEliminacionInlineConAlcance('todos')"
+                    <button id="inline-eliminar-todos-btn" onclick="aplicarEliminacionInlineConAlcance('todos')"
                             style="padding: 15px; font-size: 16px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer;">
                         🌍 Todos los meses (eliminar definitivamente)
                     </button>
