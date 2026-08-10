@@ -6120,6 +6120,29 @@
             document.getElementById('modal-desglose-anual').style.display = 'none';
         }
 
+        // Orden de caja para las vistas de tension de saldo:
+        // 1) Programados de ingreso (se consideran disponibles al inicio del mes),
+        // 2) todos los gastos,
+        // 3) resto de ingresos (nomina, bonus, extras, recurrentes...).
+        // Es solo un orden de visualizacion/calculo intrames: los totales mensuales no cambian.
+        function prioridadMovimientoCajaNominaFinal(item) {
+            const signo = item && item.signo !== undefined
+                ? Number(item.signo)
+                : ((Number(item && item.valor) || 0) < 0 ? -1 : 1);
+            if (item && item._esProgramado && signo > 0) return 0;
+            if (signo < 0) return 1;
+            return 2;
+        }
+
+        function ordenarMovimientosCajaNominaFinal(partidas) {
+            return (partidas || []).map((item, idx) => ({ item, idx })).sort((a, b) => {
+                const pa = prioridadMovimientoCajaNominaFinal(a.item);
+                const pb = prioridadMovimientoCajaNominaFinal(b.item);
+                if (pa !== pb) return pa - pb;
+                return a.idx - b.idx;
+            }).map(x => x.item);
+        }
+
         function construirDesgloseAnual() {
             desgloseAnualLineas = [];
             let acumulado = calcularSaldoInicioRealDelAno(anoActual);
@@ -6150,7 +6173,8 @@
                         lineas.push({
                             concepto: snapItem.concepto,
                             tipo: tipoLinea[snapItem.fuente] || snapItem.fuente,
-                            valor: signo * snapItem.valor
+                            valor: signo * snapItem.valor,
+                            _esProgramado: snapItem.fuente === 'movimientosProgramados'
                         });
                     });
                 } else {
@@ -6207,9 +6231,14 @@
                     (datos.movimientosProgramados || []).forEach((item, idx) => {
                         const efectivo = obtenerMovimientoProgramadoEfectivo(datos, item, idx, anoActual, m);
                         if (!efectivo) return;
-                        lineas.push({ concepto: efectivo.concepto, tipo: 'Programado', valor: efectivo.tipo === 'ingresos' ? efectivo.valor : -efectivo.valor });
+                        lineas.push({ concepto: efectivo.concepto, tipo: 'Programado', valor: efectivo.tipo === 'ingresos' ? efectivo.valor : -efectivo.valor, _esProgramado: true });
                     });
                 }
+
+                // Para medir el peor saldo intrames, simulamos la nomina/ingresos ordinarios al final:
+                // Programados de ingreso -> gastos -> resto de ingresos.
+                const lineasCaja = ordenarMovimientosCajaNominaFinal(lineas);
+                lineas.splice(0, lineas.length, ...lineasCaja);
 
                 const balanceMes = totMes.ingresosTotal - totMes.gastosTotal;
                 acumulado += balanceMes;
@@ -9372,21 +9401,28 @@ function recalcularSimulador() {
         const salida = { ingresos:[], gastos:[], vacaciones:[], cierreAntiguo:false };
         const cierre = d.mesesCerrados && d.mesesCerrados[mes];
 
-        function add(bloque, concepto, valor) {
-            salida[bloque].push({ concepto: concepto || '(Sin concepto)', valor:Number(valor)||0 });
+        // "fuente" y "tipo" son metadatos transparentes para las comparativas,
+        // pero permiten a Flujo/Analisis distinguir un ingreso Programado del resto.
+        function add(bloque, concepto, valor, fuente, tipo) {
+            salida[bloque].push({
+                concepto: concepto || '(Sin concepto)',
+                valor: Number(valor) || 0,
+                fuente: fuente || null,
+                tipo: tipo || null
+            });
         }
 
         if (cierre && Array.isArray(cierre.snapshotItems) && cierre.snapshotItems.length > 0) {
             cierre.snapshotItems.forEach(function(item) {
                 if (!item || item.eliminado) return;
                 if (item.fuente === 'gastosVacaciones' || item.fuente === 'gastosVacacionesExtras') {
-                    add('vacaciones', item.concepto, item.valor);
+                    add('vacaciones', item.concepto, item.valor, item.fuente, item.tipo || 'gastos');
                     return;
                 }
                 const esIngreso = item.fuente === 'ingresosFijos' || item.fuente === 'ingresosBonus' ||
                     item.fuente === 'ingresosExtras' || (item.fuente === 'extrasRecurrentes' && item.tipo === 'ingresos') ||
                     (item.fuente === 'movimientosProgramados' && item.tipo === 'ingresos');
-                add(esIngreso ? 'ingresos' : 'gastos', item.concepto, item.valor);
+                add(esIngreso ? 'ingresos' : 'gastos', item.concepto, item.valor, item.fuente, item.tipo || (esIngreso ? 'ingresos' : 'gastos'));
             });
             return salida;
         }
@@ -9394,13 +9430,13 @@ function recalcularSimulador() {
         if (cierre && cierre.snapshot) {
             salida.cierreAntiguo = true;
             const s = cierre.snapshot;
-            if (s.ingresosFijos) add('ingresos','Ingresos fijos · sin detalle',s.ingresosFijos);
-            if (s.ingresosBonus) add('ingresos','Extras y Bonus · sin detalle',s.ingresosBonus);
-            if (s.ingresosExtras) add('ingresos','Extras del mes · sin detalle',s.ingresosExtras);
-            if (s.gastosFijos) add('gastos','Gastos fijos · sin detalle',s.gastosFijos);
-            if (s.gastosExtras) add('gastos','Extras del mes · sin detalle',s.gastosExtras);
+            if (s.ingresosFijos) add('ingresos','Ingresos fijos · sin detalle',s.ingresosFijos,'ingresosFijos','ingresos');
+            if (s.ingresosBonus) add('ingresos','Extras y Bonus · sin detalle',s.ingresosBonus,'ingresosBonus','ingresos');
+            if (s.ingresosExtras) add('ingresos','Extras del mes · sin detalle',s.ingresosExtras,'ingresosExtras','ingresos');
+            if (s.gastosFijos) add('gastos','Gastos fijos · sin detalle',s.gastosFijos,'gastosFijos','gastos');
+            if (s.gastosExtras) add('gastos','Extras del mes · sin detalle',s.gastosExtras,'gastosExtras','gastos');
             const vac = (s.gastosVacaciones||0) + (s.gastosVacacionesExtras||0);
-            if (vac) add('vacaciones','Vacaciones · sin detalle',vac);
+            if (vac) add('vacaciones','Vacaciones · sin detalle',vac,'gastosVacaciones','gastos');
             return salida;
         }
 
@@ -9417,25 +9453,26 @@ function recalcularSimulador() {
                 if (ov && ov.eliminado) return;
                 if (!aplica(item, ov)) return;
                 add(bloque, ov && ov.concepto !== undefined ? ov.concepto : item.concepto,
-                    ov && ov.valor !== undefined ? ov.valor : item.valor);
+                    ov && ov.valor !== undefined ? ov.valor : item.valor,
+                    fuente, bloque === 'ingresos' ? 'ingresos' : 'gastos');
             });
         }
         addFijos(d.ingresosFijos, 'ingresosFijos', 'ingresos');
         addFijos(d.ingresosBonus, 'ingresosBonus', 'ingresos');
         addFijos(d.gastosFijos, 'gastosFijos', 'gastos');
         addFijos(d.gastosVacaciones, 'gastosVacaciones', 'vacaciones');
-        (md.ingresosExtras || []).forEach(function(x){ add('ingresos',x.concepto,x.valor); });
-        (md.gastosExtras || []).forEach(function(x){ add('gastos',x.concepto,x.valor); });
-        (md.gastosVacacionesExtras || []).forEach(function(x){ add('vacaciones',x.concepto,x.valor); });
+        (md.ingresosExtras || []).forEach(function(x){ add('ingresos',x.concepto,x.valor,'ingresosExtras','ingresos'); });
+        (md.gastosExtras || []).forEach(function(x){ add('gastos',x.concepto,x.valor,'gastosExtras','gastos'); });
+        (md.gastosVacacionesExtras || []).forEach(function(x){ add('vacaciones',x.concepto,x.valor,'gastosVacacionesExtras','gastos'); });
         (d.extrasRecurrentes || []).forEach(function(item, idx) {
             const efectivo = obtenerExtraRecurrenteEfectivo(d, item, idx, ano, mes);
             if (!efectivo) return;
-            add(efectivo.tipo === 'ingresos' ? 'ingresos' : 'gastos', efectivo.concepto, efectivo.valor);
+            add(efectivo.tipo === 'ingresos' ? 'ingresos' : 'gastos', efectivo.concepto, efectivo.valor, 'extrasRecurrentes', efectivo.tipo);
         });
         (d.movimientosProgramados || []).forEach(function(item, idx) {
             const efectivo = obtenerMovimientoProgramadoEfectivo(d, item, idx, ano, mes);
             if (!efectivo) return;
-            add(efectivo.tipo === 'ingresos' ? 'ingresos' : 'gastos', efectivo.concepto, efectivo.valor);
+            add(efectivo.tipo === 'ingresos' ? 'ingresos' : 'gastos', efectivo.concepto, efectivo.valor, 'movimientosProgramados', efectivo.tipo);
         });
         return salida;
     }
@@ -10315,7 +10352,7 @@ function recalcularSimulador() {
                 <div id="analisis-financiero-contenido"></div>
                 <div class="analisis-financiero-nota">
                     <strong>Previsión:</strong> cada año futuro es provisional hasta que llega su 1 de enero. En la primera carga de la app de ese año se congela su saldo previsto a 31 de diciembre y ya no cambia aunque después modifiques Config. Desde ahí se compara contra la previsión actual después de tus cambios reales.
-                    <br><strong>Primer negativo / punto más bajo:</strong> usan el mismo orden de movimientos que <em>Flujo continuo</em>, por lo que pueden detectar una caída dentro del mes aunque ese mes termine recuperándose.
+                    <br><strong>Primer negativo / punto más bajo:</strong> usan el mismo orden de caja que <em>Flujo continuo</em>: <strong>Programados de ingreso → gastos → resto de ingresos</strong>. Así pueden detectar una caída dentro del mes aunque ese mes termine recuperándose.
                 </div>
             </div>
         </div>
@@ -10409,10 +10446,11 @@ function recalcularSimulador() {
     function analisisMovimientosMes(d, ano, mes) {
         const part = obtenerPartidasComparativaMesDatos(d, ano, mes);
         let movs = [];
-        (part.ingresos || []).forEach(function(x){ movs.push({ concepto:x.concepto, valor:Number(x.valor)||0, signo:1, tipoOrden:'ingreso' }); });
-        (part.gastos || []).forEach(function(x){ movs.push({ concepto:x.concepto, valor:Number(x.valor)||0, signo:-1, tipoOrden:'gasto' }); });
-        (part.vacaciones || []).forEach(function(x){ movs.push({ concepto:x.concepto, valor:Number(x.valor)||0, signo:-1, tipoOrden:'gasto' }); });
-        return flujoOrdenarPartidas(movs, mes);
+        (part.ingresos || []).forEach(function(x){ movs.push({ concepto:x.concepto, valor:Number(x.valor)||0, signo:1, tipoOrden:'ingreso', _esProgramado:x.fuente === 'movimientosProgramados' }); });
+        (part.gastos || []).forEach(function(x){ movs.push({ concepto:x.concepto, valor:Number(x.valor)||0, signo:-1, tipoOrden:'gasto', _esProgramado:x.fuente === 'movimientosProgramados' }); });
+        (part.vacaciones || []).forEach(function(x){ movs.push({ concepto:x.concepto, valor:Number(x.valor)||0, signo:-1, tipoOrden:'gasto', _esProgramado:x.fuente === 'movimientosProgramados' }); });
+        movs = flujoOrdenarPartidas(movs, mes);
+        return ordenarMovimientosCajaNominaFinal(movs);
     }
 
     function analisisMetricasAno(d, ano, saldoInicio) {
@@ -10833,7 +10871,7 @@ function recalcularSimulador() {
         if (subtitulo) subtitulo.textContent = anos[0] + ' - ' + anos[anos.length-1] + ' \u00b7 movimiento a movimiento \u00b7 saldo encadenado';
         if (aviso) {
             aviso.style.display = 'block';
-            aviso.innerHTML = '<strong>Nota:</strong> la app guarda el mes, no el d\u00eda exacto. Por eso este flujo detecta el movimiento que hace caer el saldo, pero no inventa una fecha diaria. Dentro de cada mes respeta el orden de <strong>Ver Todo</strong> si lo has personalizado.';
+            aviso.innerHTML = '<strong>Nota:</strong> la app guarda el mes, no el d\u00eda exacto. Para aproximar que la n\u00f3mina llega al final, dentro de cada mes se calcula as\u00ed: <strong>Programados de ingreso primero \u2192 todos los gastos \u2192 resto de ingresos</strong>. Dentro de cada bloque se conserva el orden de <strong>Ver Todo</strong> si lo has personalizado.';
         }
 
         var saldo = Number(calcularSaldoInicioRealDelAno(2027)) || 0;
@@ -10874,15 +10912,17 @@ function recalcularSimulador() {
                 var part = obtenerPartidasComparativaMesDatos(d, ano, m);
                 var movs = [];
                 (part.ingresos || []).forEach(function(x) {
-                    movs.push({ concepto:x.concepto, valor:Number(x.valor)||0, signo:1, clase:'ingreso', etiqueta:'Ingreso', tipoOrden:'ingreso' });
+                    movs.push({ concepto:x.concepto, valor:Number(x.valor)||0, signo:1, clase:'ingreso', etiqueta:'Ingreso', tipoOrden:'ingreso', _esProgramado:x.fuente === 'movimientosProgramados' });
                 });
                 (part.gastos || []).forEach(function(x) {
-                    movs.push({ concepto:x.concepto, valor:Number(x.valor)||0, signo:-1, clase:'gasto', etiqueta:'Gasto', tipoOrden:'gasto' });
+                    movs.push({ concepto:x.concepto, valor:Number(x.valor)||0, signo:-1, clase:'gasto', etiqueta:'Gasto', tipoOrden:'gasto', _esProgramado:x.fuente === 'movimientosProgramados' });
                 });
                 (part.vacaciones || []).forEach(function(x) {
-                    movs.push({ concepto:x.concepto, valor:Number(x.valor)||0, signo:-1, clase:'vacaciones', etiqueta:'Vacaciones', tipoOrden:'gasto' });
+                    movs.push({ concepto:x.concepto, valor:Number(x.valor)||0, signo:-1, clase:'vacaciones', etiqueta:'Vacaciones', tipoOrden:'gasto', _esProgramado:x.fuente === 'movimientosProgramados' });
                 });
+                // Primero conserva el orden manual dentro de cada tipo y luego agrupa por momento de caja.
                 movs = flujoOrdenarPartidas(movs, m);
+                movs = ordenarMovimientosCajaNominaFinal(movs);
 
                 var primeroMes = true;
                 movs.forEach(function(mov) {
