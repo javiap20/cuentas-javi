@@ -1,0 +1,11 @@
+JAVI APPS - CHECKLIST DE SUBIDA
+===============================
+
+1) Descomprime javi-apps.zip.
+2) Sube a la raiz del nuevo repositorio: index.html, .nojekyll, README.md y las carpetas ingles, cuentas y valores.
+3) Desde tu repositorio antiguo de Cuentas, copia finanzas-master.xlsx a cuentas/finanzas-master.xlsx.
+4) Activa GitHub Pages desde main / root.
+5) Prueba primero las tres apps en ordenador.
+6) Comprueba que cada Gist sincroniza.
+7) En iPhone/iPad, abre cada app en Safari y usa Anadir a pantalla de inicio.
+8) Solo cuando todo funcione, archiva los repositorios antiguos si quieres.
