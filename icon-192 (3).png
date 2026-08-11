@@ -1,0 +1,38 @@
+ENGLISH DAILY v1.3 — PWA / iPhone / iPad
+
+QUÉ CAMBIA
+- Mantiene toda la app v1.2 y la sincronización automática con tu Gist.
+- Añade instalación como Web App/PWA.
+- Añade icono propio para iPhone/iPad.
+- Se abre en modo standalone, sin la barra normal de Safari.
+- Añade soporte de safe-area para notch/Home Indicator.
+- Añade un service worker para conservar el shell básico de la app.
+
+ARCHIVOS QUE DEBES SUBIR A LA RAÍZ DEL REPOSITORIO
+- index.html
+- manifest.webmanifest
+- sw.js
+- icon-192.png
+- icon-512.png
+- apple-touch-icon.png
+
+Puedes dejar también este LEEME.txt si quieres; la app no lo necesita.
+
+GITHUB
+1. Sustituye el index.html anterior y añade todos los archivos de arriba.
+2. Haz Commit.
+3. No cambies el repositorio ni la URL de GitHub Pages.
+4. No tienes que tocar ni recrear el Gist.
+
+IPHONE / IPAD
+1. Abre tu URL de English Daily en Safari.
+2. Pulsa Compartir.
+3. Pulsa "Añadir a pantalla de inicio".
+4. Si aparece la opción, deja activado "Abrir como app web".
+5. Abre English Daily desde el nuevo icono.
+6. En ese dispositivo, conecta GitHub una sola vez desde el botón de nube.
+
+IMPORTANTE
+- El token de GitHub NO está incluido en estos archivos.
+- El progreso sigue guardándose al instante en localStorage y se sincroniza automáticamente con el Gist cuando ese dispositivo está conectado.
+- Los vídeos, audios y páginas del libro que vienen de Google Drive siguen necesitando conexión a Internet.

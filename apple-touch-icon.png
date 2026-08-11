@@ -1,0 +1,30 @@
+FINANZAS JAVIAP · VERSION PWA PARA IPHONE/IPAD
+================================================
+
+Archivos nuevos/modificados:
+- cuentas-personales.html
+- manifest.webmanifest
+- sw.js
+- icon-192.png
+- icon-512.png
+- apple-touch-icon.png
+
+IMPORTANTE:
+- Mantén finanzas-master.xlsx en la MISMA carpeta del repositorio.
+- No cambies ni borres tu Gist: esta versión conserva exactamente el sistema de sincronización del HTML original.
+- El token Gist se guarda por dispositivo/navegador. En un iPhone/iPad nuevo hay que introducirlo una vez.
+
+GITHUB PAGES:
+1. Sube/reemplaza estos archivos en la misma carpeta donde está cuentas-personales.html.
+2. Mantén finanzas-master.xlsx junto al HTML.
+3. Espera a que GitHub Pages publique los cambios.
+4. Abre cuentas-personales.html en Safari.
+5. Compartir > Añadir a pantalla de inicio.
+6. Abre desde el icono. Se ejecutará a pantalla completa como Web App.
+
+NOTA DE CACHE:
+El service worker guarda la carcasa de la app para que abra mejor, pero NO cachea finanzas-master.xlsx: ese Excel se sigue leyendo del servidor para no trabajar con una planificación antigua.
+
+JAVI APPS - IMPORTANTE
+---------------------
+Al mover esta app al nuevo repositorio, copia tambien tu `finanzas-master.xlsx` actual a esta misma carpeta (`cuentas/`). Ese Excel no estaba adjunto al chat y no se incluye en el ZIP.

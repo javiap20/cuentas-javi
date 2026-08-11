@@ -1,0 +1,4506 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#f4f7fb" />
+  <meta name="application-name" content="English Daily" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="English Daily" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="format-detection" content="telephone=no" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png" />
+  <title>English Daily · v1.3</title>
+  <style>
+:root {
+  --bg: #f4f7fb;
+  --surface: #ffffff;
+  --surface-2: #f8fafc;
+  --text: #172033;
+  --muted: #6d778a;
+  --line: #e5eaf2;
+  --accent: #5b61e8;
+  --accent-dark: #454ad0;
+  --accent-soft: #eef0ff;
+  --green: #1f9d68;
+  --green-soft: #eaf8f1;
+  --amber: #b7770d;
+  --amber-soft: #fff6df;
+  --red: #ca4d56;
+  --red-soft: #fff0f1;
+  --shadow: 0 18px 45px rgba(27, 38, 69, 0.08);
+  --radius: 22px;
+}
+
+body.dark {
+  --bg: #111522;
+  --surface: #191f2f;
+  --surface-2: #20283a;
+  --text: #f3f5fb;
+  --muted: #a9b1c3;
+  --line: #2c3447;
+  --accent: #8e93ff;
+  --accent-dark: #7c82ff;
+  --accent-soft: #292e52;
+  --green-soft: #18372b;
+  --amber-soft: #382f1c;
+  --red-soft: #3d2228;
+  --shadow: 0 18px 45px rgba(0, 0, 0, 0.22);
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  line-height: 1.45;
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid rgba(91,97,232,.28); outline-offset: 2px; }
+
+.app-shell { min-height: 100vh; min-height: 100dvh; padding-bottom: calc(90px + env(safe-area-inset-bottom)); }
+.topbar {
+  width: min(1120px, calc(100% - 36px));
+  margin: 0 auto;
+  min-height: 86px;
+  height: calc(86px + env(safe-area-inset-top));
+  padding-top: env(safe-area-inset-top);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.brand { display: flex; align-items: center; gap: 12px; border: 0; background: transparent; color: var(--text); text-align: left; padding: 0; }
+.brand-mark { width: 42px; height: 42px; border-radius: 13px; display: grid; place-items: center; color: white; background: linear-gradient(135deg, var(--accent), #7c67e8); font-weight: 800; box-shadow: 0 8px 18px rgba(91,97,232,.22); }
+.brand strong { display: block; font-size: 16px; }
+.brand small { display: block; color: var(--muted); margin-top: 1px; }
+.top-actions { display: flex; align-items: center; gap: 10px; }
+.streak-pill, .status-dot, .tag, .level-tag, .category-tag { border-radius: 999px; white-space: nowrap; }
+.streak-pill { background: var(--surface); border: 1px solid var(--line); padding: 8px 12px; font-size: 13px; color: var(--muted); }
+.streak-pill b { color: var(--text); }
+.icon-btn { width: 40px; height: 40px; border: 1px solid var(--line); background: var(--surface); color: var(--text); border-radius: 12px; }
+
+.sync-icon-btn { position:relative; display:grid; place-items:center; font-size:17px; }
+.sync-icon-btn .sync-indicator-dot { position:absolute; width:9px; height:9px; border-radius:50%; right:4px; bottom:4px; background:var(--muted); border:2px solid var(--surface); transition:.18s ease; }
+.sync-icon-btn.is-ok .sync-indicator-dot { background:var(--green); }
+.sync-icon-btn.is-busy .sync-indicator-dot { background:var(--amber); }
+.sync-icon-btn.is-error .sync-indicator-dot { background:var(--red); }
+.sync-icon-btn.is-dirty .sync-indicator-dot { background:var(--amber); }
+.sync-page { max-width:900px; margin:0 auto; }
+.sync-page-head { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; margin-bottom:18px; }
+.sync-page-head h1 { margin:4px 0 6px; font-size:clamp(30px,5vw,44px); letter-spacing:-.035em; }
+.sync-page-head p { margin:0; max-width:680px; }
+.sync-grid { display:grid; grid-template-columns:.9fr 1.1fr; gap:18px; }
+.sync-card { min-width:0; }
+.sync-card h2 { margin:3px 0 10px; }
+.sync-status-line { display:flex; align-items:center; gap:10px; margin:16px 0 6px; }
+.sync-status-light { width:11px; height:11px; flex:0 0 auto; border-radius:50%; background:var(--muted); }
+.sync-status-light.ok { background:var(--green); }
+.sync-status-light.busy { background:var(--amber); }
+.sync-status-light.error { background:var(--red); }
+.sync-status-line strong { font-size:17px; }
+.sync-detail-list { display:grid; gap:8px; margin-top:18px; }
+.sync-detail-row { display:flex; justify-content:space-between; gap:14px; align-items:center; padding:10px 0; border-top:1px solid var(--line); font-size:12px; }
+.sync-detail-row span:first-child { color:var(--muted); }
+.sync-detail-row b { text-align:right; overflow-wrap:anywhere; }
+.sync-autosave-badge { display:inline-flex; align-items:center; gap:7px; margin-top:12px; padding:7px 10px; border-radius:999px; background:var(--green-soft); color:var(--green); font-size:11px; font-weight:850; }
+.sync-connect-form { display:grid; gap:10px; margin-top:16px; }
+.sync-connect-form label { font-size:12px; font-weight:800; }
+.sync-token-row { display:grid; grid-template-columns:1fr auto; gap:8px; }
+.sync-token-row input { min-width:0; border:1px solid var(--line); background:var(--surface-2); color:var(--text); border-radius:12px; padding:12px 13px; }
+.sync-help { color:var(--muted); font-size:11px; line-height:1.55; margin:0; }
+.sync-help a { color:var(--accent); font-weight:750; text-decoration:none; }
+.sync-connected-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; }
+.sync-message { min-height:20px; margin:10px 0 0; font-size:12px; color:var(--muted); }
+.sync-message.ok { color:var(--green); }
+.sync-message.error { color:var(--red); }
+.backup-panel { margin-top:18px; }
+.backup-panel h2 { margin-bottom:8px; }
+.backup-actions { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin-top:16px; }
+.backup-actions button { min-width:0; padding:11px 9px; font-size:12px; }
+.backup-note { margin:10px 0 0; color:var(--muted); font-size:11px; }
+.sync-warning { margin-top:13px; padding:11px 13px; border-radius:13px; border:1px solid var(--line); background:var(--surface-2); color:var(--muted); font-size:11px; }
+@media (max-width:700px) {
+  .sync-page-head { display:block; }
+  .sync-page-head .secondary-btn { margin-bottom:12px; }
+  .sync-grid { grid-template-columns:1fr; }
+  .sync-token-row { grid-template-columns:1fr; }
+  .backup-actions { grid-template-columns:1fr 1fr; }
+  .backup-actions button { font-size:11px; }
+}
+
+main { width: min(1120px, calc(100% - 36px)); margin: 0 auto; }
+.screen { display: none; animation: fade .18s ease; }
+.screen.active { display: block; }
+@keyframes fade { from { opacity: .3; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+.hero-card {
+  background: linear-gradient(135deg, #22284e, #555bd8 68%, #6d73ef);
+  color: white;
+  border-radius: 30px;
+  padding: 46px 52px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 32px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  position: relative;
+}
+.hero-card::after { content: ""; position: absolute; width: 330px; height: 330px; border: 1px solid rgba(255,255,255,.12); border-radius: 50%; right: -90px; top: -150px; }
+.hero-card h1 { font-size: clamp(32px, 5vw, 54px); margin: 6px 0 10px; line-height: 1.05; letter-spacing: -.035em; }
+.hero-copy { max-width: 620px; color: rgba(255,255,255,.8); margin: 0 0 26px; font-size: 17px; }
+.eyebrow { margin: 0 0 6px; font-weight: 800; font-size: 11px; letter-spacing: .12em; color: var(--muted); }
+.hero-card .eyebrow { color: rgba(255,255,255,.65); }
+.hero-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.primary-btn, .secondary-btn { border: 0; padding: 13px 18px; border-radius: 13px; font-weight: 750; transition: .18s ease; }
+.primary-btn { background: var(--accent); color: white; box-shadow: 0 8px 20px rgba(91,97,232,.2); }
+.primary-btn:hover { transform: translateY(-1px); background: var(--accent-dark); }
+.hero-card .primary-btn { background: white; color: #34395f; }
+.hero-card .secondary-btn { background: rgba(255,255,255,.10); color: white; border: 1px solid rgba(255,255,255,.18); }
+.secondary-btn { background: var(--surface-2); color: var(--text); border: 1px solid var(--line); }
+.primary-btn.small { padding: 10px 14px; }
+
+.daily-ring { width: 150px; height: 150px; position: relative; z-index: 1; }
+.daily-ring svg { width: 100%; transform: rotate(-90deg); }
+.daily-ring circle { fill: none; stroke-width: 9; }
+.ring-bg { stroke: rgba(255,255,255,.16); }
+.ring-progress { stroke: white; stroke-linecap: round; stroke-dasharray: 301.6; stroke-dashoffset: 301.6; transition: stroke-dashoffset .4s ease; }
+.ring-text { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
+.ring-text strong { font-size: 34px; line-height: 1; }
+.ring-text span { font-size: 12px; color: rgba(255,255,255,.68); margin-top: 5px; }
+.ring-text b { color: white; }
+
+.dashboard-grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 18px; margin-top: 18px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; box-shadow: 0 8px 30px rgba(27,38,69,.035); }
+.panel h2 { margin: 2px 0 18px; font-size: 22px; letter-spacing: -.02em; }
+.panel-title-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.status-dot { background: var(--green-soft); color: var(--green); padding: 6px 10px; font-size: 12px; font-weight: 800; }
+.session-breakdown { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.session-breakdown > div { background: var(--surface-2); border: 1px solid var(--line); border-radius: 16px; padding: 14px; display: flex; align-items: center; gap: 10px; }
+.metric-icon { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: var(--accent-soft); }
+.session-breakdown strong { font-size: 18px; display: block; }
+.session-breakdown small { color: var(--muted); }
+.week-chart { height: 104px; display: grid; grid-template-columns: repeat(7,1fr); gap: 9px; align-items: end; margin-top: 8px; }
+.day-bar-wrap { display: grid; gap: 6px; align-items: end; height: 100%; text-align: center; }
+.day-bar { min-height: 8px; border-radius: 8px 8px 3px 3px; background: var(--accent-soft); border: 1px solid transparent; }
+.day-bar.today { background: var(--accent); }
+.day-bar-wrap small { font-size: 10px; color: var(--muted); }
+.muted { color: var(--muted); font-size: 13px; }
+.quick-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:clamp(4px, .9vw, 8px); }
+.quick-card { min-width:0; border:1px solid var(--line); background:var(--surface-2); color:var(--text); border-radius:13px; padding:clamp(8px, 1.25vw, 12px) clamp(4px, .85vw, 8px); text-align:center; transition:.18s ease; overflow:hidden; }
+.quick-card:hover { transform:translateY(-2px); border-color:#cfd5e3; }
+.quick-card span { font-size:clamp(15px, 2.1vw, 19px); display:block; margin-bottom:6px; line-height:1; }
+.quick-card b, .quick-card small { display:block; min-width:0; }
+.quick-card > b { font-size:clamp(9px, 1.25vw, 12px); line-height:1.08; }
+.quick-card small { color:var(--muted); margin-top:4px; font-size:clamp(8px, 1vw, 10px); line-height:1.08; }
+.tip-panel { background: linear-gradient(145deg, var(--surface), var(--accent-soft)); }
+.tip-panel p:last-child { color: var(--muted); margin-bottom: 0; max-width: 740px; }
+
+.study-header { display: grid; grid-template-columns: auto 1fr auto; gap: 20px; align-items: center; max-width: 760px; margin: 0 auto 26px; }
+.back-btn { border: 0; background: transparent; color: var(--muted); padding: 8px 0; }
+.study-progress-wrap { display: flex; align-items: center; gap: 10px; }
+.study-progress { height: 8px; background: var(--line); border-radius: 999px; overflow: hidden; flex: 1; }
+.study-progress span { display: block; height: 100%; width: 0; background: var(--accent); border-radius: inherit; transition: width .25s ease; }
+.study-progress-wrap small { color: var(--muted); min-width: 55px; }
+.study-area { max-width: 680px; margin: 0 auto; }
+.card-meta-row { display: flex; justify-content: center; gap: 7px; margin-bottom: 11px; }
+.tag, .level-tag, .category-tag { padding: 6px 9px; font-size: 10px; font-weight: 850; letter-spacing: .05em; border: 1px solid var(--line); background: var(--surface); color: var(--muted); }
+.level-tag { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+.flashcard { min-height: 390px; border-radius: 28px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); padding: 42px 42px 34px; display: flex; flex-direction: column; justify-content: center; text-align: center; }
+.prompt-label { color: var(--muted); font-size: 13px; margin: 0 0 12px; }
+.flash-front h2 { font-size: clamp(35px, 7vw, 58px); line-height: 1.08; letter-spacing: -.045em; margin: 0 0 20px; }
+.speak-btn { border: 1px solid var(--line); background: var(--surface-2); color: var(--text); border-radius: 999px; padding: 9px 13px; }
+.divider { height: 1px; background: var(--line); margin: 28px 0 24px; }
+.answer-zone h3 { font-size: 24px; margin: 0 0 16px; }
+.example-box { background: var(--surface-2); border: 1px solid var(--line); padding: 14px 16px; border-radius: 15px; text-align: left; }
+.example-box p { margin: 0 0 3px; font-weight: 650; }
+.example-box small { color: var(--muted); }
+.show-answer-btn { width: 100%; margin-top: 14px; border: 0; background: var(--accent); color: white; border-radius: 14px; padding: 14px; font-weight: 800; }
+.show-answer-btn span { float: right; font-weight: 500; opacity: .7; font-size: 12px; }
+.rating-area { margin-top: 20px; text-align: center; }
+.rating-area > p { color: var(--muted); font-size: 13px; }
+.rating-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
+.rating-btn { border: 1px solid var(--line); border-radius: 16px; padding: 14px 8px; background: var(--surface); color: var(--text); }
+.rating-btn span { font-size: 22px; display: block; }
+.rating-btn b, .rating-btn small { display: block; }
+.rating-btn small { margin-top: 2px; color: var(--muted); }
+.rating-btn.hard:hover { background: var(--red-soft); border-color: rgba(202,77,86,.2); }
+.rating-btn.medium:hover { background: var(--amber-soft); border-color: rgba(183,119,13,.2); }
+.rating-btn.easy:hover { background: var(--green-soft); border-color: rgba(31,157,104,.2); }
+.keyboard-hint { color: var(--muted); font-size: 11px; text-align: center; margin-top: 16px; }
+kbd { border: 1px solid var(--line); border-bottom-width: 2px; background: var(--surface); padding: 2px 6px; border-radius: 5px; }
+.empty-state { max-width: 560px; margin: 70px auto 0; text-align: center; background: var(--surface); border: 1px solid var(--line); border-radius: 24px; padding: 50px 30px; }
+.empty-emoji { font-size: 48px; }
+.empty-state h2 { margin-bottom: 4px; }
+.empty-state p { color: var(--muted); margin-top: 0; }
+
+.page-heading { display: flex; justify-content: space-between; gap: 20px; align-items: flex-end; margin: 12px 0 22px; }
+.page-heading h1 { font-size: 38px; margin: 2px 0 4px; letter-spacing: -.035em; }
+.page-heading p:last-child { color: var(--muted); margin: 0; }
+.page-heading.compact { max-width: 760px; margin-left: auto; margin-right: auto; }
+.toolbar { display: grid; grid-template-columns: 1fr 180px; gap: 10px; margin-bottom: 12px; }
+input, select { width: 100%; border: 1px solid var(--line); background: var(--surface); color: var(--text); padding: 12px 13px; border-radius: 12px; }
+.library-stats { display: flex; gap: 8px; margin-bottom: 14px; color: var(--muted); font-size: 12px; }
+.library-stats span { background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 6px 9px; }
+.library-list { display: grid; gap: 9px; }
+.library-item { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px; display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; }
+.library-item h3 { margin: 0 0 3px; font-size: 17px; }
+.library-item p { margin: 0; color: var(--muted); font-size: 13px; }
+.library-item-meta { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
+.custom-badge { color: var(--green); font-size: 11px; font-weight: 800; }
+
+.add-form { max-width: 760px; margin: 0 auto; }
+.add-form label { display: block; font-size: 13px; font-weight: 750; margin-bottom: 14px; }
+.add-form label input, .add-form label select { margin-top: 7px; font-weight: 450; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px; }
+.form-message { min-height: 20px; margin-bottom: 0; color: var(--green); font-size: 13px; text-align: right; }
+
+
+.activity-panel { padding:18px 20px; }
+.activity-panel h2 { margin-bottom:10px; font-size:19px; }
+.activity-panel .week-chart { height:78px; gap:6px; margin-top:2px; }
+.activity-panel .day-bar-wrap { gap:4px; }
+.activity-panel .day-bar-wrap small { font-size:9px; }
+.day-bar.future { opacity:.38; }
+
+.book-page { max-width:980px; margin:0 auto; }
+body.book-mode .bottom-nav { display:none; }
+.book-heading { align-items:center; }
+.book-heading-actions { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+.book-reader { background:var(--surface); border:1px solid var(--line); border-radius:24px; box-shadow:var(--shadow); padding:16px; }
+.book-reader-top { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; color:var(--muted); font-size:12px; }
+.book-page-count { border:1px solid var(--line); background:var(--surface-2); color:var(--text); border-radius:999px; padding:7px 10px; font-weight:850; white-space:nowrap; }
+.book-stage { min-height:420px; display:grid; place-items:center; background:var(--surface-2); border:1px solid var(--line); border-radius:18px; overflow:hidden; position:relative; }
+.book-stage img { display:block; width:min(100%, 900px); height:auto; max-height:none; object-fit:contain; background:white; }
+.book-stage iframe { width:100%; min-height:76vh; border:0; background:white; }
+.book-controls { display:grid; grid-template-columns:1fr auto 1fr; gap:10px; align-items:center; margin-top:14px; }
+.book-controls .secondary-btn:last-child { justify-self:end; }
+.book-controls .secondary-btn:first-child { justify-self:start; }
+.book-progress { height:6px; border-radius:999px; overflow:hidden; background:var(--surface-2); border:1px solid var(--line); margin-top:13px; }
+.book-progress span { display:block; height:100%; width:0; background:var(--accent); border-radius:inherit; transition:width .2s ease; }
+.book-tip { color:var(--muted); font-size:11px; text-align:center; margin:10px 0 0; }
+
+@media (max-width:600px) {
+  .quick-panel { padding:18px 12px; }
+  .quick-panel h2 { font-size:18px; margin-bottom:12px; }
+  .quick-card { padding:9px 3px; border-radius:11px; }
+  .quick-card span { font-size:15px; margin-bottom:5px; }
+  .quick-card > b { font-size:8.6px; letter-spacing:-.02em; }
+  .quick-card small { display:none; }
+  .activity-panel { padding:16px; }
+  .activity-panel .week-chart { height:70px; }
+  .book-reader { padding:9px; border-radius:18px; }
+  .book-stage { min-height:260px; border-radius:13px; }
+  .book-stage iframe { min-height:68vh; }
+  .book-controls { grid-template-columns:1fr 1fr; }
+  .book-controls .book-page-count { grid-column:1 / -1; grid-row:1; justify-self:center; }
+  .book-controls .secondary-btn:first-child { grid-column:1; grid-row:2; width:100%; }
+  .book-controls .secondary-btn:last-child { grid-column:2; grid-row:2; width:100%; }
+  .book-heading-actions { justify-content:flex-start; }
+}
+
+.bottom-nav { position: fixed; bottom: calc(16px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); width: min(620px, calc(100% - 28px - env(safe-area-inset-left) - env(safe-area-inset-right))); padding: 7px; display: grid; grid-template-columns: repeat(5,1fr); background: rgba(255,255,255,.92); backdrop-filter: blur(14px); border: 1px solid rgba(220,226,238,.9); box-shadow: 0 12px 30px rgba(24,32,53,.14); border-radius: 20px; z-index: 50; }
+body.dark .bottom-nav { background: rgba(25,31,47,.92); border-color: var(--line); }
+.nav-item { border: 0; background: transparent; color: var(--muted); padding: 7px 6px; border-radius: 13px; }
+.nav-item span, .nav-item small { display: block; }
+.nav-item span { font-size: 18px; height: 22px; }
+.nav-item small { font-size: 10px; }
+.nav-item.active { background: var(--accent-soft); color: var(--accent); }
+
+.hidden { display: none !important; }
+
+@media (max-width: 820px) {
+  .hero-card { padding: 35px; }
+  .dashboard-grid { grid-template-columns: 1fr; }
+  .quick-grid { grid-template-columns:repeat(5,minmax(0,1fr)); }
+}
+
+@media (max-width: 600px) {
+  .topbar, main { width: min(100% - 24px, 1120px); }
+  .topbar { height: calc(72px + env(safe-area-inset-top)); }
+  .brand small { display: none; }
+  .streak-pill { padding: 7px 9px; }
+  .hero-card { grid-template-columns: 1fr; padding: 28px 24px; border-radius: 24px; }
+  .hero-card h1 { font-size: 38px; }
+  .daily-ring { width: 118px; height: 118px; justify-self: center; }
+  .hero-actions { display: grid; grid-template-columns: 1fr; }
+  .session-breakdown { grid-template-columns: 1fr; }
+  .flashcard { min-height: 350px; padding: 32px 20px 26px; border-radius: 23px; }
+  .flash-front h2 { font-size: 40px; }
+  .study-header { grid-template-columns: auto 1fr; }
+  .study-header .icon-btn { display: none; }
+  .rating-grid { gap: 7px; }
+  .rating-btn { padding: 12px 3px; }
+  .keyboard-hint { display: none; }
+  .page-heading { align-items: flex-start; }
+  .page-heading h1 { font-size: 32px; }
+  .toolbar { grid-template-columns: 1fr; }
+  .library-item { grid-template-columns: 1fr; }
+  .library-item-meta { justify-content: flex-start; }
+  .form-grid { grid-template-columns: 1fr; gap: 0; }
+  .form-actions { flex-direction: column-reverse; }
+  .form-actions button { width: 100%; }
+}
+
+
+/* v0.2: daily focus makes the first learning objective immediately obvious */
+.daily-focus { margin-top: 26px; }
+.section-heading { display:flex; align-items:flex-end; justify-content:space-between; gap:20px; margin-bottom:14px; }
+.section-heading h2 { margin:2px 0 4px; font-size:28px; letter-spacing:-.03em; }
+.section-heading .muted { margin:0; }
+.focus-note { color:var(--muted); background:var(--surface); border:1px solid var(--line); border-radius:999px; padding:7px 10px; font-size:12px; white-space:nowrap; }
+.spotlight-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+.spotlight-card { position:relative; overflow:hidden; background:var(--surface); border:1px solid var(--line); border-radius:24px; padding:25px; box-shadow:0 8px 30px rgba(27,38,69,.035); }
+.spotlight-card::before { content:""; position:absolute; left:0; top:0; right:0; height:4px; background:linear-gradient(90deg,var(--accent),#8a79ee); }
+.phrase-spotlight::before { background:linear-gradient(90deg,#2a9d74,#70c7aa); }
+.spotlight-top { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.spotlight-badge { font-size:11px; letter-spacing:.11em; font-weight:850; color:var(--muted); }
+.spotlight-word-row { display:flex; align-items:center; gap:12px; margin:18px 0 6px; }
+.spotlight-word-row h3 { margin:0; font-size:clamp(30px,4vw,43px); line-height:1.06; letter-spacing:-.04em; }
+.round-speak { flex:0 0 auto; width:42px; height:42px; border-radius:50%; border:1px solid var(--line); background:var(--surface-2); color:var(--text); }
+.spotlight-question { margin:0 0 18px; color:var(--muted); }
+.spotlight-answer { background:var(--surface-2); border:1px solid var(--line); border-radius:15px; padding:14px 16px; margin-bottom:12px; }
+.spotlight-answer strong { display:block; font-size:20px; margin-bottom:8px; }
+.spotlight-answer p { margin:0 0 2px; font-weight:650; }
+.spotlight-answer small { color:var(--muted); }
+.reveal-btn { width:100%; border:1px solid var(--line); background:var(--surface-2); color:var(--text); border-radius:12px; padding:11px 13px; font-weight:750; }
+.reveal-btn:hover { border-color:#cfd5e3; }
+@media (max-width:820px) { .spotlight-grid { grid-template-columns:1fr; } }
+@media (max-width:600px) { .section-heading { align-items:flex-start; } .focus-note { display:none; } .section-heading h2 { font-size:25px; } .spotlight-card { padding:21px; border-radius:20px; } }
+
+
+/* v0.3 · varied exercises, spaced repetition and end-of-session summary */
+.exercise-card {
+  min-height: 430px;
+  border-radius: 28px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+  padding: 34px 38px;
+  text-align: center;
+}
+.exercise-topline { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:26px; }
+.exercise-kind { font-size:10px; letter-spacing:.11em; font-weight:900; color:var(--accent); background:var(--accent-soft); border-radius:999px; padding:7px 10px; }
+.memory-status { font-size:11px; color:var(--muted); }
+.exercise-card > h2 { font-size:clamp(34px,6vw,54px); line-height:1.09; letter-spacing:-.04em; margin:0 auto 12px; max-width:590px; }
+.exercise-card > .prompt-label { margin-top:0; }
+.exercise-context { max-width:570px; margin:18px auto 8px; padding:18px; border-radius:17px; background:var(--surface-2); border:1px solid var(--line); font-size:21px; font-weight:750; line-height:1.35; }
+.exercise-context .blank { display:inline-block; min-width:85px; border-bottom:3px solid var(--accent); color:var(--accent); letter-spacing:.08em; }
+.choice-area { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:26px; text-align:left; }
+.choice-btn { border:1px solid var(--line); background:var(--surface-2); color:var(--text); border-radius:15px; padding:14px 15px; min-height:58px; font-weight:700; transition:.16s ease; }
+.choice-btn:hover:not(:disabled) { transform:translateY(-1px); border-color:#cdd3e1; background:var(--surface); }
+.choice-btn:disabled { cursor:default; opacity:.78; }
+.choice-btn.correct { background:var(--green-soft); border-color:rgba(31,157,104,.35); color:var(--green); opacity:1; }
+.choice-btn.wrong { background:var(--red-soft); border-color:rgba(202,77,86,.28); color:var(--red); opacity:1; }
+.type-area { margin-top:28px; text-align:left; }
+.type-area label { display:block; font-size:12px; font-weight:800; color:var(--muted); margin-bottom:8px; }
+.type-row { display:grid; grid-template-columns:1fr auto; gap:9px; }
+.type-row input { font-size:17px; }
+.feedback-area { margin-top:28px; text-align:left; border-top:1px solid var(--line); padding-top:23px; }
+.feedback-head { display:flex; gap:11px; align-items:center; margin-bottom:14px; }
+.feedback-icon { width:34px; height:34px; border-radius:50%; display:grid; place-items:center; font-weight:900; background:var(--green-soft); color:var(--green); }
+.feedback-head strong, .feedback-head small { display:block; }
+.feedback-head small { color:var(--muted); margin-top:1px; }
+.feedback-area.is-wrong .feedback-icon { background:var(--red-soft); color:var(--red); }
+.feedback-area.is-almost .feedback-icon { background:var(--amber-soft); color:var(--amber); }
+.correct-answer { display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 12px; margin-bottom:12px; }
+.correct-answer strong { font-size:25px; }
+.correct-answer span { color:var(--muted); }
+.exercise-card .example-box { margin-top:10px; }
+.show-answer-btn { max-width:680px; }
+
+.session-summary { max-width:780px; margin:15px auto 0; background:var(--surface); border:1px solid var(--line); border-radius:28px; padding:42px; box-shadow:var(--shadow); }
+.summary-celebration { width:58px; height:58px; border-radius:18px; display:grid; place-items:center; background:var(--green-soft); color:var(--green); font-size:28px; font-weight:900; margin-bottom:18px; }
+.session-summary h1 { font-size:clamp(30px,5vw,44px); line-height:1.08; letter-spacing:-.04em; margin:4px 0 10px; max-width:680px; }
+.summary-lead { color:var(--muted); font-size:16px; margin:0 0 26px; }
+.summary-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+.summary-metric { background:var(--surface-2); border:1px solid var(--line); border-radius:17px; padding:15px; }
+.summary-metric span { display:block; margin-bottom:8px; }
+.summary-metric strong { display:block; font-size:25px; }
+.summary-metric small { color:var(--muted); }
+.summary-detail-grid { display:grid; grid-template-columns:.9fr 1.1fr; gap:10px; margin-top:10px; }
+.summary-box { border:1px solid var(--line); border-radius:17px; padding:18px; }
+.summary-box h3 { margin:4px 0 5px; font-size:23px; }
+.summary-box p:last-child { color:var(--muted); margin:4px 0 0; font-size:13px; }
+.memory-box { background:var(--accent-soft); border-color:transparent; }
+.memory-box p:last-child { color:var(--text); font-size:14px; line-height:1.55; }
+.hard-again { margin-top:16px; padding-top:17px; border-top:1px solid var(--line); }
+.hard-chip-list { display:flex; flex-wrap:wrap; gap:7px; }
+.hard-chip { background:var(--red-soft); color:var(--red); border-radius:999px; padding:7px 10px; font-size:12px; font-weight:750; }
+.summary-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:24px; }
+
+.schedule-toast { position:fixed; top:calc(18px + env(safe-area-inset-top)); left:50%; transform:translateX(-50%) translateY(-10px); background:var(--text); color:var(--bg); border-radius:999px; padding:9px 14px; font-size:12px; font-weight:750; opacity:0; pointer-events:none; transition:.18s ease; z-index:90; box-shadow:var(--shadow); }
+.schedule-toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+@media (max-width:600px) {
+  .exercise-card { min-height:390px; padding:27px 20px; border-radius:23px; }
+  .exercise-topline { margin-bottom:21px; }
+  .choice-area { grid-template-columns:1fr; }
+  .type-row { grid-template-columns:1fr; }
+  .type-row button { width:100%; }
+  .session-summary { padding:27px 20px; border-radius:23px; }
+  .summary-grid { grid-template-columns:1fr 1fr; }
+  .summary-detail-grid { grid-template-columns:1fr; }
+  .summary-actions { flex-direction:column-reverse; }
+  .summary-actions button { width:100%; }
+}
+
+
+/* v0.4 · clearer daily flow, favourites, difficult list, daily goal and basic stats */
+.today-learning { margin-top: 14px; }
+.home-heading { align-items:flex-start; margin-bottom:18px; }
+.home-heading h1 { margin:3px 0 6px; font-size:clamp(34px,5vw,50px); line-height:1.05; letter-spacing:-.045em; }
+.home-intro { max-width:720px; font-size:15px; }
+.spotlight-actions { display:flex; align-items:center; gap:7px; }
+.favorite-btn { width:36px; height:36px; display:grid; place-items:center; border:1px solid var(--line); background:var(--surface-2); color:var(--muted); border-radius:11px; font-size:19px; line-height:1; transition:.16s ease; }
+.favorite-btn:hover { transform:translateY(-1px); border-color:#d0d6e5; color:#c54f6b; }
+.favorite-btn.active { background:#fff0f4; color:#c43e63; border-color:#f2c9d4; }
+body.dark .favorite-btn.active { background:#422532; border-color:#653147; color:#ff8fad; }
+.favorite-btn.compact { width:32px; height:32px; border-radius:10px; font-size:17px; }
+.exercise-meta-actions { display:flex; align-items:center; gap:9px; }
+
+.practice-section { margin-top:22px; }
+.practice-card { position:relative; overflow:hidden; display:grid; grid-template-columns:1fr 190px; gap:36px; align-items:center; color:white; background:linear-gradient(135deg,#22284e,#555bd8 68%,#6d73ef); border-radius:28px; padding:34px 38px; box-shadow:var(--shadow); }
+.practice-card::after { content:""; position:absolute; width:300px; height:300px; right:-120px; top:-130px; border-radius:50%; border:1px solid rgba(255,255,255,.12); }
+.practice-copy { position:relative; z-index:2; }
+.practice-card .eyebrow { color:rgba(255,255,255,.66); }
+.practice-card h2 { margin:3px 0 7px; font-size:31px; letter-spacing:-.035em; }
+.practice-card p { color:rgba(255,255,255,.76); margin:0; max-width:650px; }
+.goal-control { display:grid; grid-template-columns:auto 160px 1fr; align-items:center; gap:10px; margin:23px 0 13px; }
+.goal-control label { font-size:12px; font-weight:800; color:rgba(255,255,255,.78); }
+.goal-control select { padding:9px 10px; background:rgba(255,255,255,.12); border-color:rgba(255,255,255,.18); color:white; }
+.goal-control select option { color:#172033; }
+.goal-control small { color:rgba(255,255,255,.57); font-size:11px; }
+.practice-breakdown { max-width:650px; }
+.practice-breakdown > div { background:rgba(255,255,255,.09); border-color:rgba(255,255,255,.13); }
+.practice-breakdown .metric-icon { background:rgba(255,255,255,.10); }
+.practice-breakdown small { color:rgba(255,255,255,.62); }
+.practice-actions { display:flex; flex-wrap:wrap; gap:9px; margin-top:17px; }
+.practice-card .primary-btn { background:white; color:#34395f; box-shadow:none; }
+.practice-card .secondary-btn { background:rgba(255,255,255,.10); color:white; border-color:rgba(255,255,255,.20); }
+.practice-progress { position:relative; z-index:2; text-align:center; justify-self:center; }
+.practice-progress .daily-ring { margin:0 auto; }
+.practice-progress > p { margin:8px auto 0; max-width:160px; color:rgba(255,255,255,.67); font-size:12px; }
+
+.progress-section { margin-top:26px; }
+.compact-heading { margin-bottom:13px; }
+.stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+.stat-card { text-align:left; border:1px solid var(--line); background:var(--surface); color:var(--text); border-radius:18px; padding:17px 18px; box-shadow:0 7px 25px rgba(27,38,69,.03); transition:.16s ease; }
+.stat-card:hover { transform:translateY(-2px); border-color:#cfd5e3; }
+.stat-card > span { width:32px; height:32px; display:grid; place-items:center; border-radius:10px; background:var(--green-soft); color:var(--green); margin-bottom:11px; font-weight:900; }
+.stat-card.difficult > span { background:var(--red-soft); color:var(--red); }
+.stat-card.favorite > span { background:#fff0f4; color:#c43e63; }
+body.dark .stat-card.favorite > span { background:#422532; color:#ff8fad; }
+.stat-card strong { display:block; font-size:27px; line-height:1; }
+.stat-card small { color:var(--muted); display:block; margin-top:5px; }
+.v04-dashboard { grid-template-columns:.66fr 1.34fr; }
+.quick-card small b { display:inline; color:var(--text); }
+.home-footer-actions { display:flex; justify-content:flex-end; margin:16px 2px 0; }
+.text-action { border:0; background:transparent; color:var(--muted); font-size:12px; padding:8px; }
+.text-action:hover { color:var(--red); }
+
+.library-item-actions { display:flex; align-items:center; justify-content:flex-end; gap:8px; }
+.library-item-meta-wrap { display:grid; justify-items:end; gap:8px; }
+.hard-badge { border-radius:999px; padding:6px 9px; font-size:10px; font-weight:850; background:var(--red-soft); color:var(--red); }
+.mastered-badge { border-radius:999px; padding:6px 9px; font-size:10px; font-weight:850; background:var(--green-soft); color:var(--green); }
+
+@media (max-width:820px) {
+  .practice-card { grid-template-columns:1fr; }
+  .practice-progress { justify-self:start; display:flex; align-items:center; gap:12px; }
+  .practice-progress .daily-ring { width:105px; height:105px; }
+  .practice-progress > p { text-align:left; margin:0; }
+  .stats-grid { grid-template-columns:1fr 1fr; }
+  .v04-dashboard { grid-template-columns:1fr; }
+}
+@media (max-width:600px) {
+  .home-heading { display:block; }
+  .home-heading .focus-note { display:inline-block; margin-top:8px; }
+  .home-heading h1 { font-size:37px; }
+  .practice-card { padding:27px 21px; border-radius:23px; gap:23px; }
+  .practice-card h2 { font-size:27px; }
+  .goal-control { grid-template-columns:1fr 1fr; }
+  .goal-control small { grid-column:1 / -1; }
+  .practice-actions { display:grid; grid-template-columns:1fr; }
+  .practice-actions button { width:100%; }
+  .stats-grid { grid-template-columns:1fr 1fr; gap:8px; }
+  .stat-card { padding:15px; }
+  .library-item-meta-wrap { justify-items:start; }
+  .library-item-actions { justify-content:flex-start; }
+}
+
+
+
+/* v0.8 · videos on the home dashboard, separate from shortcuts */
+.home-video-section { margin-top:22px; }
+.home-video-section .section-heading { margin-bottom:14px; }
+.home-video-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
+.home-video-card { overflow:hidden; background:var(--surface); border:1px solid var(--line); border-radius:24px; box-shadow:var(--shadow); }
+.home-video-card-head { padding:18px 20px 14px; display:flex; justify-content:space-between; align-items:flex-start; gap:14px; }
+.home-video-card-head .eyebrow { margin-bottom:5px; }
+.home-video-card-head h3 { margin:0; font-size:20px; letter-spacing:-.025em; }
+.home-video-counter { flex:0 0 auto; border:1px solid var(--line); background:var(--surface-2); color:var(--muted); border-radius:999px; padding:7px 10px; font-size:10px; font-weight:800; white-space:nowrap; }
+.home-video-counter b { color:var(--text); }
+.home-video-frame { aspect-ratio:16 / 9; background:#0c1020; border-top:1px solid var(--line); border-bottom:1px solid var(--line); position:relative; }
+.home-video-frame iframe { width:100%; height:100%; display:block; border:0; background:#0c1020; }
+.home-video-complete { position:absolute; inset:0; display:grid; place-content:center; text-align:center; padding:24px; background:var(--surface-2); color:var(--text); }
+.home-video-complete span { font-size:34px; }
+.home-video-complete strong { display:block; margin-top:7px; font-size:18px; }
+.home-video-complete small { display:block; color:var(--muted); margin-top:4px; }
+.home-video-card-foot { padding:14px 20px 18px; }
+.home-video-meta { display:flex; align-items:center; justify-content:space-between; gap:10px; color:var(--muted); font-size:11px; margin-bottom:12px; }
+.home-video-meta strong { color:var(--text); }
+.home-video-actions { display:flex; gap:8px; flex-wrap:wrap; }
+.home-video-actions .primary-btn, .home-video-actions .secondary-btn { padding:10px 12px; font-size:11px; }
+.home-video-actions button:disabled { opacity:.5; cursor:not-allowed; transform:none; }
+.home-video-progress { height:6px; background:var(--surface-2); border-radius:999px; overflow:hidden; margin-top:11px; }
+.home-video-progress span { display:block; height:100%; width:0%; background:var(--accent); border-radius:inherit; transition:width .2s ease; }
+@media (max-width:820px) { .home-video-grid { grid-template-columns:1fr; } }
+@media (max-width:600px) {
+  .home-video-card-head { padding:16px 16px 12px; }
+  .home-video-card-foot { padding:13px 16px 16px; }
+  .home-video-actions { display:grid; grid-template-columns:1fr 1fr; }
+  .home-video-actions [data-home-video-open] { grid-column:1 / -1; }
+}
+
+
+/* v0.9 · Vaughan audio libraries with folder-aware navigation */
+.home-audio-section { margin-top:22px; }
+.home-audio-section .section-heading { margin-bottom:14px; }
+.home-audio-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
+.home-audio-card { background:linear-gradient(145deg,var(--surface),var(--surface-2)); border:1px solid var(--line); border-radius:24px; padding:20px; box-shadow:var(--shadow); overflow:hidden; position:relative; }
+.home-audio-card::after { content:'♫'; position:absolute; right:18px; bottom:-24px; font-size:110px; line-height:1; opacity:.035; pointer-events:none; }
+.home-audio-top { display:flex; justify-content:space-between; align-items:flex-start; gap:14px; }
+.home-audio-icon { width:48px; height:48px; display:grid; place-items:center; border-radius:15px; background:var(--accent-soft); font-size:23px; flex:0 0 auto; }
+.home-audio-title-wrap { flex:1; min-width:0; }
+.home-audio-title-wrap .eyebrow { margin-bottom:5px; }
+.home-audio-title-wrap h3 { margin:0; font-size:21px; letter-spacing:-.025em; }
+.home-audio-count { flex:0 0 auto; border:1px solid var(--line); background:var(--surface); color:var(--muted); border-radius:999px; padding:7px 10px; font-size:10px; font-weight:850; white-space:nowrap; }
+.home-audio-count b { color:var(--text); }
+.home-audio-next { margin:18px 0 13px; border:1px solid var(--line); background:var(--surface); border-radius:16px; padding:14px 15px; }
+.home-audio-next small { display:block; color:var(--muted); font-size:10px; font-weight:850; letter-spacing:.07em; text-transform:uppercase; margin-bottom:5px; }
+.home-audio-next strong { display:block; color:var(--text); font-size:15px; line-height:1.4; }
+.home-audio-actions { display:flex; gap:8px; flex-wrap:wrap; }
+.home-audio-actions .primary-btn, .home-audio-actions .secondary-btn { padding:10px 13px; font-size:11px; }
+.home-audio-progress { height:6px; background:var(--surface); border:1px solid var(--line); border-radius:999px; overflow:hidden; margin-top:13px; }
+.home-audio-progress span { display:block; height:100%; width:0; background:var(--accent); border-radius:inherit; transition:width .2s ease; }
+
+.audio-page-head { display:flex; align-items:flex-start; gap:16px; margin-bottom:18px; }
+.audio-page-head .back-btn { flex:0 0 auto; }
+.audio-page-head-copy { flex:1; min-width:0; }
+.audio-page-head-copy h1 { margin:4px 0 5px; }
+.audio-page-head-copy p { margin:0; color:var(--muted); }
+.audio-collection-tabs { display:flex; gap:9px; flex-wrap:wrap; margin:0 0 18px; }
+.audio-collection-tab { border:1px solid var(--line); background:var(--surface); color:var(--text); border-radius:999px; padding:10px 14px; font-weight:800; font-size:12px; cursor:pointer; }
+.audio-collection-tab.active { border-color:var(--accent); background:var(--accent-soft); color:var(--accent); }
+.audio-browser-layout { display:grid; grid-template-columns:minmax(250px,.72fr) minmax(0,1.55fr); gap:18px; align-items:start; }
+.audio-folder-panel { padding:17px; max-height:74vh; overflow:auto; position:sticky; top:78px; }
+.audio-folder-panel .eyebrow { margin-bottom:5px; }
+.audio-folder-panel h2 { margin:0 0 13px; font-size:20px; }
+.audio-folder-list { display:grid; gap:8px; }
+.audio-folder-btn { width:100%; display:flex; align-items:center; justify-content:space-between; gap:10px; border:1px solid var(--line); background:var(--surface); color:var(--text); padding:11px 12px; border-radius:13px; text-align:left; cursor:pointer; font:inherit; }
+.audio-folder-btn:hover { border-color:var(--accent); }
+.audio-folder-btn.active { border-color:var(--accent); background:var(--accent-soft); }
+.audio-folder-btn.complete { color:var(--green); }
+.audio-folder-btn span:first-child { min-width:0; overflow:hidden; text-overflow:ellipsis; }
+.audio-folder-btn small { color:var(--muted); font-size:10px; flex:0 0 auto; }
+.audio-cd-block { border:1px solid var(--line); border-radius:15px; overflow:hidden; background:var(--surface); }
+.audio-cd-title { padding:10px 12px; font-size:11px; font-weight:900; letter-spacing:.07em; color:var(--muted); background:var(--surface-2); border-bottom:1px solid var(--line); }
+.audio-cd-levels { display:grid; gap:6px; padding:8px; }
+.audio-resource-link { display:flex; align-items:center; justify-content:space-between; gap:10px; text-decoration:none; color:var(--text); padding:9px 11px; border-radius:11px; font-size:12px; }
+.audio-resource-link:hover { background:var(--surface-2); }
+.audio-resource-link small { color:var(--muted); }
+
+.audio-player-panel { padding:0; overflow:hidden; }
+.audio-player-head { padding:20px 22px 16px; border-bottom:1px solid var(--line); }
+.audio-player-breadcrumb { color:var(--muted); font-size:11px; line-height:1.5; margin-bottom:6px; }
+.audio-player-head-row { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; }
+.audio-player-head h2 { margin:0; font-size:25px; letter-spacing:-.025em; }
+.audio-block-status { border-radius:999px; padding:7px 10px; font-size:10px; font-weight:900; white-space:nowrap; background:var(--surface-2); color:var(--muted); border:1px solid var(--line); }
+.audio-block-status.complete { background:var(--green-soft); color:var(--green); border-color:transparent; }
+.audio-drive-frame { min-height:480px; background:var(--surface-2); }
+.audio-drive-frame iframe { width:100%; height:560px; border:0; display:block; background:white; }
+.audio-player-foot { padding:15px 22px 20px; border-top:1px solid var(--line); }
+.audio-player-note { color:var(--muted); font-size:11px; line-height:1.55; margin:0 0 13px; }
+.audio-player-actions { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.audio-player-actions .primary-btn, .audio-player-actions .secondary-btn { padding:10px 13px; font-size:11px; }
+.audio-player-actions a { text-decoration:none; }
+.audio-completion-progress { margin:16px 0 0; display:grid; grid-template-columns:1fr auto; align-items:center; gap:10px; }
+.audio-completion-progress .bar { height:7px; background:var(--surface-2); border-radius:999px; overflow:hidden; }
+.audio-completion-progress .bar span { display:block; height:100%; background:var(--accent); border-radius:inherit; width:0; }
+.audio-completion-progress small { color:var(--muted); font-weight:800; }
+.audio-empty { display:grid; place-items:center; min-height:430px; text-align:center; padding:30px; color:var(--muted); }
+.audio-empty span { font-size:38px; }
+.audio-empty h2 { color:var(--text); margin:8px 0 4px; }
+
+@media (max-width:900px) {
+  .home-audio-grid { grid-template-columns:1fr; }
+  .audio-browser-layout { grid-template-columns:1fr; }
+  .audio-folder-panel { position:static; max-height:none; }
+  .audio-drive-frame iframe { height:500px; }
+}
+@media (max-width:600px) {
+  .home-audio-card { padding:17px; }
+  .home-audio-actions { display:grid; grid-template-columns:1fr; }
+  .audio-page-head { display:block; }
+  .audio-page-head .back-btn { margin-bottom:12px; }
+  .audio-player-head { padding:17px 16px 14px; }
+  .audio-player-head-row { display:block; }
+  .audio-block-status { display:inline-block; margin-top:10px; }
+  .audio-drive-frame iframe { height:430px; }
+  .audio-player-foot { padding:14px 16px 17px; }
+  .audio-player-actions { display:grid; grid-template-columns:1fr 1fr; }
+  .audio-player-actions [data-audio-toggle-complete] { grid-column:1 / -1; }
+}
+
+/* v0.7 · independent video collections from shared Google Drive folders */
+.video-summary { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:18px; }
+.video-summary-card { background:var(--surface); border:1px solid var(--line); border-radius:17px; padding:16px 18px; box-shadow:0 7px 25px rgba(27,38,69,.03); }
+.video-summary-card span { display:block; color:var(--muted); font-size:11px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; }
+.video-summary-card strong { display:block; margin-top:5px; font-size:27px; line-height:1; }
+.video-list { display:grid; gap:18px; }
+.video-card { overflow:hidden; background:var(--surface); border:1px solid var(--line); border-radius:24px; box-shadow:var(--shadow); }
+.video-card-head { padding:22px 24px 18px; display:flex; align-items:flex-start; justify-content:space-between; gap:18px; }
+.video-card-head h2 { margin:3px 0 5px; font-size:24px; letter-spacing:-.025em; }
+.video-card-head p { margin:0; color:var(--muted); font-size:13px; }
+.video-status { display:inline-flex; align-items:center; gap:6px; border-radius:999px; padding:7px 10px; background:var(--surface-2); border:1px solid var(--line); color:var(--muted); font-size:11px; font-weight:800; white-space:nowrap; }
+.video-status.watched { background:var(--green-soft); border-color:transparent; color:var(--green); }
+.video-frame-wrap { aspect-ratio:16 / 9; background:#0c1020; border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
+.video-frame-wrap iframe { width:100%; height:100%; display:block; border:0; background:#0c1020; }
+.video-card-foot { padding:18px 24px 22px; display:flex; justify-content:space-between; align-items:center; gap:14px; }
+.video-card-actions { display:flex; flex-wrap:wrap; gap:9px; }
+.video-card-actions a { text-decoration:none; display:inline-flex; align-items:center; justify-content:center; }
+.video-watched-btn.active { background:var(--green); }
+.video-source-note { color:var(--muted); font-size:11px; text-align:right; max-width:300px; }
+.video-switch-actions { display:flex; justify-content:center; gap:9px; flex-wrap:wrap; margin:14px 0 20px; }
+.video-next-panel { margin-top:18px; }
+.video-next-panel h2 { margin-bottom:6px; }
+.video-next-panel p { color:var(--muted); margin:0; max-width:760px; }
+.video-next-chips { display:flex; gap:8px; flex-wrap:wrap; margin-top:15px; }
+.video-next-chips span { background:var(--accent-soft); color:var(--accent); border-radius:999px; padding:7px 10px; font-size:11px; font-weight:750; }
+.video-online-note { display:inline-flex; align-items:center; gap:6px; color:var(--muted); font-size:12px; }
+.video-complete { text-align:center; padding:34px 25px; }
+.video-complete .complete-emoji { font-size:44px; display:block; margin-bottom:8px; }
+.video-complete h2 { margin:0 0 8px; font-size:26px; }
+.video-complete p { margin:0 auto 18px; max-width:600px; color:var(--muted); }
+.video-library-panel { margin-top:18px; }
+.video-library-head { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:15px; }
+.video-library-head h2 { margin:4px 0 4px; }
+.video-library-head p { margin:0; color:var(--muted); font-size:12px; }
+.video-library-toolbar { display:grid; grid-template-columns:minmax(0,1fr) 170px; gap:9px; margin-bottom:12px; }
+.video-library-toolbar input, .video-library-toolbar select { width:100%; }
+.video-library-list { display:grid; gap:8px; max-height:520px; overflow:auto; padding-right:3px; }
+.video-library-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:12px; align-items:center; background:var(--surface-2); border:1px solid var(--line); border-radius:15px; padding:12px 13px; }
+.video-library-row strong { display:block; font-size:13px; }
+.video-library-row small { color:var(--muted); font-size:10px; }
+.video-library-row.watched { opacity:.74; }
+.video-library-row-actions { display:flex; align-items:center; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
+.video-mini-btn { border:1px solid var(--line); background:var(--surface); color:var(--text); border-radius:10px; padding:8px 9px; font-size:10px; font-weight:750; cursor:pointer; }
+.video-mini-btn:hover { border-color:var(--accent); color:var(--accent); }
+.video-library-empty { text-align:center; padding:22px; color:var(--muted); font-size:13px; }
+.video-snapshot-note { margin-top:11px; color:var(--muted); font-size:10px; }
+
+.video-collections-overview { margin-top:4px; }
+.video-collection-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+.video-collection-card { border:1px solid var(--line); background:var(--surface); color:var(--text); border-radius:24px; padding:22px; text-align:left; cursor:pointer; box-shadow:var(--shadow); transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease; }
+.video-collection-card:hover { transform:translateY(-2px); border-color:var(--accent); }
+.video-collection-card-top { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; }
+.video-collection-icon { width:50px; height:50px; border-radius:16px; display:grid; place-items:center; background:var(--accent-soft); font-size:25px; }
+.video-collection-count { color:var(--muted); font-size:11px; font-weight:800; background:var(--surface-2); border:1px solid var(--line); border-radius:999px; padding:7px 10px; }
+.video-collection-card h2 { margin:18px 0 7px; font-size:23px; letter-spacing:-.025em; }
+.video-collection-card p { margin:0; color:var(--muted); font-size:13px; line-height:1.55; min-height:42px; }
+.video-collection-progress { height:8px; background:var(--surface-2); border-radius:999px; overflow:hidden; margin:18px 0 9px; }
+.video-collection-progress span { display:block; height:100%; width:0%; background:var(--accent); border-radius:999px; transition:width .2s ease; }
+.video-collection-meta { display:flex; justify-content:space-between; gap:10px; color:var(--muted); font-size:11px; }
+.video-collection-meta strong { color:var(--text); }
+.video-collection-detail { margin-top:0; }
+.video-collection-detail-head { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:16px; }
+.video-collection-detail-head .secondary-btn { flex:0 0 auto; }
+.video-collection-detail-title h1 { margin:4px 0 5px; }
+.video-collection-detail-title p { margin:0; color:var(--muted); max-width:720px; }
+.video-collection-folder-note { display:flex; align-items:center; gap:7px; margin-top:10px; color:var(--muted); font-size:11px; }
+.video-collection-folder-note a { color:var(--accent); text-decoration:none; font-weight:700; }
+
+@media (max-width:700px) {
+  .video-collection-grid { grid-template-columns:1fr; }
+  .video-collection-card p { min-height:0; }
+  .video-collection-detail-head { display:block; }
+  .video-collection-detail-head .secondary-btn { margin-bottom:12px; }
+  .video-summary { grid-template-columns:1fr 1fr 1fr; gap:7px; }
+  .video-summary-card { padding:13px; }
+  .video-summary-card strong { font-size:23px; }
+  .video-card-head { display:block; padding:19px 18px 15px; }
+  .video-status { margin-top:11px; }
+  .video-card-foot { display:block; padding:16px 18px 19px; }
+  .video-source-note { text-align:left; margin-top:12px; max-width:none; }
+  .video-library-head { display:block; }
+  .video-library-toolbar { grid-template-columns:1fr; }
+  .video-library-row { grid-template-columns:1fr; }
+  .video-library-row-actions { justify-content:flex-start; }
+  .bottom-nav .nav-item small { font-size:9px; }
+}
+
+  </style>
+</head>
+<body>
+  <div class="schedule-toast" id="scheduleToast" aria-live="polite"></div>
+  <div class="app-shell">
+    <header class="topbar">
+      <button class="brand" data-go="home" aria-label="Ir al inicio">
+        <span class="brand-mark">ED</span>
+        <span>
+          <strong>English Daily</strong>
+          <small>v1.3 · aprende un poco cada día</small>
+        </span>
+      </button>
+      <div class="top-actions">
+        <span class="streak-pill" title="Racha de estudio">🔥 <b id="streakCount">0</b> <span id="streakUnit">días</span></span>
+        <button class="icon-btn sync-icon-btn" id="syncSettingsBtn" data-go="sync" aria-label="Copia y sincronización" title="Copia y sincronización">☁<span class="sync-indicator-dot" aria-hidden="true"></span></button>
+        <button class="icon-btn" id="themeBtn" aria-label="Cambiar tema" title="Cambiar tema">☼</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="screen active" id="screen-home">
+        <section class="today-learning" aria-labelledby="dailyFocusTitle">
+          <div class="section-heading home-heading">
+            <div>
+              <p class="eyebrow" id="todayLabel">HOY</p>
+              <h1 id="dailyFocusTitle">Hoy aprenderás esto</h1>
+              <p class="muted home-intro">Primero dos ideas concretas. Después, una sesión adaptada a lo que recuerdas y a lo que te cuesta.</p>
+            </div>
+            <span class="focus-note">Cambian cada día</span>
+          </div>
+
+          <div class="spotlight-grid">
+            <article class="spotlight-card">
+              <div class="spotlight-top">
+                <span class="spotlight-badge">PALABRA DEL DÍA</span>
+                <div class="spotlight-actions">
+                  <button class="favorite-btn" id="dailyWordFavorite" aria-label="Guardar palabra en favoritos" title="Favorito">♡</button>
+                  <span class="level-tag" id="dailyWordLevel">B1</span>
+                </div>
+              </div>
+              <div class="spotlight-word-row">
+                <h3 id="dailyWordEn">although</h3>
+                <button class="round-speak" id="dailyWordSpeak" aria-label="Escuchar palabra">🔊</button>
+              </div>
+              <p class="spotlight-question">¿Sabes qué significa?</p>
+              <div class="spotlight-answer hidden" id="dailyWordAnswer">
+                <strong id="dailyWordEs">aunque / a pesar de que</strong>
+                <p id="dailyWordExampleEn"></p>
+                <small id="dailyWordExampleEs"></small>
+              </div>
+              <button class="reveal-btn" id="dailyWordRevealBtn">Ver significado</button>
+            </article>
+
+            <article class="spotlight-card phrase-spotlight">
+              <div class="spotlight-top">
+                <span class="spotlight-badge">FRASE DEL DÍA</span>
+                <div class="spotlight-actions">
+                  <button class="favorite-btn" id="dailyPhraseFavorite" aria-label="Guardar frase en favoritos" title="Favorito">♡</button>
+                  <span class="level-tag" id="dailyPhraseLevel">A2</span>
+                </div>
+              </div>
+              <div class="spotlight-word-row">
+                <h3 id="dailyPhraseEn">It depends on...</h3>
+                <button class="round-speak" id="dailyPhraseSpeak" aria-label="Escuchar frase">🔊</button>
+              </div>
+              <p class="spotlight-question">Intenta entenderla antes de mirar.</p>
+              <div class="spotlight-answer hidden" id="dailyPhraseAnswer">
+                <strong id="dailyPhraseEs">Depende de...</strong>
+                <p id="dailyPhraseExampleEn"></p>
+                <small id="dailyPhraseExampleEs"></small>
+              </div>
+              <button class="reveal-btn" id="dailyPhraseRevealBtn">Ver significado</button>
+            </article>
+          </div>
+        </section>
+
+        <section class="practice-section" aria-labelledby="practiceTitle">
+          <div class="practice-card">
+            <div class="practice-copy">
+              <p class="eyebrow">AHORA PRACTICA</p>
+              <h2 id="practiceTitle">Tu sesión personalizada</h2>
+              <p id="practiceDescription">Mezclaremos contenido nuevo con repasos y traeremos antes lo que más te cuesta.</p>
+
+              <div class="goal-control">
+                <label for="goalSelect">Objetivo de hoy</label>
+                <select id="goalSelect" aria-label="Objetivo diario">
+                  <option value="5">5 ejercicios</option>
+                  <option value="10">10 ejercicios</option>
+                  <option value="12">12 ejercicios</option>
+                  <option value="15">15 ejercicios</option>
+                  <option value="20">20 ejercicios</option>
+                </select>
+                <small>Se guarda para los próximos días.</small>
+              </div>
+
+              <div class="session-breakdown practice-breakdown">
+                <div><span class="metric-icon">✨</span><div><strong id="newCount">0</strong><small>Nuevas</small></div></div>
+                <div><span class="metric-icon">↻</span><div><strong id="reviewCount">0</strong><small>Repasos</small></div></div>
+                <div><span class="metric-icon">💬</span><div><strong id="phraseCount">0</strong><small>Frases</small></div></div>
+              </div>
+
+              <div class="practice-actions">
+                <button class="primary-btn" id="startStudyBtn">Empezar sesión <span>→</span></button>
+                <button class="secondary-btn hidden" id="studyDifficultBtn">Practicar difíciles</button>
+              </div>
+            </div>
+
+            <div class="practice-progress">
+              <div class="daily-ring" aria-label="Progreso diario">
+                <svg viewBox="0 0 120 120" role="img">
+                  <circle class="ring-bg" cx="60" cy="60" r="48"></circle>
+                  <circle class="ring-progress" id="dailyRing" cx="60" cy="60" r="48"></circle>
+                </svg>
+                <div class="ring-text">
+                  <strong id="doneToday">0</strong>
+                  <span>de <b id="dailyGoal">12</b></span>
+                </div>
+              </div>
+              <p id="goalStatus">Tu objetivo empieza aquí.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="progress-section" aria-labelledby="progressTitle">
+          <div class="section-heading compact-heading">
+            <div>
+              <p class="eyebrow">TU PROGRESO</p>
+              <h2 id="progressTitle">Cómo va tu vocabulario</h2>
+              <p class="muted">Una vista sencilla; ya haremos estadísticas más profundas más adelante.</p>
+            </div>
+          </div>
+
+          <div class="stats-grid">
+            <button class="stat-card" data-library-filter="mastered">
+              <span>✓</span><strong id="masteredCount">0</strong><small>Dominadas</small>
+            </button>
+            <button class="stat-card" data-library-filter="learning">
+              <span>↗</span><strong id="learningCount">0</strong><small>Aprendiendo</small>
+            </button>
+            <button class="stat-card difficult" data-library-filter="hard">
+              <span>⚡</span><strong id="difficultCount">0</strong><small>Difíciles</small>
+            </button>
+            <button class="stat-card favorite" data-library-filter="favorites">
+              <span>♥</span><strong id="favoriteCount">0</strong><small>Favoritas</small>
+            </button>
+          </div>
+
+          <section class="home-video-section" aria-labelledby="homeVideosTitle">
+            <div class="section-heading compact-heading">
+              <div>
+                <p class="eyebrow">APRENDE CON VÍDEOS</p>
+                <h2 id="homeVideosTitle">Tus dos vídeos de hoy</h2>
+                <p class="muted">Uno para entrenar conversaciones y otro para reforzar palabras. Cada colección mantiene su progreso por separado.</p>
+              </div>
+            </div>
+
+            <div class="home-video-grid">
+              <article class="home-video-card" data-home-video-card="conversations">
+                <div class="home-video-card-head">
+                  <div>
+                    <p class="eyebrow">💬 CONVERSACIONES</p>
+                    <h3 data-home-video-title>Tu conversación pendiente</h3>
+                  </div>
+                  <span class="home-video-counter"><b data-home-video-watched-count>0</b> / <span data-home-video-total>217</span> vistos</span>
+                </div>
+                <div class="home-video-frame">
+                  <iframe data-home-video-frame title="Conversación de hoy" loading="lazy" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                  <div class="home-video-complete hidden" data-home-video-complete><div><span>🎉</span><strong>Colección completada</strong><small>Has visto todas las conversaciones.</small></div></div>
+                </div>
+                <div class="home-video-card-foot">
+                  <div class="home-video-meta"><span><strong data-home-video-remaining>217</strong> pendientes</span><span data-home-video-label>Elegido al azar y guardado para ti</span></div>
+                  <div class="home-video-actions">
+                    <button class="primary-btn" data-home-video-watched="conversations">✓ Ya lo he visto</button>
+                    <button class="secondary-btn" data-home-video-random="conversations">🎲 Otro vídeo</button>
+                    <button class="secondary-btn" data-home-video-open="conversations">Ver colección →</button>
+                  </div>
+                  <div class="home-video-progress"><span data-home-video-progress></span></div>
+                </div>
+              </article>
+
+              <article class="home-video-card" data-home-video-card="peldanos">
+                <div class="home-video-card-head">
+                  <div>
+                    <p class="eyebrow">🪜 PALABRAS / PELDAÑOS</p>
+                    <h3 data-home-video-title>Tu peldaño pendiente</h3>
+                  </div>
+                  <span class="home-video-counter"><b data-home-video-watched-count>0</b> / <span data-home-video-total>62</span> vistos</span>
+                </div>
+                <div class="home-video-frame">
+                  <iframe data-home-video-frame title="Palabras / Peldaños de hoy" loading="lazy" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                  <div class="home-video-complete hidden" data-home-video-complete><div><span>🎉</span><strong>Colección completada</strong><small>Has visto todos los Peldaños.</small></div></div>
+                </div>
+                <div class="home-video-card-foot">
+                  <div class="home-video-meta"><span><strong data-home-video-remaining>62</strong> pendientes</span><span data-home-video-label>Elegido al azar y guardado para ti</span></div>
+                  <div class="home-video-actions">
+                    <button class="primary-btn" data-home-video-watched="peldanos">✓ Ya lo he visto</button>
+                    <button class="secondary-btn" data-home-video-random="peldanos">🎲 Otro vídeo</button>
+                    <button class="secondary-btn" data-home-video-open="peldanos">Ver colección →</button>
+                  </div>
+                  <div class="home-video-progress"><span data-home-video-progress></span></div>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <section class="home-audio-section" aria-labelledby="homeAudioTitle">
+            <div class="section-heading compact-heading">
+              <div>
+                <p class="eyebrow">ENTRENA CON VAUGHAN</p>
+                <h2 id="homeAudioTitle">Tus cursos de audio</h2>
+                <p class="muted">Aquí sí respetamos la estructura de carpetas: eliges un bloque, escuchas sus pistas en Drive y vuelves exactamente a ese punto.</p>
+              </div>
+            </div>
+
+            <div class="home-audio-grid">
+              <article class="home-audio-card" data-home-audio-card="translation">
+                <div class="home-audio-top">
+                  <span class="home-audio-icon">🎧</span>
+                  <div class="home-audio-title-wrap">
+                    <p class="eyebrow">CURSO DE AUDIO</p>
+                    <h3>VAUGHAN Translation</h3>
+                  </div>
+                  <span class="home-audio-count"><b data-home-audio-done>0</b> / <span data-home-audio-total>8</span> bloques</span>
+                </div>
+                <div class="home-audio-next">
+                  <small>CONTINUAR EN</small>
+                  <strong data-home-audio-path>Traslation Booklet1</strong>
+                </div>
+                <div class="home-audio-actions">
+                  <button class="primary-btn" data-home-audio-open="translation">Continuar →</button>
+                  <button class="secondary-btn" data-home-audio-explore="translation">Ver carpetas</button>
+                </div>
+                <div class="home-audio-progress"><span data-home-audio-progress></span></div>
+              </article>
+
+              <article class="home-audio-card" data-home-audio-card="vaughan">
+                <div class="home-audio-top">
+                  <span class="home-audio-icon">🎙️</span>
+                  <div class="home-audio-title-wrap">
+                    <p class="eyebrow">CURSO DE AUDIO</p>
+                    <h3>VAUGHAN</h3>
+                  </div>
+                  <span class="home-audio-count"><b data-home-audio-done>0</b> / <span data-home-audio-total>30</span> bloques</span>
+                </div>
+                <div class="home-audio-next">
+                  <small>CONTINUAR EN</small>
+                  <strong data-home-audio-path>CD01 · Principiante 1</strong>
+                </div>
+                <div class="home-audio-actions">
+                  <button class="primary-btn" data-home-audio-open="vaughan">Continuar →</button>
+                  <button class="secondary-btn" data-home-audio-explore="vaughan">Ver carpetas</button>
+                </div>
+                <div class="home-audio-progress"><span data-home-audio-progress></span></div>
+              </article>
+            </div>
+          </section>
+
+          <div class="dashboard-grid v04-dashboard">
+            <div class="panel activity-panel">
+              <div class="panel-title-row">
+                <div>
+                  <p class="eyebrow">ACTIVIDAD</p>
+                  <h2>Esta semana</h2>
+                </div>
+                <span class="status-dot">🔥 <b id="homeStreakCount">0</b> <span id="homeStreakUnit">días</span></span>
+              </div>
+              <div class="week-chart" id="weekChart"></div>
+              <p class="muted"><b id="weekTotal">0</b> respuestas esta semana · lunes a domingo</p>
+            </div>
+
+            <div class="panel quick-panel">
+              <p class="eyebrow">ATAJOS</p>
+              <h2>Ve directo a lo que quieres</h2>
+              <div class="quick-grid">
+                <button data-library-filter="favorites" class="quick-card"><span>♥</span><b>Favoritas</b><small><b id="favoriteQuickCount">0</b> <span id="favoriteQuickUnit">guardadas</span></small></button>
+                <button data-library-filter="hard" class="quick-card"><span>⚡</span><b>Difíciles</b><small><b id="difficultQuickCount">0</b> por reforzar</small></button>
+                <button data-go="add" class="quick-card"><span>＋</span><b>Añadir</b><small>Una palabra tuya</small></button>
+                <button data-go="library" class="quick-card"><span>📚</span><b>Biblioteca</b><small>Todo el contenido</small></button>
+                <button data-go="book" class="quick-card"><span>📖</span><b>Libro Diverbo</b><small>p. <b id="bookQuickPage">1</b> / <span id="bookQuickTotal">91</span></small></button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div class="home-footer-actions">
+          <button id="resetProgressBtn" class="text-action">↺ Reiniciar solo el progreso</button>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-sync">
+        <div class="sync-page">
+          <div class="sync-page-head">
+            <button class="secondary-btn" data-go="home">← Inicio</button>
+            <div>
+              <p class="eyebrow">COPIA Y SINCRONIZACIÓN</p>
+              <h1>Tu aprendizaje, también fuera del navegador</h1>
+              <p class="muted">English Daily sigue guardando al instante en este dispositivo. Si conectas GitHub, además mantiene automáticamente una copia en un Gist secreto llamado <b>english-daily-progress.json</b>.</p>
+            </div>
+          </div>
+
+          <div class="sync-grid">
+            <article class="panel sync-card">
+              <p class="eyebrow">ESTADO</p>
+              <h2>GitHub Gist</h2>
+              <div class="sync-status-line">
+                <span class="sync-status-light" id="syncStatusLight"></span>
+                <strong id="syncStatusText">No conectado</strong>
+              </div>
+              <p class="muted" id="syncStatusDetail">Tu progreso sigue protegido en este navegador, pero todavía no tiene copia en la nube.</p>
+              <span class="sync-autosave-badge hidden" id="syncAutosaveBadge">✓ Autoguardado automático activado</span>
+              <div class="sync-detail-list">
+                <div class="sync-detail-row"><span>Cuenta</span><b id="syncGithubUser">—</b></div>
+                <div class="sync-detail-row"><span>Archivo remoto</span><b>english-daily-progress.json</b></div>
+                <div class="sync-detail-row"><span>Última sincronización</span><b id="syncLastTime">—</b></div>
+                <div class="sync-detail-row"><span>Gist</span><b id="syncGistId">—</b></div>
+              </div>
+            </article>
+
+            <article class="panel sync-card">
+              <p class="eyebrow">CONECTAR UNA VEZ</p>
+              <h2>Tu token de GitHub</h2>
+              <p class="muted">La primera vez, pega un token con permiso de usuario <b>Gists: write</b>. Se conserva solo en este navegador y nunca se mete dentro del JSON, del Gist ni del ZIP.</p>
+              <div class="sync-connect-form">
+                <label for="githubTokenInput">Token</label>
+                <div class="sync-token-row">
+                  <input id="githubTokenInput" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="github_pat_…" />
+                  <button class="primary-btn" id="githubConnectBtn">Conectar GitHub</button>
+                </div>
+                <p class="sync-help">Puedes usar un token fine-grained limitado a Gists. <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Crear token en GitHub ↗</a></p>
+              </div>
+              <div class="sync-connected-actions hidden" id="syncConnectedActions">
+                <button class="secondary-btn" id="githubReconnectBtn">Cambiar token</button>
+                <button class="secondary-btn" id="githubDisconnectBtn">Desconectar este navegador</button>
+              </div>
+              <p class="sync-message" id="syncMessage" aria-live="polite"></p>
+              <div class="sync-warning">El Gist se crea como <b>secreto/no listado</b>. No guardamos el token dentro del progreso. Si borras todos los datos del navegador, tendrás que volver a pegar el token; después English Daily localizará el Gist y recuperará tu aprendizaje.</div>
+            </article>
+          </div>
+
+          <article class="panel backup-panel">
+            <p class="eyebrow">CONTROL MANUAL Y PLAN B</p>
+            <h2>Guardar, recuperar y exportar</h2>
+            <p class="muted">No necesitas pulsar nada durante el estudio: cuando GitHub está conectado, los cambios se sincronizan solos. Estos botones sirven para forzar una copia o llevarte un archivo JSON.</p>
+            <div class="backup-actions">
+              <button class="primary-btn" id="syncNowBtn">☁ Guardar ahora</button>
+              <button class="secondary-btn" id="pullGistBtn">↙ Recuperar Gist</button>
+              <button class="secondary-btn" id="exportJsonBtn">⇩ Exportar JSON</button>
+              <button class="secondary-btn" id="importJsonBtn">⇧ Importar JSON</button>
+            </div>
+            <input id="importJsonInput" type="file" accept="application/json,.json" class="hidden" />
+            <p class="backup-note">El JSON contiene únicamente tu estado de aprendizaje: repasos, favoritos, vídeos, audios, página del libro, actividad, objetivo y palabras añadidas. El contenido base de la app no se duplica.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-study">
+        <div class="study-header">
+          <button class="back-btn" data-go="home">← Inicio</button>
+          <div class="study-progress-wrap">
+            <div class="study-progress"><span id="studyProgressBar"></span></div>
+            <small><b id="studyPosition">0</b> / <span id="studyTotal">0</span></small>
+          </div>
+          <button class="icon-btn" id="shuffleBtn" title="Barajar lo que queda">⤨</button>
+        </div>
+
+        <section id="summaryStudy" class="session-summary hidden" aria-live="polite">
+          <div class="summary-celebration">✓</div>
+          <p class="eyebrow">SESIÓN COMPLETADA</p>
+          <h1>Buen trabajo. Ya has hecho lo importante de hoy.</h1>
+          <p class="summary-lead" id="summaryLead">Tu memoria ya tiene una pista de qué debe traerte antes.</p>
+
+          <div class="summary-grid">
+            <div class="summary-metric"><span>🧠</span><strong id="summaryUnique">0</strong><small>contenidos</small></div>
+            <div class="summary-metric"><span>😎</span><strong id="summaryEasy">0</strong><small>los sé</small></div>
+            <div class="summary-metric"><span>🤔</span><strong id="summaryMedium">0</strong><small>dudosos</small></div>
+            <div class="summary-metric"><span>😵</span><strong id="summaryHard">0</strong><small>difíciles</small></div>
+          </div>
+
+          <div class="summary-detail-grid">
+            <div class="summary-box">
+              <p class="eyebrow">EJERCICIOS CORREGIBLES</p>
+              <h3><span id="summaryAccuracy">—</span> de acierto</h3>
+              <p id="summaryAccuracyNote">Las tarjetas de memoria no cuentan aquí: solo elección y escritura.</p>
+            </div>
+            <div class="summary-box memory-box">
+              <p class="eyebrow">CÓMO FUNCIONA LA MEMORIA</p>
+              <p><b>No sé</b> → vuelve hoy · <b>Dudo</b> → vuelve pronto · <b>La sé</b> → espera varios días.</p>
+            </div>
+          </div>
+
+          <div class="hard-again hidden" id="hardAgainBox">
+            <p class="eyebrow">CONVIENE VER OTRA VEZ</p>
+            <div class="hard-chip-list" id="hardChipList"></div>
+          </div>
+
+          <div class="summary-actions">
+            <button class="secondary-btn hidden" id="reviewHardBtn">Repasar las difíciles</button>
+            <button class="primary-btn" data-go="home">Volver al inicio</button>
+          </div>
+        </section>
+
+        <div id="studyArea" class="study-area">
+          <div class="card-meta-row">
+            <span class="tag" id="cardTypeTag">WORD</span>
+            <span class="level-tag" id="cardLevel">A2</span>
+            <span class="category-tag" id="cardCategory">Daily life</span>
+          </div>
+
+          <article class="exercise-card" id="exerciseCard">
+            <div class="exercise-topline">
+              <span class="exercise-kind" id="exerciseKind">ELIGE EL SIGNIFICADO</span>
+              <div class="exercise-meta-actions">
+                <span class="memory-status" id="memoryStatus">Nueva</span>
+                <button class="favorite-btn compact" id="studyFavoriteBtn" aria-label="Guardar en favoritos" title="Favorito">♡</button>
+              </div>
+            </div>
+
+            <p class="prompt-label" id="promptLabel">¿Qué significa?</p>
+            <h2 id="exercisePrompt">although</h2>
+            <p class="exercise-context hidden" id="exerciseContext"></p>
+            <button class="speak-btn" id="speakBtn">🔊 Escuchar</button>
+
+            <div class="choice-area hidden" id="choiceArea"></div>
+
+            <form class="type-area hidden" id="typeArea" autocomplete="off">
+              <label for="typeInput">Escríbelo en inglés</label>
+              <div class="type-row">
+                <input id="typeInput" type="text" placeholder="Escribe tu respuesta…" autocapitalize="off" spellcheck="false" />
+                <button class="primary-btn" type="submit">Comprobar</button>
+              </div>
+            </form>
+
+            <div class="feedback-area hidden" id="feedbackArea">
+              <div class="feedback-head">
+                <span class="feedback-icon" id="feedbackIcon">✓</span>
+                <div>
+                  <strong id="feedbackTitle">Correcto</strong>
+                  <small id="feedbackSubtitle">La respuesta es:</small>
+                </div>
+              </div>
+              <div class="correct-answer">
+                <strong id="answerEnglish">although</strong>
+                <span id="answerSpanish">aunque / a pesar de que</span>
+              </div>
+              <div class="example-box" id="exampleBox">
+                <p id="exampleEn"></p>
+                <small id="exampleEs"></small>
+              </div>
+            </div>
+          </article>
+
+          <button class="show-answer-btn" id="showAnswerBtn">No lo sé · mostrar respuesta <span>Espacio</span></button>
+
+          <div class="rating-area hidden" id="ratingArea">
+            <p>Ahora dime cómo te ha resultado. Esto decide cuándo volverá.</p>
+            <div class="rating-grid">
+              <button class="rating-btn hard" data-rating="0"><span>😵</span><b>No sé</b><small>vuelve hoy · 1</small></button>
+              <button class="rating-btn medium" data-rating="1"><span>🤔</span><b>Dudo</b><small>pronto · 2</small></button>
+              <button class="rating-btn easy" data-rating="2"><span>😎</span><b>La sé</b><small>varios días · 3</small></button>
+            </div>
+          </div>
+          <p class="keyboard-hint" id="keyboardHint">En ordenador: <kbd>Espacio</kbd> muestra la respuesta · <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> puntúan</p>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-videos">
+        <div class="page-heading">
+          <div>
+            <p class="eyebrow">LISTENING · VÍDEOS</p>
+            <h1>Vídeos</h1>
+            <p>Dos colecciones distintas, cada una con su propio progreso. Elige qué te apetece practicar.</p>
+          </div>
+          <span class="video-online-note">☁ Necesita conexión a internet</span>
+        </div>
+
+        <div class="video-collections-overview" id="videoCollectionsOverview">
+          <div class="video-collection-grid">
+            <button class="video-collection-card" data-video-collection="conversations">
+              <div class="video-collection-card-top">
+                <span class="video-collection-icon">💬</span>
+                <span class="video-collection-count"><b id="conversationsTotalCard">217</b> vídeos</span>
+              </div>
+              <h2>Conversaciones</h2>
+              <p>Escucha conversaciones cortas en inglés y avanza a otra distinta cuando termines.</p>
+              <div class="video-collection-progress"><span id="conversationsProgressBar"></span></div>
+              <div class="video-collection-meta"><span><strong id="conversationsWatchedCard">0</strong> vistos</span><span><strong id="conversationsRemainingCard">217</strong> pendientes</span></div>
+            </button>
+
+            <button class="video-collection-card" data-video-collection="peldanos">
+              <div class="video-collection-card-top">
+                <span class="video-collection-icon">🪜</span>
+                <span class="video-collection-count"><b id="peldanosTotalCard">62</b> vídeos</span>
+              </div>
+              <h2>Palabras / Peldaños</h2>
+              <p>Vídeos de vocabulario y palabras. Funcionan como una colección independiente de las conversaciones.</p>
+              <div class="video-collection-progress"><span id="peldanosProgressBar"></span></div>
+              <div class="video-collection-meta"><span><strong id="peldanosWatchedCard">0</strong> vistos</span><span><strong id="peldanosRemainingCard">62</strong> pendientes</span></div>
+            </button>
+          </div>
+        </div>
+
+        <div class="video-collection-detail hidden" id="videoCollectionDetail">
+          <div class="video-collection-detail-head">
+            <button class="secondary-btn" data-video-collection-back>← Colecciones</button>
+            <div class="video-collection-detail-title">
+              <p class="eyebrow" id="videoCollectionEyebrow">COLECCIÓN</p>
+              <h1 id="videoCollectionTitle">Conversaciones</h1>
+              <p id="videoCollectionDescription"></p>
+              <div class="video-collection-folder-note">☁ <span>Los vídeos se reproducen desde Google Drive.</span></div>
+            </div>
+          </div>
+
+          <div class="video-summary" aria-label="Resumen de vídeos">
+            <div class="video-summary-card"><span>Disponibles</span><strong id="videoTotalCount">0</strong></div>
+            <div class="video-summary-card"><span>Vistos</span><strong id="videoWatchedCount">0</strong></div>
+            <div class="video-summary-card"><span>Pendientes</span><strong id="videoRemainingCount">0</strong></div>
+          </div>
+
+          <div class="video-complete panel hidden" id="videoCompletePanel">
+            <span class="complete-emoji">🎉</span>
+            <h2 id="videoCompleteTitle">¡Has visto toda la colección!</h2>
+            <p id="videoCompleteText">Ya no quedan vídeos pendientes.</p>
+            <button class="primary-btn" data-video-reset>↻ Reiniciar esta colección</button>
+          </div>
+
+          <div class="video-list" id="videoList"></div>
+
+          <div class="video-switch-actions" id="videoSwitchActions">
+            <button class="secondary-btn" data-video-random>🎲 Otro vídeo</button>
+            <button class="secondary-btn" data-video-library-toggle>📚 Ver todos</button>
+          </div>
+
+          <div class="panel video-library-panel hidden" id="videoLibraryPanel">
+            <div class="video-library-head">
+              <div>
+                <p class="eyebrow" id="videoLibraryEyebrow">TODOS LOS VÍDEOS</p>
+                <h2 id="videoLibraryTitle">Biblioteca</h2>
+                <p>Busca un vídeo, comprueba cuáles has visto o abre cualquiera manualmente.</p>
+              </div>
+              <button class="icon-btn" data-video-library-toggle aria-label="Cerrar biblioteca">×</button>
+            </div>
+            <div class="video-library-toolbar">
+              <input type="search" id="videoLibrarySearch" placeholder="Buscar por nombre o número…" />
+              <select id="videoLibraryFilter" aria-label="Filtrar vídeos">
+                <option value="pending">Pendientes</option>
+                <option value="watched">Vistos</option>
+                <option value="all">Todos</option>
+              </select>
+            </div>
+            <div class="video-library-list" id="videoLibraryList"></div>
+            <p class="video-snapshot-note" id="videoSnapshotNote">Las listas de Drive están incluidas en esta versión. Los vídeos nuevos que añadas después todavía no se sincronizan automáticamente.</p>
+          </div>
+
+          <div class="panel video-next-panel">
+            <p class="eyebrow">MÁS ADELANTE</p>
+            <h2>Podemos convertir estos vídeos en pequeñas lecciones</h2>
+            <p>Podremos asociar vocabulario, frases, preguntas de comprensión o una valoración de cuánto has entendido.</p>
+            <div class="video-next-chips"><span>💬 Frases</span><span>🎧 Listening</span><span>✓ Preguntas</span><span>＋ Guardar vocabulario</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-vaughan">
+        <div class="audio-page-head">
+          <button class="back-btn" data-go="home">← Inicio</button>
+          <div class="audio-page-head-copy">
+            <p class="eyebrow" id="audioPageEyebrow">VAUGHAN TRANSLATION</p>
+            <h1 id="audioPageTitle">Vaughan Translation</h1>
+            <p id="audioPageDescription">Navega por los Booklets respetando exactamente la estructura de Drive.</p>
+          </div>
+        </div>
+
+        <div class="audio-collection-tabs">
+          <button class="audio-collection-tab" data-audio-collection="translation">🎧 VAUGHAN Translation</button>
+          <button class="audio-collection-tab" data-audio-collection="vaughan">🎙️ VAUGHAN</button>
+        </div>
+
+        <div class="audio-browser-layout">
+          <aside class="panel audio-folder-panel">
+            <p class="eyebrow">CARPETAS DE DRIVE</p>
+            <h2 id="audioFolderPanelTitle">Booklets</h2>
+            <div class="audio-folder-list" id="audioFolderList"></div>
+          </aside>
+
+          <section class="panel audio-player-panel" id="audioPlayerPanel">
+            <div class="audio-player-head">
+              <div class="audio-player-breadcrumb" id="audioBreadcrumb">VAUGHAN Translation / Traslation Booklet1</div>
+              <div class="audio-player-head-row">
+                <h2 id="audioFolderTitle">Traslation Booklet1</h2>
+                <span class="audio-block-status" id="audioBlockStatus">EN CURSO</span>
+              </div>
+              <div class="audio-completion-progress">
+                <div class="bar"><span id="audioCollectionProgress"></span></div>
+                <small><b id="audioDoneCount">0</b> / <span id="audioTotalCount">8</span></small>
+              </div>
+            </div>
+            <div class="audio-drive-frame" id="audioDriveFrame"></div>
+            <div class="audio-player-foot">
+              <p class="audio-player-note">Las pistas se muestran desde la carpeta compartida de Google Drive. El progreso se guarda por carpeta/bloque para poder respetar la jerarquía original y recordar dónde te quedaste.</p>
+              <div class="audio-player-actions">
+                <button class="secondary-btn" data-audio-prev>← Anterior</button>
+                <button class="primary-btn" data-audio-toggle-complete>✓ Marcar bloque como escuchado</button>
+                <button class="secondary-btn" data-audio-next>Siguiente →</button>
+                <a class="secondary-btn" id="audioOpenDrive" href="#" target="_blank" rel="noopener noreferrer">Abrir carpeta en Drive ↗</a>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+
+      <section class="screen" id="screen-book">
+        <div class="book-page">
+          <div class="page-heading book-heading">
+            <div>
+              <p class="eyebrow">LIBRO · DIVERBO</p>
+              <h1>Libro Diverbo</h1>
+              <p>Una página cada vez, siguiendo el nombre de las fotos de Drive.</p>
+            </div>
+            <div class="book-heading-actions">
+              <button class="secondary-btn" data-go="home">← Inicio</button>
+              <a id="bookOpenDrive" class="secondary-btn" target="_blank" rel="noopener">Abrir original ↗</a>
+            </div>
+          </div>
+
+          <div class="book-reader">
+            <div class="book-reader-top">
+              <span id="bookPageName">Foto</span>
+              <span class="book-page-count">Página <b id="bookPageCurrent">1</b> de <span id="bookPageTotal">91</span></span>
+            </div>
+            <div class="book-stage" id="bookStage">
+              <img id="bookImage" alt="Página del Libro Diverbo" loading="eager" />
+              <iframe id="bookFallback" class="hidden" title="Página del Libro Diverbo en Google Drive" loading="lazy" allowfullscreen></iframe>
+            </div>
+            <div class="book-progress"><span id="bookProgressBar"></span></div>
+            <div class="book-controls">
+              <button class="secondary-btn" id="bookPrevBtn">← Anterior</button>
+              <span class="book-page-count">📖 <b id="bookPageCurrentBottom">1</b> / <span id="bookPageTotalBottom">91</span></span>
+              <button class="secondary-btn" id="bookNextBtn">Siguiente →</button>
+            </div>
+            <p class="book-tip">En ordenador también puedes usar ← y →. La página en la que te quedes se guarda automáticamente.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-library">
+        <div class="page-heading">
+          <div>
+            <p class="eyebrow">CONTENIDO</p>
+            <h1>Biblioteca</h1>
+            <p>Palabras, expresiones y tus propios añadidos.</p>
+          </div>
+          <button class="primary-btn small" data-go="add">＋ Añadir</button>
+        </div>
+
+        <div class="toolbar">
+          <input type="search" id="librarySearch" placeholder="Buscar en inglés o español…" />
+          <select id="libraryFilter" aria-label="Filtrar contenido">
+            <option value="all">Todo</option>
+            <option value="word">Palabras</option>
+            <option value="phrase">Frases</option>
+            <option value="document">Lista importada</option>
+            <option value="favorites">Favoritas</option>
+            <option value="hard">Difíciles</option>
+            <option value="mastered">Dominadas</option>
+            <option value="learning">Aprendiendo</option>
+            <option value="custom">Mis añadidos</option>
+          </select>
+        </div>
+        <div class="library-stats" id="libraryStats"></div>
+        <div class="library-list" id="libraryList"></div>
+      </section>
+
+      <section class="screen" id="screen-add">
+        <div class="page-heading compact">
+          <div>
+            <p class="eyebrow">PERSONALIZA TU ESTUDIO</p>
+            <h1>Añadir contenido</h1>
+            <p>Guárdalo ahora y aparecerá en futuras sesiones.</p>
+          </div>
+        </div>
+        <form class="add-form panel" id="addForm">
+          <label>Tipo
+            <select id="addType">
+              <option value="word">Palabra</option>
+              <option value="phrase">Frase / expresión</option>
+            </select>
+          </label>
+          <div class="form-grid">
+            <label>Inglés *
+              <input id="addEnglish" required placeholder="e.g. awkward" />
+            </label>
+            <label>Español *
+              <input id="addSpanish" required placeholder="e.g. incómodo / torpe" />
+            </label>
+          </div>
+          <label>Ejemplo en inglés
+            <input id="addExampleEn" placeholder="e.g. It was an awkward silence." />
+          </label>
+          <label>Traducción del ejemplo
+            <input id="addExampleEs" placeholder="e.g. Fue un silencio incómodo." />
+          </label>
+          <div class="form-grid">
+            <label>Nivel
+              <select id="addLevel">
+                <option>A1</option><option selected>A2</option><option>B1</option><option>B2</option><option>C1</option>
+              </select>
+            </label>
+            <label>Categoría
+              <input id="addCategory" value="Personal" />
+            </label>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="secondary-btn" data-go="home">Cancelar</button>
+            <button type="submit" class="primary-btn">Guardar para estudiar</button>
+          </div>
+          <p class="form-message" id="formMessage" aria-live="polite"></p>
+        </form>
+      </section>
+    </main>
+
+    <nav class="bottom-nav" aria-label="Navegación principal">
+      <button data-go="home" class="nav-item active"><span>⌂</span><small>Inicio</small></button>
+      <button data-go="study" class="nav-item"><span>◇</span><small>Estudiar</small></button>
+      <button data-go="videos" class="nav-item"><span>▶</span><small>Vídeos</small></button>
+      <button data-go="library" class="nav-item"><span>▤</span><small>Biblioteca</small></button>
+      <button data-go="add" class="nav-item"><span>＋</span><small>Añadir</small></button>
+    </nav>
+  </div>
+
+  <script>
+window.SEED_CONTENT = [
+  {id:'w001',type:'word',en:'although',es:'aunque / a pesar de que',exampleEn:'Although it was raining, we went for a walk.',exampleEs:'Aunque estaba lloviendo, salimos a pasear.',level:'B1',category:'Connectors'},
+  {id:'w002',type:'word',en:'actually',es:'en realidad / de hecho',exampleEn:'I actually enjoyed the meeting.',exampleEs:'En realidad disfruté de la reunión.',level:'A2',category:'Daily life'},
+  {id:'w003',type:'word',en:'enough',es:'suficiente',exampleEn:'Do we have enough time?',exampleEs:'¿Tenemos suficiente tiempo?',level:'A2',category:'Daily life'},
+  {id:'w004',type:'word',en:'likely',es:'probable / probablemente',exampleEn:'It is likely to rain later.',exampleEs:'Es probable que llueva más tarde.',level:'B1',category:'Useful words'},
+  {id:'w005',type:'word',en:'instead',es:'en su lugar',exampleEn:'Let’s stay home instead.',exampleEs:'Quedémonos en casa en su lugar.',level:'A2',category:'Connectors'},
+  {id:'w006',type:'word',en:'aware',es:'consciente',exampleEn:'Are you aware of the problem?',exampleEs:'¿Eres consciente del problema?',level:'B1',category:'Useful words'},
+  {id:'w007',type:'word',en:'improve',es:'mejorar',exampleEn:'I want to improve my English.',exampleEs:'Quiero mejorar mi inglés.',level:'A2',category:'Learning'},
+  {id:'w008',type:'word',en:'avoid',es:'evitar',exampleEn:'Try to avoid checking your phone.',exampleEs:'Intenta evitar mirar el teléfono.',level:'B1',category:'Useful words'},
+  {id:'w009',type:'word',en:'afford',es:'poder permitirse',exampleEn:'I can’t afford a new car right now.',exampleEs:'Ahora mismo no puedo permitirme un coche nuevo.',level:'B1',category:'Money'},
+  {id:'w010',type:'word',en:'advice',es:'consejo',exampleEn:'Can you give me some advice?',exampleEs:'¿Puedes darme algún consejo?',level:'A2',category:'Daily life'},
+  {id:'w011',type:'word',en:'borrow',es:'pedir prestado',exampleEn:'Can I borrow your charger?',exampleEs:'¿Me prestas tu cargador?',level:'A2',category:'Daily life'},
+  {id:'w012',type:'word',en:'lend',es:'prestar',exampleEn:'I can lend you some money.',exampleEs:'Puedo prestarte algo de dinero.',level:'A2',category:'Daily life'},
+  {id:'w013',type:'word',en:'despite',es:'a pesar de',exampleEn:'Despite the traffic, we arrived on time.',exampleEs:'A pesar del tráfico, llegamos a tiempo.',level:'B1',category:'Connectors'},
+  {id:'w014',type:'word',en:'issue',es:'problema / asunto',exampleEn:'We need to discuss this issue.',exampleEs:'Tenemos que hablar de este asunto.',level:'B1',category:'Work'},
+  {id:'w015',type:'word',en:'deadline',es:'fecha límite',exampleEn:'The deadline is next Friday.',exampleEs:'La fecha límite es el próximo viernes.',level:'B1',category:'Work'},
+  {id:'w016',type:'word',en:'schedule',es:'horario / programar',exampleEn:'My schedule is quite busy today.',exampleEs:'Mi agenda está bastante llena hoy.',level:'A2',category:'Work'},
+  {id:'w017',type:'word',en:'attend',es:'asistir',exampleEn:'I will attend the conference.',exampleEs:'Asistiré a la conferencia.',level:'B1',category:'Work'},
+  {id:'w018',type:'word',en:'feedback',es:'comentarios / opinión',exampleEn:'Thanks for your feedback.',exampleEs:'Gracias por tus comentarios.',level:'B1',category:'Work'},
+  {id:'w019',type:'word',en:'achieve',es:'lograr / conseguir',exampleEn:'We achieved our main goal.',exampleEs:'Logramos nuestro objetivo principal.',level:'B1',category:'Work'},
+  {id:'w020',type:'word',en:'challenge',es:'reto / desafío',exampleEn:'Learning a language is a good challenge.',exampleEs:'Aprender un idioma es un buen reto.',level:'A2',category:'Learning'},
+  {id:'w021',type:'word',en:'confident',es:'seguro / con confianza',exampleEn:'I feel more confident speaking English.',exampleEs:'Me siento más seguro hablando inglés.',level:'B1',category:'Learning'},
+  {id:'w022',type:'word',en:'fluent',es:'fluido',exampleEn:'She is fluent in English and French.',exampleEs:'Habla inglés y francés con fluidez.',level:'B1',category:'Learning'},
+  {id:'w023',type:'word',en:'mistake',es:'error',exampleEn:'Don’t worry about making mistakes.',exampleEs:'No te preocupes por cometer errores.',level:'A2',category:'Learning'},
+  {id:'w024',type:'word',en:'notice',es:'notar / darse cuenta',exampleEn:'Did you notice anything different?',exampleEs:'¿Notaste algo diferente?',level:'A2',category:'Useful words'},
+  {id:'w025',type:'word',en:'realize',es:'darse cuenta',exampleEn:'I didn’t realize it was so late.',exampleEs:'No me di cuenta de que era tan tarde.',level:'B1',category:'Useful words'},
+  {id:'w026',type:'word',en:'seem',es:'parecer',exampleEn:'You seem tired today.',exampleEs:'Pareces cansado hoy.',level:'A2',category:'Daily life'},
+  {id:'w027',type:'word',en:'wonder',es:'preguntarse',exampleEn:'I wonder what happened.',exampleEs:'Me pregunto qué pasó.',level:'B1',category:'Useful words'},
+  {id:'w028',type:'word',en:'manage',es:'conseguir / arreglárselas',exampleEn:'I managed to finish on time.',exampleEs:'Conseguí terminar a tiempo.',level:'B1',category:'Useful words'},
+  {id:'w029',type:'word',en:'expect',es:'esperar / prever',exampleEn:'I expect the train to be late.',exampleEs:'Espero que el tren llegue tarde.',level:'A2',category:'Useful words'},
+  {id:'w030',type:'word',en:'suggest',es:'sugerir',exampleEn:'I suggest taking a short break.',exampleEs:'Sugiero hacer un descanso corto.',level:'A2',category:'Useful words'},
+  {id:'w031',type:'word',en:'require',es:'requerir / necesitar',exampleEn:'This job requires experience.',exampleEs:'Este trabajo requiere experiencia.',level:'B1',category:'Work'},
+  {id:'w032',type:'word',en:'available',es:'disponible',exampleEn:'Are you available tomorrow?',exampleEs:'¿Estás disponible mañana?',level:'A2',category:'Work'},
+  {id:'w033',type:'word',en:'reliable',es:'fiable',exampleEn:'We need a reliable supplier.',exampleEs:'Necesitamos un proveedor fiable.',level:'B1',category:'Work'},
+  {id:'w034',type:'word',en:'awkward',es:'incómodo / torpe',exampleEn:'There was an awkward silence.',exampleEs:'Hubo un silencio incómodo.',level:'B2',category:'Useful words'},
+  {id:'w035',type:'word',en:'overwhelmed',es:'abrumado',exampleEn:'I felt overwhelmed by all the work.',exampleEs:'Me sentí abrumado por todo el trabajo.',level:'B2',category:'Feelings'},
+  {id:'w036',type:'word',en:'upset',es:'molesto / disgustado',exampleEn:'She was upset about the news.',exampleEs:'Estaba disgustada por la noticia.',level:'B1',category:'Feelings'},
+  {id:'w037',type:'word',en:'proud',es:'orgulloso',exampleEn:'I’m proud of your progress.',exampleEs:'Estoy orgulloso de tu progreso.',level:'A2',category:'Feelings'},
+  {id:'w038',type:'word',en:'grateful',es:'agradecido',exampleEn:'I’m grateful for your help.',exampleEs:'Estoy agradecido por tu ayuda.',level:'B1',category:'Feelings'},
+  {id:'w039',type:'word',en:'crowded',es:'lleno de gente',exampleEn:'The train was very crowded.',exampleEs:'El tren estaba muy lleno.',level:'A2',category:'Travel'},
+  {id:'w040',type:'word',en:'abroad',es:'en el extranjero',exampleEn:'I worked abroad for two years.',exampleEs:'Trabajé en el extranjero durante dos años.',level:'A2',category:'Travel'},
+  {id:'w041',type:'word',en:'delay',es:'retraso / retrasar',exampleEn:'Our flight has a two-hour delay.',exampleEs:'Nuestro vuelo tiene dos horas de retraso.',level:'A2',category:'Travel'},
+  {id:'w042',type:'word',en:'luggage',es:'equipaje',exampleEn:'Where can I leave my luggage?',exampleEs:'¿Dónde puedo dejar mi equipaje?',level:'A2',category:'Travel'},
+  {id:'w043',type:'word',en:'receipt',es:'recibo / ticket',exampleEn:'Can I have the receipt, please?',exampleEs:'¿Me puede dar el recibo, por favor?',level:'A2',category:'Shopping'},
+  {id:'w044',type:'word',en:'refund',es:'reembolso',exampleEn:'I’d like to ask for a refund.',exampleEs:'Me gustaría solicitar un reembolso.',level:'B1',category:'Shopping'},
+  {id:'w045',type:'word',en:'worth',es:'valer la pena / valor',exampleEn:'This book is worth reading.',exampleEs:'Merece la pena leer este libro.',level:'B1',category:'Useful words'},
+  {id:'w046',type:'word',en:'unless',es:'a menos que',exampleEn:'I won’t go unless you come with me.',exampleEs:'No iré a menos que vengas conmigo.',level:'B1',category:'Connectors'},
+  {id:'w047',type:'word',en:'however',es:'sin embargo',exampleEn:'It was expensive; however, we bought it.',exampleEs:'Era caro; sin embargo, lo compramos.',level:'B1',category:'Connectors'},
+  {id:'w048',type:'word',en:'therefore',es:'por lo tanto',exampleEn:'The shop was closed; therefore, we left.',exampleEs:'La tienda estaba cerrada; por lo tanto, nos fuimos.',level:'B2',category:'Connectors'},
+  {id:'w049',type:'word',en:'eventually',es:'finalmente / con el tiempo',exampleEn:'We eventually found the right address.',exampleEs:'Finalmente encontramos la dirección correcta.',level:'B1',category:'Useful words'},
+  {id:'w050',type:'word',en:'currently',es:'actualmente',exampleEn:'I’m currently working from home.',exampleEs:'Actualmente trabajo desde casa.',level:'B1',category:'Work'},
+
+  {id:'p001',type:'phrase',en:'It depends on…',es:'Depende de…',exampleEn:'It depends on the weather.',exampleEs:'Depende del tiempo.',level:'A2',category:'Conversation'},
+  {id:'p002',type:'phrase',en:'I’m looking forward to it.',es:'Tengo ganas / lo espero con ilusión.',exampleEn:'The trip is next week. I’m looking forward to it.',exampleEs:'El viaje es la semana que viene. Tengo muchas ganas.',level:'B1',category:'Conversation'},
+  {id:'p003',type:'phrase',en:'That makes sense.',es:'Eso tiene sentido.',exampleEn:'Now I understand. That makes sense.',exampleEs:'Ahora lo entiendo. Eso tiene sentido.',level:'A2',category:'Conversation'},
+  {id:'p004',type:'phrase',en:'I’m not sure yet.',es:'Todavía no estoy seguro.',exampleEn:'Are you coming tonight? I’m not sure yet.',exampleEs:'¿Vienes esta noche? Todavía no estoy seguro.',level:'A2',category:'Conversation'},
+  {id:'p005',type:'phrase',en:'As far as I know…',es:'Por lo que yo sé…',exampleEn:'As far as I know, the meeting is at three.',exampleEs:'Por lo que yo sé, la reunión es a las tres.',level:'B1',category:'Conversation'},
+  {id:'p006',type:'phrase',en:'It’s up to you.',es:'Tú decides / depende de ti.',exampleEn:'We can eat here or outside. It’s up to you.',exampleEs:'Podemos comer aquí o fuera. Tú decides.',level:'A2',category:'Conversation'},
+  {id:'p007',type:'phrase',en:'I didn’t mean to…',es:'No era mi intención…',exampleEn:'I didn’t mean to interrupt you.',exampleEs:'No era mi intención interrumpirte.',level:'B1',category:'Conversation'},
+  {id:'p008',type:'phrase',en:'Take your time.',es:'Tómate tu tiempo.',exampleEn:'There’s no rush. Take your time.',exampleEs:'No hay prisa. Tómate tu tiempo.',level:'A2',category:'Conversation'},
+  {id:'p009',type:'phrase',en:'Could you say that again?',es:'¿Podrías repetirlo?',exampleEn:'Sorry, could you say that again?',exampleEs:'Perdona, ¿podrías repetirlo?',level:'A1',category:'Conversation'},
+  {id:'p010',type:'phrase',en:'What do you mean?',es:'¿Qué quieres decir?',exampleEn:'What do you mean by “urgent”?',exampleEs:'¿Qué quieres decir con “urgente”?',level:'A2',category:'Conversation'},
+  {id:'p011',type:'phrase',en:'I’ll get back to you.',es:'Te responderé / te diré algo.',exampleEn:'Let me check and I’ll get back to you tomorrow.',exampleEs:'Déjame comprobarlo y mañana te digo algo.',level:'B1',category:'Work'},
+  {id:'p012',type:'phrase',en:'Let’s keep in touch.',es:'Sigamos en contacto.',exampleEn:'It was great meeting you. Let’s keep in touch.',exampleEs:'Ha sido un placer conocerte. Sigamos en contacto.',level:'A2',category:'Conversation'},
+  {id:'p013',type:'phrase',en:'I’m running late.',es:'Llego tarde / voy con retraso.',exampleEn:'I’m running late. I’ll be there in ten minutes.',exampleEs:'Voy con retraso. Estaré allí en diez minutos.',level:'A2',category:'Daily life'},
+  {id:'p014',type:'phrase',en:'No worries.',es:'No pasa nada / sin problema.',exampleEn:'Sorry I’m late. — No worries.',exampleEs:'Perdón por llegar tarde. — No pasa nada.',level:'A2',category:'Conversation'},
+  {id:'p015',type:'phrase',en:'It’s not a big deal.',es:'No es para tanto / no es gran cosa.',exampleEn:'Don’t worry, it’s not a big deal.',exampleEs:'No te preocupes, no es para tanto.',level:'A2',category:'Conversation'},
+  {id:'p016',type:'phrase',en:'By the way…',es:'Por cierto…',exampleEn:'By the way, have you seen Laura?',exampleEs:'Por cierto, ¿has visto a Laura?',level:'A2',category:'Conversation'},
+  {id:'p017',type:'phrase',en:'To be honest…',es:'Sinceramente…',exampleEn:'To be honest, I don’t like the idea.',exampleEs:'Sinceramente, no me gusta la idea.',level:'A2',category:'Conversation'},
+  {id:'p018',type:'phrase',en:'I’m used to it.',es:'Estoy acostumbrado a ello.',exampleEn:'The commute is long, but I’m used to it.',exampleEs:'El trayecto es largo, pero estoy acostumbrado.',level:'B1',category:'Daily life'},
+  {id:'p019',type:'phrase',en:'It’s worth a try.',es:'Merece la pena intentarlo.',exampleEn:'I don’t know if it will work, but it’s worth a try.',exampleEs:'No sé si funcionará, pero merece la pena intentarlo.',level:'B1',category:'Conversation'},
+  {id:'p020',type:'phrase',en:'I couldn’t agree more.',es:'No podría estar más de acuerdo.',exampleEn:'This needs to change. — I couldn’t agree more.',exampleEs:'Esto tiene que cambiar. — No podría estar más de acuerdo.',level:'B2',category:'Conversation'},
+  {id:'p021',type:'phrase',en:'I’ll figure it out.',es:'Ya encontraré la manera / lo resolveré.',exampleEn:'Don’t worry about me. I’ll figure it out.',exampleEs:'No te preocupes por mí. Ya lo resolveré.',level:'B1',category:'Conversation'},
+  {id:'p022',type:'phrase',en:'That sounds good.',es:'Eso suena bien.',exampleEn:'Let’s meet at six. — That sounds good.',exampleEs:'Quedemos a las seis. — Eso suena bien.',level:'A2',category:'Conversation'},
+  {id:'p023',type:'phrase',en:'I’m afraid I can’t.',es:'Me temo que no puedo.',exampleEn:'I’m afraid I can’t join the call today.',exampleEs:'Me temo que hoy no puedo unirme a la llamada.',level:'B1',category:'Work'},
+  {id:'p024',type:'phrase',en:'What have you been up to?',es:'¿Qué has estado haciendo? / ¿Qué es de tu vida?',exampleEn:'I haven’t seen you in ages. What have you been up to?',exampleEs:'Hace muchísimo que no te veo. ¿Qué es de tu vida?',level:'B1',category:'Conversation'},
+
+  // v1.0 · Contenido importado de “Inglés completo”
+  {"id":"d001","type":"word","en":"hello","es":"hola","exampleEn":"Hello, nice to meet you.","exampleEs":"Hola, encantado de conocerte.","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d002","type":"word","en":"hi","es":"hola","exampleEn":"Hi, what are you doing?","exampleEs":"Hola, ¿qué haces?","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d003","type":"word","en":"good morning","es":"buenos días","exampleEn":"Good morning, did you sleep well?","exampleEs":"Buenos días, ¿has dormido bien?","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d004","type":"word","en":"good afternoon","es":"buenas tardes","exampleEn":"Good afternoon, how is your day going?","exampleEs":"Buenas tardes, ¿cómo va tu día?","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d005","type":"word","en":"good evening","es":"buenas noches - saludo","exampleEn":"Good evening, welcome home.","exampleEs":"Buenas noches, bienvenido a casa.","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d006","type":"word","en":"good night","es":"buenas noches - despedida","exampleEn":"Good night, see you tomorrow.","exampleEs":"Buenas noches, nos vemos mañana.","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d007","type":"word","en":"goodbye","es":"adiós","exampleEn":"Goodbye, take care.","exampleEs":"Adiós, cuídate.","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d008","type":"word","en":"see you","es":"nos vemos","exampleEn":"See you later at work.","exampleEs":"Nos vemos luego en el trabajo.","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d009","type":"word","en":"please","es":"por favor","exampleEn":"Please, pass me the salt.","exampleEs":"Por favor, pásame la sal.","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d010","type":"word","en":"thank you","es":"gracias","exampleEn":"Thank you for everything.","exampleEs":"Gracias por todo.","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d011","type":"word","en":"thanks","es":"gracias","exampleEn":"Thanks, that really helped.","exampleEs":"Gracias, eso ayudó mucho.","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d012","type":"word","en":"you’re welcome","es":"de nada","exampleEn":"You’re welcome, anytime.","exampleEs":"De nada, cuando quieras.","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d013","type":"word","en":"excuse me","es":"perdón / disculpe","exampleEn":"Excuse me, do you know the time?","exampleEs":"Disculpe, ¿sabe la hora?","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d014","type":"word","en":"sorry","es":"lo siento","exampleEn":"Sorry, I didn’t hear you.","exampleEs":"Lo siento, no te escuché.","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d015","type":"word","en":"no problem","es":"no hay problema","exampleEn":"No problem, I can do it.","exampleEs":"No hay problema, puedo hacerlo.","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d016","type":"word","en":"yes","es":"sí","exampleEn":"Yes, I agree with you.","exampleEs":"Sí, estoy de acuerdo contigo.","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d017","type":"word","en":"no","es":"no","exampleEn":"No, I don’t think so.","exampleEs":"No, no lo creo.","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d018","type":"word","en":"maybe","es":"quizás","exampleEn":"Maybe we can try tomorrow.","exampleEs":"Quizás podamos intentarlo mañana.","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d019","type":"word","en":"of course","es":"por supuesto","exampleEn":"Of course, I can help you.","exampleEs":"Por supuesto, puedo ayudarte.","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d020","type":"word","en":"really?","es":"¿en serio?","exampleEn":"Really? I didn’t know that.","exampleEs":"¿En serio? No lo sabía.","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d021","type":"word","en":"sure","es":"claro / seguro","exampleEn":"Sure, I’m ready.","exampleEs":"Claro, estoy listo.","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d022","type":"word","en":"I think so","es":"creo que sí","exampleEn":"I think so, but I’m not sure.","exampleEs":"Creo que sí, pero no estoy seguro.","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d023","type":"word","en":"I don’t think so","es":"creo que no","exampleEn":"I don’t think so, sorry.","exampleEs":"Creo que no, lo siento.","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d024","type":"word","en":"I don’t know","es":"no lo sé","exampleEn":"I don’t know what to do.","exampleEs":"No sé qué hacer.","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d025","type":"word","en":"I understand","es":"entiendo","exampleEn":"I understand your point.","exampleEs":"Entiendo tu punto.","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d026","type":"word","en":"I don’t understand","es":"no entiendo","exampleEn":"I don’t understand this sentence.","exampleEs":"No entiendo esta frase.","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d027","type":"word","en":"can you repeat?","es":"¿puedes repetir?","exampleEn":"Can you repeat, please?","exampleEs":"¿Puedes repetir, por favor?","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d028","type":"word","en":"one moment","es":"un momento","exampleEn":"One moment, I’m checking.","exampleEs":"Un momento, estoy comprobando.","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d029","type":"word","en":"wait","es":"espera","exampleEn":"Wait, don’t go yet.","exampleEs":"Espera, no te vayas aún.","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d030","type":"word","en":"hold on","es":"espera, aguarda","exampleEn":"Hold on, I’m coming.","exampleEs":"Espera, ya voy.","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d031","type":"word","en":"listen","es":"escucha","exampleEn":"Listen, this is important.","exampleEs":"Escucha, esto es importante.","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d032","type":"word","en":"look","es":"mira","exampleEn":"Look, it’s starting to rain.","exampleEs":"Mira, está empezando a llover.","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d033","type":"word","en":"what?","es":"¿qué?","exampleEn":"What? I didn’t hear you.","exampleEs":"¿Qué? No te escuché.","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d034","type":"word","en":"why?","es":"¿por qué?","exampleEn":"Why are you upset?","exampleEs":"¿Por qué estás molesto?","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d035","type":"word","en":"when?","es":"¿cuándo?","exampleEn":"When does it start?","exampleEs":"¿Cuándo empieza?","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d036","type":"word","en":"where?","es":"¿dónde?","exampleEn":"Where are you now?","exampleEs":"¿Dónde estás ahora?","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d037","type":"word","en":"how?","es":"¿cómo?","exampleEn":"How do you do this?","exampleEs":"¿Cómo haces esto?","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d038","type":"word","en":"what’s this?","es":"¿qué es esto?","exampleEn":"What’s this on the table?","exampleEs":"¿Qué es esto en la mesa?","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d039","type":"word","en":"I’m ready","es":"estoy listo","exampleEn":"I’m ready to go.","exampleEs":"Estoy listo para irme.","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d040","type":"word","en":"I’m not sure","es":"no estoy seguro","exampleEn":"I’m not sure about that.","exampleEs":"No estoy seguro de eso.","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d041","type":"word","en":"I’m busy","es":"estoy ocupado","exampleEn":"I’m busy right now.","exampleEs":"Estoy ocupado ahora mismo.","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d042","type":"word","en":"just a second","es":"solo un segundo","exampleEn":"Just a second, please.","exampleEs":"Solo un segundo, por favor.","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d043","type":"word","en":"take care","es":"cuídate","exampleEn":"Take care, see you soon.","exampleEs":"Cuídate, nos vemos pronto.","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d044","type":"word","en":"welcome","es":"bienvenido","exampleEn":"Welcome to my home!","exampleEs":"¡Bienvenido a mi casa!","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d045","type":"word","en":"really good","es":"muy bien","exampleEn":"You did really good today.","exampleEs":"Lo hiciste muy bien hoy.","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d046","type":"word","en":"not bad","es":"no está mal","exampleEn":"That’s not bad at all.","exampleEs":"Eso no está nada mal.","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d047","type":"word","en":"what’s happening?","es":"¿qué está pasando?","exampleEn":"What’s happening here?","exampleEs":"¿Qué está pasando aquí?","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d048","type":"word","en":"what’s going on?","es":"¿qué ocurre?","exampleEn":"What’s going on tonight?","exampleEs":"¿Qué ocurre esta noche?","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d049","type":"word","en":"let’s go","es":"vamos","exampleEn":"Let’s go, we’re late.","exampleEs":"Vamos, llegamos tarde.","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d050","type":"word","en":"come here","es":"ven aquí","exampleEn":"Come here, I want to show you something.","exampleEs":"Ven aquí, quiero enseñarte algo.","level":"—","category":"Saludos y expresiones básicas","source":"Inglés completo"},
+  {"id":"d051","type":"word","en":"house","es":"casa","exampleEn":"This house is very old.","exampleEs":"Esta casa es muy antigua.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d052","type":"word","en":"home","es":"hogar","exampleEn":"I love being at home.","exampleEs":"Me encanta estar en casa.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d053","type":"word","en":"room","es":"habitación","exampleEn":"Your room is very tidy.","exampleEs":"Tu habitación está muy ordenada.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d054","type":"word","en":"kitchen","es":"cocina","exampleEn":"The kitchen is clean now.","exampleEs":"La cocina está limpia ahora.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d055","type":"word","en":"bathroom","es":"baño","exampleEn":"The bathroom is upstairs.","exampleEs":"El baño está arriba.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d056","type":"word","en":"bedroom","es":"dormitorio","exampleEn":"My bedroom has a big window.","exampleEs":"Mi dormitorio tiene una ventana grande.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d057","type":"word","en":"living room","es":"salón","exampleEn":"We watch TV in the living room.","exampleEs":"Vemos la tele en el salón.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d058","type":"word","en":"door","es":"puerta","exampleEn":"Close the door, please.","exampleEs":"Cierra la puerta, por favor.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d059","type":"word","en":"window","es":"ventana","exampleEn":"Open the window, it’s hot.","exampleEs":"Abre la ventana, hace calor.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d060","type":"word","en":"floor","es":"suelo","exampleEn":"The floor is cold today.","exampleEs":"El suelo está frío hoy.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d061","type":"word","en":"wall","es":"pared","exampleEn":"The wall is white.","exampleEs":"La pared es blanca.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d062","type":"word","en":"ceiling","es":"techo","exampleEn":"The ceiling is very high.","exampleEs":"El techo es muy alto.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d063","type":"word","en":"light","es":"luz","exampleEn":"Turn on the light.","exampleEs":"Enciende la luz.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d064","type":"word","en":"lamp","es":"lámpara","exampleEn":"The lamp is broken.","exampleEs":"La lámpara está rota.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d065","type":"word","en":"sofa","es":"sofá","exampleEn":"I’m sitting on the sofa.","exampleEs":"Estoy sentado en el sofá.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d066","type":"word","en":"chair","es":"silla","exampleEn":"Is this chair free?","exampleEs":"¿Está libre esta silla?","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d067","type":"word","en":"table","es":"mesa","exampleEn":"Dinner is on the table.","exampleEs":"La cena está en la mesa.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d068","type":"word","en":"bed","es":"cama","exampleEn":"I want to go to bed early.","exampleEs":"Quiero irme a la cama temprano.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d069","type":"word","en":"blanket","es":"manta","exampleEn":"I need another blanket.","exampleEs":"Necesito otra manta.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d070","type":"word","en":"pillow","es":"almohada","exampleEn":"Your pillow is very soft.","exampleEs":"Tu almohada es muy suave.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d071","type":"word","en":"fridge","es":"nevera","exampleEn":"There is no milk in the fridge.","exampleEs":"No hay leche en la nevera.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d072","type":"word","en":"oven","es":"horno","exampleEn":"The pizza is in the oven.","exampleEs":"La pizza está en el horno.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d073","type":"word","en":"microwave","es":"microondas","exampleEn":"Heat it in the microwave.","exampleEs":"Caliéntalo en el microondas.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d074","type":"word","en":"sink","es":"fregadero","exampleEn":"The sink is full of dishes.","exampleEs":"El fregadero está lleno de platos.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d075","type":"word","en":"shower","es":"ducha","exampleEn":"I’m going to take a shower.","exampleEs":"Voy a ducharme.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d076","type":"word","en":"toilet","es":"inodoro","exampleEn":"The toilet is not working.","exampleEs":"El inodoro no funciona.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d077","type":"word","en":"mirror","es":"espejo","exampleEn":"The mirror is dirty.","exampleEs":"El espejo está sucio.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d078","type":"word","en":"closet","es":"armario","exampleEn":"My clothes are in the closet.","exampleEs":"Mi ropa está en el armario.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d079","type":"word","en":"drawer","es":"cajón","exampleEn":"The keys are in the drawer.","exampleEs":"Las llaves están en el cajón.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d080","type":"word","en":"shelf","es":"estante","exampleEn":"Put the books on the shelf.","exampleEs":"Pon los libros en el estante.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d081","type":"word","en":"keys","es":"llaves","exampleEn":"I lost my keys again.","exampleEs":"Perdí mis llaves otra vez.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d082","type":"word","en":"wallet","es":"cartera","exampleEn":"My wallet is in my bag.","exampleEs":"Mi cartera está en mi bolso.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d083","type":"word","en":"bag","es":"bolsa / bolso","exampleEn":"Your bag is very heavy.","exampleEs":"Tu bolso es muy pesado.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d084","type":"word","en":"clothes","es":"ropa","exampleEn":"I need to wash my clothes.","exampleEs":"Necesito lavar mi ropa.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d085","type":"word","en":"shoes","es":"zapatos","exampleEn":"Your shoes are dirty.","exampleEs":"Tus zapatos están sucios.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d086","type":"word","en":"laundry","es":"lavandería / colada","exampleEn":"I’m doing the laundry today.","exampleEs":"Estoy haciendo la colada hoy.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d087","type":"word","en":"cleaning","es":"limpieza","exampleEn":"Cleaning the house takes time.","exampleEs":"Limpiar la casa lleva tiempo.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d088","type":"word","en":"cooking","es":"cocinar","exampleEn":"I enjoy cooking dinner.","exampleEs":"Disfruto cocinar la cena.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d089","type":"word","en":"shopping","es":"compras","exampleEn":"I have to go shopping later.","exampleEs":"Tengo que ir de compras luego.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d090","type":"word","en":"phone","es":"teléfono","exampleEn":"Your phone is ringing.","exampleEs":"Tu teléfono está sonando.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d091","type":"word","en":"laptop","es":"portátil","exampleEn":"My laptop is very slow.","exampleEs":"Mi portátil es muy lento.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d092","type":"word","en":"internet","es":"internet","exampleEn":"The internet is not working.","exampleEs":"Internet no funciona.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d093","type":"word","en":"charger","es":"cargador","exampleEn":"I forgot my charger.","exampleEs":"Olvidé mi cargador.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d094","type":"word","en":"remote","es":"mando a distancia","exampleEn":"Where is the TV remote?","exampleEs":"¿Dónde está el mando de la tele?","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d095","type":"word","en":"break","es":"descanso / pausa","exampleEn":"Let’s take a break.","exampleEs":"Tomemos un descanso.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d096","type":"word","en":"mess","es":"desorden / lío","exampleEn":"Your room is a mess.","exampleEs":"Tu habitación es un desastre.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d097","type":"word","en":"noise","es":"ruido","exampleEn":"There is too much noise outside.","exampleEs":"Hay demasiado ruido fuera.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d098","type":"word","en":"task","es":"tarea","exampleEn":"This task is easy.","exampleEs":"Esta tarea es fácil.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d099","type":"word","en":"routine","es":"rutina","exampleEn":"I need a better routine.","exampleEs":"Necesito una mejor rutina.","level":"—","category":"Casa y vida diaria","source":"Inglés completo"},
+  {"id":"d100","type":"word","en":"airport","es":"aeropuerto","exampleEn":"The airport is very crowded today.","exampleEs":"El aeropuerto está muy lleno hoy.","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d101","type":"word","en":"flight","es":"vuelo","exampleEn":"Our flight leaves at 10 AM.","exampleEs":"Nuestro vuelo sale a las 10.","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d102","type":"word","en":"ticket","es":"billete","exampleEn":"I bought a ticket online.","exampleEs":"Compré un billete por internet.","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d103","type":"word","en":"passport","es":"pasaporte","exampleEn":"Don’t forget your passport.","exampleEs":"No olvides tu pasaporte.","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d104","type":"word","en":"suitcase","es":"maleta","exampleEn":"The suitcase is broken.","exampleEs":"La maleta está rota.","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d105","type":"word","en":"boarding pass","es":"tarjeta de embarque","exampleEn":"Show your boarding pass, please.","exampleEs":"Muestre su tarjeta de embarque, por favor.","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d106","type":"word","en":"gate","es":"puerta de embarque","exampleEn":"Our gate is number 12.","exampleEs":"Nuestra puerta es la 12.","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d107","type":"word","en":"arrival","es":"llegada","exampleEn":"The arrival is on time.","exampleEs":"La llegada está en hora.","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d108","type":"word","en":"departure","es":"salida","exampleEn":"Departure is scheduled for noon.","exampleEs":"La salida está programada para el mediodía.","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d109","type":"word","en":"hotel","es":"hotel","exampleEn":"The hotel room is very comfortable.","exampleEs":"La habitación del hotel es muy cómoda.","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d110","type":"word","en":"reception","es":"recepción","exampleEn":"Ask at reception for towels.","exampleEs":"Pregunta en recepción por toallas.","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d111","type":"word","en":"reservation","es":"reserva","exampleEn":"I have a reservation under Aparicio.","exampleEs":"Tengo una reserva a nombre de Aparicio.","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d112","type":"word","en":"key card","es":"tarjeta llave","exampleEn":"Your key card is not working.","exampleEs":"Tu tarjeta llave no funciona.","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d113","type":"word","en":"beach","es":"playa","exampleEn":"The beach is only 5 minutes away.","exampleEs":"La playa está a solo 5 minutos.","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d114","type":"word","en":"sea","es":"mar","exampleEn":"The sea is very calm today.","exampleEs":"El mar está muy tranquilo hoy.","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d115","type":"word","en":"sun","es":"sol","exampleEn":"The sun is very strong.","exampleEs":"El sol está muy fuerte.","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d116","type":"word","en":"umbrella","es":"sombrilla/paraguas","exampleEn":"Take an umbrella, it might rain.","exampleEs":"Lleva un paraguas, puede que llueva.","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d117","type":"word","en":"map","es":"mapa","exampleEn":"We need a map of the city.","exampleEs":"Necesitamos un mapa de la ciudad.","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d118","type":"word","en":"tour","es":"tour/excursión","exampleEn":"We booked a city tour.","exampleEs":"Reservamos un tour por la ciudad.","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d119","type":"word","en":"guide","es":"guía","exampleEn":"Our guide speaks Spanish.","exampleEs":"Nuestro guía habla español.","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d120","type":"word","en":"museum","es":"museo","exampleEn":"The museum opens at 9.","exampleEs":"El museo abre a las 9.","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d121","type":"word","en":"ticket office","es":"taquilla","exampleEn":"Buy tickets at the ticket office.","exampleEs":"Compra los tickets en la taquilla.","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d122","type":"word","en":"bus","es":"autobús","exampleEn":"The bus stop is around the corner.","exampleEs":"La parada de autobús está a la vuelta.","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d123","type":"word","en":"train","es":"tren","exampleEn":"The train is very fast.","exampleEs":"El tren es muy rápido.","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d124","type":"word","en":"station","es":"estación","exampleEn":"Meet me at the station.","exampleEs":"Encuéntrame en la estación.","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d125","type":"word","en":"taxi","es":"taxi","exampleEn":"Let’s take a taxi.","exampleEs":"Tomemos un taxi.","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d126","type":"word","en":"car rental","es":"alquiler de coche","exampleEn":"Car rental is expensive here.","exampleEs":"El alquiler de coche es caro aquí.","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d127","type":"word","en":"gas station","es":"gasolinera","exampleEn":"We need to stop at a gas station.","exampleEs":"Necesitamos parar en una gasolinera.","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d128","type":"word","en":"road","es":"carretera","exampleEn":"The road is very narrow.","exampleEs":"La carretera es muy estrecha.","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d129","type":"word","en":"street","es":"calle","exampleEn":"This street is beautiful.","exampleEs":"Esta calle es preciosa.","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d130","type":"word","en":"left","es":"izquierda","exampleEn":"Turn left at the corner.","exampleEs":"Gira a la izquierda en la esquina.","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d131","type":"word","en":"right","es":"derecha","exampleEn":"The hotel is on the right.","exampleEs":"El hotel está a la derecha.","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d132","type":"word","en":"straight","es":"recto","exampleEn":"Go straight for two blocks.","exampleEs":"Ve recto dos manzanas.","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d133","type":"word","en":"near","es":"cerca","exampleEn":"The restaurant is near the hotel.","exampleEs":"El restaurante está cerca del hotel.","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d134","type":"word","en":"far","es":"lejos","exampleEn":"The airport is far from here.","exampleEs":"El aeropuerto está lejos de aquí.","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d135","type":"word","en":"plan","es":"plan","exampleEn":"What’s the plan for today?","exampleEs":"¿Cuál es el plan de hoy?","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d136","type":"word","en":"trip","es":"viaje","exampleEn":"The trip was amazing.","exampleEs":"El viaje fue increíble.","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d137","type":"word","en":"vacation","es":"vacaciones","exampleEn":"We need a vacation.","exampleEs":"Necesitamos unas vacaciones.","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d138","type":"word","en":"adventure","es":"aventura","exampleEn":"This is a real adventure.","exampleEs":"Esto es una verdadera aventura.","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d139","type":"word","en":"photo","es":"foto","exampleEn":"Let’s take a photo here.","exampleEs":"Tomemos una foto aquí.","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d140","type":"word","en":"souvenir","es":"recuerdo/regalo","exampleEn":"I bought a souvenir for you.","exampleEs":"Te compré un recuerdo.","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d141","type":"word","en":"bagpack","es":"mochila","exampleEn":"My backpack is very heavy.","exampleEs":"Mi mochila está muy pesada.","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d142","type":"word","en":"check-in","es":"registro de entrada","exampleEn":"We need to check in now.","exampleEs":"Tenemos que hacer el check-in ahora.","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d143","type":"word","en":"check-out","es":"salida del hotel","exampleEn":"Check-out is at 11.","exampleEs":"El check-out es a las 11.","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d144","type":"word","en":"reservation number","es":"número de reserva","exampleEn":"What’s your reservation number?","exampleEs":"¿Cuál es tu número de reserva?","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d145","type":"word","en":"destination","es":"destino","exampleEn":"Our destination is Barcelona.","exampleEs":"Nuestro destino es Barcelona.","level":"—","category":"Viajes y vacaciones","source":"Inglés completo"},
+  {"id":"d146","type":"word","en":"work","es":"trabajo / trabajar","exampleEn":"I work from home today.","exampleEs":"Hoy trabajo desde casa.","level":"—","category":"Trabajo y negocios","source":"Inglés completo"},
+  {"id":"d147","type":"word","en":"job","es":"empleo","exampleEn":"She found a new job.","exampleEs":"Ella encontró un nuevo empleo.","level":"—","category":"Trabajo y negocios","source":"Inglés completo"},
+  {"id":"d148","type":"word","en":"office","es":"oficina","exampleEn":"The office is very quiet today.","exampleEs":"La oficina está muy tranquila hoy.","level":"—","category":"Trabajo y negocios","source":"Inglés completo"},
+  {"id":"d149","type":"word","en":"meeting","es":"reunión","exampleEn":"We have a meeting at 3.","exampleEs":"Tenemos una reunión a las 3.","level":"—","category":"Trabajo y negocios","source":"Inglés completo"},
+  {"id":"d150","type":"word","en":"call","es":"llamada / llamar","exampleEn":"I will call you later.","exampleEs":"Te llamaré más tarde.","level":"—","category":"Trabajo y negocios","source":"Inglés completo"},
+  {"id":"d151","type":"word","en":"email","es":"correo electrónico","exampleEn":"Did you get my email?","exampleEs":"¿Recibiste mi correo?","level":"—","category":"Trabajo y negocios","source":"Inglés completo"},
+  {"id":"d152","type":"word","en":"report","es":"informe","exampleEn":"The report is almost ready.","exampleEs":"El informe está casi listo.","level":"—","category":"Trabajo y negocios","source":"Inglés completo"},
+  {"id":"d153","type":"word","en":"project","es":"proyecto","exampleEn":"This project is very important.","exampleEs":"Este proyecto es muy importante.","level":"—","category":"Trabajo y negocios","source":"Inglés completo"},
+  {"id":"d154","type":"word","en":"team","es":"equipo","exampleEn":"Our team works well together.","exampleEs":"Nuestro equipo trabaja bien juntos.","level":"—","category":"Trabajo y negocios","source":"Inglés completo"},
+  {"id":"d155","type":"word","en":"manager","es":"jefe / gerente","exampleEn":"My manager is very supportive.","exampleEs":"Mi jefe es muy comprensivo.","level":"—","category":"Trabajo y negocios","source":"Inglés completo"},
+  {"id":"d156","type":"word","en":"boss","es":"jefe","exampleEn":"My boss wants an update.","exampleEs":"Mi jefe quiere una actualización.","level":"—","category":"Trabajo y negocios","source":"Inglés completo"},
+  {"id":"d157","type":"word","en":"colleague","es":"compañero de trabajo","exampleEn":"I had lunch with a colleague.","exampleEs":"Almorcé con un compañero de trabajo.","level":"—","category":"Trabajo y negocios","source":"Inglés completo"},
+  {"id":"d158","type":"word","en":"client","es":"cliente","exampleEn":"The client is waiting for the proposal.","exampleEs":"El cliente está esperando la propuesta.","level":"—","category":"Trabajo y negocios","source":"Inglés completo"},
+  {"id":"d159","type":"word","en":"customer","es":"cliente","exampleEn":"A customer called about an issue.","exampleEs":"Un cliente llamó por un problema.","level":"—","category":"Trabajo y negocios","source":"Inglés completo"},
+  {"id":"d160","type":"word","en":"salary","es":"salario","exampleEn":"My salary comes on the 30th.","exampleEs":"Mi salario llega el día 30.","level":"—","category":"Trabajo y negocios","source":"Inglés completo"},
+  {"id":"d161","type":"word","en":"budget","es":"presupuesto","exampleEn":"We need to reduce the budget.","exampleEs":"Necesitamos reducir el presupuesto.","level":"—","category":"Trabajo y negocios","source":"Inglés completo"},
+  {"id":"d162","type":"word","en":"invoice","es":"factura","exampleEn":"I sent the invoice yesterday.","exampleEs":"Envié la factura ayer.","level":"—","category":"Trabajo y negocios","source":"Inglés completo"},
+  {"id":"d163","type":"word","en":"contract","es":"contrato","exampleEn":"Please sign the contract.","exampleEs":"Por favor, firma el contrato.","level":"—","category":"Trabajo y negocios","source":"Inglés completo"},
+  {"id":"d164","type":"word","en":"document","es":"documento","exampleEn":"Print this document for me.","exampleEs":"Imprime este documento para mí.","level":"—","category":"Trabajo y negocios","source":"Inglés completo"},
+  {"id":"d165","type":"word","en":"file","es":"archivo","exampleEn":"This file is too large.","exampleEs":"Este archivo es demasiado grande.","level":"—","category":"Trabajo y negocios","source":"Inglés completo"},
+  {"id":"d166","type":"word","en":"folder","es":"carpeta","exampleEn":"Put it in the blue folder.","exampleEs":"Ponlo en la carpeta azul.","level":"—","category":"Trabajo y negocios","source":"Inglés completo"},
+  {"id":"d167","type":"word","en":"computer","es":"ordenador","exampleEn":"My computer is updating.","exampleEs":"Mi ordenador se está actualizando.","level":"—","category":"Trabajo y negocios","source":"Inglés completo"},
+  {"id":"d168","type":"word","en":"keyboard","es":"teclado","exampleEn":"The keyboard is not working.","exampleEs":"El teclado no funciona.","level":"—","category":"Trabajo y negocios","source":"Inglés completo"},
+  {"id":"d169","type":"word","en":"mouse","es":"ratón","exampleEn":"I need a new mouse.","exampleEs":"Necesito un ratón nuevo.","level":"—","category":"Trabajo y negocios","source":"Inglés completo"},
+  {"id":"d170","type":"word","en":"printer","es":"impresora","exampleEn":"The printer is out of paper.","exampleEs":"La impresora no tiene papel.","level":"—","category":"Trabajo y negocios","source":"Inglés completo"},
+  {"id":"d171","type":"word","en":"Wi-Fi","es":"wifi","exampleEn":"The Wi-Fi is very slow.","exampleEs":"El wifi está muy lento.","level":"—","category":"Trabajo y negocios","source":"Inglés completo"},
+  {"id":"d172","type":"word","en":"software","es":"software","exampleEn":"We need new software.","exampleEs":"Necesitamos un software nuevo.","level":"—","category":"Trabajo y negocios","source":"Inglés completo"},
+  {"id":"d173","type":"word","en":"update","es":"actualización","exampleEn":"The update fixed the problem.","exampleEs":"La actualización solucionó el problema.","level":"—","category":"Trabajo y negocios","source":"Inglés completo"},
+  {"id":"d174","type":"word","en":"meeting room","es":"sala de reuniones","exampleEn":"The meeting room is reserved.","exampleEs":"La sala de reuniones está reservada.","level":"—","category":"Trabajo y negocios","source":"Inglés completo"},
+  {"id":"d175","type":"word","en":"appointment","es":"cita","exampleEn":"I have an appointment at 5.","exampleEs":"Tengo una cita a las 5.","level":"—","category":"Trabajo y negocios","source":"Inglés completo"},
+  {"id":"d176","type":"word","en":"presentation","es":"presentación","exampleEn":"The presentation went well.","exampleEs":"La presentación salió bien.","level":"—","category":"Trabajo y negocios","source":"Inglés completo"},
+  {"id":"d177","type":"word","en":"slides","es":"diapositivas","exampleEn":"The slides look great.","exampleEs":"Las diapositivas se ven geniales.","level":"—","category":"Trabajo y negocios","source":"Inglés completo"},
+  {"id":"d178","type":"word","en":"proposal","es":"propuesta","exampleEn":"I sent the proposal this morning.","exampleEs":"Envié la propuesta esta mañana.","level":"—","category":"Trabajo y negocios","source":"Inglés completo"},
+  {"id":"d179","type":"word","en":"office hours","es":"horario de oficina","exampleEn":"My office hours are flexible.","exampleEs":"Mi horario de oficina es flexible.","level":"—","category":"Trabajo y negocios","source":"Inglés completo"},
+  {"id":"d180","type":"word","en":"task list","es":"lista de tareas","exampleEn":"Check your task list again.","exampleEs":"Revisa tu lista de tareas otra vez.","level":"—","category":"Trabajo y negocios","source":"Inglés completo"},
+  {"id":"d181","type":"word","en":"priority","es":"prioridad","exampleEn":"This is our top priority.","exampleEs":"Esta es nuestra máxima prioridad.","level":"—","category":"Trabajo y negocios","source":"Inglés completo"},
+  {"id":"d182","type":"word","en":"training","es":"formación","exampleEn":"We have training next week.","exampleEs":"Tenemos una formación la semana que viene.","level":"—","category":"Trabajo y negocios","source":"Inglés completo"},
+  {"id":"d183","type":"word","en":"skills","es":"habilidades","exampleEn":"Communication is an important skill.","exampleEs":"La comunicación es una habilidad importante.","level":"—","category":"Trabajo y negocios","source":"Inglés completo"},
+  {"id":"d184","type":"word","en":"experience","es":"experiencia","exampleEn":"She has a lot of experience.","exampleEs":"Ella tiene mucha experiencia.","level":"—","category":"Trabajo y negocios","source":"Inglés completo"},
+  {"id":"d185","type":"word","en":"career","es":"carrera profesional","exampleEn":"He wants to change his career.","exampleEs":"Él quiere cambiar de carrera profesional.","level":"—","category":"Trabajo y negocios","source":"Inglés completo"},
+  {"id":"d186","type":"word","en":"promotion","es":"ascenso","exampleEn":"She got a promotion!","exampleEs":"¡Le dieron un ascenso!","level":"—","category":"Trabajo y negocios","source":"Inglés completo"},
+  {"id":"d187","type":"word","en":"company","es":"empresa","exampleEn":"I’ve been in this company for 10 years.","exampleEs":"Llevo 10 años en esta empresa.","level":"—","category":"Trabajo y negocios","source":"Inglés completo"},
+  {"id":"d188","type":"word","en":"industry","es":"industria / sector","exampleEn":"The tech industry grows fast.","exampleEs":"El sector tecnológico crece rápido.","level":"—","category":"Trabajo y negocios","source":"Inglés completo"},
+  {"id":"d189","type":"word","en":"office desk","es":"escritorio","exampleEn":"My office desk is too small.","exampleEs":"Mi escritorio es demasiado pequeño.","level":"—","category":"Trabajo y negocios","source":"Inglés completo"},
+  {"id":"d190","type":"word","en":"break","es":"descanso","exampleEn":"Let’s take a short break.","exampleEs":"Tomemos un descanso corto.","level":"—","category":"Trabajo y negocios","source":"Inglés completo"},
+  {"id":"d191","type":"word","en":"person","es":"persona","exampleEn":"She is a very kind person.","exampleEs":"Ella es una persona muy amable.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d192","type":"word","en":"people","es":"gente","exampleEn":"There are too many people here.","exampleEs":"Hay demasiada gente aquí.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d193","type":"word","en":"man","es":"hombre","exampleEn":"The man at the door is my uncle.","exampleEs":"El hombre de la puerta es mi tío.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d194","type":"word","en":"woman","es":"mujer","exampleEn":"That woman works with me.","exampleEs":"Esa mujer trabaja conmigo.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d195","type":"word","en":"child","es":"niño/a","exampleEn":"The child is playing outside.","exampleEs":"El niño está jugando fuera.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d196","type":"word","en":"friend","es":"amigo/a","exampleEn":"She is my best friend.","exampleEs":"Ella es mi mejor amiga.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d197","type":"word","en":"neighbor","es":"vecino/a","exampleEn":"My neighbor is very friendly.","exampleEs":"Mi vecino es muy amable.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d198","type":"word","en":"family","es":"familia","exampleEn":"My family lives in Spain.","exampleEs":"Mi familia vive en España.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d199","type":"word","en":"parents","es":"padres","exampleEn":"My parents are on vacation.","exampleEs":"Mis padres están de vacaciones.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d200","type":"word","en":"mother","es":"madre","exampleEn":"My mother cooks very well.","exampleEs":"Mi madre cocina muy bien.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d201","type":"word","en":"father","es":"padre","exampleEn":"My father is at work.","exampleEs":"Mi padre está en el trabajo.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d202","type":"word","en":"brother","es":"hermano","exampleEn":"My brother is older than me.","exampleEs":"Mi hermano es mayor que yo.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d203","type":"word","en":"sister","es":"hermana","exampleEn":"My sister lives abroad.","exampleEs":"Mi hermana vive en el extranjero.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d204","type":"word","en":"son","es":"hijo","exampleEn":"His son is five years old.","exampleEs":"Su hijo tiene cinco años.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d205","type":"word","en":"daughter","es":"hija","exampleEn":"Their daughter is very smart.","exampleEs":"Su hija es muy lista.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d206","type":"word","en":"partner","es":"pareja","exampleEn":"My partner is very supportive.","exampleEs":"Mi pareja es muy comprensiva.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d207","type":"word","en":"husband","es":"marido","exampleEn":"Her husband is traveling.","exampleEs":"Su marido está viajando.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d208","type":"word","en":"wife","es":"esposa","exampleEn":"My wife loves reading.","exampleEs":"Mi esposa ama leer.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d209","type":"word","en":"baby","es":"bebé","exampleEn":"The baby is sleeping.","exampleEs":"El bebé está durmiendo.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d210","type":"word","en":"teenager","es":"adolescente","exampleEn":"Teenagers use social media a lot.","exampleEs":"Los adolescentes usan mucho las redes sociales.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d211","type":"word","en":"adult","es":"adulto","exampleEn":"You need an adult ticket.","exampleEs":"Necesitas un ticket de adulto.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d212","type":"word","en":"elderly","es":"persona mayor","exampleEn":"The elderly man needs help.","exampleEs":"El hombre mayor necesita ayuda.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d213","type":"word","en":"tall","es":"alto","exampleEn":"He is very tall.","exampleEs":"Él es muy alto.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d214","type":"word","en":"short","es":"bajo","exampleEn":"She is a bit short.","exampleEs":"Ella es un poco baja.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d215","type":"word","en":"big","es":"grande","exampleEn":"His car is very big.","exampleEs":"Su coche es muy grande.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d216","type":"word","en":"small","es":"pequeño","exampleEn":"The room is small but cozy.","exampleEs":"La habitación es pequeña pero acogedora.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d217","type":"word","en":"young","es":"joven","exampleEn":"They are very young.","exampleEs":"Son muy jóvenes.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d218","type":"word","en":"old","es":"viejo / mayor","exampleEn":"My dog is getting old.","exampleEs":"Mi perro se está haciendo mayor.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d219","type":"word","en":"beautiful","es":"hermoso / guapa","exampleEn":"The view is beautiful.","exampleEs":"La vista es hermosa.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d220","type":"word","en":"handsome","es":"guapo - para hombres","exampleEn":"He is a handsome actor.","exampleEs":"Él es un actor guapo.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d221","type":"word","en":"cute","es":"mono/a, adorable","exampleEn":"Your dog is so cute.","exampleEs":"Tu perro es tan mono.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d222","type":"word","en":"funny","es":"gracioso","exampleEn":"He is a very funny guy.","exampleEs":"Es un tipo muy gracioso.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d223","type":"word","en":"friendly","es":"amable","exampleEn":"Everybody here is friendly.","exampleEs":"Todos aquí son amables.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d224","type":"word","en":"shy","es":"tímido","exampleEn":"She is shy with strangers.","exampleEs":"Ella es tímida con desconocidos.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d225","type":"word","en":"smart","es":"inteligente","exampleEn":"He is very smart.","exampleEs":"Él es muy inteligente.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d226","type":"word","en":"strong","es":"fuerte","exampleEn":"She is physically very strong.","exampleEs":"Ella es físicamente muy fuerte.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d227","type":"word","en":"weak","es":"débil","exampleEn":"I feel weak today.","exampleEs":"Me siento débil hoy.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d228","type":"word","en":"happy","es":"feliz","exampleEn":"She looks very happy today.","exampleEs":"Ella parece muy feliz hoy.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d229","type":"word","en":"sad","es":"triste","exampleEn":"He felt sad after the movie.","exampleEs":"Se sintió triste después de la película.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d230","type":"word","en":"angry","es":"enfadado","exampleEn":"I’m angry about the situation.","exampleEs":"Estoy enfadado por la situación.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d231","type":"word","en":"tired","es":"cansado","exampleEn":"I’m really tired today.","exampleEs":"Estoy muy cansado hoy.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d232","type":"word","en":"nervous","es":"nervioso","exampleEn":"I’m nervous about the exam.","exampleEs":"Estoy nervioso por el examen.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d233","type":"word","en":"calm","es":"tranquilo","exampleEn":"Stay calm, everything is fine.","exampleEs":"Quédate tranquilo, todo está bien.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d234","type":"word","en":"busy","es":"ocupado","exampleEn":"I’m busy at the moment.","exampleEs":"Estoy ocupado ahora.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d235","type":"word","en":"lazy","es":"vago","exampleEn":"Don’t be lazy, help me.","exampleEs":"No seas vago, ayúdame.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d236","type":"word","en":"polite","es":"educado","exampleEn":"He is always polite.","exampleEs":"Él es siempre educado.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d237","type":"word","en":"rude","es":"maleducado","exampleEn":"That man was very rude.","exampleEs":"Ese hombre fue muy maleducado.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d238","type":"word","en":"honest","es":"honesto","exampleEn":"She is an honest person.","exampleEs":"Ella es una persona honesta.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d239","type":"word","en":"serious","es":"serio","exampleEn":"He looks very serious today.","exampleEs":"Él parece muy serio hoy.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d240","type":"word","en":"creative","es":"creativo","exampleEn":"She is very creative at work.","exampleEs":"Ella es muy creativa en el trabajo.","level":"—","category":"Personas, características y descripciones","source":"Inglés completo"},
+  {"id":"d241","type":"word","en":"be","es":"ser / estar","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d242","type":"word","en":"have","es":"tener","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d243","type":"word","en":"do","es":"hacer","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d244","type":"word","en":"say","es":"decir","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d245","type":"word","en":"tell","es":"decir / contar","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d246","type":"word","en":"go","es":"ir","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d247","type":"word","en":"come","es":"venir","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d248","type":"word","en":"get","es":"obtener / conseguir","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d249","type":"word","en":"make","es":"hacer / crear","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d250","type":"word","en":"know","es":"saber / conocer","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d251","type":"word","en":"think","es":"pensar","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d252","type":"word","en":"see","es":"ver","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d253","type":"word","en":"look","es":"mirar","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d254","type":"word","en":"give","es":"dar","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d255","type":"word","en":"take","es":"tomar / llevar","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d256","type":"word","en":"want","es":"querer","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d257","type":"word","en":"need","es":"necesitar","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d258","type":"word","en":"use","es":"usar","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d259","type":"word","en":"find","es":"encontrar","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d260","type":"word","en":"ask","es":"preguntar","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d261","type":"word","en":"answer","es":"responder","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d262","type":"word","en":"leave","es":"salir / dejar","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d263","type":"word","en":"put","es":"poner","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d264","type":"word","en":"keep","es":"mantener / guardar","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d265","type":"word","en":"help","es":"ayudar","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d266","type":"word","en":"try","es":"intentar","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d267","type":"word","en":"play","es":"jugar","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d268","type":"word","en":"run","es":"correr","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d269","type":"word","en":"walk","es":"caminar","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d270","type":"word","en":"talk","es":"hablar","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d271","type":"word","en":"listen","es":"escuchar","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d272","type":"word","en":"watch","es":"mirar / ver","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d273","type":"word","en":"live","es":"vivir","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d274","type":"word","en":"like","es":"gustar","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d275","type":"word","en":"love","es":"amar","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d276","type":"word","en":"open","es":"abrir","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d277","type":"word","en":"close","es":"cerrar","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d278","type":"word","en":"start","es":"empezar","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d279","type":"word","en":"finish","es":"terminar","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d280","type":"word","en":"move","es":"mover","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d281","type":"word","en":"hold","es":"sujetar","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d282","type":"word","en":"buy","es":"comprar","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d283","type":"word","en":"pay","es":"pagar","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d284","type":"word","en":"bring","es":"traer","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d285","type":"word","en":"send","es":"enviar","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d286","type":"word","en":"show","es":"mostrar","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d287","type":"word","en":"change","es":"cambiar","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d288","type":"word","en":"follow","es":"seguir","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d289","type":"word","en":"stop","es":"parar","exampleEn":"","exampleEs":"","level":"—","category":"Verbos esenciales","source":"Inglés completo"},
+  {"id":"d290","type":"word","en":"in","es":"en / dentro","exampleEn":"","exampleEs":"","level":"—","category":"Preposiciones básicas","source":"Inglés completo"},
+  {"id":"d291","type":"word","en":"on","es":"en / sobre","exampleEn":"","exampleEs":"","level":"—","category":"Preposiciones básicas","source":"Inglés completo"},
+  {"id":"d292","type":"word","en":"at","es":"en (lugar / hora)","exampleEn":"","exampleEs":"","level":"—","category":"Preposiciones básicas","source":"Inglés completo"},
+  {"id":"d293","type":"word","en":"to","es":"a / hacia","exampleEn":"","exampleEs":"","level":"—","category":"Preposiciones básicas","source":"Inglés completo"},
+  {"id":"d294","type":"word","en":"from","es":"de / desde","exampleEn":"","exampleEs":"","level":"—","category":"Preposiciones básicas","source":"Inglés completo"},
+  {"id":"d295","type":"word","en":"with","es":"con","exampleEn":"","exampleEs":"","level":"—","category":"Preposiciones básicas","source":"Inglés completo"},
+  {"id":"d296","type":"word","en":"without","es":"sin","exampleEn":"","exampleEs":"","level":"—","category":"Preposiciones básicas","source":"Inglés completo"},
+  {"id":"d297","type":"word","en":"about","es":"sobre / acerca de","exampleEn":"","exampleEs":"","level":"—","category":"Preposiciones básicas","source":"Inglés completo"},
+  {"id":"d298","type":"word","en":"for","es":"para / por","exampleEn":"","exampleEs":"","level":"—","category":"Preposiciones básicas","source":"Inglés completo"},
+  {"id":"d299","type":"word","en":"by","es":"por / en transporte","exampleEn":"","exampleEs":"","level":"—","category":"Preposiciones básicas","source":"Inglés completo"},
+  {"id":"d300","type":"word","en":"between","es":"entre (dos)","exampleEn":"","exampleEs":"","level":"—","category":"Preposiciones básicas","source":"Inglés completo"},
+  {"id":"d301","type":"word","en":"among","es":"entre (grupo)","exampleEn":"","exampleEs":"","level":"—","category":"Preposiciones básicas","source":"Inglés completo"},
+  {"id":"d302","type":"word","en":"over","es":"sobre / por encima","exampleEn":"","exampleEs":"","level":"—","category":"Preposiciones básicas","source":"Inglés completo"},
+  {"id":"d303","type":"word","en":"under","es":"bajo / debajo","exampleEn":"","exampleEs":"","level":"—","category":"Preposiciones básicas","source":"Inglés completo"},
+  {"id":"d304","type":"word","en":"into","es":"hacia dentro","exampleEn":"","exampleEs":"","level":"—","category":"Preposiciones básicas","source":"Inglés completo"},
+  {"id":"d305","type":"word","en":"out of","es":"fuera de","exampleEn":"","exampleEs":"","level":"—","category":"Preposiciones básicas","source":"Inglés completo"},
+  {"id":"d306","type":"word","en":"through","es":"a través de","exampleEn":"","exampleEs":"","level":"—","category":"Preposiciones básicas","source":"Inglés completo"},
+  {"id":"d307","type":"word","en":"across","es":"cruzando","exampleEn":"","exampleEs":"","level":"—","category":"Preposiciones básicas","source":"Inglés completo"},
+  {"id":"d308","type":"word","en":"around","es":"alrededor","exampleEn":"","exampleEs":"","level":"—","category":"Preposiciones básicas","source":"Inglés completo"},
+  {"id":"d309","type":"word","en":"behind","es":"detrás","exampleEn":"","exampleEs":"","level":"—","category":"Preposiciones básicas","source":"Inglés completo"},
+  {"id":"d310","type":"word","en":"in front of","es":"delante de","exampleEn":"","exampleEs":"","level":"—","category":"Preposiciones básicas","source":"Inglés completo"},
+  {"id":"d311","type":"word","en":"above","es":"encima de","exampleEn":"","exampleEs":"","level":"—","category":"Preposiciones básicas","source":"Inglés completo"},
+  {"id":"d312","type":"word","en":"below","es":"debajo de","exampleEn":"","exampleEs":"","level":"—","category":"Preposiciones básicas","source":"Inglés completo"},
+  {"id":"d313","type":"word","en":"during","es":"durante","exampleEn":"","exampleEs":"","level":"—","category":"Preposiciones básicas","source":"Inglés completo"},
+  {"id":"d314","type":"word","en":"against","es":"contra","exampleEn":"","exampleEs":"","level":"—","category":"Preposiciones básicas","source":"Inglés completo"},
+  {"id":"d315","type":"word","en":"because","es":"porque","exampleEn":"","exampleEs":"","level":"—","category":"Conectores y palabras de unión","source":"Inglés completo"},
+  {"id":"d316","type":"word","en":"but","es":"pero","exampleEn":"","exampleEs":"","level":"—","category":"Conectores y palabras de unión","source":"Inglés completo"},
+  {"id":"d317","type":"word","en":"and","es":"y","exampleEn":"","exampleEs":"","level":"—","category":"Conectores y palabras de unión","source":"Inglés completo"},
+  {"id":"d318","type":"word","en":"or","es":"o","exampleEn":"","exampleEs":"","level":"—","category":"Conectores y palabras de unión","source":"Inglés completo"},
+  {"id":"d319","type":"word","en":"so","es":"así que / por lo tanto","exampleEn":"","exampleEs":"","level":"—","category":"Conectores y palabras de unión","source":"Inglés completo"},
+  {"id":"d320","type":"word","en":"then","es":"luego","exampleEn":"","exampleEs":"","level":"—","category":"Conectores y palabras de unión","source":"Inglés completo"},
+  {"id":"d321","type":"word","en":"after","es":"después","exampleEn":"","exampleEs":"","level":"—","category":"Conectores y palabras de unión","source":"Inglés completo"},
+  {"id":"d322","type":"word","en":"before","es":"antes","exampleEn":"","exampleEs":"","level":"—","category":"Conectores y palabras de unión","source":"Inglés completo"},
+  {"id":"d323","type":"word","en":"while","es":"mientras","exampleEn":"","exampleEs":"","level":"—","category":"Conectores y palabras de unión","source":"Inglés completo"},
+  {"id":"d324","type":"word","en":"since","es":"desde / ya que","exampleEn":"","exampleEs":"","level":"—","category":"Conectores y palabras de unión","source":"Inglés completo"},
+  {"id":"d325","type":"word","en":"until","es":"hasta","exampleEn":"","exampleEs":"","level":"—","category":"Conectores y palabras de unión","source":"Inglés completo"},
+  {"id":"d326","type":"word","en":"if","es":"si (condición)","exampleEn":"","exampleEs":"","level":"—","category":"Conectores y palabras de unión","source":"Inglés completo"},
+  {"id":"d327","type":"word","en":"everyone","es":"todos","exampleEn":"","exampleEs":"","level":"—","category":"Palabras funcionales muy comunes","source":"Inglés completo"},
+  {"id":"d328","type":"word","en":"someone","es":"alguien","exampleEn":"","exampleEs":"","level":"—","category":"Palabras funcionales muy comunes","source":"Inglés completo"},
+  {"id":"d329","type":"word","en":"anyone","es":"cualquiera / alguien","exampleEn":"","exampleEs":"","level":"—","category":"Palabras funcionales muy comunes","source":"Inglés completo"},
+  {"id":"d330","type":"word","en":"nobody","es":"nadie","exampleEn":"","exampleEs":"","level":"—","category":"Palabras funcionales muy comunes","source":"Inglés completo"},
+  {"id":"d331","type":"word","en":"everything","es":"todo","exampleEn":"","exampleEs":"","level":"—","category":"Palabras funcionales muy comunes","source":"Inglés completo"},
+  {"id":"d332","type":"word","en":"something","es":"algo","exampleEn":"","exampleEs":"","level":"—","category":"Palabras funcionales muy comunes","source":"Inglés completo"},
+  {"id":"d333","type":"word","en":"nothing","es":"nada","exampleEn":"","exampleEs":"","level":"—","category":"Palabras funcionales muy comunes","source":"Inglés completo"},
+  {"id":"d334","type":"word","en":"each","es":"cada","exampleEn":"","exampleEs":"","level":"—","category":"Palabras funcionales muy comunes","source":"Inglés completo"},
+  {"id":"d335","type":"word","en":"both","es":"ambos","exampleEn":"","exampleEs":"","level":"—","category":"Palabras funcionales muy comunes","source":"Inglés completo"},
+  {"id":"d336","type":"word","en":"few","es":"pocos / algunas","exampleEn":"","exampleEs":"","level":"—","category":"Palabras funcionales muy comunes","source":"Inglés completo"},
+  {"id":"d337","type":"word","en":"good","es":"bueno","exampleEn":"","exampleEs":"","level":"—","category":"Adjetivos comunes","source":"Inglés completo"},
+  {"id":"d338","type":"word","en":"bad","es":"malo","exampleEn":"","exampleEs":"","level":"—","category":"Adjetivos comunes","source":"Inglés completo"},
+  {"id":"d339","type":"word","en":"new","es":"nuevo","exampleEn":"","exampleEs":"","level":"—","category":"Adjetivos comunes","source":"Inglés completo"},
+  {"id":"d340","type":"word","en":"old","es":"viejo","exampleEn":"","exampleEs":"","level":"—","category":"Adjetivos comunes","source":"Inglés completo"},
+  {"id":"d341","type":"word","en":"long","es":"largo","exampleEn":"","exampleEs":"","level":"—","category":"Adjetivos comunes","source":"Inglés completo"},
+  {"id":"d342","type":"word","en":"short","es":"corto","exampleEn":"","exampleEs":"","level":"—","category":"Adjetivos comunes","source":"Inglés completo"},
+  {"id":"d343","type":"word","en":"fast","es":"rápido","exampleEn":"","exampleEs":"","level":"—","category":"Adjetivos comunes","source":"Inglés completo"},
+  {"id":"d344","type":"word","en":"slow","es":"lento","exampleEn":"","exampleEs":"","level":"—","category":"Adjetivos comunes","source":"Inglés completo"},
+  {"id":"d345","type":"word","en":"easy","es":"fácil","exampleEn":"","exampleEs":"","level":"—","category":"Adjetivos comunes","source":"Inglés completo"},
+  {"id":"d346","type":"word","en":"difficult","es":"difícil","exampleEn":"","exampleEs":"","level":"—","category":"Adjetivos comunes","source":"Inglés completo"},
+  {"id":"d347","type":"word","en":"expensive","es":"caro","exampleEn":"","exampleEs":"","level":"—","category":"Adjetivos comunes","source":"Inglés completo"},
+  {"id":"d348","type":"word","en":"cheap","es":"barato","exampleEn":"","exampleEs":"","level":"—","category":"Adjetivos comunes","source":"Inglés completo"},
+  {"id":"d349","type":"word","en":"clean","es":"limpio","exampleEn":"","exampleEs":"","level":"—","category":"Adjetivos comunes","source":"Inglés completo"},
+  {"id":"d350","type":"word","en":"dirty","es":"sucio","exampleEn":"","exampleEs":"","level":"—","category":"Adjetivos comunes","source":"Inglés completo"},
+  {"id":"d351","type":"word","en":"early","es":"temprano","exampleEn":"","exampleEs":"","level":"—","category":"Adjetivos comunes","source":"Inglés completo"},
+  {"id":"d352","type":"word","en":"late","es":"tarde","exampleEn":"","exampleEs":"","level":"—","category":"Adjetivos comunes","source":"Inglés completo"},
+  {"id":"d353","type":"word","en":"hot","es":"caliente","exampleEn":"","exampleEs":"","level":"—","category":"Adjetivos comunes","source":"Inglés completo"},
+  {"id":"d354","type":"word","en":"cold","es":"frío","exampleEn":"","exampleEs":"","level":"—","category":"Adjetivos comunes","source":"Inglés completo"},
+  {"id":"d355","type":"word","en":"warm","es":"templado","exampleEn":"","exampleEs":"","level":"—","category":"Adjetivos comunes","source":"Inglés completo"},
+  {"id":"d356","type":"word","en":"cool","es":"fresco","exampleEn":"","exampleEs":"","level":"—","category":"Adjetivos comunes","source":"Inglés completo"},
+  {"id":"d357","type":"word","en":"hungry","es":"hambriento","exampleEn":"","exampleEs":"","level":"—","category":"Adjetivos comunes","source":"Inglés completo"},
+  {"id":"d358","type":"word","en":"thirsty","es":"sediento","exampleEn":"","exampleEs":"","level":"—","category":"Adjetivos comunes","source":"Inglés completo"},
+  {"id":"d359","type":"word","en":"awake","es":"despierto","exampleEn":"","exampleEs":"","level":"—","category":"Adjetivos comunes","source":"Inglés completo"},
+  {"id":"d360","type":"word","en":"asleep","es":"dormido","exampleEn":"","exampleEs":"","level":"—","category":"Adjetivos comunes","source":"Inglés completo"},
+  {"id":"d361","type":"word","en":"free","es":"libre / gratis","exampleEn":"","exampleEs":"","level":"—","category":"Adjetivos comunes","source":"Inglés completo"},
+  {"id":"d362","type":"word","en":"open","es":"abierto","exampleEn":"","exampleEs":"","level":"—","category":"Adjetivos comunes","source":"Inglés completo"},
+  {"id":"d363","type":"word","en":"closed","es":"cerrado","exampleEn":"","exampleEs":"","level":"—","category":"Adjetivos comunes","source":"Inglés completo"},
+  {"id":"d364","type":"word","en":"full","es":"lleno","exampleEn":"","exampleEs":"","level":"—","category":"Adjetivos comunes","source":"Inglés completo"},
+  {"id":"d365","type":"word","en":"empty","es":"vacío","exampleEn":"","exampleEs":"","level":"—","category":"Adjetivos comunes","source":"Inglés completo"},
+  {"id":"d366","type":"word","en":"right","es":"correcto","exampleEn":"","exampleEs":"","level":"—","category":"Adjetivos comunes","source":"Inglés completo"},
+  {"id":"d367","type":"word","en":"wrong","es":"incorrecto","exampleEn":"","exampleEs":"","level":"—","category":"Adjetivos comunes","source":"Inglés completo"},
+  {"id":"d368","type":"word","en":"beautiful","es":"bonito / hermoso","exampleEn":"","exampleEs":"","level":"—","category":"Adjetivos comunes","source":"Inglés completo"},
+  {"id":"d369","type":"word","en":"ugly","es":"feo","exampleEn":"","exampleEs":"","level":"—","category":"Adjetivos comunes","source":"Inglés completo"},
+  {"id":"d370","type":"word","en":"interesting","es":"interesante","exampleEn":"","exampleEs":"","level":"—","category":"Adjetivos comunes","source":"Inglés completo"},
+  {"id":"d371","type":"word","en":"boring","es":"aburrido","exampleEn":"","exampleEs":"","level":"—","category":"Adjetivos comunes","source":"Inglés completo"},
+  {"id":"d372","type":"word","en":"important","es":"importante","exampleEn":"","exampleEs":"","level":"—","category":"Adjetivos comunes","source":"Inglés completo"},
+  {"id":"d373","type":"word","en":"necessary","es":"necesario","exampleEn":"","exampleEs":"","level":"—","category":"Adjetivos comunes","source":"Inglés completo"},
+  {"id":"d374","type":"word","en":"possible","es":"posible","exampleEn":"","exampleEs":"","level":"—","category":"Adjetivos comunes","source":"Inglés completo"},
+  {"id":"d375","type":"word","en":"impossible","es":"imposible","exampleEn":"","exampleEs":"","level":"—","category":"Adjetivos comunes","source":"Inglés completo"},
+  {"id":"d376","type":"word","en":"ready","es":"listo / preparado","exampleEn":"","exampleEs":"","level":"—","category":"Adjetivos comunes","source":"Inglés completo"},
+  {"id":"d377","type":"word","en":"different","es":"diferente","exampleEn":"","exampleEs":"","level":"—","category":"Adjetivos comunes","source":"Inglés completo"},
+  {"id":"d378","type":"word","en":"same","es":"igual","exampleEn":"","exampleEs":"","level":"—","category":"Adjetivos comunes","source":"Inglés completo"},
+  {"id":"d379","type":"word","en":"simple","es":"simple / sencillo","exampleEn":"","exampleEs":"","level":"—","category":"Adjetivos comunes","source":"Inglés completo"},
+  {"id":"d380","type":"word","en":"complicated","es":"complicado","exampleEn":"","exampleEs":"","level":"—","category":"Adjetivos comunes","source":"Inglés completo"},
+  {"id":"d381","type":"word","en":"thing","es":"cosa","exampleEn":"","exampleEs":"","level":"—","category":"Sustantivos comunes del día a día","source":"Inglés completo"},
+  {"id":"d382","type":"word","en":"place","es":"lugar","exampleEn":"","exampleEs":"","level":"—","category":"Sustantivos comunes del día a día","source":"Inglés completo"},
+  {"id":"d383","type":"word","en":"area","es":"zona / área","exampleEn":"","exampleEs":"","level":"—","category":"Sustantivos comunes del día a día","source":"Inglés completo"},
+  {"id":"d384","type":"word","en":"world","es":"mundo","exampleEn":"","exampleEs":"","level":"—","category":"Sustantivos comunes del día a día","source":"Inglés completo"},
+  {"id":"d385","type":"word","en":"country","es":"país","exampleEn":"","exampleEs":"","level":"—","category":"Sustantivos comunes del día a día","source":"Inglés completo"},
+  {"id":"d386","type":"word","en":"city","es":"ciudad","exampleEn":"","exampleEs":"","level":"—","category":"Sustantivos comunes del día a día","source":"Inglés completo"},
+  {"id":"d387","type":"word","en":"town","es":"pueblo","exampleEn":"","exampleEs":"","level":"—","category":"Sustantivos comunes del día a día","source":"Inglés completo"},
+  {"id":"d388","type":"word","en":"moment","es":"momento","exampleEn":"","exampleEs":"","level":"—","category":"Sustantivos comunes del día a día","source":"Inglés completo"},
+  {"id":"d389","type":"word","en":"time","es":"tiempo / hora","exampleEn":"","exampleEs":"","level":"—","category":"Sustantivos comunes del día a día","source":"Inglés completo"},
+  {"id":"d390","type":"word","en":"day","es":"día","exampleEn":"","exampleEs":"","level":"—","category":"Sustantivos comunes del día a día","source":"Inglés completo"},
+  {"id":"d391","type":"word","en":"week","es":"semana","exampleEn":"","exampleEs":"","level":"—","category":"Sustantivos comunes del día a día","source":"Inglés completo"},
+  {"id":"d392","type":"word","en":"month","es":"mes","exampleEn":"","exampleEs":"","level":"—","category":"Sustantivos comunes del día a día","source":"Inglés completo"},
+  {"id":"d393","type":"word","en":"year","es":"año","exampleEn":"","exampleEs":"","level":"—","category":"Sustantivos comunes del día a día","source":"Inglés completo"},
+  {"id":"d394","type":"word","en":"morning","es":"mañana","exampleEn":"","exampleEs":"","level":"—","category":"Sustantivos comunes del día a día","source":"Inglés completo"},
+  {"id":"d395","type":"word","en":"afternoon","es":"tarde","exampleEn":"","exampleEs":"","level":"—","category":"Sustantivos comunes del día a día","source":"Inglés completo"},
+  {"id":"d396","type":"word","en":"evening","es":"noche (temprana)","exampleEn":"","exampleEs":"","level":"—","category":"Sustantivos comunes del día a día","source":"Inglés completo"},
+  {"id":"d397","type":"word","en":"night","es":"noche","exampleEn":"","exampleEs":"","level":"—","category":"Sustantivos comunes del día a día","source":"Inglés completo"},
+  {"id":"d398","type":"word","en":"problem","es":"problema","exampleEn":"","exampleEs":"","level":"—","category":"Sustantivos comunes del día a día","source":"Inglés completo"},
+  {"id":"d399","type":"word","en":"solution","es":"solución","exampleEn":"","exampleEs":"","level":"—","category":"Sustantivos comunes del día a día","source":"Inglés completo"},
+  {"id":"d400","type":"word","en":"idea","es":"idea","exampleEn":"","exampleEs":"","level":"—","category":"Sustantivos comunes del día a día","source":"Inglés completo"},
+  {"id":"d401","type":"word","en":"reason","es":"razón / motivo","exampleEn":"","exampleEs":"","level":"—","category":"Sustantivos comunes del día a día","source":"Inglés completo"},
+  {"id":"d402","type":"word","en":"situation","es":"situación","exampleEn":"","exampleEs":"","level":"—","category":"Sustantivos comunes del día a día","source":"Inglés completo"},
+  {"id":"d403","type":"word","en":"example","es":"ejemplo","exampleEn":"","exampleEs":"","level":"—","category":"Sustantivos comunes del día a día","source":"Inglés completo"},
+  {"id":"d404","type":"word","en":"question","es":"pregunta","exampleEn":"","exampleEs":"","level":"—","category":"Sustantivos comunes del día a día","source":"Inglés completo"},
+  {"id":"d405","type":"word","en":"answer","es":"respuesta","exampleEn":"","exampleEs":"","level":"—","category":"Sustantivos comunes del día a día","source":"Inglés completo"},
+  {"id":"d406","type":"word","en":"number","es":"número","exampleEn":"","exampleEs":"","level":"—","category":"Sustantivos comunes del día a día","source":"Inglés completo"},
+  {"id":"d407","type":"word","en":"group","es":"grupo","exampleEn":"","exampleEs":"","level":"—","category":"Sustantivos comunes del día a día","source":"Inglés completo"},
+  {"id":"d408","type":"word","en":"party","es":"fiesta","exampleEn":"","exampleEs":"","level":"—","category":"Sustantivos comunes del día a día","source":"Inglés completo"},
+  {"id":"d409","type":"word","en":"event","es":"evento","exampleEn":"","exampleEs":"","level":"—","category":"Sustantivos comunes del día a día","source":"Inglés completo"},
+  {"id":"d410","type":"word","en":"job","es":"trabajo / empleo","exampleEn":"","exampleEs":"","level":"—","category":"Sustantivos comunes del día a día","source":"Inglés completo"},
+  {"id":"d411","type":"word","en":"store","es":"tienda","exampleEn":"","exampleEs":"","level":"—","category":"Sustantivos comunes del día a día","source":"Inglés completo"},
+  {"id":"d412","type":"word","en":"supermarket","es":"supermercado","exampleEn":"","exampleEs":"","level":"—","category":"Sustantivos comunes del día a día","source":"Inglés completo"},
+  {"id":"d413","type":"word","en":"market","es":"mercado","exampleEn":"","exampleEs":"","level":"—","category":"Sustantivos comunes del día a día","source":"Inglés completo"},
+  {"id":"d414","type":"word","en":"restaurant","es":"restaurante","exampleEn":"","exampleEs":"","level":"—","category":"Sustantivos comunes del día a día","source":"Inglés completo"},
+  {"id":"d415","type":"word","en":"bar","es":"bar","exampleEn":"","exampleEs":"","level":"—","category":"Sustantivos comunes del día a día","source":"Inglés completo"},
+  {"id":"d416","type":"word","en":"café","es":"cafetería","exampleEn":"","exampleEs":"","level":"—","category":"Sustantivos comunes del día a día","source":"Inglés completo"},
+  {"id":"d417","type":"word","en":"ticket","es":"billete / entrada","exampleEn":"","exampleEs":"","level":"—","category":"Sustantivos comunes del día a día","source":"Inglés completo"},
+  {"id":"d418","type":"word","en":"price","es":"precio","exampleEn":"","exampleEs":"","level":"—","category":"Sustantivos comunes del día a día","source":"Inglés completo"},
+  {"id":"d419","type":"word","en":"money","es":"dinero","exampleEn":"","exampleEs":"","level":"—","category":"Sustantivos comunes del día a día","source":"Inglés completo"},
+  {"id":"d420","type":"word","en":"credit card","es":"tarjeta de crédito","exampleEn":"","exampleEs":"","level":"—","category":"Sustantivos comunes del día a día","source":"Inglés completo"},
+  {"id":"d421","type":"word","en":"bill","es":"factura / cuenta","exampleEn":"","exampleEs":"","level":"—","category":"Sustantivos comunes del día a día","source":"Inglés completo"},
+  {"id":"d422","type":"word","en":"bag","es":"bolsa","exampleEn":"","exampleEs":"","level":"—","category":"Sustantivos comunes del día a día","source":"Inglés completo"},
+  {"id":"d423","type":"word","en":"gift","es":"regalo","exampleEn":"","exampleEs":"","level":"—","category":"Sustantivos comunes del día a día","source":"Inglés completo"},
+  {"id":"d424","type":"word","en":"message","es":"mensaje","exampleEn":"","exampleEs":"","level":"—","category":"Sustantivos comunes del día a día","source":"Inglés completo"},
+  {"id":"d425","type":"word","en":"tablet","es":"tableta","exampleEn":"","exampleEs":"","level":"—","category":"Tecnología y digital","source":"Inglés completo"},
+  {"id":"d426","type":"word","en":"smartphone","es":"teléfono inteligente","exampleEn":"","exampleEs":"","level":"—","category":"Tecnología y digital","source":"Inglés completo"},
+  {"id":"d427","type":"word","en":"screen","es":"pantalla","exampleEn":"","exampleEs":"","level":"—","category":"Tecnología y digital","source":"Inglés completo"},
+  {"id":"d428","type":"word","en":"battery","es":"batería","exampleEn":"","exampleEs":"","level":"—","category":"Tecnología y digital","source":"Inglés completo"},
+  {"id":"d429","type":"word","en":"cable","es":"cable","exampleEn":"","exampleEs":"","level":"—","category":"Tecnología y digital","source":"Inglés completo"},
+  {"id":"d430","type":"word","en":"website","es":"página web","exampleEn":"","exampleEs":"","level":"—","category":"Tecnología y digital","source":"Inglés completo"},
+  {"id":"d431","type":"word","en":"app","es":"aplicación","exampleEn":"","exampleEs":"","level":"—","category":"Tecnología y digital","source":"Inglés completo"},
+  {"id":"d432","type":"word","en":"hardware","es":"hardware","exampleEn":"","exampleEs":"","level":"—","category":"Tecnología y digital","source":"Inglés completo"},
+  {"id":"d433","type":"word","en":"download","es":"descarga","exampleEn":"","exampleEs":"","level":"—","category":"Tecnología y digital","source":"Inglés completo"},
+  {"id":"d434","type":"word","en":"upload","es":"subida","exampleEn":"","exampleEs":"","level":"—","category":"Tecnología y digital","source":"Inglés completo"},
+  {"id":"d435","type":"word","en":"password","es":"contraseña","exampleEn":"","exampleEs":"","level":"—","category":"Tecnología y digital","source":"Inglés completo"},
+  {"id":"d436","type":"word","en":"username","es":"usuario","exampleEn":"","exampleEs":"","level":"—","category":"Tecnología y digital","source":"Inglés completo"},
+  {"id":"d437","type":"word","en":"account","es":"cuenta","exampleEn":"","exampleEs":"","level":"—","category":"Tecnología y digital","source":"Inglés completo"},
+  {"id":"d438","type":"word","en":"cloud","es":"nube","exampleEn":"","exampleEs":"","level":"—","category":"Tecnología y digital","source":"Inglés completo"},
+  {"id":"d439","type":"word","en":"data","es":"datos","exampleEn":"","exampleEs":"","level":"—","category":"Tecnología y digital","source":"Inglés completo"},
+  {"id":"d440","type":"word","en":"storage","es":"almacenamiento","exampleEn":"","exampleEs":"","level":"—","category":"Tecnología y digital","source":"Inglés completo"},
+  {"id":"d441","type":"word","en":"server","es":"servidor","exampleEn":"","exampleEs":"","level":"—","category":"Tecnología y digital","source":"Inglés completo"},
+  {"id":"d442","type":"word","en":"network","es":"red","exampleEn":"","exampleEs":"","level":"—","category":"Tecnología y digital","source":"Inglés completo"},
+  {"id":"d443","type":"word","en":"inbox","es":"bandeja de entrada","exampleEn":"","exampleEs":"","level":"—","category":"Tecnología y digital","source":"Inglés completo"},
+  {"id":"d444","type":"word","en":"notification","es":"notificación","exampleEn":"","exampleEs":"","level":"—","category":"Tecnología y digital","source":"Inglés completo"},
+  {"id":"d445","type":"word","en":"settings","es":"ajustes","exampleEn":"","exampleEs":"","level":"—","category":"Tecnología y digital","source":"Inglés completo"},
+  {"id":"d446","type":"word","en":"profile","es":"perfil","exampleEn":"","exampleEs":"","level":"—","category":"Tecnología y digital","source":"Inglés completo"},
+  {"id":"d447","type":"word","en":"video","es":"vídeo","exampleEn":"","exampleEs":"","level":"—","category":"Tecnología y digital","source":"Inglés completo"},
+  {"id":"d448","type":"word","en":"audio","es":"audio","exampleEn":"","exampleEs":"","level":"—","category":"Tecnología y digital","source":"Inglés completo"},
+  {"id":"d449","type":"word","en":"camera","es":"cámara","exampleEn":"","exampleEs":"","level":"—","category":"Tecnología y digital","source":"Inglés completo"},
+  {"id":"d450","type":"word","en":"microphone","es":"micrófono","exampleEn":"","exampleEs":"","level":"—","category":"Tecnología y digital","source":"Inglés completo"},
+  {"id":"d451","type":"word","en":"speaker","es":"altavoz","exampleEn":"","exampleEs":"","level":"—","category":"Tecnología y digital","source":"Inglés completo"},
+  {"id":"d452","type":"word","en":"antivirus","es":"antivirus","exampleEn":"","exampleEs":"","level":"—","category":"Tecnología y digital","source":"Inglés completo"},
+  {"id":"d453","type":"word","en":"browser","es":"navegador","exampleEn":"","exampleEs":"","level":"—","category":"Tecnología y digital","source":"Inglés completo"},
+  {"id":"d454","type":"word","en":"search engine","es":"buscador","exampleEn":"","exampleEs":"","level":"—","category":"Tecnología y digital","source":"Inglés completo"},
+  {"id":"d455","type":"word","en":"link","es":"enlace","exampleEn":"","exampleEs":"","level":"—","category":"Tecnología y digital","source":"Inglés completo"},
+  {"id":"d456","type":"word","en":"QR code","es":"código QR","exampleEn":"","exampleEs":"","level":"—","category":"Tecnología y digital","source":"Inglés completo"},
+  {"id":"d457","type":"word","en":"streaming","es":"retransmisión","exampleEn":"","exampleEs":"","level":"—","category":"Tecnología y digital","source":"Inglés completo"},
+  {"id":"d458","type":"word","en":"Bluetooth","es":"bluetooth","exampleEn":"","exampleEs":"","level":"—","category":"Tecnología y digital","source":"Inglés completo"},
+  {"id":"d459","type":"word","en":"USB drive","es":"memoria USB","exampleEn":"","exampleEs":"","level":"—","category":"Tecnología y digital","source":"Inglés completo"},
+  {"id":"d460","type":"phrase","en":"I don’t have much time today.","es":"No tengo mucho tiempo hoy.","exampleEn":"","exampleEs":"","level":"—","category":"Frases cotidianas","source":"Inglés completo"},
+  {"id":"d461","type":"phrase","en":"That sounds like a good idea.","es":"Suena como una buena idea.","exampleEn":"","exampleEs":"","level":"—","category":"Frases cotidianas","source":"Inglés completo"},
+  {"id":"d462","type":"phrase","en":"I’ll be ready in five minutes.","es":"Estaré listo en cinco minutos.","exampleEn":"","exampleEs":"","level":"—","category":"Frases cotidianas","source":"Inglés completo"},
+  {"id":"d463","type":"phrase","en":"I completely forgot about that.","es":"Se me olvidó por completo.","exampleEn":"","exampleEs":"","level":"—","category":"Frases cotidianas","source":"Inglés completo"},
+  {"id":"d464","type":"phrase","en":"It doesn’t matter anymore.","es":"Ya no importa.","exampleEn":"","exampleEs":"","level":"—","category":"Frases cotidianas","source":"Inglés completo"},
+  {"id":"d465","type":"phrase","en":"Let me think for a moment.","es":"Déjame pensar un momento.","exampleEn":"","exampleEs":"","level":"—","category":"Frases cotidianas","source":"Inglés completo"},
+  {"id":"d466","type":"phrase","en":"I don’t mind either way.","es":"Me da igual de cualquier manera.","exampleEn":"","exampleEs":"","level":"—","category":"Frases cotidianas","source":"Inglés completo"},
+  {"id":"d467","type":"phrase","en":"It’s not what I expected.","es":"No es lo que esperaba.","exampleEn":"","exampleEs":"","level":"—","category":"Frases cotidianas","source":"Inglés completo"},
+  {"id":"d468","type":"phrase","en":"I didn’t mean to do that.","es":"No quise hacer eso.","exampleEn":"","exampleEs":"","level":"—","category":"Frases cotidianas","source":"Inglés completo"},
+  {"id":"d469","type":"phrase","en":"I’m not sure that’s a good idea.","es":"No estoy seguro de que sea buena idea.","exampleEn":"","exampleEs":"","level":"—","category":"Frases cotidianas","source":"Inglés completo"},
+  {"id":"d470","type":"phrase","en":"Let me know when you’re done.","es":"Avísame cuando termines.","exampleEn":"","exampleEs":"","level":"—","category":"Frases cotidianas","source":"Inglés completo"},
+  {"id":"d471","type":"phrase","en":"I’ll take care of it.","es":"Yo me encargo.","exampleEn":"","exampleEs":"","level":"—","category":"Frases cotidianas","source":"Inglés completo"},
+  {"id":"d472","type":"phrase","en":"That happens to me all the time.","es":"Me pasa todo el tiempo.","exampleEn":"","exampleEs":"","level":"—","category":"Frases cotidianas","source":"Inglés completo"},
+  {"id":"d473","type":"phrase","en":"It’s too early to decide.","es":"Es demasiado pronto para decidir.","exampleEn":"","exampleEs":"","level":"—","category":"Frases cotidianas","source":"Inglés completo"},
+  {"id":"d474","type":"phrase","en":"That’s exactly what I needed.","es":"Justo lo que necesitaba.","exampleEn":"","exampleEs":"","level":"—","category":"Frases cotidianas","source":"Inglés completo"},
+  {"id":"d475","type":"phrase","en":"It’s not worth it.","es":"No vale la pena.","exampleEn":"","exampleEs":"","level":"—","category":"Frases cotidianas","source":"Inglés completo"},
+  {"id":"d476","type":"phrase","en":"I can’t wait to see it.","es":"No puedo esperar para verlo.","exampleEn":"","exampleEs":"","level":"—","category":"Frases cotidianas","source":"Inglés completo"},
+  {"id":"d477","type":"phrase","en":"I think we should try again.","es":"Creo que deberíamos intentarlo de nuevo.","exampleEn":"","exampleEs":"","level":"—","category":"Frases cotidianas","source":"Inglés completo"},
+  {"id":"d478","type":"phrase","en":"I hope everything goes well.","es":"Espero que todo salga bien.","exampleEn":"","exampleEs":"","level":"—","category":"Frases cotidianas","source":"Inglés completo"},
+  {"id":"d479","type":"phrase","en":"I have no idea what happened.","es":"No tengo ni idea de lo que pasó.","exampleEn":"","exampleEs":"","level":"—","category":"Frases cotidianas","source":"Inglés completo"},
+  {"id":"d480","type":"phrase","en":"I’ll send you the details later.","es":"Te enviaré los detalles más tarde.","exampleEn":"","exampleEs":"","level":"—","category":"Trabajo, llamadas y situaciones profesionales","source":"Inglés completo"},
+  {"id":"d481","type":"phrase","en":"Can we talk about this tomorrow?","es":"¿Podemos hablar de esto mañana?","exampleEn":"","exampleEs":"","level":"—","category":"Trabajo, llamadas y situaciones profesionales","source":"Inglés completo"},
+  {"id":"d482","type":"phrase","en":"I’ll check and get back to you.","es":"Lo reviso y te digo algo.","exampleEn":"","exampleEs":"","level":"—","category":"Trabajo, llamadas y situaciones profesionales","source":"Inglés completo"},
+  {"id":"d483","type":"phrase","en":"I need more information first.","es":"Necesito más información primero.","exampleEn":"","exampleEs":"","level":"—","category":"Trabajo, llamadas y situaciones profesionales","source":"Inglés completo"},
+  {"id":"d484","type":"phrase","en":"That’s not my responsibility.","es":"No es mi responsabilidad.","exampleEn":"","exampleEs":"","level":"—","category":"Trabajo, llamadas y situaciones profesionales","source":"Inglés completo"},
+  {"id":"d485","type":"phrase","en":"I agree with you on that.","es":"Estoy de acuerdo contigo en eso.","exampleEn":"","exampleEs":"","level":"—","category":"Trabajo, llamadas y situaciones profesionales","source":"Inglés completo"},
+  {"id":"d486","type":"phrase","en":"Let’s focus on the main point.","es":"Centrémonos en el punto principal.","exampleEn":"","exampleEs":"","level":"—","category":"Trabajo, llamadas y situaciones profesionales","source":"Inglés completo"},
+  {"id":"d487","type":"phrase","en":"I’m waiting for their answer.","es":"Estoy esperando su respuesta.","exampleEn":"","exampleEs":"","level":"—","category":"Trabajo, llamadas y situaciones profesionales","source":"Inglés completo"},
+  {"id":"d488","type":"phrase","en":"I’ll try to finish it today.","es":"Intentaré terminarlo hoy.","exampleEn":"","exampleEs":"","level":"—","category":"Trabajo, llamadas y situaciones profesionales","source":"Inglés completo"},
+  {"id":"d489","type":"phrase","en":"Thanks for letting me know.","es":"Gracias por avisarme.","exampleEn":"","exampleEs":"","level":"—","category":"Trabajo, llamadas y situaciones profesionales","source":"Inglés completo"},
+  {"id":"d490","type":"phrase","en":"I think we need a different solution.","es":"Creo que necesitamos otra solución.","exampleEn":"","exampleEs":"","level":"—","category":"Trabajo, llamadas y situaciones profesionales","source":"Inglés completo"},
+  {"id":"d491","type":"phrase","en":"I didn’t receive your email.","es":"No recibí tu correo.","exampleEn":"","exampleEs":"","level":"—","category":"Trabajo, llamadas y situaciones profesionales","source":"Inglés completo"},
+  {"id":"d492","type":"phrase","en":"The connection is very bad.","es":"La conexión es muy mala.","exampleEn":"","exampleEs":"","level":"—","category":"Trabajo, llamadas y situaciones profesionales","source":"Inglés completo"},
+  {"id":"d493","type":"phrase","en":"You’re breaking up.","es":"Se te corta la voz.","exampleEn":"","exampleEs":"","level":"—","category":"Trabajo, llamadas y situaciones profesionales","source":"Inglés completo"},
+  {"id":"d494","type":"phrase","en":"Let’s move this meeting to tomorrow.","es":"Movamos esta reunión a mañana.","exampleEn":"","exampleEs":"","level":"—","category":"Trabajo, llamadas y situaciones profesionales","source":"Inglés completo"},
+  {"id":"d495","type":"phrase","en":"I’ll send you the updated file.","es":"Te envío el archivo actualizado.","exampleEn":"","exampleEs":"","level":"—","category":"Trabajo, llamadas y situaciones profesionales","source":"Inglés completo"},
+  {"id":"d496","type":"phrase","en":"That’s not clear to me.","es":"No me queda claro.","exampleEn":"","exampleEs":"","level":"—","category":"Trabajo, llamadas y situaciones profesionales","source":"Inglés completo"},
+  {"id":"d497","type":"phrase","en":"I’ll explain it in a moment.","es":"Te lo explico en un momento.","exampleEn":"","exampleEs":"","level":"—","category":"Trabajo, llamadas y situaciones profesionales","source":"Inglés completo"},
+  {"id":"d498","type":"phrase","en":"Let’s keep this simple.","es":"Mantengámoslo simple.","exampleEn":"","exampleEs":"","level":"—","category":"Trabajo, llamadas y situaciones profesionales","source":"Inglés completo"},
+  {"id":"d499","type":"phrase","en":"That works for me.","es":"Me viene bien.","exampleEn":"","exampleEs":"","level":"—","category":"Trabajo, llamadas y situaciones profesionales","source":"Inglés completo"},
+  {"id":"d500","type":"phrase","en":"How long does it take to get there?","es":"¿Cuánto se tarda en llegar?","exampleEn":"","exampleEs":"","level":"—","category":"Viajes, transporte y situaciones en el extranjero","source":"Inglés completo"},
+  {"id":"d501","type":"phrase","en":"I think we missed the stop.","es":"Creo que nos pasamos la parada.","exampleEn":"","exampleEs":"","level":"—","category":"Viajes, transporte y situaciones en el extranjero","source":"Inglés completo"},
+  {"id":"d502","type":"phrase","en":"Is this the right train?","es":"¿Es este el tren correcto?","exampleEn":"","exampleEs":"","level":"—","category":"Viajes, transporte y situaciones en el extranjero","source":"Inglés completo"},
+  {"id":"d503","type":"phrase","en":"I’d like to book a table for two.","es":"Quisiera reservar una mesa para dos.","exampleEn":"","exampleEs":"","level":"—","category":"Viajes, transporte y situaciones en el extranjero","source":"Inglés completo"},
+  {"id":"d504","type":"phrase","en":"Do you have any recommendations?","es":"¿Tienes alguna recomendación?","exampleEn":"","exampleEs":"","level":"—","category":"Viajes, transporte y situaciones en el extranjero","source":"Inglés completo"},
+  {"id":"d505","type":"phrase","en":"I’m looking for this address.","es":"Estoy buscando esta dirección.","exampleEn":"","exampleEs":"","level":"—","category":"Viajes, transporte y situaciones en el extranjero","source":"Inglés completo"},
+  {"id":"d506","type":"phrase","en":"Can we walk there from here?","es":"¿Podemos ir caminando desde aquí?","exampleEn":"","exampleEs":"","level":"—","category":"Viajes, transporte y situaciones en el extranjero","source":"Inglés completo"},
+  {"id":"d507","type":"phrase","en":"I’d like a coffee to go.","es":"Quisiera un café para llevar.","exampleEn":"","exampleEs":"","level":"—","category":"Viajes, transporte y situaciones en el extranjero","source":"Inglés completo"},
+  {"id":"d508","type":"phrase","en":"That’s more expensive than I expected.","es":"Es más caro de lo que esperaba.","exampleEn":"","exampleEs":"","level":"—","category":"Viajes, transporte y situaciones en el extranjero","source":"Inglés completo"},
+  {"id":"d509","type":"phrase","en":"Do you accept credit cards?","es":"¿Aceptan tarjeta de crédito?","exampleEn":"","exampleEs":"","level":"—","category":"Viajes, transporte y situaciones en el extranjero","source":"Inglés completo"},
+  {"id":"d510","type":"phrase","en":"The view here is amazing.","es":"La vista aquí es increíble.","exampleEn":"","exampleEs":"","level":"—","category":"Viajes, transporte y situaciones en el extranjero","source":"Inglés completo"},
+  {"id":"d511","type":"phrase","en":"I think we’re going the wrong way.","es":"Creo que estamos yendo por el camino equivocado.","exampleEn":"","exampleEs":"","level":"—","category":"Viajes, transporte y situaciones en el extranjero","source":"Inglés completo"},
+  {"id":"d512","type":"phrase","en":"I need a taxi, please.","es":"Necesito un taxi, por favor.","exampleEn":"","exampleEs":"","level":"—","category":"Viajes, transporte y situaciones en el extranjero","source":"Inglés completo"},
+  {"id":"d513","type":"phrase","en":"Could you take a picture of us?","es":"¿Podrías hacernos una foto?","exampleEn":"","exampleEs":"","level":"—","category":"Viajes, transporte y situaciones en el extranjero","source":"Inglés completo"},
+  {"id":"d514","type":"phrase","en":"I’m not familiar with this area.","es":"No conozco esta zona.","exampleEn":"","exampleEs":"","level":"—","category":"Viajes, transporte y situaciones en el extranjero","source":"Inglés completo"},
+  {"id":"d515","type":"phrase","en":"What time does it open?","es":"¿A qué hora abre?","exampleEn":"","exampleEs":"","level":"—","category":"Viajes, transporte y situaciones en el extranjero","source":"Inglés completo"},
+  {"id":"d516","type":"phrase","en":"What time does it close?","es":"¿A qué hora cierra?","exampleEn":"","exampleEs":"","level":"—","category":"Viajes, transporte y situaciones en el extranjero","source":"Inglés completo"},
+  {"id":"d517","type":"phrase","en":"Is it safe to walk around here?","es":"¿Es seguro caminar por aquí?","exampleEn":"","exampleEs":"","level":"—","category":"Viajes, transporte y situaciones en el extranjero","source":"Inglés completo"},
+  {"id":"d518","type":"phrase","en":"That’s exactly what I was looking for.","es":"Justo lo que estaba buscando.","exampleEn":"","exampleEs":"","level":"—","category":"Viajes, transporte y situaciones en el extranjero","source":"Inglés completo"},
+  {"id":"d519","type":"phrase","en":"I didn’t catch that.","es":"No entendí eso.","exampleEn":"","exampleEs":"","level":"—","category":"Viajes, transporte y situaciones en el extranjero","source":"Inglés completo"},
+  {"id":"d520","type":"phrase","en":"I need to clean the kitchen.","es":"Necesito limpiar la cocina.","exampleEn":"","exampleEs":"","level":"—","category":"Casa, tareas y vida diaria","source":"Inglés completo"},
+  {"id":"d521","type":"phrase","en":"The internet isn’t working.","es":"Internet no funciona.","exampleEn":"","exampleEs":"","level":"—","category":"Casa, tareas y vida diaria","source":"Inglés completo"},
+  {"id":"d522","type":"phrase","en":"I can’t find my keys.","es":"No encuentro mis llaves.","exampleEn":"","exampleEs":"","level":"—","category":"Casa, tareas y vida diaria","source":"Inglés completo"},
+  {"id":"d523","type":"phrase","en":"The battery is almost dead.","es":"La batería está casi agotada.","exampleEn":"","exampleEs":"","level":"—","category":"Casa, tareas y vida diaria","source":"Inglés completo"},
+  {"id":"d524","type":"phrase","en":"I need to do the laundry.","es":"Tengo que hacer la colada.","exampleEn":"","exampleEs":"","level":"—","category":"Casa, tareas y vida diaria","source":"Inglés completo"},
+  {"id":"d525","type":"phrase","en":"I’ll cook something simple.","es":"Cocinaré algo sencillo.","exampleEn":"","exampleEs":"","level":"—","category":"Casa, tareas y vida diaria","source":"Inglés completo"},
+  {"id":"d526","type":"phrase","en":"Can you turn on the lights?","es":"¿Puedes encender las luces?","exampleEn":"","exampleEs":"","level":"—","category":"Casa, tareas y vida diaria","source":"Inglés completo"},
+  {"id":"d527","type":"phrase","en":"It’s too noisy outside.","es":"Hay demasiado ruido afuera.","exampleEn":"","exampleEs":"","level":"—","category":"Casa, tareas y vida diaria","source":"Inglés completo"},
+  {"id":"d528","type":"phrase","en":"Let’s stay home today.","es":"Quedémonos en casa hoy.","exampleEn":"","exampleEs":"","level":"—","category":"Casa, tareas y vida diaria","source":"Inglés completo"},
+  {"id":"d529","type":"phrase","en":"I’m going to take a quick shower.","es":"Voy a darme una ducha rápida.","exampleEn":"","exampleEs":"","level":"—","category":"Casa, tareas y vida diaria","source":"Inglés completo"},
+  {"id":"d530","type":"phrase","en":"We need to buy more water.","es":"Necesitamos comprar más agua.","exampleEn":"","exampleEs":"","level":"—","category":"Casa, tareas y vida diaria","source":"Inglés completo"},
+  {"id":"d531","type":"phrase","en":"Close the window, it’s cold.","es":"Cierra la ventana, hace frío.","exampleEn":"","exampleEs":"","level":"—","category":"Casa, tareas y vida diaria","source":"Inglés completo"},
+  {"id":"d532","type":"phrase","en":"This place is a mess.","es":"Este lugar es un desastre.","exampleEn":"","exampleEs":"","level":"—","category":"Casa, tareas y vida diaria","source":"Inglés completo"},
+  {"id":"d533","type":"phrase","en":"I’m not hungry yet.","es":"Todavía no tengo hambre.","exampleEn":"","exampleEs":"","level":"—","category":"Casa, tareas y vida diaria","source":"Inglés completo"},
+  {"id":"d534","type":"phrase","en":"It smells really good.","es":"Huele muy bien.","exampleEn":"","exampleEs":"","level":"—","category":"Casa, tareas y vida diaria","source":"Inglés completo"},
+  {"id":"d535","type":"phrase","en":"I’ll be back in a minute.","es":"Vuelvo en un minuto.","exampleEn":"","exampleEs":"","level":"—","category":"Casa, tareas y vida diaria","source":"Inglés completo"},
+  {"id":"d536","type":"phrase","en":"That’s not what I ordered.","es":"Eso no es lo que pedí.","exampleEn":"","exampleEs":"","level":"—","category":"Casa, tareas y vida diaria","source":"Inglés completo"},
+  {"id":"d537","type":"phrase","en":"Can you help me with this?","es":"¿Puedes ayudarme con esto?","exampleEn":"","exampleEs":"","level":"—","category":"Casa, tareas y vida diaria","source":"Inglés completo"},
+  {"id":"d538","type":"phrase","en":"Leave it on the table.","es":"Déjalo sobre la mesa.","exampleEn":"","exampleEs":"","level":"—","category":"Casa, tareas y vida diaria","source":"Inglés completo"},
+  {"id":"d539","type":"phrase","en":"I really appreciate your help.","es":"Aprecio mucho tu ayuda.","exampleEn":"","exampleEs":"","level":"—","category":"Conversaciones naturales, emociones y problemas","source":"Inglés completo"},
+  {"id":"d540","type":"phrase","en":"That was unexpected.","es":"Eso fue inesperado.","exampleEn":"","exampleEs":"","level":"—","category":"Conversaciones naturales, emociones y problemas","source":"Inglés completo"},
+  {"id":"d541","type":"phrase","en":"I’m not in the mood for that.","es":"No estoy de humor para eso.","exampleEn":"","exampleEs":"","level":"—","category":"Conversaciones naturales, emociones y problemas","source":"Inglés completo"},
+  {"id":"d542","type":"phrase","en":"I didn’t see that coming.","es":"No me lo esperaba.","exampleEn":"","exampleEs":"","level":"—","category":"Conversaciones naturales, emociones y problemas","source":"Inglés completo"},
+  {"id":"d543","type":"phrase","en":"I’m trying to stay positive.","es":"Estoy intentando ser positivo.","exampleEn":"","exampleEs":"","level":"—","category":"Conversaciones naturales, emociones y problemas","source":"Inglés completo"},
+  {"id":"d544","type":"phrase","en":"I need a moment to calm down.","es":"Necesito un momento para calmarme.","exampleEn":"","exampleEs":"","level":"—","category":"Conversaciones naturales, emociones y problemas","source":"Inglés completo"},
+  {"id":"d545","type":"phrase","en":"Don’t worry, it happens.","es":"No te preocupes, pasa.","exampleEn":"","exampleEs":"","level":"—","category":"Conversaciones naturales, emociones y problemas","source":"Inglés completo"},
+  {"id":"d546","type":"phrase","en":"I think you’re right.","es":"Creo que tienes razón.","exampleEn":"","exampleEs":"","level":"—","category":"Conversaciones naturales, emociones y problemas","source":"Inglés completo"},
+  {"id":"d547","type":"phrase","en":"I don’t think that’s fair.","es":"No creo que sea justo.","exampleEn":"","exampleEs":"","level":"—","category":"Conversaciones naturales, emociones y problemas","source":"Inglés completo"},
+  {"id":"d548","type":"phrase","en":"I feel much better now.","es":"Me siento mucho mejor ahora.","exampleEn":"","exampleEs":"","level":"—","category":"Conversaciones naturales, emociones y problemas","source":"Inglés completo"},
+  {"id":"d549","type":"phrase","en":"I don’t want to talk about it.","es":"No quiero hablar de eso.","exampleEn":"","exampleEs":"","level":"—","category":"Conversaciones naturales, emociones y problemas","source":"Inglés completo"},
+  {"id":"d550","type":"phrase","en":"It was an honest mistake.","es":"Fue un error honesto.","exampleEn":"","exampleEs":"","level":"—","category":"Conversaciones naturales, emociones y problemas","source":"Inglés completo"},
+  {"id":"d551","type":"phrase","en":"That’s not what I meant.","es":"No es lo que quería decir.","exampleEn":"","exampleEs":"","level":"—","category":"Conversaciones naturales, emociones y problemas","source":"Inglés completo"},
+  {"id":"d552","type":"phrase","en":"Let’s try one more time.","es":"Probemos una vez más.","exampleEn":"","exampleEs":"","level":"—","category":"Conversaciones naturales, emociones y problemas","source":"Inglés completo"},
+  {"id":"d553","type":"phrase","en":"You scared me for a second.","es":"Me asustaste por un segundo.","exampleEn":"","exampleEs":"","level":"—","category":"Conversaciones naturales, emociones y problemas","source":"Inglés completo"},
+  {"id":"d554","type":"phrase","en":"I’m doing my best.","es":"Estoy haciendo todo lo que puedo.","exampleEn":"","exampleEs":"","level":"—","category":"Conversaciones naturales, emociones y problemas","source":"Inglés completo"},
+  {"id":"d555","type":"phrase","en":"I should have known better.","es":"Debería haberlo sabido.","exampleEn":"","exampleEs":"","level":"—","category":"Conversaciones naturales, emociones y problemas","source":"Inglés completo"},
+  {"id":"d556","type":"phrase","en":"I can’t believe this happened.","es":"No puedo creer que haya pasado esto.","exampleEn":"","exampleEs":"","level":"—","category":"Conversaciones naturales, emociones y problemas","source":"Inglés completo"},
+  {"id":"d557","type":"phrase","en":"Everything will be fine.","es":"Todo irá bien.","exampleEn":"","exampleEs":"","level":"—","category":"Conversaciones naturales, emociones y problemas","source":"Inglés completo"}
+];
+
+  </script>
+  <script>
+(() => {
+  const STORAGE_KEY = 'englishDaily_v01'; // same key as v0.1/v0.2: preserves progress
+  const SYNC_CONFIG_KEY = 'englishDaily_github_v1';
+  const GIST_FILENAME = 'english-daily-progress.json';
+  const GIST_DESCRIPTION = 'English Daily · progreso automático';
+  const GITHUB_API = 'https://api.github.com';
+  const GITHUB_API_VERSION = '2026-03-10';
+  const AUTO_SYNC_DELAY = 2200;
+  const APP_VERSION = '1.3';
+  const DEFAULT_GOAL = 12;
+  const ALLOWED_GOALS = [5,10,12,15,20];
+  const MAX_HARD_RETRY = 1;
+  const CONVERSATION_DRIVE_IDS = `
+1lep1LGqo6Rwe_0zh8FYLQ5-nlimfa1sw
+1hVQ1yejB7O6wxbQTbvXxr-1CTMugCjHq
+1hbLnoN_8WSDfWn_tealQlM-7OrA9t0_M
+1hMr2mPlCLk_KJWuhlMUeUiNwV_qpparw
+1h7AkodcP8TbNupph9l2xKALYKlwcdRJE
+1hgJcWfBPgpEl2fG-MicKCipnT1xl0n6P
+1gdwfhth08_xQS1OVbachJP0cvYZqxRAg
+1h3oHPSqzJpPwpiNgZTswE5AmGwgq0xdl
+1gtkamiaEzzpXSEMnOlp8aim_pbH7Ge7g
+1hIOhBJ7e4cFuiX7LhAhHLW-zfc_3TrC9
+1gmRAMARXrG6EH8YoeThxP_rFmscZ1ZCF
+1gp166tB3pZB2XYyVJS1PNEc0hjsypER9
+1hLPJwFq1gWviSnjr86VDd4Jcp5YED4Yw
+1gfxw-5RPyyQ_EZjHnducU6rPF-80M0t7
+1gZTYnUNWx3zroazl2jdTRehfh3ZJrUDP
+1h2cm2apIksE-oVFonWU9BgOa_p01Db-u
+1heVAJUQN8qqwUeIz9v3TKKnHRBclvyUC
+1hMmBKf-auu5OgNROochY8A2vZetKQfr-
+1gPluxoNYeet45LaPnJoCeDqt4ITLxfjZ
+1gWMKpFFNsYBIhX1drX0gEl9q69DXsmuU
+1gJHs_stPhnZsEHp2NBMFWDUwXOvqpqQp
+1h81D4M0OMXu5VYUug7qiSjWIh3IRHWZw
+1g6-EsEpbPn6pvgEpuFwnvvk0iUuYDxM4
+1gbxQXZevlramBjOdZHveVa4UUY9uEBoX
+1gE_CbXqI-lf0Crb4a8Zax_NaiS5yykBD
+1fxliQ0LII9WkbDJudrUsLOX-1VvF4hZA
+1fbme5Hgx3V0zCHJT5V8P2uf1z6DGkvyW
+1ftcVDG84hUVmXkFpwt3Zlw6SZ0hPCWuc
+1fcSS7U2kNvmAhrrTh4aWX1r_6dvtwXX6
+1hC_VttOyJgtxLXNik-eVauw9umPIqC_A
+1hN7Kx6SCVPXuWji7VMD_h-ghhvlP7JeI
+1erfA8u9Y0OqUBzpg-zd7OwnfbwkDBGy7
+1fcg6-Kg-XtpyRCHjxlxoBttxU6DUP33_
+1futKW2JNKqCHLHnY0PicTBs9hbkVMPcp
+1f9V-Lj0XF2697p0tHz7CDiuhFcTnFFjf
+1f9GIXEYdxU6UDxToMqMtnoUit2dvQmSV
+1eQmYTmnOuaGvUp9s_x3rRwr_Xrld5h5k
+1fkktpU393WZg49WpCLoV-RsS5nU0AA1v
+1f_0fAoDRHxSjl0onF_J0oBdPCx-iE4qN
+1fnkQGggmuNYMV8IUuDxRPM8rD-wpeLI7
+1eKIl9ixIvRD6_DzyKW4AswE08zExw8nG
+1fOjVMt0sZP8vqH5Rq5QjR6EDElXivuGs
+1faM3RY2O0mKEGnFclbFKNZB7yRAraASI
+1fLi2pKxWiW4_QMxBBbs5IofOswDwDIjC
+1dVIeJtDDJe-X1lCz1p2l2D85Qk9chK4N
+1fcHQ2D7e6qhz7quuNVJy4rTPkeE5hWUD
+1dY_FxCt_X8JWhVO6W4lZqRiaJqM7QKH4
+1ey3IcdOfeo1JOg1I4BIyqwT6YFAAkxoi
+1e4aOcUvyM_TM288piCqGspwzstPz_YBA
+1fxW7isbV5xZPplaCN214Lyniba83Sny2
+1eG4N51-bYvywz2H9t7o_1e0l4fQerAft
+1fm1tnouTGBLcju4teNLAKNIewJVloMlU
+1eRTaadFs2Pw2Qaaw5_w6zjInKTLS9ubh
+1e_9eqpZu4mFfLk_9NqBaBI_zsk0PHppQ
+1e06e6aaT2FiCgTxwICGrk3XbwXjf665y
+1d1hDF9hMZkJdKM4nzjEVYyl8EdSt9U4j
+1frRbrL0lSWmC6zneST2JxaSzhYsxRVTN
+1f6z1zJpiYXjMIQyFob3PUjDpKd3C-nlP
+1cn5-6zykysMMSPRjhKwfwxvTnBf1M5mF
+1de9t9xhye4O8F8qWqJR1mnqfXdcL6Foz
+1e6Uo84vRFYoCEcgSuU9AAp7Gjo1H5kRc
+1fHFQPVxRwaPJH8G1sHXzlWjhE3kFSNJf
+1cqa29j6tBz04lEEWQrhDhkW-nY2gZO1-
+1d7IpzxxPQ2KCcTEqNVbdBdh2gM3IjEsx
+1el9kWFQL4CqyZkYWloJN_p3VwY0PAaGk
+1cln8sDCkdaqtJtj1BrCP0l3UlR7eh89c
+1ctAv7dhrCZo38fYPqR3oDqt2D7tl0z6U
+1cbQciI60YPaWgj9yCRMBfe4yT9I0HCRZ
+1fwnPsoZjJ7KCGQqow8d3BzmAEMDUe77i
+1ehffeJcNaXQXorS9BtAFwTE1TMcTvs9q
+1dQx2pwmNtC3K-7Hb4QD7nHOAZRP76zgr
+1ddkeEVdfxE6UbTpyta1Fr4_l5MWWh4vJ
+1clU4iyBucpfXccZngnY4avr0unbs6gbR
+1cxWnrhIw3ty5xPnI6PhzpgCwRsz7cVJm
+1d9MSAXcIeLYzetntOLElzL32MqHL8ddD
+1comGULBpXNBwCeLsMxtHFT6FCLcjTQsa
+1eHhVeFF_kf1NGFsW1RKWnw__KD-OsJ8h
+1dVTNF4-lBMydj9VCIx0yBzFauJM6Z-XL
+1eKG6a_HKDEqk1irUKAmLmFNVnppBCi3o
+1dB-c8_qbN0nKkqbAxziCz_8Uh6RB2SAV
+1d_x3EdysEGF7WOjFL-93z0WNZEiT4s0H
+1cyjac1V8LFXjXe09jWkmroNDxU9MZQE-
+1dlt3SQpceNMISyogN_AqIzr8yJa5fycr
+1fJ-e5vsODkSWZil_R-fV9jlzfnEaABzh
+1bIl40W6sre-B0DVGjwIHWbDqYRpx4YJA
+1afUsz5YLbzQPDoTnWVHWeIqi2jv8BjDc
+1ePOXJnJ44Etq_UNlPVKyljc8k_DBJ_JT
+1aNU8-LAmL0q0s2ut9fa5chtT_KybUwXR
+1bQs_No6bTXMNbxYFiq16J-9JOUp8hKa8
+1bohnAyfspAYBeQjnIoGRG3d_G8CEzBCN
+1c96JxFknTxeDUUKls4V1AHp2t286w9Ro
+1_xTrFAouNReQyWH8My2c909Dq9unsSlb
+1cfmshcEsRbXvgEZZhWoPFyX9iBReSJGX
+1acnZZ7qUShYtV76WJEQNDOrgLF4AEoDm
+1dhyrudv0cKiIzpvmtykUXD-MrOWF5Hfx
+1d3b1B8lY_MPbpeyc_bUnls_P0GdHDc_6
+1cgAlvU-M1c_TysGzSe6o3lKK4ZdZSGTq
+1d7T_-x_yYRObzV7f5yheTaL3FTXYgcna
+1c_SvuaUrGuAy5FZtfhsT3JjSJtLqSAFW
+1_oofe-8AttEst6iUztg1045QUeVWSjXB
+1a_U7yS0hlbYVAN7yg9IMCIs689ju-YI8
+1baplOGENEyAtVGiUPi8xvVfWoKcwqgX2
+1bDStiON-lWld2k2-IGDUfR0fDmtXOHrH
+1_RqfVPRhyp_mw32WYndSRGCe7cjgb7pJ
+1bJQL_io5PxDGL6G5cZvkgQ_7pFmJU9gn
+1ccnswjsiT6gl9qnEEO82TqvF5lxmwunI
+1c7kb1LhCrDMI0nkFEywdCLzqrp99Hmj0
+1_Vcjbuhg3vQzXBAj-gYl08aaI7NHxSq6
+1_jgJPDx7VekP9ANiYnsrUusJuTJsD1L7
+1_ZMDCuon-D0vvOsqCUrbTf6G5uQ9Tq5r
+1_OvIWY9W12ZdvmKQCqMjeKoFThfvfETZ
+1b3t-kQt-PYB76A8Y2AcMFg-EaxZLu_pD
+1_KXh5iPTDYsveY5BHWzvGzZ1bjIXv9ZG
+1aq8ouGV1hsG5Au0iUlKdtsEXcy3obi3n
+1cUmofPOdwHtNpeOFfL3aCz1VkOdyGGph
+1_RwBHSQHKMaZ0XsrWLIRGddtCOAxQEfl
+1aE1H2_tHu9Pm0bMjLhbqrnIDxnh8n59w
+1_WCBtaAoB31b4MRalndFBdbY2IInxYoZ
+1bb5GkKdgu7m_imns7LmqO3oRaUNVF4zY
+1aGomX7w9t8iH3a13Hnt-IpmccVPih7FG
+1_BUsNrcUY-4eFmNcvjfD46s9vsGWFD5T
+1bJ2mh-kreQPzRVBmznfzwAPGusCEXnTM
+1bpp7PiIjsBRk9KI384UlgX7M5obV9GhQ
+1ZVXHtBsyohlogFhlHj4xS3HNeyA2WvFV
+1bDHK-on0enO95-xxd0bwN70BTyCTxPBZ
+1bH5f-ZQ3jJTgT5s9_qER2pLXylJ1AlEj
+1bfp8L4iq9jUUU2iOB71kU1wKTNIrE25G
+1_xPEoTPf0sAB1cwgw3fR1tTzqkXQUUX4
+1Yz7tX62g8sW6CJJM23JyiYLXZqxdeOET
+1ZPgJWEwKt_f0JHVSQ2A76RCqTYh9VfMM
+1YWor7V7H70oBbJL1YssaMM6ski0ckFn0
+1_ShVAdR7oZOm1cv7-AH6FJ6NCM1HxNUw
+1aGZFu7IuL5Hu8jMI7gLNHLC_u0gIO6wg
+1aLeFES8BZgVgcZQtW4yk9Pyi7BO4quVA
+1Z_noaezdB4UBfE6kpxg5lsTk4Xm1KaIA
+1amUvJUSz__dnHhhFvo552tB3_ffGrAeX
+1Ynwy99fZV35NDBtU4WxG9l-CNN2buIth
+1_wop28Pamh0SFphDEZvCnWNGFgk90c20
+1Z3tEj3aWvTl13jbHGucsHRlORWSbCnL7
+1_JIfTezee-y1k2vwL6fUC7FHTcjUCscQ
+1Zd0NKx5O7rsiUWdtFzFChS7jtRC_4lg0
+1_ItekQyeMJkxyvbsz_6jJhzGtViAsYGy
+1a1VsVxH5QsaYGRUPJt8MtO32NKMl7Pgc
+1bsj989UcvPKOZ1EvJVwFxYfVuymLJZfD
+1_d0xALIHZ5aS0CPwES6CgFmQCiZGN522
+1aThmo4VZZfhJu4R7MNx3KtEqV0wGJMro
+1ZN9u5fNKZaUrUv6beLeLWv_shBm7lERI
+1bhvxRh4eTKTqZobJZGZc1oZJnzAIv8Wb
+1YW-8xZAWpO1JAb9lM1_EHcIEG_2IhXFB
+1Yc6odRWowiKUw63A5cDWMeqt3bT8cOpD
+1YDZT80hcZvrZ8Gx15OdS-TzjUyHSdj-h
+1_ftj5p9UAq1lCnnm99YJqq2xtvdLUn6D
+1WghFvtgKgGEHWo0qDL77MBpx3yr4DMgR
+1_aoA_FlPpsGqL2MWulS8Uh2S9Rkje_AY
+1Y9bGR3hlMP-rTHfUy9InmKiogSNnqKAZ
+1Y91aiibGgJLI9r3mLAb8kwfk91V2NGkD
+1WZlyF5qu-jVYoH_3Dn0R84KYgWs8YFqS
+1WndlttFNqzxymSgd5pBhLSOigN05qAtG
+1Wtkeh-t4QYXyEmO6Pw9fBACGLT9XX-j9
+1Wvjv6l0eXtgIw1Rg-DofcmmbGowXL2qm
+1WlD0aIBacBzZCN3xY5Um5TZ-q1MM0WV0
+1XayEFx6UgMo_PIh9M281viaJf6W5UkzF
+1_7GkxIiV4lUGtl2tmou19fMGHWyXdwEk
+1W56LRZqIyoJ3emH9gCd5MYnlRIdBwSD7
+1YVAGjQF7gRV45eY1H6xVaavPGRQrz9pA
+1VW6VGw88HLjuRw60ARiux-VSuIQ3VlIN
+1Y1bvGLk8gjjRNCDhbbFyiFYGjSKpyxVc
+1YtCRjmyPhwYxueog0hEtlC8CnxOwIBUM
+1UdrkjjEy7uv5bTKBwN65yXlK0LTTnnT2
+1WnhXyl2o6rH9Nug5evvMEdYVHVYO2fCC
+1URdSXM3kv9PO_jkTIVoRqFUqElGP75D9
+1XLsA2sJG0tdVgMapEC-0WgzAMGJhosc9
+1WHVsICX6sRvTIGr56XsSGwcVQCPLAJP_
+1UZ5jFLzoqRvbnM8ydScYI6FLj1z-QVmc
+1VktlkN3bSnhtbAkTvowQQaQ0aWrOYT90
+1Y4FOxGjbK-XbYlesHFbF2hqknAu454JL
+1WMBhC2JknonOXejF_zmR-lrIzmxeGEQu
+1_so4BA5pFX-xtSjB0tpYJLw3W4lqru2M
+1ZWLwGt8fVu5QilwUDfjyUKIjM87I3kdl
+1XFc-ZzHOIr8NZm2ssOX2M4gDebI6Xop2
+1W6QVT-_tQNVmldfRwZdUOoF2hQM8aXv9
+1YXsDNoxRJanPcAnsMX1BV0knQVO-nmUe
+1WYE01X7tpjOxrUxmFAFswtAaARPUtKnc
+1XXT4BafCDaSU4JQ4WACkq9PosIaVd3X9
+1Ws1O7DIxgq4y1pDWRYDg3U0_-IBdoBcV
+1YkgjpBPN9FmL6sFbKIwZhgqIKRkwLrkc
+1VtGZaJeL_b_veo63cI290JjAPcjbyfbm
+1XPZnnaiynOhXhyRfg_mCeRAJuOp0Sy0_
+1WmaJSfKp-YNt1w4pop4NTf7sX6nF2CQI
+1X39h2dxDPK_G_jaY0sD0OCa8edtAKjeD
+1WqGDeFkOZlpt50fmUyLSrW0uVksUlku5
+1YBNV_PUYYvVuufavT0YliwYSU_sK5tKE
+1XW2FlnIC08PFZTVKF_VoGqspMXx5A6sL
+1WCsnS4LEsKVIovTMW5ZbupJrwQIM3r55
+1XmO3l8SMoBAEqOUX2aE7BAyT-1rM_sNz
+1XbVyPKbQyVsfzG940yXAJIgQYx3DFrPT
+1Z6Zdc2hpUXj6Ohs9NIF7sPh3bM4daed6
+1Xkl2VUAQRuyh7jgmMNvlnJVrkWvsNB_K
+1XO4qtY7D_hDQ_bdEPNz-oa_AcR4oIGMk
+1YHMxVwpMCh9gPN6ahMuOmHX4KESMaHB3
+1Xc-_AP4idmpYfOZIiPDc1xdgttm-hLjo
+1ZjpnPOMlQfXh2GHmHHkVm5JjiMKrDNWW
+1XxbPjuz_4IWb7rOkSV4juzyaJyrMoVpy
+1VaviDv6RkL6OeuSOawCGpzU9yhE_bKDU
+1a4cONOIBTwdpqi58xpxm_lxMz3_jJljC
+1Xal5uxj9uE6zxtJj8EN35DivNUNcUqvJ
+1X_hxhHk-pvNBhlK8chF6j1ggdb0UASqB
+1VhkKMS-MMR0nQEd9taY7LqrIeOPgxURy
+1WH_-7kI_lwfzLFQabV4BpBh0bXuyM164
+1VnFZOdFWqB3Q-RKk7pD3a4R9_FIpjVBu
+1Wf7OOrL4npPkE3mcekRQsK7rWttUs04U
+1Wfc5u8-V1oHpeSSQUNvxbyzhuzkhhjxJ
+1VxDsP8KouinwYKTnlOT7limrJIMvy_lr
+1VNIJEW8FlGhXFrQSoYUogF0J90B-vn5f
+1YmdIn3Xwh6qgJhOYrwEp9aYXXOahMMVf
+1VjICeFa3o_JMXbJtPHIUHbo64qew7cab
+1WkKHamMUUww9WmAjNfDzhar1fCLPL8VP
+`.trim().split(/\s+/);
+
+  const CONVERSATION_VIDEOS = CONVERSATION_DRIVE_IDS.map((driveId, index) => {
+    let driveTitle;
+    if (index === 0) driveTitle = 'Conversaciones Texto (1).MP4';
+    else if (index === CONVERSATION_DRIVE_IDS.length - 1) driveTitle = 'Conversaciones (1).MP4';
+    else driveTitle = `Conversaciones (${223 - index}).mp4`;
+    return {
+      id: driveId,
+      driveId,
+      driveTitle,
+      title: driveTitle.replace(/\.mp4$/i, '').replace('Conversaciones', 'Conversación'),
+      category: 'Conversación',
+      viewUrl: `https://drive.google.com/file/d/${driveId}/view?usp=sharing`
+    };
+  });
+
+  const PELDANO_SOURCE = [
+    {number:1, driveId:'1CoG3u-fGPS8l-ZgCqNcrcEDx-zea4bn4'},
+    {number:2, driveId:'1BrGdyFvTPtZgd1AVYbxD7bU4QQ_cfljL'},
+    {number:3, driveId:'1C8lWjLtq-vUTjxLFAMrK-zI5hQPFTKdO'},
+    {number:4, driveId:'1ChrikUH7a-HH7I2SOItzKcfJNeaBW8P4'},
+    {number:5, driveId:'1BpKW8GDX55qjFQgMsYjEhyIYqR-zLMVu'},
+    {number:6, driveId:'1CEayE2jRMOzh0Bpi9d5OhdgcDU0h140U'},
+    {number:7, driveId:'1BrdzaeCatJLHz-uFfF1mgOrpKzYEMqQ2'},
+    {number:8, driveId:'1BZICX2AlWcp0xaZkGmT_7c8er6Hn14Kw'},
+    {number:9, driveId:'1BolZ1s9GobZfC4vay6KGfbEGsdJ6GcYZ'},
+    {number:10, driveId:'1AgqLBbJmryTjwm_MfY8TbYhXYl0sHKD-'},
+    {number:11, driveId:'1B9G_GemoNXJDU8a_2A7yTvH5NOKHrqLt'},
+    {number:12, driveId:'1A1uaqxWuz57jdnYLUAz6d_X70O4g37tL'},
+    {number:13, driveId:'18FXAejeT9oBQd7AElat-Q5hWBVXMiPsn'},
+    {number:14, driveId:'18LA30YR3O_WWrQ_xoFPVSoItzIrwBeYb'},
+    {number:15, driveId:'19BKNWVBXCqJdI4R-doCgU11iQx-ussKT'},
+    {number:16, driveId:'1AYXUnqCMIhpJaIy_9Wn9wuHynCRjDY8J'},
+    {number:17, driveId:'19u85BN56xiZi5eVsAn3JqZlJJucMTbMX'},
+    {number:18, driveId:'1AiLosrxN2JL5_fN4_3pP7x0z-cTFnUnz'},
+    {number:19, driveId:'18dxs8XuHUf8bP-P9ic1lMkISip0pashG'},
+    {number:20, driveId:'1A9wfRT_nSzTCkFSLwGi5hecQR2-vBFrz'},
+    {number:21, driveId:'1A57DZoStcX7lFfYFJrM7GHNhquZITmyO'},
+    {number:22, driveId:'1BU90wVrpVDWQlrrw_56BVhPIa2EVZFJo'},
+    {number:23, driveId:'18pbOeuj-adcrcqKb9h4YbM5FbhRgqRSF'},
+    {number:24, driveId:'1AvdF-JmvQSBEOY1EE_B5Uzb4iZpJPrpK'},
+    {number:25, driveId:'1AAVdO8XftImiI10lQFg4sAwEyu5UMr_t'},
+    {number:26, driveId:'1A13mLvwJAar1VA-Noefl0Op-7u5m1Syz'},
+    {number:27, driveId:'18fIyk4AosdpuZenIRzIVf_c3ta62HWz-'},
+    {number:28, driveId:'1BnqAQ_X-dJlP2ha0YFhLjORt-t7UmJBd'},
+    {number:29, driveId:'18g9RZu7MVaURgrlC3HHeYupFFt9zW5YV'},
+    {number:30, driveId:'1Aniit6ejGbcWJ4dt1tn4grC78oXHS-s2'},
+    {number:31, driveId:'18kinAn_Hvx0jDGBXb2t4hpG7A6toR47s'},
+    {number:32, driveId:'1AFzH9SK1UKS1xTZvDUkwBQuH4zSJtBzM'},
+    {number:33, driveId:'1CBa9WrKgrQw2XgnrUfTZxX1gc0IVm5Nn'},
+    {number:34, driveId:'1CfdjeKqP-6sAB9e0YAXooq9kWme4ge4p'},
+    {number:35, driveId:'19jJIIeiqJR_hwbfx86Zwllb5v9WzsCTz'},
+    {number:36, driveId:'18y8zVBK2bsupOcKsHA9ZDQ2D9OKelkwT'},
+    {number:37, driveId:'1AS-1u-4lcnJ54eLW-VNZdDGGu4tUIy5L'},
+    {number:38, driveId:'1AZK-0baYQzJts_44O8gIvAA0V8IXuZia'},
+    {number:39, driveId:'1BsMS8kJEv8HhRxb9GUOp9evfW30nQbaZ'},
+    {number:40, driveId:'1A9x9cis6G2b9oRUICOPPV_2OAa9_FzYm'},
+    {number:41, driveId:'1Ag_F3sK_w-2YntvlAtHQySPH44YKlutm'},
+    {number:42, driveId:'1AcX_HXQ3BO5h3kDcuNyLmwwiyaU3rP8K'},
+    {number:43, driveId:'1Abmtt5KDsbyoAaWHqtvStCWHnfszc70w'},
+    {number:44, driveId:'19EFZLJM941WiyY37s-8Q6VHnF67gWGuF'},
+    {number:45, driveId:'1AJRBMVfwyIlnN7NL3ebaxM5BU3beFbe5'},
+    {number:46, driveId:'1Bdtn9uxSbuyHGL3hN5EKgObbpWbl6MAa'},
+    {number:47, driveId:'19pvGpxs2fOERgigLQ3-HmVQ6W0SRf1Jx'},
+    {number:48, driveId:'19RWoa_pb3xxiVnINXCB7R7rk8zzsQImH'},
+    {number:49, driveId:'1BV8snU2OgsopDG7G0lA8yx_YcnjrkPxH'},
+    {number:50, driveId:'19lqTqCqARs8j_qTIAMMxivVMJYGseOSN'},
+    {number:51, driveId:'19kJcAxBs1HTy3boAp9wClRBa8S7oa0If'},
+    {number:52, driveId:'19ERVG-y8uWT1kDgRzH7sp_Q137rFUBi_'},
+    {number:53, driveId:'19sEtPVDwCOfRgIQFj3oCWXPAdxAxt7hd'},
+    {number:54, driveId:'1A4Ih6rZetOGW2R7QRZVDegGUjJnVXOwM'},
+    {number:55, driveId:'1Cew0ncF-CwximAyTbKjNyT2cLEBG3t-8'},
+    {number:56, driveId:'1AJegGMw-NJKh-6erB_PQOS7qQUmWMMyV'},
+    {number:57, driveId:'1C5DOTn3_U1JSyxQeV1egZoH999ommvmP'},
+    {number:58, driveId:'1C0T2J8QjXTTCBJ5eYfA6mQt6Yo1lWxCT'},
+    {number:59, driveId:'1Ap81R_ySDzEA0wSeePh84Y4DluX-G9SD'},
+    {number:60, driveId:'1C4Ib25-SuKW8pYX67inCdj57GAEk2_Q_'},
+    {number:61, driveId:'1Bioe0ADSgbC_zr5T8KOhKnZtTWkZL34Q'},
+    {number:62, driveId:'1CukDn4ezXHIeCOTxebAjhuzs_6E4BKQ2'}
+  ];
+
+  const PELDANO_VIDEOS = PELDANO_SOURCE.map((item) => {
+    const driveTitle = `Peldaños - Vídeo (${item.number}).mp4`;
+    return {
+      id: item.driveId,
+      driveId: item.driveId,
+      driveTitle,
+      title: `Peldaño ${item.number}`,
+      category: 'Palabras / Peldaños',
+      viewUrl: `https://drive.google.com/file/d/${item.driveId}/view?usp=sharing`
+    };
+  });
+
+  const VIDEO_COLLECTIONS = {
+    conversations: {
+      key:'conversations', icon:'💬', title:'Conversaciones', eyebrow:'LISTENING · CONVERSACIONES',
+      description:'Una conversación pendiente al azar. Al marcarla como vista, aparecerá automáticamente otra distinta.',
+      singular:'conversación', plural:'conversaciones', videos:CONVERSATION_VIDEOS
+    },
+    peldanos: {
+      key:'peldanos', icon:'🪜', title:'Palabras / Peldaños', eyebrow:'VOCABULARIO · PALABRAS / PELDAÑOS',
+      description:'Un vídeo de vocabulario pendiente al azar. Su progreso es completamente independiente del de Conversaciones.',
+      singular:'peldaño', plural:'peldaños', videos:PELDANO_VIDEOS
+    }
+  };
+
+  const AUDIO_COLLECTIONS = {
+    translation: {
+      key:'translation', icon:'🎧', eyebrow:'VAUGHAN TRANSLATION', title:'Vaughan Translation',
+      description:'Booklets de Translation. La app conserva el nombre original de cada carpeta de Drive y recuerda el último bloque abierto.',
+      sourceUrl:'https://drive.google.com/drive/folders/1MXBQOHPBRlWcvnXk4ToGJycFssvGH9pU?usp=sharing',
+      groups:[
+        {id:'1Tj5atR8RIlRoZka4omb0Y840nJHGc_Yi', title:'Traslation Booklet1', url:'https://drive.google.com/drive/folders/1Tj5atR8RIlRoZka4omb0Y840nJHGc_Yi'},
+        {id:'1U7dbvtfBbAUdc9KnnLBjasheogrKVdqy', title:'Traslation Booklet2', url:'https://drive.google.com/drive/folders/1U7dbvtfBbAUdc9KnnLBjasheogrKVdqy'},
+        {id:'1TgyL0M7IwxEfEHzE_2n-Hkoxj_rmUiIk', title:'Traslation Booklet3', url:'https://drive.google.com/drive/folders/1TgyL0M7IwxEfEHzE_2n-Hkoxj_rmUiIk'},
+        {id:'1iPvYb5NLPkdeT4rI2M2MfwgncA8QUi8N', title:'Traslation Booklet4', url:'https://drive.google.com/drive/folders/1iPvYb5NLPkdeT4rI2M2MfwgncA8QUi8N'},
+        {id:'1TllJeo14Z1Ybh4RV-2QJL-yVh631il7f', title:'Traslation Booklet5', url:'https://drive.google.com/drive/folders/1TllJeo14Z1Ybh4RV-2QJL-yVh631il7f'},
+        {id:'1Tg8OaMwjhAwsPv9jjhhFBld3W5MwWuee', title:'Traslation Booklet6', url:'https://drive.google.com/drive/folders/1Tg8OaMwjhAwsPv9jjhhFBld3W5MwWuee'},
+        {id:'1TrScliW4oUn0dnkkESMzogsDjcqFJv1W', title:'Traslation Booklet7', url:'https://drive.google.com/drive/folders/1TrScliW4oUn0dnkkESMzogsDjcqFJv1W'},
+        {id:'1TwObkOkWgNzH3RR_Gq2evz4_kDDJ0sSl', title:'Traslation Booklet8', url:'https://drive.google.com/drive/folders/1TwObkOkWgNzH3RR_Gq2evz4_kDDJ0sSl'}
+      ]
+    },
+    vaughan: {
+      key:'vaughan', icon:'🎙️', eyebrow:'VAUGHAN', title:'Vaughan',
+      description:'Curso organizado por CD y nivel. Se conservan CD01–CD10 y las carpetas Principiante, Intermedio y Avanzado.',
+      sourceUrl:'https://drive.google.com/drive/folders/152ENJexZ22KKc1aNW9eFw73S4hawXxy2?usp=sharing',
+      cds:[
+        {id:'15F4ZzDsp6RN_3vF_bkKljOThO-vm5M0k', title:'CD01', levels:[
+          {id:'160Z66TKva8AjzRGNPxWdskb6s1yjXQZO', title:'Principiante 1', url:'https://drive.google.com/drive/folders/160Z66TKva8AjzRGNPxWdskb6s1yjXQZO'},
+          {id:'161fGImlRk2Ywf7a20b9855m25oJJaiEe', title:'Intermedio 1', url:'https://drive.google.com/drive/folders/161fGImlRk2Ywf7a20b9855m25oJJaiEe'},
+          {id:'15vrTrSJsrxDfPbMBg_LE_M1lNbb6TKEB', title:'Avanzado 1', url:'https://drive.google.com/drive/folders/15vrTrSJsrxDfPbMBg_LE_M1lNbb6TKEB'}
+        ], pdf:{title:'Libro 1.PDF', url:'https://drive.google.com/file/d/15rqD48dn_dq5m7CY0t5hO7Z05bWyqSCL/view?usp=drivesdk'}},
+        {id:'15c-ZmGxWnLBzqwS5_cwo2DJBFxBVBqX4', title:'CD02', levels:[
+          {id:'17CtSY75CqPElXy1dLKjvBOPwM29-sxxq', title:'Principiante 2', url:'https://drive.google.com/drive/folders/17CtSY75CqPElXy1dLKjvBOPwM29-sxxq'},
+          {id:'172TPc3n6w8FEBO7jSSzmuUUpoKIzbkJF', title:'Intermedio 2', url:'https://drive.google.com/drive/folders/172TPc3n6w8FEBO7jSSzmuUUpoKIzbkJF'},
+          {id:'163gZ-uOL1nSYubEgVtNmfRyJYOm5z57n', title:'Avanzado 2', url:'https://drive.google.com/drive/folders/163gZ-uOL1nSYubEgVtNmfRyJYOm5z57n'}
+        ], pdf:{title:'Libro 2.PDF', url:'https://drive.google.com/file/d/15vUM_9S46zlXkeyqUYmJ2G28UJMZh_Sh/view?usp=drivesdk'}},
+        {id:'1BCo2svIsRiSrBroe9Tw-HX8j33OpnDQL', title:'CD03', levels:[
+          {id:'1BTyo8I-NAjhJqsigN7U-reQ9uHawbmzj', title:'Principiante 3', url:'https://drive.google.com/drive/folders/1BTyo8I-NAjhJqsigN7U-reQ9uHawbmzj'},
+          {id:'1BTlJAVXy76OdHwVxqIt3Ue_XAjIM1T4Z', title:'Intermedio 3', url:'https://drive.google.com/drive/folders/1BTlJAVXy76OdHwVxqIt3Ue_XAjIM1T4Z'},
+          {id:'1BTgYgnq4dMKDLrFk6B9i9Qx1cRS66P9T', title:'Avanzado 3', url:'https://drive.google.com/drive/folders/1BTgYgnq4dMKDLrFk6B9i9Qx1cRS66P9T'}
+        ], pdf:{title:'Libro 3.pdf', url:'https://drive.google.com/file/d/1BGVU82QWh9Ni4jcBVe-XVV7TxyZo8kS-/view?usp=drivesdk'}},
+        {id:'1BBG6lHbwlbH5VHDBsWEeMLicWFS4fm2t', title:'CD04', levels:[
+          {id:'1BiZ3Tzny2njj0392Bds-UbELIq28iHDJ', title:'Principiante 4', url:'https://drive.google.com/drive/folders/1BiZ3Tzny2njj0392Bds-UbELIq28iHDJ'},
+          {id:'1Bj_ccc6p56-KHDGR7dTcGMGXoGr5v-pa', title:'Intermedio 4', url:'https://drive.google.com/drive/folders/1Bj_ccc6p56-KHDGR7dTcGMGXoGr5v-pa'},
+          {id:'1BrdUkUHATzM7wlziXTEBv6ALRxJLQkOL', title:'Avanzado 4', url:'https://drive.google.com/drive/folders/1BrdUkUHATzM7wlziXTEBv6ALRxJLQkOL'}
+        ], pdf:{title:'Libro 4.pdf', url:'https://drive.google.com/file/d/1BT3sXxw5-I-Iv6k2jGsH6JuUkFx49OQD/view?usp=drivesdk'}},
+        {id:'1B3XAi_eUx5xj3qALfFwQH_0-hzOlAg4B', title:'CD05', levels:[
+          {id:'1BziAPdsMw3HZGPgbznB_FEF1iaQvVFU-', title:'Principiante 5', url:'https://drive.google.com/drive/folders/1BziAPdsMw3HZGPgbznB_FEF1iaQvVFU-'},
+          {id:'1BVL4tGl0D2Sda7ZAHY2_Sg5gk9NevOGN', title:'Intermedio 5', url:'https://drive.google.com/drive/folders/1BVL4tGl0D2Sda7ZAHY2_Sg5gk9NevOGN'},
+          {id:'1BVeuAIYU7WyTxhZ0W5DJAJ4SOcuk2Slz', title:'Avanzado 5', url:'https://drive.google.com/drive/folders/1BVeuAIYU7WyTxhZ0W5DJAJ4SOcuk2Slz'}
+        ], pdf:{title:'Libro 5.pdf', url:'https://drive.google.com/file/d/1BeE-Jsw-5b3RRtRkXUK8R57xO_SbPd-n/view?usp=drivesdk'}},
+        {id:'1CaiaG4TkPwPW_xsxbaMiTFGtvlwbb-rQ', title:'CD06', levels:[
+          {id:'1GmsumCRFOtp-WkjIZi87dbCWrKCUpib_', title:'Principiante 6', url:'https://drive.google.com/drive/folders/1GmsumCRFOtp-WkjIZi87dbCWrKCUpib_'},
+          {id:'1GfsmSH_t4vw_KeFW0XhyGAk5NHa3-E7u', title:'Intermedio 6', url:'https://drive.google.com/drive/folders/1GfsmSH_t4vw_KeFW0XhyGAk5NHa3-E7u'},
+          {id:'1GfQTEM_o4RboSeO7hH7dMJALIUPrjm7f', title:'Avanzado 6', url:'https://drive.google.com/drive/folders/1GfQTEM_o4RboSeO7hH7dMJALIUPrjm7f'}
+        ], pdf:{title:'Libro 6.PDF', url:'https://drive.google.com/file/d/1GPko1k78gm5h_VGqFvHVJWmgeEsFlcDf/view?usp=drivesdk'}},
+        {id:'1GaUXxC2irVkkZpWn74pFsv7NCj-m2VQ0', title:'CD07', levels:[
+          {id:'1MJUTILLV776DYkoG3GNlrHCENGfySRy8', title:'Principiante 7', url:'https://drive.google.com/drive/folders/1MJUTILLV776DYkoG3GNlrHCENGfySRy8'},
+          {id:'1MRJj184Drp7rEXyNAqQNUdfkeVRWraeY', title:'Intermedio 7', url:'https://drive.google.com/drive/folders/1MRJj184Drp7rEXyNAqQNUdfkeVRWraeY'},
+          {id:'1MMEyof0oh2EU8S3Q6ewMCzq4bQTm7r1K', title:'Avanzado 7', url:'https://drive.google.com/drive/folders/1MMEyof0oh2EU8S3Q6ewMCzq4bQTm7r1K'}
+        ], pdf:{title:'Libro 7.pdf', url:'https://drive.google.com/file/d/1LgHGszn5FZ_oam-0kZ2CnlgNN63S1VvT/view?usp=drivesdk'}},
+        {id:'1GRj2UPiqzISZAHc9rhJhXgXrnmhWqrWA', title:'CD08', levels:[
+          {id:'1Mv-F5gIEclanLNQDpzOCDaZRlZp8mlz2', title:'Principiante 8', url:'https://drive.google.com/drive/folders/1Mv-F5gIEclanLNQDpzOCDaZRlZp8mlz2'},
+          {id:'1MugUadaS3USc5ORRf3y2XjmAd9H0sTKg', title:'Intermedio 8', url:'https://drive.google.com/drive/folders/1MugUadaS3USc5ORRf3y2XjmAd9H0sTKg'},
+          {id:'1MiB6UOqbx8-bTZKqEGM9PFgoJeeQ67XQ', title:'Avanzado 8', url:'https://drive.google.com/drive/folders/1MiB6UOqbx8-bTZKqEGM9PFgoJeeQ67XQ'}
+        ], pdf:{title:'Libro 8.PDF', url:'https://drive.google.com/file/d/1MIRsyti9W4JiU624qpo1cQxkPvySxRnQ/view?usp=drivesdk'}},
+        {id:'1GwmBtIUnPVlgD__pxWUyUDq-bSLEGv1W', title:'CD09', levels:[
+          {id:'1MbQK4szntdmNX8q7a2SMHs19snNSLgvR', title:'Principiante 9', url:'https://drive.google.com/drive/folders/1MbQK4szntdmNX8q7a2SMHs19snNSLgvR'},
+          {id:'1Mc6Mnva1uFDI2zWVUQY2gFZA7wdl_aMz', title:'Intermedio 9', url:'https://drive.google.com/drive/folders/1Mc6Mnva1uFDI2zWVUQY2gFZA7wdl_aMz'},
+          {id:'1MeUciiY2LkEHwtxaMbfEGMaWeQ1J6Bbx', title:'Avanzado 9', url:'https://drive.google.com/drive/folders/1MeUciiY2LkEHwtxaMbfEGMaWeQ1J6Bbx'}
+        ], pdf:{title:'Libro 9.PDF', url:'https://drive.google.com/file/d/1MgSzkqYwK7r5eEyuy3cSrcOEYj5VZfPh/view?usp=drivesdk'}},
+        {id:'1MbDy_s6acF0exn0mqn0GRwdb4jI3OAW1', title:'CD10', levels:[
+          {id:'1UZJLop6xYd9m-mfat8wFwpe8986p68S-', title:'Principiante 10', url:'https://drive.google.com/drive/folders/1UZJLop6xYd9m-mfat8wFwpe8986p68S-'},
+          {id:'1UGUmOTpNCbqJ8C-rXj-EOEmFC-wPB6DW', title:'Intermedio 10', url:'https://drive.google.com/drive/folders/1UGUmOTpNCbqJ8C-rXj-EOEmFC-wPB6DW'},
+          {id:'1UQxoQulEjM4F6obQkw2WsHlCOsGA3xxA', title:'Avanzado 10', url:'https://drive.google.com/drive/folders/1UQxoQulEjM4F6obQkw2WsHlCOsGA3xxA'}
+        ], pdf:{title:'Libro 10.pdf', url:'https://drive.google.com/file/d/1TQ218BJZauMX8-DSlykar5EQjs0klGT_/view?usp=drivesdk'}}
+      ]
+    }
+  };
+
+  const DIVERBO_PAGES = [{"id":"1-1UOusTwPzOMPaITvQq66Gfa2IjXX3Br","title":"Foto 6-5-19 23 26 04.jpg"},{"id":"1-9O_IqjFNToNLbmlwy8AVWgxX-HSPbD4","title":"Foto 6-5-19 23 26 24.jpg"},{"id":"1-7YnqPFyyUze_8rj1AP4QXuTjic0yVYS","title":"Foto 6-5-19 23 26 33.jpg"},{"id":"1-6ts6hHTHrI8mZW2k4TWL79NLmYjvX9s","title":"Foto 6-5-19 23 26 46.jpg"},{"id":"1-44gJBg1hzIkWn3atNYywpMdOiZkerfG","title":"Foto 6-5-19 23 26 57.jpg"},{"id":"1-2dfakmTPMuu1VLrMs7pTxAn93TX-WAq","title":"Foto 6-5-19 23 27 08.jpg"},{"id":"1-2OHwVQACje4zgk_LNagZlKviaKXWZ-B","title":"Foto 6-5-19 23 27 16.jpg"},{"id":"1-UWSWxk91noZ7K7F29M0ykMDoMnq6hnJ","title":"Foto 6-5-19 23 27 26.jpg"},{"id":"1-KW-apHrQAW7Jj6fEOkS80Z6WGZkTOt5","title":"Foto 6-5-19 23 27 37.jpg"},{"id":"1-E9-oB3-W9GemtlgdsgMnUNF0yIa1j5U","title":"Foto 6-5-19 23 27 49.jpg"},{"id":"1-CPFFpjGal6qelAFcnYawQG6MxmOy7TM","title":"Foto 6-5-19 23 27 58.jpg"},{"id":"1-Bt8yTdAzOHASszABZdys7q6trST5DIe","title":"Foto 6-5-19 23 28 09.jpg"},{"id":"1-9jTvmhTX8di_J5N0vRUdR6D7qeNy-T6","title":"Foto 6-5-19 23 28 17.jpg"},{"id":"101msPdoPr2geE7PRMzt7i3DFM9vCzaiS","title":"Foto 6-5-19 23 28 28.jpg"},{"id":"1-rFJkYCnl2BH2nKWPK2F6KDsCYP_DNcb","title":"Foto 6-5-19 23 28 38.jpg"},{"id":"1-ohdT4Q31FZ1TqtxVesl7XpfCndWlWWt","title":"Foto 6-5-19 23 28 50.jpg"},{"id":"1-miS5RZeLJXG1fMAWWvOEas_ONBH8_Ps","title":"Foto 6-5-19 23 28 58.jpg"},{"id":"1-lhtaJtQv566z51SDBHUXLZL02A80yLT","title":"Foto 6-5-19 23 29 08.jpg"},{"id":"1-ayy5oYeSOMu9kpxaisAnzyQ3iMmpjX4","title":"Foto 6-5-19 23 29 18.jpg"},{"id":"1-WLilKEB1AJhhDhHRLswOOQULKbnpD82","title":"Foto 6-5-19 23 29 30.jpg"},{"id":"10ZMJV0k14l3Xh2Y8G-XzAEgA0GZp-7uX","title":"Foto 6-5-19 23 29 38.jpg"},{"id":"10W4PfadjZkKgdinRdcOgfXm3jyMkCWQA","title":"Foto 6-5-19 23 29 50.jpg"},{"id":"10LZ4YVipwedy5P8xwLacv63AjY4zjyXA","title":"Foto 6-5-19 23 29 59.jpg"},{"id":"10FtyAFeeiP2NWPY9XixthPLIrSdeebNN","title":"Foto 6-5-19 23 30 21.jpg"},{"id":"10DK8cx84RRS_RsbYrnxHgYv8YKyd2WFp","title":"Foto 6-5-19 23 30 32.jpg"},{"id":"10ALq4pXic39-_CVvPLrgDTdyc-vqK6rk","title":"Foto 6-5-19 23 30 43.jpg"},{"id":"10s-Ofx43N19BWzdPYXbzfBqoeuj4TJgR","title":"Foto 6-5-19 23 30 52.jpg"},{"id":"10q1N_UZWWR1HlXawoe2GArBqqXBH4Gl_","title":"Foto 6-5-19 23 31 03.jpg"},{"id":"10iNKOOusRCt8y-Bim5ClPVoJoxf8TWOH","title":"Foto 6-5-19 23 31 10.jpg"},{"id":"10ducqNapBdnZBq28tFxDMfGGyoyyFjVD","title":"Foto 6-5-19 23 31 21.jpg"},{"id":"10cDikjv1BjYSu1jpCl3ULMwnpV6jj0kU","title":"Foto 6-5-19 23 31 28.jpg"},{"id":"10ZlTmBHYNincBGy05BbGIy4Vkp78TaKd","title":"Foto 6-5-19 23 31 39.jpg"},{"id":"114mkUtU9mOWtx6HSZ-4MDdfgNi03bM9D","title":"Foto 6-5-19 23 31 47.jpg"},{"id":"10ungnAqc-sJ0xhSmJR8OLJUWocSuvZRb","title":"Foto 6-5-19 23 31 58.jpg"},{"id":"10ueh-w5LJjLUs9ibutvGk1gvqvf9UZyw","title":"Foto 6-5-19 23 32 07.jpg"},{"id":"11GFOMa-TRcHi0DsP5JrmEqkKYgA2AuM6","title":"Foto 6-5-19 23 32 17.jpg"},{"id":"11DIZg3jlv5qLV53yMnv6wXB7AUEYXpVe","title":"Foto 6-5-19 23 32 25.jpg"},{"id":"11B9N2SZbHjKie8wJUk-0Hep-myRDMkur","title":"Foto 6-5-19 23 32 36.jpg"},{"id":"115wDYiHyOCwnQe2X4ixtXBVXg93XpsuK","title":"Foto 6-5-19 23 32 42.jpg"},{"id":"114z7zqnpP1UCVSB2YfBVzM-iRXD1rVvQ","title":"Foto 6-5-19 23 32 53.jpg"},{"id":"11ihTPTuK27Cp8p3yrzPcvYYgPyfcPvjU","title":"Foto 6-5-19 23 32 59.jpg"},{"id":"11fWW6r7FWcDOXtQ4xF4j_rLC0thJ-vks","title":"Foto 6-5-19 23 33 09.jpg"},{"id":"11cp3KZEVPiRpZWGROpn2PLiNSr1lJwwH","title":"Foto 6-5-19 23 33 17.jpg"},{"id":"11Yk-C_lB9H_xi9yffjNtCt-yun7W4eDl","title":"Foto 6-5-19 23 33 29.jpg"},{"id":"11MhIQrHw4YmN_WVQrCXYRc9lI8DATds4","title":"Foto 6-5-19 23 33 36.jpg"},{"id":"11HIzphSM5L5oqEI_ZACrNtZpBLah779U","title":"Foto 6-5-19 23 33 47.jpg"},{"id":"12-hdUBbWQvA752-TC8oycANx0cFZ5ecG","title":"Foto 6-5-19 23 33 57.jpg"},{"id":"11zZpsB1Kh5ZiADus-7xJDszQYSu5lAi5","title":"Foto 6-5-19 23 34 08.jpg"},{"id":"11xlzDMHIrs1Xkk6sz0LdcjQVPCE4vRt4","title":"Foto 6-5-19 23 34 15.jpg"},{"id":"11kJWfSKT_ZoJ2cjkMZYFcG_AyUfK6cJv","title":"Foto 6-5-19 23 34 24.jpg"},{"id":"12AN2Ch_D4VUYoik5ZEQBzugmmY66GPr9","title":"Foto 6-5-19 23 34 32.jpg"},{"id":"1298AVLa4ikWm4gtPdYcg7y4CvyyAOXs7","title":"Foto 6-5-19 23 34 46.jpg"},{"id":"128vll0Z_Sk2Lb5QFkomyi2yaf8US9mfo","title":"Foto 6-5-19 23 34 57.jpg"},{"id":"12o3PUC6vU068gzGWtFlC1QIW4N5mB6oE","title":"Foto 6-5-19 23 35 07.jpg"},{"id":"12gCDuJEBQ3y8DcrCNCIYy1SxSy6ut24e","title":"Foto 6-5-19 23 35 12.jpg"},{"id":"12d1ln_x2IAVQp7K240PJrQRTamnWsBhx","title":"Foto 6-5-19 23 35 23.jpg"},{"id":"12cMS2jW29W-AnkHzQ9JAepEe-5HxNJvI","title":"Foto 6-5-19 23 35 27.jpg"},{"id":"12KQ30iyjcLEutR_YHo_BQxWWqGdsOlrg","title":"Foto 6-5-19 23 35 35.jpg"},{"id":"12KNkMx71QLJPOCbwtEGlPbk3uD9gRZfs","title":"Foto 6-5-19 23 35 39.jpg"},{"id":"12JJU6JNKLiG2_kqo0_jioKs60WvJiKer","title":"Foto 6-5-19 23 35 49.jpg"},{"id":"12JI-hJMo-nOO4HXHdAAo9p7rWUYbjPeU","title":"Foto 6-5-19 23 35 54.jpg"},{"id":"1356xTZM9aXFmSpk5z0UO1T9Y9QXfOKzl","title":"Foto 6-5-19 23 36 00.jpg"},{"id":"131Sxl99SY1PfFtv1A64JVSTTS12EF2tn","title":"Foto 6-5-19 23 36 06.jpg"},{"id":"12u7JY7CTHIkmOQUw7d0rVKiN1tDzPWfG","title":"Foto 6-5-19 23 36 12.jpg"},{"id":"12ryz9VM8MsyV2mLqUnUKrAAXBTKEdaiz","title":"Foto 6-5-19 23 36 16.jpg"},{"id":"12qUp4H2ATaSurV_OBS_rVblVBJpE2pQw","title":"Foto 6-5-19 23 36 22.jpg"},{"id":"13heJ0WvLFyDtc44zaHlqbO6AUk_OkLQ6","title":"Foto 6-5-19 23 36 44.jpg"},{"id":"13dktIity2rgDnANre6VmL2VbNR7s50Zw","title":"Foto 6-5-19 23 36 51.jpg"},{"id":"13ZtkF_6rj5U_Pvq1nUOBdhAjquW73CNS","title":"Foto 6-5-19 23 36 55.jpg"},{"id":"13YaXkvPPK25zDQBLa8IhpSeiBQtyahKy","title":"Foto 6-5-19 23 37 01.jpg"},{"id":"148Y9ekMFVr-QfO_oeHyaqpTeYjUA5mos","title":"Foto 6-5-19 23 37 05.jpg"},{"id":"1436RQSWwf_IqddWxxfTyagpzK88psNhf","title":"Foto 6-5-19 23 37 11.jpg"},{"id":"142st9o9Ak-WR4L3JWKtQNGQ_5i28VJGh","title":"Foto 6-5-19 23 37 15.jpg"},{"id":"13s9kwaaix81fScsQDXClUJtAWI4uzUJB","title":"Foto 6-5-19 23 37 22.jpg"},{"id":"13qTf_-ww9ddM6ro7ZNEXgmkT8CpK_R4X","title":"Foto 6-5-19 23 37 28.jpg"},{"id":"13psHDmw8tzUgO2-faxIHVFLNWoABzHfV","title":"Foto 6-5-19 23 37 34.jpg"},{"id":"13lyT87QfbnL-HVo3syu2OYEFn8K-z5At","title":"Foto 6-5-19 23 37 40.jpg"},{"id":"13hnJvfIWEyH4iT9AhUDXEzlVH-Ak7goV","title":"Foto 6-5-19 23 37 46.jpg"},{"id":"14jwxUtm707w5GfvnOYCqSnywzq8jGLnQ","title":"Foto 6-5-19 23 37 50.jpg"},{"id":"14jWWOCc6IGqd85xoUyXcDw9nll6ysbV6","title":"Foto 6-5-19 23 37 57.jpg"},{"id":"14jG0Ird-Cuwst4gRzCTtQLN2Mhw4D7tk","title":"Foto 6-5-19 23 38 02.jpg"},{"id":"14S6OYiW4W3RpRgZ9wBMajytexCwekmgm","title":"Foto 6-5-19 23 38 08.jpg"},{"id":"14QLXC2XOQEkfge4r_LV5hTcI-SWuMivp","title":"Foto 6-5-19 23 38 12.jpg"},{"id":"14K8x3d1PTsiChPmzCmR4RMGscMm7vRAR","title":"Foto 6-5-19 23 38 19.jpg"},{"id":"14GLodFU3NaT8axGxq-NULxuVekv1kIVN","title":"Foto 6-5-19 23 38 22.jpg"},{"id":"14E8pfHC-s52VNiMnJxt7poDq4KKkGDEq","title":"Foto 6-5-19 23 38 29.jpg"},{"id":"15-uvD72hSFKB5H-kelF9vSGr10lL8g3K","title":"Foto 6-5-19 23 38 33.jpg"},{"id":"14vN7DQWY7fihZOkrSDV2r7osWe2w9oA9","title":"Foto 6-5-19 23 38 40.jpg"},{"id":"14v6MU6v6lb_CSE3lI2ojiAKblaC7rGNO","title":"Foto 6-5-19 23 38 45.jpg"},{"id":"14n_Bm1DQUJDRrNHcvDPddgcLrHfJ9E-d","title":"Foto 6-5-19 23 38 51.jpg"},{"id":"156PvfpjvTsW9xTFMaQ81kaBejOOMaGcs","title":"Foto 6-5-19 23 38 55.jpg"}];
+  const DIVERBO_FOLDER_URL = 'https://drive.google.com/drive/folders/1Bo9-iLLUB0tVNzNRHQRTzy2YducgFh6Z?usp=sharing';
+
+  const els = id => document.getElementById(id);
+  const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+  const pad = n => String(n).padStart(2, '0');
+  const dateKeyFrom = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  const todayKey = () => dateKeyFrom(new Date());
+
+  const freshState = () => ({ progress: {}, custom: [], activity: {}, theme: 'light', favorites: [], dailyGoal: DEFAULT_GOAL, watchedVideos: [], currentVideoId: null, videoProgress: { conversations:{watched:[],currentId:null}, peldanos:{watched:[],currentId:null} }, activeVideoCollection: null, audioProgress: { translation:{completed:[],currentFolderId:null}, vaughan:{completed:[],currentFolderId:null} }, activeAudioCollection: null, bookProgress: { diverboPage: 0 }, updatedAt: null });
+  let state = loadState();
+  let session = [];
+  let sessionIndex = 0;
+  let answered = false;
+  let currentAutoResult = null;
+  let manualVideoId = null;
+  let videoLibraryOpen = false;
+  let stats = freshSessionStats();
+  let syncConfig = loadSyncConfig();
+  let syncTimer = null;
+  let syncBusy = false;
+  let syncDirty = false;
+  let syncState = 'idle';
+  let syncError = '';
+
+  function freshSessionStats() {
+    return {
+      ratings: [0,0,0],
+      unique: new Set(),
+      autoAttempted: 0,
+      autoCorrect: 0,
+      autoAlmost: 0,
+      unresolvedHard: new Set(),
+      startedAt: Date.now()
+    };
+  }
+
+  function stateHasMeaningfulData(candidate) {
+    if (!candidate || typeof candidate !== 'object') return false;
+    return !!(
+      Object.keys(candidate.progress || {}).length ||
+      Object.keys(candidate.activity || {}).length ||
+      (candidate.custom || []).length ||
+      (candidate.favorites || []).length ||
+      (candidate.watchedVideos || []).length ||
+      (candidate.videoProgress?.conversations?.watched || []).length ||
+      (candidate.videoProgress?.peldanos?.watched || []).length ||
+      (candidate.audioProgress?.translation?.completed || []).length ||
+      (candidate.audioProgress?.vaughan?.completed || []).length ||
+      Number(candidate.bookProgress?.diverboPage || 0) > 0
+    );
+  }
+
+  function normalizeState(parsed) {
+    const merged = parsed && typeof parsed === 'object' ? {...freshState(), ...parsed} : freshState();
+    if (!merged.progress || typeof merged.progress !== 'object' || Array.isArray(merged.progress)) merged.progress = {};
+    if (!Array.isArray(merged.custom)) merged.custom = [];
+    if (!merged.activity || typeof merged.activity !== 'object' || Array.isArray(merged.activity)) merged.activity = {};
+    if (!Array.isArray(merged.favorites)) merged.favorites = [];
+    if (!Array.isArray(merged.watchedVideos)) merged.watchedVideos = [];
+    if (typeof merged.currentVideoId !== 'string') merged.currentVideoId = null;
+    const hadNewVideoProgress = !!(parsed && parsed.videoProgress && typeof parsed.videoProgress === 'object');
+    if (!merged.videoProgress || typeof merged.videoProgress !== 'object') merged.videoProgress = {};
+    if (!merged.videoProgress.conversations || typeof merged.videoProgress.conversations !== 'object') merged.videoProgress.conversations = {};
+    if (!hadNewVideoProgress || !Array.isArray(merged.videoProgress.conversations.watched)) merged.videoProgress.conversations.watched = [...merged.watchedVideos];
+    if (!hadNewVideoProgress || typeof merged.videoProgress.conversations.currentId !== 'string') merged.videoProgress.conversations.currentId = merged.currentVideoId || null;
+    if (!merged.videoProgress.peldanos || typeof merged.videoProgress.peldanos !== 'object') merged.videoProgress.peldanos = {};
+    if (!Array.isArray(merged.videoProgress.peldanos.watched)) merged.videoProgress.peldanos.watched = [];
+    if (typeof merged.videoProgress.peldanos.currentId !== 'string') merged.videoProgress.peldanos.currentId = null;
+    if (!VIDEO_COLLECTIONS[merged.activeVideoCollection]) merged.activeVideoCollection = null;
+    if (!merged.audioProgress || typeof merged.audioProgress !== 'object') merged.audioProgress = {};
+    ['translation','vaughan'].forEach(key => {
+      if (!merged.audioProgress[key] || typeof merged.audioProgress[key] !== 'object') merged.audioProgress[key] = {};
+      if (!Array.isArray(merged.audioProgress[key].completed)) merged.audioProgress[key].completed = [];
+      if (typeof merged.audioProgress[key].currentFolderId !== 'string') merged.audioProgress[key].currentFolderId = null;
+    });
+    if (!AUDIO_COLLECTIONS[merged.activeAudioCollection]) merged.activeAudioCollection = null;
+    if (!merged.bookProgress || typeof merged.bookProgress !== 'object') merged.bookProgress = {};
+    merged.bookProgress.diverboPage = clamp(Number(merged.bookProgress.diverboPage) || 0, 0, Math.max(0, DIVERBO_PAGES.length - 1));
+    merged.dailyGoal = ALLOWED_GOALS.includes(Number(merged.dailyGoal)) ? Number(merged.dailyGoal) : DEFAULT_GOAL;
+    merged.theme = merged.theme === 'dark' ? 'dark' : 'light';
+    merged.updatedAt = typeof merged.updatedAt === 'string' && !Number.isNaN(Date.parse(merged.updatedAt)) ? merged.updatedAt : null;
+    return merged;
+  }
+
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      const parsed = raw ? JSON.parse(raw) : null;
+      const merged = normalizeState(parsed);
+      // v1.1 and earlier had no timestamp. If there really is local learning,
+      // give it a timestamp now so a first cloud connection does not discard it.
+      if (parsed && !merged.updatedAt && stateHasMeaningfulData(merged)) merged.updatedAt = new Date().toISOString();
+      return merged;
+    } catch (_) { return freshState(); }
+  }
+
+  function loadSyncConfig() {
+    try {
+      const raw = localStorage.getItem(SYNC_CONFIG_KEY);
+      const parsed = raw ? JSON.parse(raw) : {};
+      return {
+        token: typeof parsed.token === 'string' ? parsed.token : '',
+        gistId: typeof parsed.gistId === 'string' ? parsed.gistId : '',
+        user: typeof parsed.user === 'string' ? parsed.user : '',
+        lastSyncAt: typeof parsed.lastSyncAt === 'string' ? parsed.lastSyncAt : ''
+      };
+    } catch (_) { return {token:'', gistId:'', user:'', lastSyncAt:''}; }
+  }
+
+  function persistSyncConfig() {
+    localStorage.setItem(SYNC_CONFIG_KEY, JSON.stringify(syncConfig));
+  }
+
+  function saveState(options={}) {
+    const touch = options.touch !== false;
+    const scheduleSync = options.scheduleSync !== false;
+    const conv = state.videoProgress?.conversations;
+    if (conv) { state.watchedVideos = [...(conv.watched || [])]; state.currentVideoId = conv.currentId || null; }
+    if (touch) state.updatedAt = new Date().toISOString();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    if (scheduleSync) scheduleGistSync();
+    updateSyncUi();
+  }
+
+  function buildBackupPayload() {
+    return {
+      schema: 'english-daily-progress',
+      version: 1,
+      appVersion: APP_VERSION,
+      updatedAt: state.updatedAt || new Date().toISOString(),
+      exportedAt: new Date().toISOString(),
+      state
+    };
+  }
+
+  function parseBackupPayload(payload) {
+    if (!payload || typeof payload !== 'object') throw new Error('El JSON no tiene un formato válido.');
+    const rawState = payload.schema === 'english-daily-progress' ? payload.state : payload.state || payload;
+    if (!rawState || typeof rawState !== 'object') throw new Error('No encuentro el estado de English Daily dentro del JSON.');
+    const normalized = normalizeState(rawState);
+    if (!normalized.updatedAt && typeof payload.updatedAt === 'string') normalized.updatedAt = payload.updatedAt;
+    return normalized;
+  }
+
+  function githubHeaders(withJson=false) {
+    const headers = {
+      'Accept': 'application/vnd.github+json',
+      'Authorization': `Bearer ${syncConfig.token}`,
+      'X-GitHub-Api-Version': GITHUB_API_VERSION
+    };
+    if (withJson) headers['Content-Type'] = 'application/json';
+    return headers;
+  }
+
+  async function githubRequest(path, options={}) {
+    if (!syncConfig.token) throw new Error('GitHub no está conectado.');
+    const response = await fetch(`${GITHUB_API}${path}`, {
+      ...options,
+      headers: {...githubHeaders(!!options.body), ...(options.headers || {})}
+    });
+    if (!response.ok) {
+      let message = '';
+      try { message = (await response.json())?.message || ''; } catch (_) {}
+      if (response.status === 401) throw new Error('El token no es válido o ha caducado.');
+      if (response.status === 403) throw new Error('GitHub ha rechazado la operación. Comprueba que el token tenga permiso Gists: write.');
+      if (response.status === 404) throw new Error('No encuentro el Gist. Puedo volver a localizarlo al reconectar.');
+      throw new Error(message || `GitHub respondió con error ${response.status}.`);
+    }
+    if (response.status === 204) return null;
+    return response.json();
+  }
+
+  async function validateGithubUser() {
+    const user = await githubRequest('/user');
+    syncConfig.user = user?.login || '';
+    persistSyncConfig();
+    return user;
+  }
+
+  async function readConfiguredGist() {
+    if (!syncConfig.gistId) return null;
+    try {
+      return await githubRequest(`/gists/${encodeURIComponent(syncConfig.gistId)}`);
+    } catch (err) {
+      if (/No encuentro el Gist/.test(err.message)) {
+        syncConfig.gistId = '';
+        persistSyncConfig();
+        return null;
+      }
+      throw err;
+    }
+  }
+
+  async function findExistingProgressGist() {
+    const gists = await githubRequest('/gists?per_page=100');
+    return (Array.isArray(gists) ? gists : []).find(g => g?.files && g.files[GIST_FILENAME]) || null;
+  }
+
+  async function createProgressGist() {
+    if (!state.updatedAt) state.updatedAt = new Date().toISOString();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    const gist = await githubRequest('/gists', {
+      method: 'POST',
+      body: JSON.stringify({
+        description: GIST_DESCRIPTION,
+        public: false,
+        files: {[GIST_FILENAME]: {content: JSON.stringify(buildBackupPayload(), null, 2)}}
+      })
+    });
+    syncConfig.gistId = gist?.id || '';
+    syncConfig.lastSyncAt = new Date().toISOString();
+    syncDirty = false;
+    persistSyncConfig();
+    return gist;
+  }
+
+  async function ensureProgressGist() {
+    let gist = await readConfiguredGist();
+    if (!gist) gist = await findExistingProgressGist();
+    if (gist) {
+      syncConfig.gistId = gist.id || syncConfig.gistId;
+      persistSyncConfig();
+      return {gist, created:false};
+    }
+    return {gist: await createProgressGist(), created:true};
+  }
+
+  async function payloadFromGist(gist) {
+    const file = gist?.files?.[GIST_FILENAME];
+    if (!file) throw new Error(`El Gist no contiene ${GIST_FILENAME}.`);
+    let text = file.content || '';
+    if ((!text || file.truncated) && file.raw_url) {
+      const raw = await fetch(file.raw_url, {headers:{'Accept':'application/vnd.github.raw'}});
+      if (!raw.ok) throw new Error('No he podido leer el JSON remoto.');
+      text = await raw.text();
+    }
+    try { return JSON.parse(text); }
+    catch (_) { throw new Error('El JSON del Gist no se puede interpretar.'); }
+  }
+
+  function compareTimestamps(remotePayload) {
+    const remoteMs = Date.parse(remotePayload?.updatedAt || remotePayload?.state?.updatedAt || '') || 0;
+    const localMs = Date.parse(state.updatedAt || '') || 0;
+    return {remoteMs, localMs};
+  }
+
+  function applyRemoteState(remotePayload, {toast=true}={}) {
+    state = parseBackupPayload(remotePayload);
+    saveState({touch:false, scheduleSync:false});
+    syncDirty = false;
+    applyTheme();
+    renderHome();
+    if (els('screen-library').classList.contains('active')) renderLibrary();
+    if (els('screen-videos').classList.contains('active')) renderVideos();
+    if (els('screen-vaughan').classList.contains('active')) renderAudioBrowser();
+    if (els('screen-book').classList.contains('active')) renderBook();
+    if (toast) showToast('Progreso recuperado desde GitHub.');
+  }
+
+  async function pushStateToGist({manual=false}={}) {
+    if (!syncConfig.token) {
+      if (manual) { showScreen('sync'); setSyncMessage('Conecta GitHub primero.', 'error'); }
+      return false;
+    }
+    if (syncBusy) return false;
+    syncBusy = true; syncState = 'busy'; syncError = ''; updateSyncUi();
+    try {
+      const {gist} = await ensureProgressGist();
+      await githubRequest(`/gists/${encodeURIComponent(gist.id)}`, {
+        method: 'PATCH',
+        body: JSON.stringify({files:{[GIST_FILENAME]:{content:JSON.stringify(buildBackupPayload(), null, 2)}}})
+      });
+      syncConfig.lastSyncAt = new Date().toISOString();
+      syncDirty = false; syncState = 'ok';
+      persistSyncConfig();
+      if (manual) { setSyncMessage('✓ Progreso guardado en GitHub.', 'ok'); showToast('Copia guardada en GitHub.'); }
+      return true;
+    } catch (err) {
+      syncState = 'error'; syncError = err.message || String(err);
+      if (manual) setSyncMessage(syncError, 'error');
+      return false;
+    } finally {
+      syncBusy = false; updateSyncUi();
+    }
+  }
+
+  async function reconcileGist({forcePull=false, quiet=false}={}) {
+    if (!syncConfig.token) return false;
+    if (syncBusy) return false;
+    syncBusy = true; syncState = 'busy'; syncError = ''; updateSyncUi();
+    try {
+      const {gist, created} = await ensureProgressGist();
+      if (created) {
+        syncConfig.lastSyncAt = new Date().toISOString();
+        syncState = 'ok'; syncDirty = false; persistSyncConfig();
+        if (!quiet) setSyncMessage('✓ Gist creado y primera copia guardada.', 'ok');
+        return true;
+      }
+      const remotePayload = await payloadFromGist(gist);
+      if (forcePull) {
+        applyRemoteState(remotePayload, {toast:!quiet});
+        syncConfig.lastSyncAt = new Date().toISOString();
+        syncState = 'ok'; persistSyncConfig();
+        return true;
+      }
+      const {remoteMs, localMs} = compareTimestamps(remotePayload);
+      const localMeaningful = stateHasMeaningfulData(state);
+      if (remoteMs > localMs || (!localMs && !localMeaningful)) {
+        applyRemoteState(remotePayload, {toast:false});
+        syncConfig.lastSyncAt = new Date().toISOString();
+        syncState = 'ok'; syncDirty = false; persistSyncConfig();
+        if (!quiet) setSyncMessage('✓ Recuperé la copia más reciente de GitHub.', 'ok');
+      } else if (localMs > remoteMs || (localMeaningful && !remoteMs)) {
+        // Avoid recursive busy guard: patch directly while this reconciliation owns the lock.
+        await githubRequest(`/gists/${encodeURIComponent(gist.id)}`, {
+          method: 'PATCH',
+          body: JSON.stringify({files:{[GIST_FILENAME]:{content:JSON.stringify(buildBackupPayload(), null, 2)}}})
+        });
+        syncConfig.lastSyncAt = new Date().toISOString();
+        syncState = 'ok'; syncDirty = false; persistSyncConfig();
+        if (!quiet) setSyncMessage('✓ Subí el progreso más reciente de este dispositivo.', 'ok');
+      } else {
+        syncConfig.lastSyncAt = new Date().toISOString();
+        syncState = 'ok'; syncDirty = false; persistSyncConfig();
+        if (!quiet) setSyncMessage('✓ Este dispositivo y GitHub ya están al día.', 'ok');
+      }
+      return true;
+    } catch (err) {
+      syncState = 'error'; syncError = err.message || String(err);
+      if (!quiet) setSyncMessage(syncError, 'error');
+      return false;
+    } finally {
+      syncBusy = false; updateSyncUi();
+    }
+  }
+
+  function scheduleGistSync() {
+    syncDirty = true;
+    clearTimeout(syncTimer);
+    if (!syncConfig.token) { updateSyncUi(); return; }
+    syncState = syncConfig.gistId ? 'dirty' : 'idle';
+    syncTimer = setTimeout(() => pushStateToGist({manual:false}), AUTO_SYNC_DELAY);
+    updateSyncUi();
+  }
+
+  function setSyncMessage(text='', type='') {
+    const el = els('syncMessage');
+    if (!el) return;
+    el.textContent = text;
+    el.className = `sync-message${type ? ' ' + type : ''}`;
+  }
+
+  function formatSyncTime(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return '—';
+    return new Intl.DateTimeFormat('es-ES', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'}).format(d);
+  }
+
+  function updateSyncUi() {
+    const connected = !!syncConfig.token;
+    const icon = els('syncSettingsBtn');
+    if (icon) {
+      icon.classList.remove('is-ok','is-busy','is-error','is-dirty');
+      if (syncBusy || syncState === 'busy') icon.classList.add('is-busy');
+      else if (syncState === 'error') icon.classList.add('is-error');
+      else if (syncDirty && connected) icon.classList.add('is-dirty');
+      else if (connected && syncConfig.gistId) icon.classList.add('is-ok');
+      icon.title = connected ? (syncDirty ? 'Cambios pendientes de sincronizar' : 'Copia y sincronización') : 'Conectar copia en GitHub';
+    }
+    if (!els('syncStatusText')) return;
+    const light = els('syncStatusLight');
+    light.className = 'sync-status-light';
+    if (syncBusy || syncState === 'busy') {
+      light.classList.add('busy');
+      els('syncStatusText').textContent = 'Sincronizando…';
+      els('syncStatusDetail').textContent = 'Estoy comparando la copia local con el Gist.';
+    } else if (syncState === 'error') {
+      light.classList.add('error');
+      els('syncStatusText').textContent = 'Necesita atención';
+      els('syncStatusDetail').textContent = syncError || 'La última sincronización no pudo completarse.';
+    } else if (connected && syncConfig.gistId) {
+      light.classList.add('ok');
+      els('syncStatusText').textContent = syncDirty ? 'Guardado local · nube pendiente' : 'Sincronizado';
+      els('syncStatusDetail').textContent = syncDirty ? 'Tu cambio ya está seguro en este navegador y se enviará a GitHub en unos segundos.' : 'El progreso local y la copia de GitHub están conectados.';
+    } else if (connected) {
+      light.classList.add('busy');
+      els('syncStatusText').textContent = 'Conectando…';
+      els('syncStatusDetail').textContent = 'Tengo el token; falta localizar o crear el Gist.';
+    } else {
+      els('syncStatusText').textContent = 'No conectado';
+      els('syncStatusDetail').textContent = 'Tu progreso sigue protegido en este navegador, pero todavía no tiene copia en la nube.';
+    }
+    els('syncAutosaveBadge').classList.toggle('hidden', !(connected && syncConfig.gistId));
+    els('syncGithubUser').textContent = syncConfig.user ? '@' + syncConfig.user : '—';
+    els('syncLastTime').textContent = formatSyncTime(syncConfig.lastSyncAt);
+    els('syncGistId').textContent = syncConfig.gistId ? syncConfig.gistId.slice(0,10) + '…' : '—';
+    els('syncConnectedActions').classList.toggle('hidden', !connected);
+    els('githubTokenInput').placeholder = connected ? 'Token guardado en este navegador' : 'github_pat_…';
+    els('githubConnectBtn').textContent = connected ? 'Reconectar' : 'Conectar GitHub';
+    els('syncNowBtn').disabled = syncBusy;
+    els('pullGistBtn').disabled = syncBusy || !connected;
+  }
+
+  function renderSyncSettings() {
+    updateSyncUi();
+  }
+
+  async function connectGithub() {
+    const typed = els('githubTokenInput').value.trim();
+    const token = typed || syncConfig.token;
+    if (!token) { setSyncMessage('Pega primero un token de GitHub.', 'error'); return; }
+    const previous = {...syncConfig};
+    syncConfig.token = token;
+    syncConfig.gistId = typed ? '' : syncConfig.gistId;
+    syncState = 'busy'; syncError = ''; syncBusy = true; updateSyncUi();
+    try {
+      // validate manually because validateGithubUser uses githubRequest and the current token
+      const response = await fetch(`${GITHUB_API}/user`, {headers:githubHeaders(false)});
+      if (!response.ok) {
+        if (response.status === 401) throw new Error('El token no es válido o ha caducado.');
+        if (response.status === 403) throw new Error('GitHub ha rechazado el token. Comprueba sus permisos.');
+        throw new Error(`No pude validar GitHub (${response.status}).`);
+      }
+      const user = await response.json();
+      syncConfig.user = user?.login || '';
+      persistSyncConfig();
+      syncBusy = false;
+      const ok = await reconcileGist({quiet:true});
+      if (!ok) throw new Error(syncError || 'No pude preparar el Gist.');
+      els('githubTokenInput').value = '';
+      setSyncMessage(`✓ Conectado${syncConfig.user ? ' como @' + syncConfig.user : ''}. A partir de ahora se guarda solo.`, 'ok');
+      showToast('GitHub conectado · autoguardado activado.');
+    } catch (err) {
+      syncConfig = previous;
+      persistSyncConfig();
+      syncState = 'error'; syncError = err.message || String(err);
+      setSyncMessage(syncError, 'error');
+    } finally {
+      syncBusy = false; updateSyncUi();
+    }
+  }
+
+  function disconnectGithub() {
+    if (!confirm('¿Desconectar GitHub de este navegador? El Gist no se borrará.')) return;
+    clearTimeout(syncTimer);
+    syncConfig = {token:'', gistId:'', user:'', lastSyncAt:''};
+    localStorage.removeItem(SYNC_CONFIG_KEY);
+    syncDirty = false; syncState = 'idle'; syncError = '';
+    els('githubTokenInput').value = '';
+    updateSyncUi();
+    setSyncMessage('GitHub desconectado. El Gist sigue existiendo en tu cuenta.', '');
+  }
+
+  function exportProgressJson() {
+    const blob = new Blob([JSON.stringify(buildBackupPayload(), null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `english-daily-progress-${todayKey()}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    showToast('Copia JSON exportada.');
+  }
+
+  async function importProgressJson(file) {
+    if (!file) return;
+    try {
+      const payload = JSON.parse(await file.text());
+      const imported = parseBackupPayload(payload);
+      const learned = Object.keys(imported.progress || {}).length;
+      if (!confirm(`¿Importar esta copia? Contiene progreso para ${learned} contenidos y sustituirá el estado actual de este dispositivo.`)) return;
+      state = imported;
+      if (!state.updatedAt) state.updatedAt = new Date().toISOString();
+      saveState({touch:false, scheduleSync:true});
+      applyTheme(); renderHome();
+      setSyncMessage('✓ JSON importado. Si GitHub está conectado, también se subirá automáticamente.', 'ok');
+      showToast('Progreso importado.');
+    } catch (err) {
+      setSyncMessage(err.message || 'No pude importar ese JSON.', 'error');
+    } finally {
+      els('importJsonInput').value = '';
+    }
+  }
+
+  async function forcePullFromGist() {
+    if (!syncConfig.token) { setSyncMessage('Conecta GitHub primero.', 'error'); return; }
+    if (!confirm('¿Recuperar la copia del Gist y sustituir el progreso local actual?')) return;
+    const ok = await reconcileGist({forcePull:true, quiet:false});
+    if (ok) setSyncMessage('✓ Copia recuperada desde GitHub.', 'ok');
+  }
+
+  async function autoStartGistSync() {
+    updateSyncUi();
+    if (!syncConfig.token) return;
+    // A saved token means the user already opted in: reconcile silently on startup.
+    await reconcileGist({quiet:true});
+  }
+
+  function allContent() { return [...window.SEED_CONTENT, ...state.custom]; }
+  function getProgress(id) { return state.progress[id] || null; }
+  function goal() { return ALLOWED_GOALS.includes(Number(state.dailyGoal)) ? Number(state.dailyGoal) : DEFAULT_GOAL; }
+  function favoriteSet() { return new Set(state.favorites || []); }
+  function isFavorite(id) { return favoriteSet().has(id); }
+  function isMastered(item) {
+    const p = getProgress(item.id);
+    return !!p && p.lastRating === 2 && (p.interval || 0) >= 5;
+  }
+  function isDifficult(item) {
+    const p = getProgress(item.id);
+    return !!p && (p.lastRating === 0 || (p.lastRating === 1 && (p.lapses || 0) >= 2));
+  }
+  function difficultItems() { return allContent().filter(isDifficult); }
+
+  function dateAdd(days) {
+    const d = new Date();
+    d.setHours(12,0,0,0);
+    d.setDate(d.getDate() + days);
+    return dateKeyFrom(d);
+  }
+
+  function daysUntil(key) {
+    if (!key) return null;
+    const [y,m,d] = key.split('-').map(Number);
+    const target = new Date(y, m-1, d, 12, 0, 0, 0);
+    const now = new Date(); now.setHours(12,0,0,0);
+    return Math.round((target-now)/86400000);
+  }
+
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function selectSessionItems(limit=goal()) {
+    const today = todayKey();
+    const all = allContent();
+    const due = all.filter(item => {
+      const p = getProgress(item.id);
+      return p && p.nextReview <= today;
+    });
+    const unseen = all.filter(item => !getProgress(item.id));
+
+    due.sort((a,b) => {
+      const pa = getProgress(a.id), pb = getProgress(b.id);
+      const hardA = isDifficult(a) ? -10 : 0;
+      const hardB = isDifficult(b) ? -10 : 0;
+      return hardA - hardB || (pa?.lastRating ?? 2) - (pb?.lastRating ?? 2) || (pa?.nextReview || '').localeCompare(pb?.nextReview || '');
+    });
+    shuffle(unseen);
+
+    const newQuota = Math.min(8, Math.max(2, Math.ceil(limit * 0.5)));
+    const picked = due.slice(0, limit);
+    const room = limit - picked.length;
+    if (room > 0) picked.push(...unseen.slice(0, Math.min(newQuota, room)));
+
+    if (picked.length < limit) {
+      const extras = all.filter(x => !picked.some(p => p.id === x.id));
+      shuffle(extras);
+      picked.push(...extras.slice(0, limit - picked.length));
+    }
+    return picked;
+  }
+
+  function canCloze(item) {
+    if (!item.exampleEn || !item.en || item.en.length > 32) return false;
+    const clean = item.en.replace(/[.…]+$/g, '').trim();
+    if (!clean) return false;
+    return item.exampleEn.toLowerCase().includes(clean.toLowerCase());
+  }
+
+  function pickMode(item, index, forceDifferent=false) {
+    let modes = ['meaning-choice', 'reverse-type', 'cloze-choice', 'recall'];
+    if (!canCloze(item)) modes = ['meaning-choice', 'reverse-type', 'recall'];
+    const p = getProgress(item.id);
+    let offset = (p?.seen || 0) + index;
+    if (forceDifferent) offset += 1;
+    return modes[offset % modes.length];
+  }
+
+  function buildSession(items=null) {
+    const picked = items ? items.slice(0, goal()) : selectSessionItems();
+    session = picked.map((item, i) => ({ item, mode: pickMode(item, i), retry: 0 }));
+    sessionIndex = 0;
+    stats = freshSessionStats();
+    answered = false;
+    currentAutoResult = null;
+    els('summaryStudy').classList.add('hidden');
+    els('studyArea').classList.remove('hidden');
+    renderStudy();
+  }
+
+  function showScreen(name) {
+    if (name !== 'videos') manualVideoId = null;
+    document.body.classList.toggle('book-mode', name === 'book');
+    document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === `screen-${name}`));
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.go === name));
+    window.scrollTo({top:0, behavior:'smooth'});
+    if (name === 'home') renderHome();
+    if (name === 'library') renderLibrary();
+    if (name === 'videos') renderVideos();
+    if (name === 'vaughan') renderAudioBrowser();
+    if (name === 'book') renderBook();
+    if (name === 'sync') renderSyncSettings();
+    if (name === 'study') {
+      if (!session.length || sessionIndex >= session.length) buildSession();
+      else renderStudy();
+    }
+  }
+
+  function dailyPick(type) {
+    const items = window.SEED_CONTENT.filter(item => item.type === type);
+    const key = `${todayKey()}-${type}`;
+    let hash = 0;
+    for (let i = 0; i < key.length; i++) hash = ((hash << 5) - hash + key.charCodeAt(i)) | 0;
+    return items[Math.abs(hash) % items.length];
+  }
+
+  function fillDailySpotlight(prefix, item) {
+    els(`${prefix}En`).textContent = item.en;
+    els(`${prefix}Es`).textContent = item.es;
+    els(`${prefix}Level`).textContent = item.level || 'A2';
+    els(`${prefix}ExampleEn`).textContent = item.exampleEn || '';
+    els(`${prefix}ExampleEs`).textContent = item.exampleEs || '';
+    els(`${prefix}Answer`).classList.add('hidden');
+    els(`${prefix}RevealBtn`).textContent = 'Ver significado';
+  }
+
+  function renderDailySpotlights() {
+    fillDailySpotlight('dailyWord', dailyPick('word'));
+    fillDailySpotlight('dailyPhrase', dailyPick('phrase'));
+  }
+
+  function toggleDailyAnswer(prefix) {
+    const answer = els(`${prefix}Answer`);
+    const willShow = answer.classList.contains('hidden');
+    answer.classList.toggle('hidden', !willShow);
+    els(`${prefix}RevealBtn`).textContent = willShow ? 'Ocultar significado' : 'Ver significado';
+  }
+
+  function speakText(text) {
+    if (!('speechSynthesis' in window) || !text) return;
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = 'en-GB';
+    utter.rate = 0.9;
+    window.speechSynthesis.speak(utter);
+  }
+
+
+  function updateFavoriteButton(buttonId, itemId) {
+    const btn = els(buttonId);
+    if (!btn || !itemId) return;
+    const active = isFavorite(itemId);
+    btn.classList.toggle('active', active);
+    btn.textContent = active ? '♥' : '♡';
+    btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+    btn.title = active ? 'Quitar de favoritos' : 'Guardar en favoritos';
+  }
+
+  function refreshFavoriteButtons() {
+    updateFavoriteButton('dailyWordFavorite', dailyPick('word').id);
+    updateFavoriteButton('dailyPhraseFavorite', dailyPick('phrase').id);
+    if (sessionIndex < session.length) updateFavoriteButton('studyFavoriteBtn', session[sessionIndex].item.id);
+  }
+
+  function toggleFavorite(id) {
+    if (!id) return;
+    const set = favoriteSet();
+    if (set.has(id)) set.delete(id); else set.add(id);
+    state.favorites = [...set];
+    saveState();
+    refreshFavoriteButtons();
+    if (els('screen-home').classList.contains('active')) renderHomeStats();
+    if (els('screen-library').classList.contains('active')) renderLibrary();
+  }
+
+  function renderHomeStats() {
+    const all = allContent();
+    const mastered = all.filter(isMastered).length;
+    const seen = all.filter(x => !!getProgress(x.id)).length;
+    const learning = Math.max(0, seen - mastered);
+    const hard = difficultItems().length;
+    const favs = state.favorites.filter(id => all.some(x => x.id === id)).length;
+    els('masteredCount').textContent = mastered;
+    els('learningCount').textContent = learning;
+    els('difficultCount').textContent = hard;
+    els('favoriteCount').textContent = favs;
+    els('favoriteQuickCount').textContent = favs;
+    els('favoriteQuickUnit').textContent = favs === 1 ? 'guardada' : 'guardadas';
+    els('difficultQuickCount').textContent = hard;
+    els('studyDifficultBtn').classList.toggle('hidden', hard === 0);
+  }
+
+  function startDifficultStudy() {
+    const items = difficultItems();
+    if (!items.length) { showToast('Todavía no tienes contenidos difíciles.'); return; }
+    shuffle(items);
+    buildSession(items);
+    showScreen('study');
+  }
+
+  function openLibraryFilter(filter) {
+    els('libraryFilter').value = filter;
+    showScreen('library');
+  }
+
+  function renderHome() {
+    const today = todayKey();
+    const todayActivity = state.activity[today]?.count || 0;
+    const currentGoal = goal();
+    els('doneToday').textContent = todayActivity;
+    els('dailyGoal').textContent = currentGoal;
+    els('goalSelect').value = String(currentGoal);
+    const circ = 2 * Math.PI * 48;
+    const ratio = clamp(todayActivity / currentGoal, 0, 1);
+    els('dailyRing').style.strokeDashoffset = String(circ * (1-ratio));
+
+    const dateFmt = new Intl.DateTimeFormat('es-ES', {weekday:'long', day:'numeric', month:'long'});
+    els('todayLabel').textContent = dateFmt.format(new Date()).toUpperCase();
+
+    const plan = selectSessionItems(currentGoal);
+    const newN = plan.filter(x => !getProgress(x.id)).length;
+    const reviewN = plan.length - newN;
+    els('newCount').textContent = newN;
+    els('reviewCount').textContent = reviewN;
+    els('phraseCount').textContent = plan.filter(x => x.type === 'phrase').length;
+    const minutesLow = Math.max(3, Math.round(currentGoal * 0.55));
+    const minutesHigh = Math.max(minutesLow+1, Math.round(currentGoal * 0.8));
+    els('practiceDescription').textContent = `${currentGoal} ejercicios · unos ${minutesLow}–${minutesHigh} minutos. Mezclaremos contenido nuevo con repasos.`;
+    els('goalStatus').textContent = todayActivity >= currentGoal
+      ? '✓ Objetivo completado. Puedes seguir si te apetece.'
+      : todayActivity > 0
+        ? `Te faltan ${currentGoal - todayActivity} respuestas para el objetivo.`
+        : 'Tu objetivo empieza aquí.';
+    const streak = calculateStreak();
+    els('streakCount').textContent = streak;
+    els('homeStreakCount').textContent = streak;
+    els('streakUnit').textContent = streak === 1 ? 'día' : 'días';
+    els('homeStreakUnit').textContent = streak === 1 ? 'día' : 'días';
+    renderDailySpotlights();
+    refreshFavoriteButtons();
+    renderHomeStats();
+    renderHomeVideos();
+    renderHomeAudio();
+    renderBookShortcut();
+    renderWeekChart();
+  }
+
+  function calculateStreak() {
+    let streak = 0;
+    const d = new Date(); d.setHours(12,0,0,0);
+    for (let i = 0; i < 365; i++) {
+      const key = dateKeyFrom(d);
+      const count = state.activity[key]?.count || 0;
+      if (count > 0) streak++;
+      else if (i === 0) { d.setDate(d.getDate()-1); continue; }
+      else break;
+      d.setDate(d.getDate()-1);
+    }
+    return streak;
+  }
+
+  function renderWeekChart() {
+    const chart = els('weekChart');
+    chart.innerHTML = '';
+    const now = new Date(); now.setHours(12,0,0,0);
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+    const days = []; let total = 0;
+    for (let i=0; i<7; i++) {
+      const d = new Date(monday); d.setDate(monday.getDate()+i);
+      const key = dateKeyFrom(d);
+      const count = state.activity[key]?.count || 0;
+      total += count; days.push({d,count,key,future:d > now});
+    }
+    const max = Math.max(5, ...days.map(x => x.count));
+    days.forEach(({d,count,key,future}) => {
+      const wrap = document.createElement('div'); wrap.className = 'day-bar-wrap';
+      const bar = document.createElement('div');
+      bar.className = 'day-bar' + (key === todayKey() ? ' today' : '') + (future ? ' future' : '');
+      bar.style.height = `${Math.max(7, (count/max)*52)}px`; bar.title = `${count} respuestas`;
+      const small = document.createElement('small');
+      small.textContent = ['Lu','Ma','Mi','Ju','Vi','Sá','Do'][((d.getDay()+6)%7)];
+      wrap.append(bar,small); chart.appendChild(wrap);
+    });
+    els('weekTotal').textContent = total;
+  }
+
+
+  function diverboPageIndex() {
+    if (!state.bookProgress || typeof state.bookProgress !== 'object') state.bookProgress = {diverboPage:0};
+    return clamp(Number(state.bookProgress.diverboPage) || 0, 0, Math.max(0, DIVERBO_PAGES.length - 1));
+  }
+
+  function renderBookShortcut() {
+    const idx = diverboPageIndex();
+    if (els('bookQuickPage')) els('bookQuickPage').textContent = String(idx + 1);
+    if (els('bookQuickTotal')) els('bookQuickTotal').textContent = String(DIVERBO_PAGES.length);
+  }
+
+  function diverboThumbnailUrl(id) {
+    return `https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w2400`;
+  }
+
+  function renderBook() {
+    if (!DIVERBO_PAGES.length) return;
+    const idx = diverboPageIndex();
+    const page = DIVERBO_PAGES[idx];
+    const image = els('bookImage');
+    const fallback = els('bookFallback');
+    image.classList.remove('hidden');
+    fallback.classList.add('hidden');
+    fallback.removeAttribute('src');
+    image.alt = `Libro Diverbo · página ${idx + 1}`;
+    image.src = diverboThumbnailUrl(page.id);
+    image.onerror = () => {
+      image.classList.add('hidden');
+      fallback.classList.remove('hidden');
+      fallback.src = `https://drive.google.com/file/d/${page.id}/preview`;
+    };
+    els('bookPageName').textContent = page.title;
+    els('bookPageCurrent').textContent = String(idx + 1);
+    els('bookPageCurrentBottom').textContent = String(idx + 1);
+    els('bookPageTotal').textContent = String(DIVERBO_PAGES.length);
+    els('bookPageTotalBottom').textContent = String(DIVERBO_PAGES.length);
+    els('bookPrevBtn').disabled = idx <= 0;
+    els('bookNextBtn').disabled = idx >= DIVERBO_PAGES.length - 1;
+    els('bookOpenDrive').href = `https://drive.google.com/file/d/${page.id}/view?usp=sharing`;
+    els('bookProgressBar').style.width = `${((idx + 1) / DIVERBO_PAGES.length) * 100}%`;
+    renderBookShortcut();
+
+    [idx + 1, idx - 1].forEach(i => {
+      if (i < 0 || i >= DIVERBO_PAGES.length) return;
+      const preload = new Image();
+      preload.src = diverboThumbnailUrl(DIVERBO_PAGES[i].id);
+    });
+  }
+
+  function changeBookPage(delta) {
+    const next = clamp(diverboPageIndex() + delta, 0, DIVERBO_PAGES.length - 1);
+    if (next === diverboPageIndex()) return;
+    state.bookProgress.diverboPage = next;
+    saveState();
+    renderBook();
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  function modeMeta(mode) {
+    return {
+      'meaning-choice': ['ELIGE EL SIGNIFICADO', '¿Qué significa en español?'],
+      'reverse-type': ['ESCRIBE EN INGLÉS', '¿Cómo lo dirías en inglés?'],
+      'cloze-choice': ['COMPLETA LA FRASE', '¿Qué opción encaja en el hueco?'],
+      'recall': ['TARJETA DE MEMORIA', 'Intenta recordarlo antes de mirar']
+    }[mode];
+  }
+
+  function memoryLabel(item) {
+    const p = getProgress(item.id);
+    if (!p) return 'Nueva';
+    const days = daysUntil(p.nextReview);
+    if (days <= 0) return `Repaso · vista ${p.seen || 0}×`;
+    if (days === 1) return 'Próximo repaso: mañana';
+    return `Próximo repaso: ${days} días`;
+  }
+
+  function clozeText(item) {
+    const clean = item.en.replace(/[.…]+$/g, '').trim();
+    const escaped = clean.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    try {
+      return item.exampleEn.replace(new RegExp(escaped, 'i'), '<span class="blank">_____</span>');
+    } catch (_) { return item.exampleEn; }
+  }
+
+  function buildOptions(item, kind='es') {
+    const correct = item[kind];
+    const pool = allContent().filter(x => x.id !== item.id && x.type === item.type && x[kind]);
+    pool.sort((a,b) => {
+      const ac = a.category === item.category ? -1 : 0;
+      const bc = b.category === item.category ? -1 : 0;
+      const al = a.level === item.level ? -1 : 0;
+      const bl = b.level === item.level ? -1 : 0;
+      return (ac+al) - (bc+bl);
+    });
+    const first = pool.slice(0, Math.min(12,pool.length));
+    shuffle(first);
+    const values = [correct, ...first.slice(0,3).map(x => x[kind])];
+    return shuffle([...new Set(values)]);
+  }
+
+  function clearExerciseUi() {
+    answered = false;
+    currentAutoResult = null;
+    els('choiceArea').innerHTML = '';
+    els('choiceArea').classList.add('hidden');
+    els('typeArea').classList.add('hidden');
+    els('typeInput').value = '';
+    els('typeInput').disabled = false;
+    els('typeArea').querySelector('button').disabled = false;
+    els('feedbackArea').classList.add('hidden');
+    els('feedbackArea').classList.remove('is-wrong','is-almost');
+    els('ratingArea').classList.add('hidden');
+    els('showAnswerBtn').classList.remove('hidden');
+    els('exerciseContext').classList.add('hidden');
+    els('exerciseContext').textContent = '';
+    els('speakBtn').classList.remove('hidden');
+  }
+
+  function renderStudy() {
+    if (sessionIndex >= session.length || session.length === 0) {
+      renderSummary();
+      return;
+    }
+    els('summaryStudy').classList.add('hidden');
+    els('studyArea').classList.remove('hidden');
+    clearExerciseUi();
+
+    const ex = session[sessionIndex];
+    const item = ex.item;
+    const mode = ex.mode;
+    const [kind, prompt] = modeMeta(mode);
+
+    els('cardTypeTag').textContent = item.type === 'phrase' ? 'PHRASE' : 'WORD';
+    els('cardLevel').textContent = item.level || 'A2';
+    els('cardCategory').textContent = item.category || 'General';
+    els('exerciseKind').textContent = kind;
+    els('promptLabel').textContent = prompt;
+    els('memoryStatus').textContent = ex.retry ? 'Repetición de esta sesión' : memoryLabel(item);
+    updateFavoriteButton('studyFavoriteBtn', item.id);
+    els('answerEnglish').textContent = item.en;
+    els('answerSpanish').textContent = item.es;
+    els('exampleEn').textContent = item.exampleEn || '';
+    els('exampleEs').textContent = item.exampleEs || '';
+    els('exampleBox').classList.toggle('hidden', !item.exampleEn && !item.exampleEs);
+
+    if (mode === 'reverse-type') {
+      els('exercisePrompt').textContent = item.es;
+      els('speakBtn').classList.add('hidden');
+      els('typeArea').classList.remove('hidden');
+      els('showAnswerBtn').textContent = 'No lo sé · mostrar respuesta';
+      setTimeout(() => els('typeInput').focus(), 50);
+    } else if (mode === 'cloze-choice') {
+      els('exercisePrompt').textContent = 'Completa el ejemplo';
+      els('exerciseContext').innerHTML = clozeText(item);
+      els('exerciseContext').classList.remove('hidden');
+      els('speakBtn').classList.add('hidden');
+      renderChoices(buildOptions(item, 'en'), item.en);
+      els('showAnswerBtn').textContent = 'No lo sé · mostrar respuesta';
+    } else if (mode === 'meaning-choice') {
+      els('exercisePrompt').textContent = item.en;
+      renderChoices(buildOptions(item, 'es'), item.es);
+      els('showAnswerBtn').textContent = 'No lo sé · mostrar respuesta';
+    } else {
+      els('exercisePrompt').textContent = item.en;
+      els('showAnswerBtn').innerHTML = 'Mostrar respuesta <span>Espacio</span>';
+    }
+
+    els('studyPosition').textContent = sessionIndex + 1;
+    els('studyTotal').textContent = session.length;
+    els('studyProgressBar').style.width = `${(sessionIndex/session.length)*100}%`;
+    els('keyboardHint').innerHTML = mode === 'reverse-type'
+      ? 'En ordenador: <kbd>Enter</kbd> comprueba · <kbd>Espacio</kbd> revela · después <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> puntúan'
+      : 'En ordenador: <kbd>Espacio</kbd> muestra la respuesta · después <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> puntúan';
+  }
+
+  function renderChoices(options, correct) {
+    const area = els('choiceArea');
+    area.classList.remove('hidden');
+    options.forEach((text, idx) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'choice-btn';
+      btn.dataset.value = text;
+      btn.textContent = `${String.fromCharCode(65+idx)}. ${text}`;
+      btn.addEventListener('click', () => answerChoice(btn, text, correct));
+      area.appendChild(btn);
+    });
+  }
+
+  function answerChoice(button, selected, correct) {
+    if (answered) return;
+    const isCorrect = selected === correct;
+    currentAutoResult = isCorrect ? 'correct' : 'wrong';
+    stats.autoAttempted++;
+    if (isCorrect) stats.autoCorrect++;
+    document.querySelectorAll('.choice-btn').forEach(btn => {
+      btn.disabled = true;
+      if (btn.dataset.value === correct) btn.classList.add('correct');
+    });
+    if (!isCorrect) button.classList.add('wrong');
+    revealFeedback(currentAutoResult);
+  }
+
+  function normalizeAnswer(s='') {
+    return String(s)
+      .toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .replace(/[’‘]/g,"'")
+      .replace(/[.…?!,;:()[\]{}"']/g,'')
+      .replace(/\s+/g,' ')
+      .trim();
+  }
+
+  function levenshtein(a,b) {
+    const dp = Array.from({length:b.length+1},(_,i)=>i);
+    for (let i=1;i<=a.length;i++) {
+      let prev=dp[0]; dp[0]=i;
+      for (let j=1;j<=b.length;j++) {
+        const temp=dp[j];
+        dp[j]=Math.min(dp[j]+1, dp[j-1]+1, prev+(a[i-1]===b[j-1]?0:1));
+        prev=temp;
+      }
+    }
+    return dp[b.length];
+  }
+
+  function gradeTyped(raw, expected) {
+    const a = normalizeAnswer(raw), b = normalizeAnswer(expected);
+    if (!a) return 'wrong';
+    if (a === b) return 'correct';
+    const dist = levenshtein(a,b);
+    const tolerance = b.length >= 16 ? 2 : b.length >= 6 ? 1 : 0;
+    return dist <= tolerance ? 'almost' : 'wrong';
+  }
+
+  function submitTyped(e) {
+    e.preventDefault();
+    if (answered || sessionIndex >= session.length) return;
+    const item = session[sessionIndex].item;
+    const result = gradeTyped(els('typeInput').value, item.en);
+    currentAutoResult = result;
+    stats.autoAttempted++;
+    if (result === 'correct') stats.autoCorrect++;
+    if (result === 'almost') stats.autoAlmost++;
+    els('typeInput').disabled = true;
+    els('typeArea').querySelector('button').disabled = true;
+    revealFeedback(result);
+  }
+
+  function revealFeedback(result='revealed') {
+    if (answered) return;
+    answered = true;
+    const fb = els('feedbackArea');
+    fb.classList.remove('hidden','is-wrong','is-almost');
+    let icon='✓', title='Correcto', subtitle='Muy bien. La respuesta es:';
+    if (result === 'wrong' || result === 'revealed') {
+      icon = result === 'wrong' ? '×' : '→';
+      title = result === 'wrong' ? 'No era esa' : 'Aquí la tienes';
+      subtitle = 'La respuesta correcta es:';
+      fb.classList.add('is-wrong');
+    } else if (result === 'almost') {
+      icon='≈'; title='Casi'; subtitle='Muy cerca. Compárala con:'; fb.classList.add('is-almost');
+    }
+    els('feedbackIcon').textContent = icon;
+    els('feedbackTitle').textContent = title;
+    els('feedbackSubtitle').textContent = subtitle;
+    els('ratingArea').classList.remove('hidden');
+    els('showAnswerBtn').classList.add('hidden');
+    els('speakBtn').classList.remove('hidden');
+  }
+
+  function showAnswer() {
+    if (answered || sessionIndex >= session.length) return;
+    currentAutoResult = 'revealed';
+    if (!els('choiceArea').classList.contains('hidden')) {
+      const item = session[sessionIndex].item;
+      const correct = session[sessionIndex].mode === 'meaning-choice' ? item.es : item.en;
+      document.querySelectorAll('.choice-btn').forEach(btn => {
+        btn.disabled = true;
+        if (btn.dataset.value === correct) btn.classList.add('correct');
+      });
+    }
+    if (!els('typeArea').classList.contains('hidden')) {
+      els('typeInput').disabled = true;
+      els('typeArea').querySelector('button').disabled = true;
+    }
+    revealFeedback('revealed');
+  }
+
+  function scheduleFor(item, rating) {
+    const old = getProgress(item.id) || {interval:0, streak:0, seen:0, lapses:0};
+    let interval, streak, lapses = old.lapses || 0;
+    if (rating === 0) {
+      interval = 0; streak = 0; lapses++;
+    } else if (rating === 1) {
+      interval = old.interval <= 0 ? 1 : Math.min(21, Math.max(1, Math.round(old.interval * 1.45)));
+      streak = (old.streak || 0) + 1;
+    } else {
+      interval = old.interval <= 0 ? 3 : old.interval < 3 ? 5 : Math.min(90, Math.max(3, Math.round(old.interval * 2.15)));
+      streak = (old.streak || 0) + 1;
+    }
+    return {
+      ...old,
+      seen: (old.seen || 0) + 1,
+      lastRating: rating,
+      lastSeen: todayKey(),
+      interval,
+      streak,
+      lapses,
+      nextReview: dateAdd(interval)
+    };
+  }
+
+  function scheduleMessage(rating, p) {
+    if (rating === 0) return 'La volverás a ver hoy.';
+    if (p.interval === 1) return 'Volverá mañana.';
+    return `Volverá en ${p.interval} días.`;
+  }
+
+  function showToast(text) {
+    const toast = els('scheduleToast');
+    toast.textContent = text;
+    toast.classList.add('show');
+    clearTimeout(showToast.timer);
+    showToast.timer = setTimeout(() => toast.classList.remove('show'), 850);
+  }
+
+  function rateCurrent(rating) {
+    if (!answered || sessionIndex >= session.length) return;
+    const ex = session[sessionIndex];
+    const item = ex.item;
+    const p = scheduleFor(item, rating);
+    state.progress[item.id] = p;
+
+    const key = todayKey();
+    state.activity[key] = state.activity[key] || {count:0};
+    state.activity[key].count++;
+    saveState();
+
+    stats.ratings[rating]++;
+    stats.unique.add(item.id);
+    if (rating === 0) stats.unresolvedHard.add(item.id);
+    else stats.unresolvedHard.delete(item.id);
+
+    if (rating === 0 && ex.retry < MAX_HARD_RETRY) {
+      const retryEx = { item, mode: pickMode(item, sessionIndex + 2, true), retry: ex.retry + 1 };
+      const insertAt = Math.min(session.length, sessionIndex + 3);
+      session.splice(insertAt, 0, retryEx);
+    }
+
+    showToast(scheduleMessage(rating, p));
+    sessionIndex++;
+    setTimeout(renderStudy, 130);
+  }
+
+  function renderSummary() {
+    els('studyArea').classList.add('hidden');
+    els('summaryStudy').classList.remove('hidden');
+    els('studyPosition').textContent = session.length;
+    els('studyTotal').textContent = session.length;
+    els('studyProgressBar').style.width = '100%';
+
+    els('summaryUnique').textContent = stats.unique.size;
+    els('summaryEasy').textContent = stats.ratings[2];
+    els('summaryMedium').textContent = stats.ratings[1];
+    els('summaryHard').textContent = stats.ratings[0];
+
+    if (stats.autoAttempted > 0) {
+      const accuracy = Math.round((stats.autoCorrect / stats.autoAttempted) * 100);
+      els('summaryAccuracy').textContent = `${accuracy}%`;
+      const almost = stats.autoAlmost ? ` · ${stats.autoAlmost} casi correcta${stats.autoAlmost === 1 ? '' : 's'}` : '';
+      els('summaryAccuracyNote').textContent = `${stats.autoCorrect} correctas de ${stats.autoAttempted}${almost}.`;
+    } else {
+      els('summaryAccuracy').textContent = '—';
+      els('summaryAccuracyNote').textContent = 'Hoy has usado tarjetas de memoria; no hay ejercicios automáticos que puntuar.';
+    }
+
+    const hardIds = [...stats.unresolvedHard];
+    const hardItems = hardIds.map(id => allContent().find(x => x.id === id)).filter(Boolean);
+    els('hardAgainBox').classList.toggle('hidden', hardItems.length === 0);
+    els('reviewHardBtn').classList.toggle('hidden', hardItems.length === 0);
+    els('hardChipList').innerHTML = hardItems.map(x => `<span class="hard-chip">${escapeHtml(x.en)}</span>`).join('');
+
+    const minutes = Math.max(1, Math.round((Date.now()-stats.startedAt)/60000));
+    const totalRatings = stats.ratings.reduce((a,b)=>a+b,0);
+    els('summaryLead').textContent = hardItems.length
+      ? `${totalRatings} respuestas en unos ${minutes} min. Hay ${hardItems.length} contenido${hardItems.length===1?'':'s'} que conviene volver a ver pronto.`
+      : `${totalRatings} respuestas en unos ${minutes} min. No has dejado ningún contenido marcado como “No sé”.`;
+    renderHome();
+  }
+
+  function reviewHard() {
+    const items = [...stats.unresolvedHard].map(id => allContent().find(x => x.id === id)).filter(Boolean);
+    if (!items.length) return;
+    buildSession(items);
+  }
+
+  function speakCurrent() {
+    if (sessionIndex >= session.length) return;
+    speakText(session[sessionIndex].item.en);
+  }
+
+  function audioCollectionByKey(key) { return AUDIO_COLLECTIONS[key] || null; }
+
+  function audioFolders(key) {
+    const collection = audioCollectionByKey(key);
+    if (!collection) return [];
+    if (key === 'translation') return collection.groups.map(folder => ({...folder, parentTitle:null}));
+    return collection.cds.flatMap(cd => cd.levels.map(folder => ({...folder, parentId:cd.id, parentTitle:cd.title})));
+  }
+
+  function audioFolderById(key, id) { return audioFolders(key).find(folder => folder.id === id) || null; }
+
+  function ensureAudioProgress(key) {
+    if (!state.audioProgress || typeof state.audioProgress !== 'object') state.audioProgress = {};
+    if (!state.audioProgress[key] || typeof state.audioProgress[key] !== 'object') state.audioProgress[key] = {completed:[],currentFolderId:null};
+    const progress = state.audioProgress[key];
+    if (!Array.isArray(progress.completed)) progress.completed = [];
+    const valid = new Set(audioFolders(key).map(folder => folder.id));
+    progress.completed = progress.completed.filter(id => valid.has(id));
+    const current = audioFolderById(key, progress.currentFolderId);
+    if (!current) {
+      const completed = new Set(progress.completed);
+      const next = audioFolders(key).find(folder => !completed.has(folder.id)) || audioFolders(key)[0] || null;
+      progress.currentFolderId = next ? next.id : null;
+    }
+    return progress;
+  }
+
+  function audioCompletedSet(key) { return new Set(ensureAudioProgress(key).completed || []); }
+
+  function audioPathLabel(key, folder) {
+    if (!folder) return 'Sin carpeta';
+    return key === 'vaughan' && folder.parentTitle ? `${folder.parentTitle} · ${folder.title}` : folder.title;
+  }
+
+  function currentAudioFolder(key) {
+    const progress = ensureAudioProgress(key);
+    return audioFolderById(key, progress.currentFolderId);
+  }
+
+  function renderHomeAudio() {
+    document.querySelectorAll('[data-home-audio-card]').forEach(card => {
+      const key = card.dataset.homeAudioCard;
+      const folders = audioFolders(key);
+      const progress = ensureAudioProgress(key);
+      const completed = audioCompletedSet(key);
+      let folder = audioFolderById(key, progress.currentFolderId);
+      if (folder && completed.has(folder.id)) {
+        folder = folders.find(item => !completed.has(item.id)) || folder;
+        progress.currentFolderId = folder ? folder.id : null;
+      }
+      const done = folders.filter(item => completed.has(item.id)).length;
+      const total = folders.length;
+      const path = folder ? audioPathLabel(key, folder) : 'Colección completada';
+      card.querySelector('[data-home-audio-done]').textContent = done;
+      card.querySelector('[data-home-audio-total]').textContent = total;
+      card.querySelector('[data-home-audio-path]').textContent = done >= total && total ? '✓ Todos los bloques completados' : path;
+      card.querySelector('[data-home-audio-progress]').style.width = `${total ? (done/total)*100 : 0}%`;
+    });
+    saveState();
+  }
+
+  function openAudioCollection(key, explore=false) {
+    if (!audioCollectionByKey(key)) return;
+    state.activeAudioCollection = key;
+    ensureAudioProgress(key);
+    saveState();
+    showScreen('vaughan');
+    if (explore) setTimeout(() => els('audioFolderList')?.scrollIntoView({behavior:'smooth', block:'start'}), 40);
+  }
+
+  function selectAudioCollection(key) {
+    if (!audioCollectionByKey(key)) return;
+    state.activeAudioCollection = key;
+    ensureAudioProgress(key);
+    saveState();
+    renderAudioBrowser();
+  }
+
+  function selectAudioFolder(key, folderId) {
+    if (!audioFolderById(key, folderId)) return;
+    state.activeAudioCollection = key;
+    const progress = ensureAudioProgress(key);
+    progress.currentFolderId = folderId;
+    saveState();
+    renderAudioBrowser();
+  }
+
+  function audioEmbeddedFolderUrl(folderId) {
+    return `https://drive.google.com/embeddedfolderview?id=${encodeURIComponent(folderId)}#list`;
+  }
+
+  function adjacentAudioFolder(direction) {
+    const key = state.activeAudioCollection;
+    const folders = audioFolders(key);
+    const current = currentAudioFolder(key);
+    if (!current || !folders.length) return;
+    const index = folders.findIndex(folder => folder.id === current.id);
+    const nextIndex = clamp(index + direction, 0, folders.length - 1);
+    if (nextIndex === index) return;
+    ensureAudioProgress(key).currentFolderId = folders[nextIndex].id;
+    saveState();
+    renderAudioBrowser();
+  }
+
+  function toggleAudioComplete() {
+    const key = state.activeAudioCollection;
+    const folder = currentAudioFolder(key);
+    if (!key || !folder) return;
+    const progress = ensureAudioProgress(key);
+    const completed = new Set(progress.completed);
+    const wasComplete = completed.has(folder.id);
+    if (wasComplete) completed.delete(folder.id); else completed.add(folder.id);
+    progress.completed = [...completed];
+    if (!wasComplete) {
+      const folders = audioFolders(key);
+      const index = folders.findIndex(item => item.id === folder.id);
+      const next = folders.slice(index + 1).find(item => !completed.has(item.id)) || folders.find(item => !completed.has(item.id));
+      if (next) progress.currentFolderId = next.id;
+    }
+    saveState();
+    renderHomeAudio();
+    renderAudioBrowser();
+    showToast(wasComplete ? 'Bloque devuelto a pendiente.' : '✓ Bloque marcado como escuchado.');
+  }
+
+  function renderAudioFolderList(key, current) {
+    const list = els('audioFolderList');
+    if (!list) return;
+    list.innerHTML = '';
+    const completed = audioCompletedSet(key);
+    if (key === 'translation') {
+      AUDIO_COLLECTIONS.translation.groups.forEach(folder => {
+        const btn = document.createElement('button');
+        btn.className = `audio-folder-btn ${folder.id === current?.id ? 'active' : ''} ${completed.has(folder.id) ? 'complete' : ''}`;
+        btn.dataset.audioFolder = folder.id;
+        btn.dataset.audioFolderCollection = key;
+        btn.innerHTML = `<span>${completed.has(folder.id) ? '✓ ' : '🎧 '}${escapeHtml(folder.title)}</span><small>${completed.has(folder.id) ? 'HECHO' : 'ABRIR'}</small>`;
+        list.appendChild(btn);
+      });
+      return;
+    }
+    AUDIO_COLLECTIONS.vaughan.cds.forEach(cd => {
+      const block = document.createElement('div');
+      block.className = 'audio-cd-block';
+      const title = document.createElement('div');
+      title.className = 'audio-cd-title';
+      title.textContent = cd.title;
+      block.appendChild(title);
+      const levels = document.createElement('div');
+      levels.className = 'audio-cd-levels';
+      cd.levels.forEach(folder => {
+        const btn = document.createElement('button');
+        btn.className = `audio-folder-btn ${folder.id === current?.id ? 'active' : ''} ${completed.has(folder.id) ? 'complete' : ''}`;
+        btn.dataset.audioFolder = folder.id;
+        btn.dataset.audioFolderCollection = key;
+        btn.innerHTML = `<span>${completed.has(folder.id) ? '✓ ' : '🎧 '}${escapeHtml(folder.title)}</span><small>${completed.has(folder.id) ? 'HECHO' : 'ABRIR'}</small>`;
+        levels.appendChild(btn);
+      });
+      if (cd.pdf) {
+        const link = document.createElement('a');
+        link.className = 'audio-resource-link';
+        link.href = cd.pdf.url;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.innerHTML = `<span>📘 ${escapeHtml(cd.pdf.title)}</span><small>PDF ↗</small>`;
+        levels.appendChild(link);
+      }
+      block.appendChild(levels);
+      list.appendChild(block);
+    });
+  }
+
+  function renderAudioBrowser() {
+    const key = audioCollectionByKey(state.activeAudioCollection) ? state.activeAudioCollection : 'translation';
+    state.activeAudioCollection = key;
+    const collection = audioCollectionByKey(key);
+    const progress = ensureAudioProgress(key);
+    const folder = currentAudioFolder(key);
+    const folders = audioFolders(key);
+    const completed = audioCompletedSet(key);
+    const done = folders.filter(item => completed.has(item.id)).length;
+    const total = folders.length;
+
+    document.querySelectorAll('[data-audio-collection]').forEach(btn => btn.classList.toggle('active', btn.dataset.audioCollection === key));
+    els('audioPageEyebrow').textContent = collection.eyebrow;
+    els('audioPageTitle').textContent = collection.title;
+    els('audioPageDescription').textContent = collection.description;
+    els('audioFolderPanelTitle').textContent = key === 'translation' ? 'Booklets' : 'CD01–CD10';
+    renderAudioFolderList(key, folder);
+
+    els('audioDoneCount').textContent = done;
+    els('audioTotalCount').textContent = total;
+    els('audioCollectionProgress').style.width = `${total ? (done/total)*100 : 0}%`;
+
+    if (!folder) {
+      els('audioBreadcrumb').textContent = collection.title;
+      els('audioFolderTitle').textContent = 'Sin carpetas disponibles';
+      els('audioBlockStatus').textContent = '—';
+      els('audioBlockStatus').classList.remove('complete');
+      els('audioDriveFrame').innerHTML = `<div class="audio-empty"><div><span>🎧</span><h2>No hay contenido</h2><p>No encontramos una carpeta reproducible.</p></div></div>`;
+      return;
+    }
+
+    const isDone = completed.has(folder.id);
+    const breadcrumb = key === 'vaughan' ? `${collection.title} / ${folder.parentTitle} / ${folder.title}` : `${collection.title} / ${folder.title}`;
+    els('audioBreadcrumb').textContent = breadcrumb;
+    els('audioFolderTitle').textContent = folder.title;
+    els('audioBlockStatus').textContent = isDone ? '✓ ESCUCHADO' : 'EN CURSO';
+    els('audioBlockStatus').classList.toggle('complete', isDone);
+    els('audioOpenDrive').href = folder.url;
+    const toggle = document.querySelector('[data-audio-toggle-complete]');
+    toggle.textContent = isDone ? '↩ Marcar bloque como pendiente' : '✓ Marcar bloque como escuchado';
+    els('audioDriveFrame').innerHTML = `<iframe src="${audioEmbeddedFolderUrl(folder.id)}" title="${escapeHtml(folder.title)}" loading="eager" allow="autoplay"></iframe>`;
+
+    const index = folders.findIndex(item => item.id === folder.id);
+    const prev = document.querySelector('[data-audio-prev]');
+    const next = document.querySelector('[data-audio-next]');
+    prev.disabled = index <= 0;
+    next.disabled = index < 0 || index >= folders.length - 1;
+    saveState();
+  }
+
+  function collectionByKey(key) { return VIDEO_COLLECTIONS[key] || null; }
+  function activeVideoCollection() { return collectionByKey(state.activeVideoCollection); }
+  function ensureVideoProgress(key) {
+    if (!state.videoProgress || typeof state.videoProgress !== 'object') state.videoProgress = {};
+    if (!state.videoProgress[key] || typeof state.videoProgress[key] !== 'object') state.videoProgress[key] = {watched:[], currentId:null};
+    if (!Array.isArray(state.videoProgress[key].watched)) state.videoProgress[key].watched = [];
+    if (typeof state.videoProgress[key].currentId !== 'string') state.videoProgress[key].currentId = null;
+    return state.videoProgress[key];
+  }
+  function watchedVideoSet(key=state.activeVideoCollection) { return new Set(ensureVideoProgress(key).watched || []); }
+  function collectionVideos(key=state.activeVideoCollection) { return collectionByKey(key)?.videos || []; }
+  function videoById(id, key=state.activeVideoCollection) { return collectionVideos(key).find(v => v.id === id) || null; }
+
+  function pendingVideos(excludeId=null, key=state.activeVideoCollection) {
+    const watched = watchedVideoSet(key);
+    return collectionVideos(key).filter(v => !watched.has(v.id) && v.id !== excludeId);
+  }
+
+  function randomPendingVideo(excludeId=null, key=state.activeVideoCollection) {
+    let pool = pendingVideos(excludeId, key);
+    if (!pool.length && excludeId) pool = pendingVideos(null, key);
+    if (!pool.length) return null;
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  function ensureCurrentPendingVideoFor(key) {
+    if (!collectionByKey(key)) return null;
+    const progress = ensureVideoProgress(key);
+    const current = videoById(progress.currentId, key);
+    if (current && !watchedVideoSet(key).has(current.id)) return current;
+    const next = randomPendingVideo(null, key);
+    progress.currentId = next ? next.id : null;
+    saveState();
+    return next;
+  }
+
+  function ensureCurrentPendingVideo() {
+    return ensureCurrentPendingVideoFor(state.activeVideoCollection);
+  }
+
+  function renderHomeVideos() {
+    document.querySelectorAll('[data-home-video-card]').forEach(card => {
+      const key = card.dataset.homeVideoCard;
+      const collection = collectionByKey(key);
+      if (!collection) return;
+      const watched = watchedVideoSet(key);
+      const watchedN = collection.videos.filter(v => watched.has(v.id)).length;
+      const remaining = Math.max(0, collection.videos.length - watchedN);
+      const video = ensureCurrentPendingVideoFor(key);
+      const frame = card.querySelector('[data-home-video-frame]');
+      const complete = card.querySelector('[data-home-video-complete]');
+      const title = card.querySelector('[data-home-video-title]');
+      const watchedEl = card.querySelector('[data-home-video-watched-count]');
+      const totalEl = card.querySelector('[data-home-video-total]');
+      const remainingEl = card.querySelector('[data-home-video-remaining]');
+      const progressEl = card.querySelector('[data-home-video-progress]');
+      const label = card.querySelector('[data-home-video-label]');
+      const watchedBtn = card.querySelector('[data-home-video-watched]');
+      const randomBtn = card.querySelector('[data-home-video-random]');
+
+      watchedEl.textContent = watchedN;
+      totalEl.textContent = collection.videos.length;
+      remainingEl.textContent = remaining;
+      progressEl.style.width = `${collection.videos.length ? (watchedN / collection.videos.length) * 100 : 0}%`;
+
+      if (video) {
+        title.textContent = video.title;
+        const preview = `https://drive.google.com/file/d/${video.driveId}/preview`;
+        if (frame.dataset.videoId !== video.id) {
+          frame.src = preview;
+          frame.dataset.videoId = video.id;
+        }
+        frame.classList.remove('hidden');
+        complete.classList.add('hidden');
+        watchedBtn.disabled = false;
+        randomBtn.disabled = remaining <= 1;
+        label.textContent = 'Elegido al azar · se mantiene al volver';
+      } else {
+        title.textContent = `${collection.title} · completado`;
+        frame.removeAttribute('src');
+        frame.dataset.videoId = '';
+        frame.classList.add('hidden');
+        complete.classList.remove('hidden');
+        watchedBtn.disabled = true;
+        randomBtn.disabled = true;
+        label.textContent = 'Colección completada';
+      }
+    });
+  }
+
+  function markHomeVideoWatched(key) {
+    const collection = collectionByKey(key);
+    if (!collection) return;
+    const video = ensureCurrentPendingVideoFor(key);
+    if (!video) return;
+    const progress = ensureVideoProgress(key);
+    const watched = watchedVideoSet(key);
+    watched.add(video.id);
+    progress.watched = [...watched];
+    const next = randomPendingVideo(video.id, key);
+    progress.currentId = next ? next.id : null;
+    saveState();
+    renderHomeStats();
+    renderHomeVideos();
+    if (els('screen-videos').classList.contains('active')) renderVideos();
+    showToast(next ? `✓ ${collection.title}: visto. Te muestro otro.` : `🎉 ¡Has visto todos los ${collection.plural}!`);
+  }
+
+  function chooseAnotherHomeVideo(key) {
+    const collection = collectionByKey(key);
+    if (!collection) return;
+    const progress = ensureVideoProgress(key);
+    const current = ensureCurrentPendingVideoFor(key);
+    const next = randomPendingVideo(current ? current.id : null, key);
+    if (!next) return;
+    progress.currentId = next.id;
+    saveState();
+    renderHomeVideos();
+    showToast(`🎲 Nuevo ${collection.singular} elegido al azar.`);
+  }
+
+  function openHomeVideoCollection(key) {
+    if (!collectionByKey(key)) return;
+    state.activeVideoCollection = key;
+    manualVideoId = null;
+    videoLibraryOpen = false;
+    ensureCurrentPendingVideoFor(key);
+    saveState();
+    showScreen('videos');
+    renderVideos();
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  function displayedVideo() {
+    const key = state.activeVideoCollection;
+    return (manualVideoId && videoById(manualVideoId, key)) || ensureCurrentPendingVideo();
+  }
+
+  function selectVideoCollection(key) {
+    if (!collectionByKey(key)) return;
+    state.activeVideoCollection = key;
+    manualVideoId = null;
+    videoLibraryOpen = false;
+    ensureCurrentPendingVideo();
+    saveState();
+    renderVideos();
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  function showVideoCollections() {
+    state.activeVideoCollection = null;
+    manualVideoId = null;
+    videoLibraryOpen = false;
+    saveState();
+    renderVideos();
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  function markDisplayedVideo() {
+    const key = state.activeVideoCollection;
+    const collection = activeVideoCollection();
+    const video = displayedVideo();
+    if (!collection || !video) return;
+    const progress = ensureVideoProgress(key);
+    const watched = watchedVideoSet(key);
+    const wasWatched = watched.has(video.id);
+    if (wasWatched) {
+      watched.delete(video.id);
+      progress.watched = [...watched];
+      progress.currentId = video.id;
+      manualVideoId = null;
+      saveState();
+      renderVideos();
+      renderHomeStats();
+      renderHomeVideos();
+      showToast('Vídeo devuelto a pendientes.');
+      return;
+    }
+    watched.add(video.id);
+    progress.watched = [...watched];
+    manualVideoId = null;
+    const next = randomPendingVideo(video.id, key);
+    progress.currentId = next ? next.id : null;
+    saveState();
+    renderVideos();
+    renderHomeStats();
+    renderHomeVideos();
+    showToast(next ? '✓ Guardado como visto. Te muestro otro.' : `🎉 ¡Has visto todos los ${collection.plural}!`);
+  }
+
+  function chooseAnotherVideo() {
+    const key = state.activeVideoCollection;
+    const collection = activeVideoCollection();
+    if (!collection) return;
+    manualVideoId = null;
+    const progress = ensureVideoProgress(key);
+    const current = videoById(progress.currentId, key);
+    const next = randomPendingVideo(current ? current.id : null, key);
+    if (!next) { renderVideos(); return; }
+    progress.currentId = next.id;
+    saveState();
+    renderVideos();
+    showToast(`🎲 Nuevo ${collection.singular} elegido al azar.`);
+  }
+
+  function openVideoHere(id) {
+    if (!videoById(id)) return;
+    manualVideoId = id;
+    renderVideos();
+    els('screen-videos').scrollIntoView({behavior:'smooth', block:'start'});
+  }
+
+  function toggleVideoLibrary() {
+    if (!activeVideoCollection()) return;
+    videoLibraryOpen = !videoLibraryOpen;
+    els('videoLibraryPanel').classList.toggle('hidden', !videoLibraryOpen);
+    if (videoLibraryOpen) renderVideoLibrary();
+  }
+
+  function toggleVideoWatchedFromLibrary(id) {
+    const key = state.activeVideoCollection;
+    if (!videoById(id, key)) return;
+    const progress = ensureVideoProgress(key);
+    const watched = watchedVideoSet(key);
+    if (watched.has(id)) watched.delete(id); else watched.add(id);
+    progress.watched = [...watched];
+    if (progress.currentId === id && watched.has(id)) progress.currentId = null;
+    if (manualVideoId === id && watched.has(id)) manualVideoId = id;
+    saveState();
+    renderVideos();
+    renderHomeStats();
+    showToast(watched.has(id) ? 'Vídeo marcado como visto.' : 'Vídeo marcado como pendiente.');
+  }
+
+  function resetVideos() {
+    const key = state.activeVideoCollection;
+    const collection = activeVideoCollection();
+    if (!collection) return;
+    if (!confirm(`¿Marcar todos los vídeos de “${collection.title}” como pendientes y empezar otra vuelta?`)) return;
+    const progress = ensureVideoProgress(key);
+    progress.watched = [];
+    progress.currentId = null;
+    manualVideoId = null;
+    saveState();
+    renderVideos();
+    renderHomeStats();
+    showToast(`${collection.title}: progreso reiniciado.`);
+  }
+
+  function renderVideoCollectionCards() {
+    Object.values(VIDEO_COLLECTIONS).forEach(collection => {
+      const watched = watchedVideoSet(collection.key);
+      const watchedN = collection.videos.filter(v => watched.has(v.id)).length;
+      const remaining = Math.max(0, collection.videos.length - watchedN);
+      els(`${collection.key}TotalCard`).textContent = collection.videos.length;
+      els(`${collection.key}WatchedCard`).textContent = watchedN;
+      els(`${collection.key}RemainingCard`).textContent = remaining;
+      const pct = collection.videos.length ? (watchedN / collection.videos.length) * 100 : 0;
+      els(`${collection.key}ProgressBar`).style.width = `${pct}%`;
+    });
+  }
+
+  function renderVideoLibrary() {
+    if (!videoLibraryOpen || !activeVideoCollection()) return;
+    const collection = activeVideoCollection();
+    const list = els('videoLibraryList');
+    const search = (els('videoLibrarySearch').value || '').trim().toLowerCase();
+    const filter = els('videoLibraryFilter').value;
+    const watched = watchedVideoSet(collection.key);
+    const filtered = collection.videos.filter(v => {
+      const matchesSearch = !search || v.driveTitle.toLowerCase().includes(search) || v.title.toLowerCase().includes(search);
+      const done = watched.has(v.id);
+      const matchesFilter = filter === 'all' || (filter === 'watched' && done) || (filter === 'pending' && !done);
+      return matchesSearch && matchesFilter;
+    });
+    list.innerHTML = '';
+    if (!filtered.length) {
+      list.innerHTML = '<div class="video-library-empty">No hay vídeos que coincidan con este filtro.</div>';
+      return;
+    }
+    filtered.forEach(video => {
+      const done = watched.has(video.id);
+      const row = document.createElement('div');
+      row.className = `video-library-row ${done ? 'watched' : ''}`;
+      row.innerHTML = `
+        <div><strong>${escapeHtml(video.title)}</strong><small>${done ? '✓ Visto' : '○ Pendiente'} · Google Drive</small></div>
+        <div class="video-library-row-actions">
+          <button class="video-mini-btn" data-video-open="${escapeHtml(video.id)}">▶ Ver aquí</button>
+          <button class="video-mini-btn" data-video-toggle="${escapeHtml(video.id)}">${done ? '↩ Pendiente' : '✓ Visto'}</button>
+          <a class="video-mini-btn" href="${escapeHtml(video.viewUrl)}" target="_blank" rel="noopener noreferrer">Drive ↗</a>
+        </div>`;
+      list.appendChild(row);
+    });
+  }
+
+  function renderVideos() {
+    renderVideoCollectionCards();
+    const collection = activeVideoCollection();
+    const overview = els('videoCollectionsOverview');
+    const detail = els('videoCollectionDetail');
+    overview.classList.toggle('hidden', !!collection);
+    detail.classList.toggle('hidden', !collection);
+    if (!collection) return;
+
+    const watched = watchedVideoSet(collection.key);
+    const watchedN = collection.videos.filter(v => watched.has(v.id)).length;
+    const remaining = Math.max(0, collection.videos.length - watchedN);
+    els('videoCollectionEyebrow').textContent = collection.eyebrow;
+    els('videoCollectionTitle').textContent = collection.title;
+    els('videoCollectionDescription').textContent = collection.description;
+    els('videoLibraryEyebrow').textContent = `TODOS LOS ${collection.plural.toUpperCase()}`;
+    els('videoLibraryTitle').textContent = `Biblioteca · ${collection.title}`;
+    els('videoSnapshotNote').textContent = `${collection.videos.length} vídeos incluidos en English Daily v1.1 desde la carpeta compartida de Drive. Los nuevos archivos que añadas después todavía no se sincronizan automáticamente.`;
+    els('videoTotalCount').textContent = collection.videos.length;
+    els('videoWatchedCount').textContent = watchedN;
+    els('videoRemainingCount').textContent = remaining;
+    els('videoCompleteTitle').textContent = `¡Has visto todos los ${collection.plural}!`;
+    els('videoCompleteText').textContent = `Ya no quedan vídeos pendientes en “${collection.title}”. Puedes consultar los vistos o reiniciar solo esta colección.`;
+
+    const list = els('videoList');
+    const complete = remaining === 0 && !manualVideoId;
+    els('videoCompletePanel').classList.toggle('hidden', !complete);
+    els('videoSwitchActions').classList.toggle('hidden', complete);
+    list.innerHTML = '';
+
+    if (!complete) {
+      const video = displayedVideo();
+      if (video) {
+        const done = watched.has(video.id);
+        const card = document.createElement('article');
+        card.className = 'video-card';
+        const previewUrl = `https://drive.google.com/file/d/${encodeURIComponent(video.driveId)}/preview`;
+        card.innerHTML = `
+          <div class="video-card-head">
+            <div>
+              <p class="eyebrow">${done ? 'VÍDEO YA VISTO' : `TU ${collection.singular.toUpperCase()} AHORA`} · ALEATORIO</p>
+              <h2>${escapeHtml(video.title)}</h2>
+              <p>${done ? 'Lo abriste manualmente desde la biblioteca.' : `Cuando termines, márcalo como visto y aparecerá otro ${collection.singular} pendiente al azar.`}</p>
+            </div>
+            <span class="video-status ${done ? 'watched' : ''}">${done ? '✓ VISTO' : '○ PENDIENTE'}</span>
+          </div>
+          <div class="video-frame-wrap">
+            <iframe src="${previewUrl}" title="${escapeHtml(video.title)}" loading="eager" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+          </div>
+          <div class="video-card-foot">
+            <div class="video-card-actions">
+              <button class="primary-btn video-watched-btn ${done ? 'active' : ''}" data-current-video-watched>${done ? '↩ Marcar como pendiente' : '✓ Ya lo he visto'}</button>
+              <a class="secondary-btn" href="${escapeHtml(video.viewUrl)}" target="_blank" rel="noopener noreferrer">Abrir en Drive ↗</a>
+            </div>
+            <div class="video-source-note">Google Drive · ${remaining} pendiente${remaining === 1 ? '' : 's'} · progreso independiente</div>
+          </div>`;
+        list.appendChild(card);
+      }
+    }
+
+    els('videoLibraryPanel').classList.toggle('hidden', !videoLibraryOpen);
+    if (videoLibraryOpen) renderVideoLibrary();
+  }
+
+  function renderLibrary() {
+    const query = els('librarySearch').value.trim().toLowerCase();
+    const filter = els('libraryFilter').value;
+    const all = allContent();
+    const customIds = new Set(state.custom.map(x => x.id));
+    const favs = favoriteSet();
+    const filtered = all.filter(item => {
+      const matchesText = !query || `${item.en} ${item.es} ${item.category} ${item.source || ''}`.toLowerCase().includes(query);
+      let matchesFilter = filter === 'all' || item.type === filter || (filter === 'custom' && customIds.has(item.id));
+      if (filter === 'document') matchesFilter = item.source === 'Inglés completo';
+      if (filter === 'favorites') matchesFilter = favs.has(item.id);
+      if (filter === 'hard') matchesFilter = isDifficult(item);
+      if (filter === 'mastered') matchesFilter = isMastered(item);
+      if (filter === 'learning') matchesFilter = !!getProgress(item.id) && !isMastered(item);
+      return matchesText && matchesFilter;
+    });
+
+    const hardN = all.filter(isDifficult).length;
+    const favN = all.filter(x => favs.has(x.id)).length;
+    const importedN = all.filter(x => x.source === 'Inglés completo').length;
+    els('libraryStats').innerHTML = `<span>${all.length} elementos</span><span>${all.filter(x=>x.type==='word').length} palabras</span><span>${all.filter(x=>x.type==='phrase').length} frases</span><span>📄 ${importedN} importadas</span><span>♥ ${favN} favoritas</span><span>⚡ ${hardN} difíciles</span>`;
+    const list = els('libraryList'); list.innerHTML = '';
+    if (!filtered.length) {
+      const message = filter === 'favorites' ? 'Todavía no has guardado favoritos.' : filter === 'hard' ? 'No tienes contenidos marcados como difíciles.' : filter === 'mastered' ? 'Todavía no tienes contenidos dominados.' : filter === 'learning' ? 'Todavía no has empezado a aprender ningún contenido.' : 'Prueba con otra búsqueda o filtro.';
+      list.innerHTML = `<div class="empty-state"><h2>No hay resultados</h2><p>${message}</p></div>`;
+      return;
+    }
+
+    filtered.forEach(item => {
+      const row = document.createElement('article'); row.className = 'library-item';
+      const progress = getProgress(item.id);
+      let progressLabel = 'NUEVO';
+      let progressClass = 'category-tag';
+      if (isMastered(item)) { progressLabel = 'DOMINADA'; progressClass = 'mastered-badge'; }
+      else if (progress) {
+        const d = daysUntil(progress.nextReview);
+        progressLabel = d <= 0 ? 'REPASAR HOY' : d === 1 ? 'MAÑANA' : `EN ${d} DÍAS`;
+      }
+      const hardBadge = isDifficult(item) ? '<span class="hard-badge">⚡ DIFÍCIL</span>' : '';
+      row.innerHTML = `
+        <div>
+          <h3>${escapeHtml(item.en)} ${customIds.has(item.id) ? '<span class="custom-badge">· TUYO</span>' : ''}${item.source === 'Inglés completo' ? '<span class="custom-badge">· LISTA</span>' : ''}</h3>
+          <p>${escapeHtml(item.es)}${item.exampleEn ? ` · <em>${escapeHtml(item.exampleEn)}</em>` : ''}</p>
+        </div>
+        <div class="library-item-meta-wrap">
+          <div class="library-item-actions">
+            <button class="favorite-btn compact ${favs.has(item.id) ? 'active' : ''}" data-favorite-id="${escapeHtml(item.id)}" aria-label="Favorito">${favs.has(item.id) ? '♥' : '♡'}</button>
+            ${hardBadge}
+            <span class="${progressClass}">${progressLabel}</span>
+          </div>
+          <div class="library-item-meta">
+            <span class="level-tag">${escapeHtml(item.level || 'A2')}</span>
+            <span class="tag">${item.type === 'phrase' ? 'FRASE' : 'PALABRA'}</span>
+            <span class="category-tag">${escapeHtml(item.category || 'General')}</span>
+          </div>
+        </div>`;
+      list.appendChild(row);
+    });
+  }
+
+  function escapeHtml(s='') {
+    return String(s).replace(/[&<>'"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));
+  }
+
+  function addCustom(e) {
+    e.preventDefault();
+    const item = {
+      id: `c${Date.now()}`,
+      type: els('addType').value,
+      en: els('addEnglish').value.trim(),
+      es: els('addSpanish').value.trim(),
+      exampleEn: els('addExampleEn').value.trim(),
+      exampleEs: els('addExampleEs').value.trim(),
+      level: els('addLevel').value,
+      category: els('addCategory').value.trim() || 'Personal',
+      custom: true
+    };
+    if (!item.en || !item.es) return;
+    state.custom.unshift(item); saveState(); e.target.reset();
+    els('addLevel').value = 'A2'; els('addCategory').value = 'Personal';
+    els('formMessage').textContent = `✓ “${item.en}” guardado. Aparecerá en tus repasos.`;
+    setTimeout(() => els('formMessage').textContent = '', 4500);
+    renderHome();
+  }
+
+  function resetProgress() {
+    if (!confirm('¿Reiniciar todo el progreso? Tus palabras añadidas se conservarán.')) return;
+    state.progress = {}; state.activity = {}; state.watchedVideos = []; state.currentVideoId = null; state.videoProgress = { conversations:{watched:[],currentId:null}, peldanos:{watched:[],currentId:null} }; state.activeVideoCollection = null; state.audioProgress = { translation:{completed:[],currentFolderId:null}, vaughan:{completed:[],currentFolderId:null} }; state.activeAudioCollection = null; state.bookProgress = {diverboPage:0}; manualVideoId = null; videoLibraryOpen = false; saveState(); session = []; renderHome();
+  }
+
+  function toggleTheme() { state.theme = state.theme === 'dark' ? 'light' : 'dark'; saveState(); applyTheme(); }
+  function applyTheme() {
+    document.body.classList.toggle('dark', state.theme === 'dark');
+    els('themeBtn').textContent = state.theme === 'dark' ? '☾' : '☼';
+  }
+
+  document.addEventListener('click', e => {
+    const go = e.target.closest('[data-go]'); if (go) showScreen(go.dataset.go);
+    const rating = e.target.closest('[data-rating]'); if (rating) rateCurrent(Number(rating.dataset.rating));
+    const fav = e.target.closest('[data-favorite-id]'); if (fav) toggleFavorite(fav.dataset.favoriteId);
+    const libFilter = e.target.closest('[data-library-filter]'); if (libFilter) openLibraryFilter(libFilter.dataset.libraryFilter);
+    const homeVideoWatched = e.target.closest('[data-home-video-watched]'); if (homeVideoWatched) markHomeVideoWatched(homeVideoWatched.dataset.homeVideoWatched);
+    const homeVideoRandom = e.target.closest('[data-home-video-random]'); if (homeVideoRandom) chooseAnotherHomeVideo(homeVideoRandom.dataset.homeVideoRandom);
+    const homeVideoOpen = e.target.closest('[data-home-video-open]'); if (homeVideoOpen) openHomeVideoCollection(homeVideoOpen.dataset.homeVideoOpen);
+    const homeAudioOpen = e.target.closest('[data-home-audio-open]'); if (homeAudioOpen) openAudioCollection(homeAudioOpen.dataset.homeAudioOpen, false);
+    const homeAudioExplore = e.target.closest('[data-home-audio-explore]'); if (homeAudioExplore) openAudioCollection(homeAudioExplore.dataset.homeAudioExplore, true);
+    const audioCollection = e.target.closest('[data-audio-collection]'); if (audioCollection) selectAudioCollection(audioCollection.dataset.audioCollection);
+    const audioFolder = e.target.closest('[data-audio-folder]'); if (audioFolder) selectAudioFolder(audioFolder.dataset.audioFolderCollection, audioFolder.dataset.audioFolder);
+    const audioPrev = e.target.closest('[data-audio-prev]'); if (audioPrev && !audioPrev.disabled) adjacentAudioFolder(-1);
+    const audioNext = e.target.closest('[data-audio-next]'); if (audioNext && !audioNext.disabled) adjacentAudioFolder(1);
+    const audioToggle = e.target.closest('[data-audio-toggle-complete]'); if (audioToggle) toggleAudioComplete();
+    const videoCollection = e.target.closest('[data-video-collection]'); if (videoCollection) selectVideoCollection(videoCollection.dataset.videoCollection);
+    const videoCollectionBack = e.target.closest('[data-video-collection-back]'); if (videoCollectionBack) showVideoCollections();
+    const currentVideoWatched = e.target.closest('[data-current-video-watched]'); if (currentVideoWatched) markDisplayedVideo();
+    const randomVideo = e.target.closest('[data-video-random]'); if (randomVideo) chooseAnotherVideo();
+    const libraryToggle = e.target.closest('[data-video-library-toggle]'); if (libraryToggle) toggleVideoLibrary();
+    const videoOpen = e.target.closest('[data-video-open]'); if (videoOpen) openVideoHere(videoOpen.dataset.videoOpen);
+    const videoToggle = e.target.closest('[data-video-toggle]'); if (videoToggle) toggleVideoWatchedFromLibrary(videoToggle.dataset.videoToggle);
+    const videoReset = e.target.closest('[data-video-reset]'); if (videoReset) resetVideos();
+  });
+
+  els('githubConnectBtn').addEventListener('click', connectGithub);
+  els('githubReconnectBtn').addEventListener('click', () => { els('githubTokenInput').value = ''; els('githubTokenInput').focus(); setSyncMessage('Pega el nuevo token y pulsa Reconectar.', ''); });
+  els('githubDisconnectBtn').addEventListener('click', disconnectGithub);
+  els('syncNowBtn').addEventListener('click', () => pushStateToGist({manual:true}));
+  els('pullGistBtn').addEventListener('click', forcePullFromGist);
+  els('exportJsonBtn').addEventListener('click', exportProgressJson);
+  els('importJsonBtn').addEventListener('click', () => els('importJsonInput').click());
+  els('importJsonInput').addEventListener('change', () => importProgressJson(els('importJsonInput').files?.[0]));
+  els('bookPrevBtn').addEventListener('click', () => changeBookPage(-1));
+  els('bookNextBtn').addEventListener('click', () => changeBookPage(1));
+  els('startStudyBtn').addEventListener('click', () => { buildSession(); showScreen('study'); });
+  els('studyDifficultBtn').addEventListener('click', startDifficultStudy);
+  els('goalSelect').addEventListener('change', () => { state.dailyGoal = Number(els('goalSelect').value); saveState(); session = []; sessionIndex = 0; renderHome(); showToast(`Objetivo cambiado a ${goal()} ejercicios.`); });
+  els('showAnswerBtn').addEventListener('click', showAnswer);
+  els('speakBtn').addEventListener('click', speakCurrent);
+  els('shuffleBtn').addEventListener('click', () => {
+    if (sessionIndex >= session.length-1) return;
+    const done = session.slice(0, sessionIndex);
+    const remaining = session.slice(sessionIndex);
+    shuffle(remaining);
+    session = [...done, ...remaining];
+    renderStudy();
+  });
+  els('typeArea').addEventListener('submit', submitTyped);
+  els('reviewHardBtn').addEventListener('click', reviewHard);
+  els('librarySearch').addEventListener('input', renderLibrary);
+  els('libraryFilter').addEventListener('change', renderLibrary);
+  els('videoLibrarySearch').addEventListener('input', renderVideoLibrary);
+  els('videoLibraryFilter').addEventListener('change', renderVideoLibrary);
+  els('addForm').addEventListener('submit', addCustom);
+  els('resetProgressBtn').addEventListener('click', resetProgress);
+  els('themeBtn').addEventListener('click', toggleTheme);
+  els('dailyWordRevealBtn').addEventListener('click', () => toggleDailyAnswer('dailyWord'));
+  els('dailyPhraseRevealBtn').addEventListener('click', () => toggleDailyAnswer('dailyPhrase'));
+  els('dailyWordSpeak').addEventListener('click', () => speakText(dailyPick('word').en));
+  els('dailyPhraseSpeak').addEventListener('click', () => speakText(dailyPick('phrase').en));
+  els('dailyWordFavorite').addEventListener('click', () => toggleFavorite(dailyPick('word').id));
+  els('dailyPhraseFavorite').addEventListener('click', () => toggleFavorite(dailyPick('phrase').id));
+  els('studyFavoriteBtn').addEventListener('click', () => { if (sessionIndex < session.length) toggleFavorite(session[sessionIndex].item.id); });
+
+  document.addEventListener('keydown', e => {
+    if (els('screen-book').classList.contains('active')) {
+      if (e.key === 'ArrowLeft') { e.preventDefault(); changeBookPage(-1); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); changeBookPage(1); }
+      return;
+    }
+    if (!els('screen-study').classList.contains('active')) return;
+    const typing = document.activeElement === els('typeInput');
+    if (e.code === 'Space' && !typing && !answered) { e.preventDefault(); showAnswer(); }
+    if (answered && e.key === '1') rateCurrent(0);
+    if (answered && e.key === '2') rateCurrent(1);
+    if (answered && e.key === '3') rateCurrent(2);
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden' && syncDirty && syncConfig.token && !syncBusy) pushStateToGist({manual:false});
+  });
+
+  applyTheme();
+  renderHome();
+  updateSyncUi();
+  setTimeout(autoStartGistSync, 120);
+})();
+  </script>
+
+  <script>
+  (() => {
+    if (!('serviceWorker' in navigator)) return;
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).catch(() => {});
+    });
+  })();
+  </script>
+</body>
+</html>
