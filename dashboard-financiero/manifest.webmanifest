@@ -1,0 +1,30 @@
+{
+  "id": "./",
+  "name": "Dashboard financiero",
+  "short_name": "Finanzas",
+  "description": "Préstamos, hipoteca, nómina y proyección financiera en un mismo espacio.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
+  "background_color": "#172b49",
+  "theme_color": "#172b49",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

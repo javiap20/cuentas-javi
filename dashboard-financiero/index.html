@@ -1,0 +1,4673 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard financiero</title>
+<style>
+  :root{
+    --bg:#172b49; --panel:#ffffff; --panel-2:#f8fafc; --text:#17202a; --muted:#667085;
+    --line:#e4e7ec; --accent:#2563eb; --accent-2:#0f766e; --danger:#b42318; --shadow:0 10px 30px rgba(16,24,40,.06);
+    --radius:18px;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse 70% 55% at 12% 0%, rgba(64,111,173,.24) 0%, transparent 62%),
+      radial-gradient(ellipse 65% 50% at 92% 4%, rgba(116,83,170,.18) 0%, transparent 60%),
+      linear-gradient(135deg, #172b49 0%, #182a47 42%, #2c2855 100%);
+    color:var(--text);
+    font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    min-height:100vh;
+  }
+  button,input,select{font:inherit}
+  .app{max-width:1500px;margin:0 auto;padding:28px}
+  header{display:flex;gap:20px;justify-content:space-between;align-items:flex-start;margin-bottom:22px}
+  h1{margin:0;font-size:clamp(28px,4vw,44px);letter-spacing:-.035em;color:#f8fafc}
+  .subtitle{margin:8px 0 0;color:#aeb8c8;max-width:840px;line-height:1.5}
+  .badge{background:rgba(255,255,255,.09);color:#dbeafe;border:1px solid rgba(255,255,255,.10);padding:8px 12px;border-radius:999px;font-size:13px;font-weight:800;white-space:nowrap}
+  .active-calculator-title{color:#f8fafc}
+  .global-gist-btn{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.09);color:#eef4ff;border-radius:12px;padding:9px 12px;font-weight:900;font-size:12px;cursor:pointer;backdrop-filter:blur(8px);box-shadow:0 6px 18px rgba(0,0,0,.10)}
+  .global-gist-btn:hover{background:rgba(255,255,255,.14)}
+  .global-gist-dot{width:8px;height:8px;border-radius:50%;background:#98a2b3;box-shadow:0 0 0 3px rgba(255,255,255,.05)}
+  .global-gist-btn.connected .global-gist-dot{background:#3dd68c}
+  .global-gist-btn.syncing .global-gist-dot{background:#60a5fa}
+  .global-gist-btn.error .global-gist-dot{background:#f97066}
+  .gist-modal{position:fixed;inset:0;z-index:120;display:none;align-items:flex-start;justify-content:center;padding:90px 18px 24px}
+  .gist-modal.open{display:flex}
+  .gist-modal-backdrop{position:absolute;inset:0;background:rgba(7,12,24,.58);backdrop-filter:blur(5px)}
+  .gist-modal-card{position:relative;z-index:1;width:min(520px,100%);background:#fff;border:1px solid rgba(255,255,255,.75);border-radius:18px;padding:18px;box-shadow:0 24px 70px rgba(0,0,0,.28)}
+  .gist-modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:10px}
+  .gist-modal-head h2{margin:2px 0 0;font-size:22px}
+  .gist-modal-eyebrow{font-size:10px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+  .gist-modal-close{border:0;background:#f2f4f7;color:#475467;width:32px;height:32px;border-radius:9px;font-size:20px;line-height:1;cursor:pointer}
+  .gist-modal-copy{font-size:11px;color:var(--muted);line-height:1.5;margin:0 0 14px}
+  .gist-auto-note{margin-top:12px;padding:10px 11px;border-radius:10px;background:#f5f8ff;border:1px solid #dbe7ff;color:#475467;font-size:10.5px;line-height:1.45}
+  .tabs-wrap{display:flex;justify-content:center;margin:4px 0 38px}
+  .tabs{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:#eef2f6;border:1px solid var(--line);padding:5px;border-radius:14px}
+  .tab-btn{border:0;background:transparent;color:var(--muted);font-weight:900;padding:10px 20px;border-radius:10px;cursor:pointer;transition:.15s}
+  .tab-btn.active{background:#fff;color:var(--text);box-shadow:0 1px 4px rgba(16,24,40,.10)}
+  .tab-btn .tab-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent);margin-right:8px;vertical-align:1px}
+  .layout{display:grid;grid-template-columns:350px minmax(0,1fr);gap:16px;align-items:start}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+  .sidebar{
+    position:sticky;
+    top:18px;
+    padding:18px;
+    background:linear-gradient(145deg,#fbfdff 0%,#f3f7ff 55%,#f7f4ff 100%);
+  }
+  .section-title{font-size:14px;font-weight:900;letter-spacing:.02em;margin:0 0 15px}
+
+  .layout.calculator-personal .sidebar .field,
+  .layout.calculator-mortgage .sidebar .field{
+    margin-bottom:12px;
+  }
+  .layout.calculator-personal .sidebar label,
+  .layout.calculator-mortgage .sidebar label{
+    font-size:10.5px;
+  }
+  .layout.calculator-personal .sidebar input,
+  .layout.calculator-personal .sidebar select,
+  .layout.calculator-mortgage .sidebar input,
+  .layout.calculator-mortgage .sidebar select{
+    padding:10px 11px;
+    font-size:11px;
+  }
+  .saved-manager{
+    background:rgba(255,255,255,.70);
+    border:1px solid #dbe3ee;
+    border-radius:15px;
+    padding:12px;
+    margin-bottom:18px;
+    box-shadow:0 6px 18px rgba(16,24,40,.035);
+  }
+  .saved-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}
+  .saved-head .section-title{margin:0}
+  .case-count{
+    min-width:25px;height:25px;padding:0 8px;border-radius:999px;
+    display:inline-flex;align-items:center;justify-content:center;
+    background:#eaf1ff;color:#1849a9;font-size:11px;font-weight:900;
+  }
+  .case-save-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px}
+  .case-save-row input{padding:9px 10px;font-size:11px}
+  .case-save-row .btn{padding:9px 11px;font-size:11px}
+  .case-list{display:flex;flex-direction:column;gap:6px;margin-top:9px}
+  .case-empty{font-size:11px;color:var(--muted);padding:5px 2px}
+  .case-item{
+    display:grid;grid-template-columns:minmax(0,1fr) auto;
+    align-items:center;gap:6px;border:1px solid #e1e7ef;background:#fff;
+    border-radius:11px;padding:3px 4px 3px 9px;
+  }
+  .case-item.active{border-color:#84adff;background:#f3f7ff;box-shadow:0 0 0 2px rgba(37,99,235,.06)}
+  .case-load{
+    border:0;background:transparent;text-align:left;padding:7px 2px;cursor:pointer;min-width:0;
+    color:var(--text);
+  }
+  .case-load strong{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .case-load small{display:block;color:var(--muted);font-size:10px;margin-top:2px}
+  .case-delete{
+    border:0;background:transparent;color:#b42318;cursor:pointer;
+    width:28px;height:28px;border-radius:8px;font-weight:900;
+  }
+  .case-delete:hover{background:#fff0ee}
+  .case-footer{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px}
+  .case-footer .btn{padding:7px 9px;font-size:10.5px}
+  .case-status{font-size:10px;color:var(--muted);text-align:right;min-height:14px}
+  .case-status.ok{color:#067647}.case-status.error{color:#b42318}
+
+  /* Casos guardados compactos en la zona principal */
+  .saved-case-strip{
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    margin:0 0 14px;
+    padding:0 2px;
+    min-height:30px;
+  }
+  .saved-case-strip-head{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    flex:0 0 auto;
+    padding-top:4px;
+    color:#dbeafe;
+    font-size:10px;
+    font-weight:900;
+    letter-spacing:.03em;
+    text-transform:uppercase;
+  }
+  .saved-case-strip .case-count{
+    min-width:20px;
+    height:20px;
+    padding:0 6px;
+    background:rgba(255,255,255,.12);
+    color:#eef4ff;
+    border:1px solid rgba(255,255,255,.10);
+    font-size:9px;
+  }
+  .saved-case-buttons{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:6px;
+    min-width:0;
+    flex:1 1 auto;
+  }
+  .saved-case-buttons .case-empty{
+    color:rgba(238,244,255,.66);
+    padding:5px 0;
+    font-size:10px;
+  }
+  .saved-case-buttons .case-item{
+    display:inline-flex;
+    grid-template-columns:none;
+    align-items:center;
+    gap:0;
+    max-width:190px;
+    min-width:0;
+    border:1px solid rgba(255,255,255,.14);
+    background:rgba(255,255,255,.08);
+    border-radius:10px;
+    padding:0;
+    overflow:hidden;
+    box-shadow:0 4px 12px rgba(0,0,0,.06);
+  }
+  .saved-case-buttons .case-item:hover{
+    background:rgba(255,255,255,.12);
+  }
+  .saved-case-buttons .case-item.active{
+    border-color:rgba(147,197,253,.72);
+    background:rgba(219,234,254,.18);
+    box-shadow:0 0 0 2px rgba(96,165,250,.10);
+  }
+  .saved-case-buttons .case-load{
+    border:0;
+    background:transparent;
+    text-align:center;
+    padding:7px 9px;
+    cursor:pointer;
+    min-width:0;
+    color:#f8fafc;
+  }
+  .saved-case-buttons .case-load strong{
+    display:block;
+    max-width:135px;
+    font-size:10.5px;
+    line-height:1.1;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .saved-case-buttons .case-load small{display:none}
+  .saved-case-buttons .case-delete{
+    border:0;
+    border-left:1px solid rgba(255,255,255,.10);
+    background:transparent;
+    color:rgba(255,255,255,.58);
+    cursor:pointer;
+    width:24px;
+    height:28px;
+    border-radius:0;
+    font-size:13px;
+    font-weight:900;
+    flex:0 0 auto;
+  }
+  .saved-case-buttons .case-delete:hover{
+    background:rgba(248,113,113,.16);
+    color:#fecaca;
+  }
+  .all-cases-btn{
+    border:1px solid rgba(255,255,255,.16);
+    background:rgba(255,255,255,.08);
+    color:#f8fafc;
+    border-radius:8px;
+    padding:5px 8px;
+    font-size:9px;
+    line-height:1;
+    font-weight:950;
+    letter-spacing:.04em;
+    cursor:pointer;
+  }
+  .all-cases-btn:disabled{opacity:.32;cursor:not-allowed}
+  .all-cases-btn:not(:disabled):hover{background:rgba(255,255,255,.14)}
+  .all-cases-btn.active{
+    background:#eef4ff;
+    color:#1849a9;
+    border-color:#bfdbfe;
+    box-shadow:0 0 0 2px rgba(96,165,250,.10);
+  }
+  .all-cases-edit-note{
+    margin-top:9px;
+    padding:8px 9px;
+    border-radius:9px;
+    background:#f5f8ff;
+    border:1px solid #dbe7ff;
+    color:#475467;
+    font-size:10px;
+    line-height:1.4;
+  }
+  .loan-top{
+    grid-column:1/-1;
+    min-width:0;
+    color:#f8fafc;
+    padding:0 2px;
+    margin:0;
+  }
+  .loan-top-heading{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    gap:16px;
+  }
+  .loan-top h2{
+    margin:2px 0 3px;
+    font-size:24px;
+    letter-spacing:-.025em;
+  }
+  .loan-top p{
+    margin:0;
+    color:#d6e1f3;
+    font-size:11px;
+    line-height:1.4;
+  }
+  .loan-eyebrow{
+    font-size:10px;
+    font-weight:950;
+    color:#b8d2ff;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+  }
+  .loan-top .saved-case-strip{
+    margin:9px 0 0;
+    padding:0;
+    min-height:28px;
+  }
+
+  .layout.aggregate-mode{grid-template-columns:minmax(0,1fr)}
+  .layout.aggregate-mode .loan-top{grid-column:1/-1}
+  .layout.aggregate-mode .sidebar{display:none}
+  .layout.aggregate-mode .main{grid-column:1/-1}
+
+  #payrollPlaceholder{display:none}
+  .layout.payroll-mode{
+    grid-template-columns:minmax(0,1fr);
+  }
+  .layout.payroll-mode .loan-top{display:none}
+  .layout.payroll-mode .sidebar{display:none}
+  .layout.payroll-mode .main{
+    grid-column:1/-1;
+    min-width:0;
+  }
+  .layout.payroll-mode .main > :not(#payrollPlaceholder){display:none !important}
+  .layout.payroll-mode #payrollPlaceholder{display:block !important}
+
+  .payroll-placeholder{
+    padding:34px 26px;
+    text-align:center;
+    background:linear-gradient(145deg,#ffffff 0%,#f5f8ff 55%,#f8f5ff 100%);
+  }
+  .payroll-placeholder-eyebrow{
+    font-size:10px;
+    font-weight:950;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--accent);
+    margin-bottom:5px;
+  }
+  .payroll-placeholder h2{
+    margin:0 0 8px;
+    font-size:25px;
+    letter-spacing:-.025em;
+  }
+  .payroll-placeholder p{
+    max-width:650px;
+    margin:0 auto;
+    color:var(--muted);
+    font-size:12px;
+    line-height:1.55;
+  }
+  .payroll-placeholder-pills{
+    display:flex;
+    justify-content:center;
+    flex-wrap:wrap;
+    gap:7px;
+    margin-top:18px;
+  }
+  .payroll-placeholder-pills span{
+    padding:7px 11px;
+    border:1px solid #d8e3f2;
+    background:rgba(255,255,255,.74);
+    border-radius:999px;
+    font-size:10px;
+    font-weight:900;
+    color:#344054;
+  }
+
+  .payroll-app{display:none}
+  .payroll-top{
+    display:flex;justify-content:space-between;align-items:flex-end;gap:16px;
+    margin:0 0 8px;padding:0 2px;color:#f8fafc;
+  }
+  .payroll-top h2{margin:2px 0 3px;font-size:24px;letter-spacing:-.025em}
+  .payroll-top p{margin:0;color:#d6e1f3;font-size:11px;line-height:1.4}
+  .payroll-eyebrow{font-size:10px;font-weight:950;color:#b8d2ff;letter-spacing:.06em;text-transform:uppercase}
+  .payroll-saved-strip{
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    margin:0 0 14px;
+    padding:0 2px;
+    min-height:28px;
+  }
+  .payroll-saved-head{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    flex:0 0 auto;
+    padding-top:4px;
+    color:#dbeafe;
+    font-size:10px;
+    font-weight:900;
+    letter-spacing:.03em;
+    text-transform:uppercase;
+  }
+  .payroll-saved-head .case-count{
+    min-width:20px;height:20px;padding:0 6px;
+    background:rgba(255,255,255,.12);
+    color:#eef4ff;
+    border:1px solid rgba(255,255,255,.10);
+    font-size:9px;
+  }
+  .payroll-case-buttons{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:6px;
+    min-width:0;
+    flex:1 1 auto;
+  }
+  .payroll-case-empty{
+    color:rgba(238,244,255,.66);
+    padding:5px 0;
+    font-size:10px;
+  }
+  .payroll-case-item{
+    display:inline-flex;
+    align-items:center;
+    max-width:190px;
+    min-width:0;
+    border:1px solid rgba(255,255,255,.14);
+    background:rgba(255,255,255,.08);
+    border-radius:10px;
+    overflow:hidden;
+    box-shadow:0 4px 12px rgba(0,0,0,.06);
+  }
+  .payroll-case-item:hover{background:rgba(255,255,255,.12)}
+  .payroll-case-item.active{
+    border-color:rgba(147,197,253,.72);
+    background:rgba(219,234,254,.18);
+    box-shadow:0 0 0 2px rgba(96,165,250,.10);
+  }
+  .payroll-case-load{
+    border:0;background:transparent;color:#f8fafc;
+    padding:7px 9px;cursor:pointer;min-width:0;text-align:center;
+  }
+  .payroll-case-load strong{
+    display:block;max-width:135px;font-size:10.5px;line-height:1.1;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .payroll-case-delete{
+    border:0;border-left:1px solid rgba(255,255,255,.10);
+    background:transparent;color:rgba(255,255,255,.58);
+    cursor:pointer;width:24px;height:28px;font-size:13px;font-weight:900;
+  }
+  .payroll-case-delete:hover{background:rgba(248,113,113,.16);color:#fecaca}
+  .payroll-badge{
+    border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);
+    border-radius:999px;padding:7px 10px;font-size:9.5px;font-weight:900;color:#e7efff;white-space:nowrap
+  }
+  .payroll-layout{display:grid;grid-template-columns:350px minmax(0,1fr);gap:16px;align-items:start}
+  .payroll-input-panel{
+    padding:18px;background:linear-gradient(145deg,#fbfdff 0%,#f3f7ff 55%,#f7f4ff 100%);
+  }
+  .payroll-input-panel h3{margin:0 0 15px;font-size:14px}
+  .payroll-save-manager{
+    margin:-2px 0 18px;
+    padding:12px;
+    background:rgba(255,255,255,.70);
+    border:1px solid #dbe3ee;
+    border-radius:15px;
+    box-shadow:0 6px 18px rgba(16,24,40,.035);
+  }
+  .payroll-save-manager h3{margin:0 0 9px}
+  .payroll-save-row{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    gap:7px;
+  }
+  .payroll-save-row input{padding:9px 10px}
+  .payroll-save-row .btn{padding:9px 11px;font-size:11px}
+  .payroll-save-footer{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    margin-top:8px;
+  }
+  .payroll-save-footer .btn{padding:7px 9px;font-size:10.5px}
+  .payroll-input-panel .field{margin-bottom:12px}
+  .payroll-input-panel label{font-size:10.5px}
+  .payroll-input-panel input,.payroll-input-panel select{padding:10px 11px;font-size:11px}
+  .optional{font-weight:600;color:var(--muted)}
+  .payroll-field-note{font-size:9px;color:var(--muted);line-height:1.4;margin-top:5px}
+  .check-row{
+    display:flex;align-items:flex-start;gap:8px;margin:9px 0 12px;padding:8px 9px;
+    background:rgba(255,255,255,.65);border:1px solid #e1e7ef;border-radius:10px;
+  }
+  .check-row input{width:auto;margin-top:1px}
+  .check-row label{margin:0;font-size:9.7px;line-height:1.35;cursor:pointer}
+  .payroll-advanced{
+    margin-top:4px;border:1px solid #dce4ef;border-radius:12px;background:rgba(255,255,255,.55);overflow:hidden
+  }
+  .payroll-advanced summary{
+    cursor:pointer;list-style:none;padding:10px 11px;font-size:10.5px;font-weight:900;color:#344054
+  }
+  .payroll-advanced summary::-webkit-details-marker{display:none}
+  .payroll-advanced summary::after{content:"+";float:right;color:var(--muted)}
+  .payroll-advanced[open] summary::after{content:"−"}
+  .payroll-advanced-body{padding:2px 10px 10px;border-top:1px solid #e6ebf2}
+  .payroll-input-foot{
+    margin-top:12px;padding-top:10px;border-top:1px solid #dce4ef;
+    text-align:center;font-size:8.8px;line-height:1.4;color:var(--muted)
+  }
+  .payroll-results{min-width:0}
+  .payroll-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:14px}
+  .payroll-kpi{
+    min-height:108px;padding:13px;text-align:center;
+    display:flex;flex-direction:column;align-items:center;justify-content:center
+  }
+  .payroll-kpi:nth-child(1){background:linear-gradient(135deg,#ffffff 0%,#dbeafe 55%,#bfdbfe 100%)}
+  .payroll-kpi:nth-child(2){background:linear-gradient(135deg,#ffffff 0%,#e9ddff 55%,#d8c4ff 100%)}
+  .payroll-kpi:nth-child(3){background:linear-gradient(135deg,#ffffff 0%,#d7f4ef 55%,#b9eadf 100%)}
+  .payroll-kpi:nth-child(4){background:linear-gradient(135deg,#ffffff 0%,#eadfff 55%,#d7c3ff 100%)}
+  .payroll-kpi:nth-child(5){background:linear-gradient(135deg,#ffffff 0%,#dbe9ff 55%,#c3d9ff 100%)}
+  .payroll-kpi:nth-child(6){background:linear-gradient(135deg,#ffffff 0%,#d9f4e2 55%,#bfe9cd 100%)}
+  .payroll-kpi span{font-size:10px;font-weight:900;color:#475467;margin-bottom:5px}
+  .payroll-kpi strong{font-size:23px;line-height:1.05;letter-spacing:-.025em}
+  .payroll-kpi small{font-size:8.8px;color:var(--muted);margin-top:6px;line-height:1.3}
+  .payroll-breakdown,.payroll-table-panel,.payroll-note{padding:16px;margin-bottom:14px}
+  .payroll-section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+  .payroll-section-head h3{margin:0 0 3px;font-size:14px}
+  .payroll-section-head p{margin:0;font-size:9.5px;color:var(--muted);line-height:1.4}
+  .payroll-chip{
+    border-radius:999px;padding:6px 9px;background:#f1f5ff;border:1px solid #dbe7ff;
+    font-size:9px;font-weight:900;color:#344054;white-space:nowrap
+  }
+  .payroll-breakdown-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+  .payroll-break-item{
+    padding:10px 8px;border:1px solid #e1e7ef;border-radius:11px;background:#fafcff;text-align:center
+  }
+  .payroll-break-item span{display:block;font-size:9px;color:var(--muted);font-weight:800;margin-bottom:4px}
+  .payroll-break-item strong{font-size:14px}
+  .payroll-table-panel{overflow:hidden}
+  .payroll-table-scroll{
+    width:100%;
+    max-width:100%;
+    overflow:hidden;
+    box-sizing:border-box;
+  }
+  .payroll-table{
+    width:100%;
+    max-width:100%;
+    border-collapse:collapse;
+    border-spacing:0;
+    font-size:10px;
+    table-layout:fixed;
+    box-sizing:border-box;
+  }
+  .payroll-table th,.payroll-table td{
+    padding:9px 6px;
+    border-bottom:1px solid #e6ebf2;
+    text-align:center !important;
+    vertical-align:middle;
+    white-space:normal;
+    overflow-wrap:anywhere;
+    word-break:normal;
+    box-sizing:border-box;
+  }
+  .payroll-table th{font-size:8.8px;text-transform:uppercase;letter-spacing:.03em;color:#667085}
+  .payroll-table th:nth-child(1),.payroll-table td:nth-child(1){width:22%;text-align:center !important}
+  .payroll-table th:nth-child(2),.payroll-table td:nth-child(2){width:8%}
+  .payroll-table th:nth-child(3),.payroll-table td:nth-child(3){width:17.5%}
+  .payroll-table th:nth-child(4),.payroll-table td:nth-child(4){width:17.5%}
+  .payroll-table th:nth-child(5),.payroll-table td:nth-child(5){width:17.5%}
+  .payroll-table th:nth-child(6),.payroll-table td:nth-child(6){width:17.5%}
+  .payroll-table tbody tr{width:100%}
+  .payroll-table tbody tr:last-child td{border-bottom:0;font-weight:900;background:#f8faff}
+  .payroll-note{font-size:9.3px;line-height:1.55;color:#667085}
+  .payroll-note strong{color:#344054}
+  @media(max-width:1100px){
+    .payroll-layout{grid-template-columns:1fr}
+    .payroll-input-panel{position:static}
+    .payroll-breakdown-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  }
+  @media(max-width:700px){
+    .payroll-top{display:block}
+    .payroll-badge{display:inline-block;margin-top:8px}
+    .payroll-kpis{grid-template-columns:1fr}
+    .payroll-breakdown-grid{grid-template-columns:1fr}
+    .payroll-table{font-size:8.8px}
+    .payroll-table th,.payroll-table td{padding:7px 4px}
+  }
+
+  .kpis .kpi-all-extra{display:none}
+  .kpis.aggregate-mode{
+    grid-template-columns:repeat(4,minmax(0,1fr));
+  }
+  .kpis.aggregate-mode .kpi-all-extra{display:flex}
+
+  .kpis.aggregate-mode #kpiCard1{order:1}
+  .kpis.aggregate-mode #kpiCardPaid{order:2}
+  .kpis.aggregate-mode #kpiCardInterest{order:3}
+  .kpis.aggregate-mode #kpiCard6{order:4}
+  .kpis.aggregate-mode #kpiCardEnd{order:5}
+  .kpis.aggregate-mode #kpiCardReal{order:6}
+  .kpis.aggregate-mode #kpiCardAnnualInterest{order:7}
+  .kpis.aggregate-mode #kpiCardAnnualPayments{order:8}
+
+  .kpis.aggregate-mode #kpiCardAnnualInterest{
+    background:linear-gradient(135deg,#ffffff 0%,#f1e8ff 55%,#e4d4ff 100%);
+  }
+  .kpis.aggregate-mode #kpiCardAnnualPayments{
+    background:linear-gradient(135deg,#ffffff 0%,#e2f1ff 55%,#cde7ff 100%);
+  }
+
+  .all-cases-annual{
+    margin-top:16px;
+    padding:16px 18px;
+    text-align:center;
+  }
+  .all-cases-annual-head{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:12px;
+    margin-bottom:14px;
+    text-align:center;
+  }
+  .all-cases-annual-head > div{width:100%;text-align:center}
+  .all-cases-annual .section-title{text-align:center}
+  .all-cases-annual-intro{
+    font-size:10.5px;
+    color:var(--muted);
+    line-height:1.45;
+    text-align:center;
+  }
+  .all-cases-annual-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(270px,1fr));
+    gap:12px;
+  }
+  .all-year-card{
+    border:1px solid #dce4ef;
+    border-radius:15px;
+    padding:14px;
+    background:linear-gradient(145deg,#ffffff 0%,#f5f8ff 58%,#f8f5ff 100%);
+  }
+  .all-year-card:nth-child(3n+2){background:linear-gradient(145deg,#ffffff 0%,#f5f3ff 58%,#f8fbff 100%)}
+  .all-year-card:nth-child(3n){background:linear-gradient(145deg,#ffffff 0%,#f1faf8 58%,#f8fbff 100%)}
+  .all-year-head{display:block;text-align:center;margin-bottom:11px}
+  .all-year-title{font-size:16px;font-weight:950;letter-spacing:-.02em;text-align:center}
+  .all-year-meta{font-size:9.5px;color:var(--muted);text-align:center;line-height:1.3;margin-top:3px}
+  .all-year-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+  .all-year-stat{
+    border:1px solid rgba(148,163,184,.22);
+    border-radius:11px;
+    background:rgba(255,255,255,.62);
+    padding:10px 7px;
+    text-align:center;
+  }
+  .all-year-stat span{display:block;font-size:9.5px;font-weight:850;color:var(--muted);line-height:1.2;margin-bottom:4px}
+  .layout.calculator-personal .all-year-stat span{
+    min-height:23px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+  }
+  .all-year-stat strong{display:block;font-size:16px;line-height:1.1}
+
+  .semester-projection{
+    display:none;
+    margin-top:16px;
+    padding:18px;
+  }
+  .semester-projection-head{
+    text-align:center;
+    margin-bottom:16px;
+  }
+  .semester-projection-head .section-title{margin-bottom:4px}
+  .semester-projection-copy{
+    font-size:10.5px;
+    line-height:1.45;
+    color:var(--muted);
+  }
+  .projection-input-grid{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:10px;
+    margin:0 auto 12px;
+    max-width:1180px;
+  }
+  .projection-input-grid-four{
+    grid-template-columns:repeat(4,minmax(0,1fr));
+  }
+  .projection-field{
+    background:rgba(255,255,255,.68);
+    border:1px solid #dce4ef;
+    border-radius:13px;
+    padding:11px;
+  }
+  .projection-field label{
+    text-align:center;
+    font-size:10px;
+    margin-bottom:6px;
+  }
+  .projection-field input{text-align:center;font-weight:850}
+  .projection-field input[readonly]{
+    background:#f8fafc;
+    color:#475467;
+    cursor:default;
+  }
+  .projection-field-note{
+    margin-top:6px;
+    min-height:26px;
+    color:var(--muted);
+    font-size:9px;
+    line-height:1.35;
+    text-align:center;
+  }
+  .projection-save-row{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    margin:0 0 18px;
+  }
+  .projection-save-row .btn{
+    padding:8px 13px;
+    font-size:11px;
+  }
+  .projection-save-status{
+    min-height:14px;
+    font-size:10px;
+    color:var(--muted);
+  }
+  .projection-save-status.ok{color:#067647}
+  .projection-save-status.error{color:#b42318}
+  .projection-years{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  .projection-year{
+    border:1px solid #dce4ef;
+    border-radius:16px;
+    padding:14px;
+  }
+  .projection-year:nth-child(3n+1){background:linear-gradient(145deg,#f5f9ff 0%,#eef5ff 100%)}
+  .projection-year:nth-child(3n+2){background:linear-gradient(145deg,#faf7ff 0%,#f3edff 100%)}
+  .projection-year:nth-child(3n){background:linear-gradient(145deg,#f3fbf8 0%,#eaf8f3 100%)}
+  .projection-year-title{
+    text-align:center;
+    font-size:16px;
+    font-weight:950;
+    margin-bottom:10px;
+  }
+  .semester-row{
+    display:grid;
+    grid-template-columns:130px repeat(5,minmax(0,1fr));
+    gap:8px;
+    align-items:stretch;
+  }
+  .semester-row + .semester-row{margin-top:8px}
+  .semester-label,
+  .semester-metric{
+    border:1px solid rgba(148,163,184,.22);
+    background:rgba(255,255,255,.68);
+    border-radius:11px;
+    padding:10px 8px;
+    text-align:center;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    min-height:64px;
+  }
+  .semester-label strong{font-size:11px}
+  .semester-label span{font-size:9px;color:var(--muted);margin-top:3px}
+  .semester-metric span{
+    display:block;
+    font-size:9.5px;
+    font-weight:850;
+    color:var(--muted);
+    line-height:1.2;
+    margin-bottom:4px;
+  }
+  .semester-metric strong{font-size:16px;line-height:1.1}
+  .semester-metric small{display:block;margin-top:4px;color:var(--muted);font-size:8.5px}
+  .semester-metric.result strong.positive{color:#067647}
+  .semester-metric.result strong.negative{color:#b42318}
+  .semester-metric.forecast{
+    background:rgba(248,250,252,.78);
+  }
+  .semester-edit-wrap{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:4px;
+    width:100%;
+    max-width:145px;
+    margin:1px auto 0;
+  }
+  .semester-edit-wrap input{
+    width:100%;
+    min-width:0;
+    padding:6px 7px;
+    border-radius:9px;
+    font-size:12px;
+    font-weight:900;
+    text-align:center;
+    background:#fff;
+  }
+  .semester-edit-wrap .mini-euro{
+    flex:0 0 auto;
+    color:var(--muted);
+    font-size:10px;
+    font-weight:800;
+  }
+  .semester-metric.result{
+    background:rgba(240,253,250,.64);
+    border-color:rgba(16,185,129,.20);
+  }
+  .semester-metric.real-savings{
+    background:rgba(255,255,255,.76);
+  }
+  .semester-metric.real-savings.closed{
+    background:rgba(248,250,252,.82);
+  }
+  .semester-metric.real-savings.closed strong{
+    color:#344054;
+  }
+  .semester-metric.real-savings.future{
+    opacity:.68;
+  }
+  .semester-metric.result .positive{color:#067647}
+  .semester-metric.result .negative{color:#b42318}
+  .projection-empty{
+    text-align:center;
+    color:var(--muted);
+    font-size:11px;
+    padding:18px;
+  }
+  .gist-settings{margin-top:9px;border-top:1px solid #e4e7ec;padding-top:8px}
+  .gist-settings summary{
+    cursor:pointer;list-style:none;font-size:11px;font-weight:900;color:#344054;
+    display:flex;align-items:center;gap:6px;
+  }
+  .gist-settings summary::-webkit-details-marker{display:none}
+  .gist-settings summary::before{content:"☁";font-size:13px}
+  .gist-body{padding-top:10px}
+  .gist-body .field{margin-bottom:9px}
+  .gist-body label{font-size:10px}
+  .gist-body input{padding:9px 10px;font-size:11px}
+  .gist-buttons{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .gist-buttons .btn{padding:8px 7px;font-size:10.5px}
+  .gist-note{font-size:9.5px;line-height:1.4;color:var(--muted);margin:5px 0 8px}
+  .gist-status{font-size:10px;line-height:1.35;color:var(--muted);margin-top:7px;min-height:14px}
+  .gist-status.ok{color:#067647}.gist-status.error{color:#b42318}
+  .field{margin-bottom:14px}
+  label{display:block;font-size:12px;font-weight:800;color:#344054;margin-bottom:6px}
+  .input-wrap{position:relative}
+  input,select{width:100%;min-width:0;border:1px solid #d0d5dd;background:#fff;border-radius:12px;padding:11px 12px;color:var(--text);outline:none;transition:.15s}
+  input:focus,select:focus{border-color:#84adff;box-shadow:0 0 0 4px rgba(37,99,235,.1)}
+  .suffix{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
+  .has-suffix input{padding-right:44px}
+  .preset-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}
+  .preset{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 4px;font-size:12px;font-weight:800;cursor:pointer}
+  .preset.active{border-color:#84adff;background:#eef4ff;color:#1849a9}
+  .divider{height:1px;background:var(--line);margin:20px 0}
+  .amorts{display:flex;flex-direction:column;gap:10px}
+  .amort-card{background:var(--panel-2);border:1px solid var(--line);border-radius:14px;padding:12px}
+  .amort-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+  .amort-head strong{font-size:12px}
+  .icon-btn{border:0;background:transparent;color:var(--danger);cursor:pointer;font-weight:900;padding:3px 7px}
+  .two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+  .two > *, .amort-top > *{min-width:0}
+  .amort-top{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:10px}
+  .amort-amount input{font-weight:800}
+  @media(max-width:420px){
+    .amort-top{grid-template-columns:1fr}
+  }
+  .amort-card .field{margin-bottom:8px}
+  .amort-card label{font-size:11px}
+  .btn{border:0;border-radius:12px;padding:11px 14px;font-weight:900;cursor:pointer}
+  .btn-primary{background:var(--accent);color:#fff}
+  .btn-secondary{background:#eef2f6;color:#344054;border:1px solid var(--line)}
+  .btn-full{width:100%}
+  .actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+  .main{min-width:0}
+  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+  .kpi{
+    padding:13px;
+    text-align:center;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    min-height:108px;
+    border-color:rgba(255,255,255,.58);
+    box-shadow:0 8px 24px rgba(16,24,40,.08);
+  }
+  .kpis .kpi:nth-child(1){background:linear-gradient(135deg,#ffffff 0%,#dbeafe 55%,#bfdbfe 100%)}
+  .kpis .kpi:nth-child(2){background:linear-gradient(135deg,#ffffff 0%,#e9ddff 55%,#d8c4ff 100%)}
+  .kpis .kpi:nth-child(3){background:linear-gradient(135deg,#ffffff 0%,#d7f4ef 55%,#b9eadf 100%)}
+  .kpis .kpi:nth-child(4){background:linear-gradient(135deg,#ffffff 0%,#eadfff 55%,#d7c3ff 100%)}
+  .kpis .kpi:nth-child(5){background:linear-gradient(135deg,#ffffff 0%,#dbe9ff 55%,#c3d9ff 100%)}
+  .kpis .kpi:nth-child(6){background:linear-gradient(135deg,#ffffff 0%,#d9f4e2 55%,#bfe9cd 100%)}
+  .kpi-label{font-size:10px;font-weight:900;color:var(--muted);margin-bottom:5px;text-align:center}
+  .kpi-value{font-size:23px;font-weight:900;letter-spacing:-.025em;text-align:center;line-height:1.05}
+  .kpi-note{font-size:8.8px;color:var(--muted);margin-top:6px;text-align:center;line-height:1.3}
+  .compare{padding:18px;margin-bottom:16px}
+  .compare-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .compare-grid.real{grid-template-columns:repeat(3,1fr)}
+  .compare-item{background:var(--panel-2);border:1px solid var(--line);border-radius:14px;padding:13px}
+  .compare-item span{display:block;color:var(--muted);font-size:11px;font-weight:800;margin-bottom:5px}
+  .compare-item strong{font-size:18px}
+  .compare-item small{display:block;color:var(--muted);font-size:10px;line-height:1.4;margin-top:6px}
+  .compare-item.featured{border-color:#b2ccff;background:#f5f8ff}
+  .personal-years-intro{margin:0 0 14px;color:var(--muted);font-size:11px;line-height:1.45}
+  .personal-years-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+    gap:12px;
+  }
+  .loan-year-card{
+    border:1px solid #dce4ef;
+    border-radius:16px;
+    padding:14px;
+    background:linear-gradient(145deg,#ffffff 0%,#f5f8ff 55%,#f8f5ff 100%);
+    min-width:0;
+  }
+  .loan-year-card:nth-child(3n+2){
+    background:linear-gradient(145deg,#ffffff 0%,#f5f3ff 55%,#f7fbff 100%);
+  }
+  .loan-year-card:nth-child(3n){
+    background:linear-gradient(145deg,#ffffff 0%,#f1faf8 55%,#f7fbff 100%);
+  }
+  .loan-year-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px}
+  .loan-year-title{font-size:15px;font-weight:900;letter-spacing:-.01em}
+  .loan-year-range{font-size:10px;color:var(--muted);text-align:right;line-height:1.35}
+  .loan-year-stats{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:7px;
+    margin-bottom:12px;
+  }
+  .loan-year-stat{
+    border:1px solid rgba(148,163,184,.24);
+    border-radius:11px;
+    padding:9px 7px;
+    background:rgba(255,255,255,.62);
+    text-align:center;
+  }
+  .loan-year-stat span{display:block;font-size:9.5px;font-weight:800;color:var(--muted);line-height:1.2;margin-bottom:4px}
+  .loan-year-stat strong{display:block;font-size:16px;line-height:1.1}
+  .loan-year-note{font-size:9.5px;color:var(--muted);margin:-4px 0 10px;text-align:center}
+  .monthly-interest-title{
+    font-size:10px;font-weight:900;color:#344054;
+    text-transform:uppercase;letter-spacing:.035em;margin:0 0 7px;
+  }
+  .monthly-interest-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:8px 12px;
+  }
+  .monthly-interest-item{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    align-items:center;
+    gap:8px;
+    border:1px solid rgba(148,163,184,.18);
+    border-radius:9px;
+    padding:7px 6px;
+    min-width:0;
+    background:rgba(255,255,255,.48);
+    text-align:center;
+  }
+  .monthly-interest-item span{
+    color:var(--muted);
+    font-size:9.5px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    text-align:center;
+  }
+  .monthly-interest-item strong{
+    font-size:10px;
+    white-space:nowrap;
+    text-align:center;
+  }
+  .field-note{font-size:10px;line-height:1.4;color:var(--muted);margin-top:6px}
+  .charts{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+  .chart-card{padding:16px;min-width:0}
+  .chart-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:8px}
+  .chart-head h2{font-size:15px;margin:0}
+  .legend{display:flex;gap:12px;font-size:11px;color:var(--muted);flex-wrap:wrap}
+  .legend b::before{content:"";display:inline-block;width:10px;height:3px;border-radius:4px;background:currentColor;margin-right:5px;vertical-align:middle}
+  .legend .l1{color:#2563eb}.legend .l2{color:#0f766e}.legend .l3{color:#98a2b3}
+  canvas{width:100%;height:260px;display:block}
+  .table-panel{overflow:hidden}
+  .table-toolbar{display:flex;justify-content:space-between;align-items:center;padding:16px;border-bottom:1px solid var(--line);gap:12px;flex-wrap:wrap}
+  .table-toolbar h2{font-size:15px;margin:0}
+  .segmented{display:flex;background:#f2f4f7;padding:3px;border-radius:10px}
+  .segmented button{border:0;background:transparent;border-radius:8px;padding:7px 10px;font-weight:800;font-size:12px;color:var(--muted);cursor:pointer}
+  .segmented button.active{background:#fff;color:var(--text);box-shadow:0 1px 4px rgba(16,24,40,.08)}
+  .table-scroll{overflow:auto;max-height:650px}
+  table{width:100%;border-collapse:separate;border-spacing:0;min-width:1120px}
+  th{position:sticky;top:0;background:#f8fafc;z-index:2;text-align:right;padding:11px 12px;border-bottom:1px solid var(--line);font-size:11px;color:#475467;white-space:nowrap}
+  th:first-child,td:first-child{text-align:left}
+  td{text-align:right;padding:10px 12px;border-bottom:1px solid #eef2f6;font-size:12px;white-space:nowrap}
+  .table-panel th,.table-panel td{text-align:center}
+  .table-panel th:first-child,.table-panel td:first-child{text-align:center}
+  tr:hover td{background:#fbfcfd}
+  .event-row td{background:#f0f7ff}
+  .positive{color:#067647}
+  .negative{color:#b42318}
+  .help{margin-top:16px;padding:16px 18px;color:var(--muted);font-size:12px;line-height:1.55}
+  .help strong{color:#344054}
+  .empty{font-size:12px;color:var(--muted);padding:10px 0}
+  .tooltip{position:fixed;pointer-events:none;background:#101828;color:white;border-radius:9px;padding:8px 10px;font-size:11px;box-shadow:0 10px 30px rgba(0,0,0,.2);display:none;z-index:99}
+  @media(max-width:1100px){
+    .layout{grid-template-columns:1fr}
+    .sidebar{position:static}
+    .kpis{grid-template-columns:repeat(2,1fr)}
+    .charts{grid-template-columns:1fr}
+  }
+  @media(max-width:650px){
+    .kpis.aggregate-mode{grid-template-columns:1fr}
+    .projection-input-grid,.projection-input-grid-four{grid-template-columns:1fr}
+    .semester-row{grid-template-columns:1fr}
+
+
+    .app{padding:16px}
+    header{flex-direction:column}
+    .kpis,.compare-grid{grid-template-columns:1fr}
+    .personal-years-grid{grid-template-columns:1fr}
+    .loan-year-stats{grid-template-columns:1fr}
+    .monthly-interest-grid{grid-template-columns:1fr}
+    .actions{grid-template-columns:1fr}
+    .case-save-row,.gist-buttons{grid-template-columns:1fr}
+    .saved-case-strip{display:block}
+    .saved-case-strip-head{margin-bottom:6px;padding-top:0}
+    .all-cases-annual-grid{grid-template-columns:1fr}
+    .all-year-stats{grid-template-columns:1fr}
+  }
+</style>
+
+  <meta name="application-name" content="Dashboard financiero">
+  <meta name="apple-mobile-web-app-title" content="Dashboard financiero">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#172b49">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./icons/icon-180.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="./icons/icon-512.png">
+
+</head>
+<body>
+<div class="app">
+  <header>
+    <div>
+      <h1>Dashboard financiero</h1>
+      <p class="subtitle">Calculadoras financieras en un mismo espacio</p>
+    </div>
+    <button id="globalGistBtn" class="global-gist-btn" type="button" aria-haspopup="dialog">
+      <span class="global-gist-dot"></span>
+      <span id="globalGistBtnText">GitHub Gist</span>
+    </button>
+  </header>
+
+  <nav class="tabs-wrap" aria-label="Calculadoras del dashboard">
+    <div class="tabs" role="tablist">
+      <button class="tab-btn active" type="button" role="tab" aria-selected="true"
+              data-calculator-id="personal" data-calculator-name="Préstamo personal">
+        <span class="tab-dot"></span>Préstamo personal
+      </button>
+      <button class="tab-btn" type="button" role="tab" aria-selected="false"
+              data-calculator-id="mortgage" data-calculator-name="Hipoteca">
+        <span class="tab-dot"></span>Hipoteca
+      </button>
+      <button class="tab-btn" type="button" role="tab" aria-selected="false"
+              data-calculator-id="payroll" data-calculator-name="Nómina">
+        <span class="tab-dot"></span>Nómina
+      </button>
+    </div>
+  </nav>
+
+  <div class="layout">
+    <div id="loanTop" class="loan-top">
+      <div class="loan-top-heading">
+        <div>
+          <div class="loan-eyebrow">Calculadora activa</div>
+          <h2 class="active-calculator-title">Préstamo personal</h2>
+          <p id="loanSubtitle">Simulación de préstamo personal con cuotas, IPC y amortizaciones extraordinarias.</p>
+        </div>
+      </div>
+
+      <div id="savedCaseStrip" class="saved-case-strip" aria-label="Casos guardados de la calculadora activa">
+        <div class="saved-case-strip-head">
+          <span>Guardados</span>
+          <span id="caseCount" class="case-count">0</span>
+          <button id="allCasesBtn" class="all-cases-btn" type="button" disabled>TODOS</button>
+        </div>
+        <div id="caseList" class="saved-case-buttons"></div>
+      </div>
+    </div>
+
+    <aside class="panel sidebar">
+      <section class="saved-manager" aria-label="Guardar caso">
+        <div class="saved-head">
+          <h2 class="section-title">Guardar caso</h2>
+        </div>
+
+        <div class="case-save-row">
+          <input id="caseName" type="text" maxlength="80" autocomplete="off" placeholder="Ej. Casa, Coche, Reforma…">
+          <button id="saveCaseBtn" class="btn btn-primary" type="button">Guardar</button>
+        </div>
+
+        <div class="case-footer">
+          <button id="newCaseBtn" class="btn btn-secondary" type="button">+ Nuevo caso</button>
+          <span id="caseStatus" class="case-status"></span>
+        </div>
+        <div id="allCasesEditNote" class="all-cases-edit-note" style="display:none">Vista TODOS: selecciona un caso guardado para editarlo, o crea uno nuevo.</div>
+      </section>
+
+      <h2 class="section-title">Datos de <span id="calculatorDataTitle">Préstamo personal</span></h2>
+
+      <div class="field">
+        <label for="amount">Importe del préstamo</label>
+        <div class="input-wrap has-suffix"><input id="amount" type="text" inputmode="decimal" autocomplete="off" value="200.000"><span class="suffix">€</span></div>
+      </div>
+
+      <div class="two">
+        <div class="field">
+          <label for="interest">Interés anual (TIN)</label>
+          <div class="input-wrap has-suffix"><input id="interest" type="number" min="0" step="0.05" value="3"><span class="suffix">%</span></div>
+        </div>
+        <div class="field">
+          <label id="termLabel" for="years">Plazo</label>
+          <div class="input-wrap has-suffix"><input id="years" type="number" min="1" max="60" step="1" value="25"><span id="termSuffix" class="suffix">años</span></div>
+        </div>
+      </div>
+
+      <div id="openingFeeBlock" class="field" style="display:none">
+        <label>Comisión de apertura</label>
+        <div class="two">
+          <select id="openingFeeType" aria-label="Tipo de comisión de apertura">
+            <option value="percent">Porcentaje</option>
+            <option value="fixed">Importe fijo</option>
+          </select>
+          <div class="input-wrap has-suffix">
+            <input id="openingFeeValue" type="number" min="0" step="0.01" value="0">
+            <span id="openingFeeSuffix" class="suffix">%</span>
+          </div>
+        </div>
+        <div id="openingFeeComputed" class="field-note">Comisión de apertura: 0 €</div>
+      </div>
+
+      <div id="mortgageStartBlock" class="field">
+        <label for="start">Fecha de inicio</label>
+        <input id="start" type="month" value="2026-08">
+      </div>
+
+      <div id="personalDatesBlock" style="display:none">
+        <div class="field">
+          <label for="firstPaymentDate">Fecha de primera cuota</label>
+          <input id="firstPaymentDate" type="date">
+          <div id="personalDateInfo" class="field-note">
+            Esta fecha fija el calendario. Las cuotas mensuales son constantes salvo amortizaciones extraordinarias o un ajuste final de redondeo.
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="inflation">IPC anual estimado</label>
+        <div class="input-wrap has-suffix"><input id="inflation" type="number" min="-10" max="30" step="0.1" value="2"><span class="suffix">%</span></div>
+        <div class="preset-row">
+          <button class="preset" data-inflation="1">1%</button>
+          <button class="preset active" data-inflation="2">2%</button>
+          <button class="preset" data-inflation="3">3%</button>
+          <button class="preset" data-inflation="custom">Otro</button>
+        </div>
+      </div>
+      <div class="divider"></div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+        <h2 class="section-title" style="margin:0">Amortizaciones extra</h2>
+        <button id="addAmort" class="btn btn-secondary" style="padding:7px 10px;font-size:12px">+ Añadir</button>
+      </div>
+      <div id="amortList" class="amorts" style="margin-top:12px"></div>
+      <div id="amortEmpty" class="empty">No hay amortizaciones extraordinarias.</div>
+
+      <div class="actions">
+        <button id="resetBtn" class="btn btn-secondary">Restablecer</button>
+        <button id="csvBtn" class="btn btn-primary">Exportar CSV</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <section id="payrollPlaceholder" class="payroll-app">
+        <div class="payroll-top">
+          <div>
+            <div class="payroll-eyebrow">Calculadora activa</div>
+            <h2>Nómina 2026</h2>
+            <p>Estimación de salario neto para un trabajador por cuenta ajena del Régimen General en España.</p>
+          </div>
+          <div class="payroll-badge">IRPF + Seguridad Social · 2026</div>
+        </div>
+
+        <div class="payroll-saved-strip" aria-label="Nóminas guardadas">
+          <div class="payroll-saved-head">
+            <span>Guardadas</span>
+            <span id="payrollCaseCount" class="case-count">0</span>
+          </div>
+          <div id="payrollCaseList" class="payroll-case-buttons"></div>
+        </div>
+
+        <div class="payroll-layout">
+          <aside class="panel payroll-input-panel">
+            <section class="payroll-save-manager" aria-label="Guardar nómina">
+              <h3>Guardar nómina</h3>
+              <div class="payroll-save-row">
+                <input id="payrollCaseName" type="text" maxlength="80" autocomplete="off" placeholder="Ej. Actual, Oferta, Subida 2027…">
+                <button id="payrollSaveCaseBtn" class="btn btn-primary" type="button">Guardar</button>
+              </div>
+              <div class="payroll-save-footer">
+                <button id="payrollNewCaseBtn" class="btn btn-secondary" type="button">+ Nueva nómina</button>
+                <span id="payrollCaseStatus" class="case-status"></span>
+              </div>
+            </section>
+
+            <h3>Datos de la nómina</h3>
+
+            <div class="field">
+              <label for="payrollGross">Bruto anual</label>
+              <div class="input-wrap has-suffix">
+                <input id="payrollGross" type="text" inputmode="decimal" autocomplete="off" value="40.000">
+                <span class="suffix">€</span>
+              </div>
+            </div>
+
+            <div class="two">
+              <div class="field">
+                <label for="payrollPays">Número de pagas</label>
+                <select id="payrollPays">
+                  <option value="12">12 pagas</option>
+                  <option value="14" selected>14 pagas</option>
+                  <option value="15">15 pagas</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="payrollContract">Contrato</label>
+                <select id="payrollContract">
+                  <option value="indefinite" selected>Indefinido</option>
+                  <option value="temporary">Temporal ≥ 1 año</option>
+                  <option value="under1">Temporal &lt; 1 año</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="two">
+              <div class="field">
+                <label for="payrollBirthYear">Año de nacimiento</label>
+                <input id="payrollBirthYear" type="number" min="1906" max="2026" step="1" value="1990">
+              </div>
+              <div class="field">
+                <label for="payrollFamily">Situación familiar · Modelo 145</label>
+                <select id="payrollFamily">
+                  <option value="3" selected>3 · Resto / no indicar</option>
+                  <option value="1">1 · Monoparental con hijos</option>
+                  <option value="2">2 · Casado/a, cónyuge ≤ 1.500 €</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="two">
+              <div class="field">
+                <label for="payrollChildren">Descendientes con derecho a mínimo</label>
+                <input id="payrollChildren" type="number" min="0" max="12" step="1" value="0">
+              </div>
+              <div class="field">
+                <label for="payrollUnder3">De ellos, menores de 3 años</label>
+                <input id="payrollUnder3" type="number" min="0" max="12" step="1" value="0">
+              </div>
+            </div>
+
+            <div class="two">
+              <div class="field">
+                <label for="payrollChildShare">Cómputo de descendientes</label>
+                <select id="payrollChildShare">
+                  <option value="0.5" selected>50 % · compartido</option>
+                  <option value="1">100 % · entero</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="payrollDisability">Discapacidad del trabajador</label>
+                <select id="payrollDisability">
+                  <option value="none" selected>Sin discapacidad</option>
+                  <option value="33">33 % a 64 %</option>
+                  <option value="65">65 % o más</option>
+                </select>
+              </div>
+            </div>
+
+            <div id="payrollMobilityReducedRow" class="check-row" style="display:none">
+              <input id="payrollMobilityReduced" type="checkbox">
+              <label for="payrollMobilityReduced">Movilidad reducida / ayuda de terceras personas</label>
+            </div>
+
+            <div class="field">
+              <label for="payrollManualIrpf">IRPF manual <span class="optional">(opcional)</span></label>
+              <div class="input-wrap has-suffix">
+                <input id="payrollManualIrpf" type="number" min="0" max="60" step="0.01" placeholder="Automático">
+                <span class="suffix">%</span>
+              </div>
+              <div class="payroll-field-note">Si lo dejas vacío, se estima con el algoritmo de retenciones 2026 de la AEAT.</div>
+            </div>
+
+            <details class="payroll-advanced">
+              <summary>Ajustes avanzados</summary>
+              <div class="payroll-advanced-body">
+                <div class="field">
+                  <label for="payrollContributionGroup">Grupo de cotización</label>
+                  <select id="payrollContributionGroup">
+                    <option value="4" selected>Grupos 4–7 · base mínima 1.424,40 €</option>
+                    <option value="1">Grupo 1 · 1.989,30 €</option>
+                    <option value="2">Grupo 2 · 1.649,70 €</option>
+                    <option value="3">Grupo 3 · 1.435,20 €</option>
+                  </select>
+                </div>
+
+                <div class="check-row">
+                  <input id="payrollGeoMobility" type="checkbox">
+                  <label for="payrollGeoMobility">Movilidad geográfica con derecho al incremento de gastos</label>
+                </div>
+
+                <div class="two">
+                  <div class="field">
+                    <label for="payrollAsc65">Ascendientes 65–74 años</label>
+                    <input id="payrollAsc65" type="number" min="0" max="8" step="1" value="0">
+                  </div>
+                  <div class="field">
+                    <label for="payrollAsc75">Ascendientes de 75+ años</label>
+                    <input id="payrollAsc75" type="number" min="0" max="8" step="1" value="0">
+                  </div>
+                </div>
+
+                <div class="two">
+                  <div class="field">
+                    <label for="payrollSpousePension">Pensión compensatoria al cónyuge</label>
+                    <div class="input-wrap has-suffix">
+                      <input id="payrollSpousePension" type="text" inputmode="decimal" value="0">
+                      <span class="suffix">€</span>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label for="payrollChildSupport">Anualidades por alimentos a hijos</label>
+                    <div class="input-wrap has-suffix">
+                      <input id="payrollChildSupport" type="text" inputmode="decimal" value="0">
+                      <span class="suffix">€</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="check-row">
+                  <input id="payrollHomeLoan" type="checkbox">
+                  <label for="payrollHomeLoan">Vivienda habitual con derecho a la minoración por préstamo</label>
+                </div>
+                <div class="payroll-field-note">Solo se aplica si procede según Modelo 145 y el bruto anual es inferior a 33.007,20 €.</div>
+              </div>
+            </details>
+
+            <div class="payroll-input-foot">
+              Jornada completa · Régimen General · cálculo anual 2026.
+            </div>
+          </aside>
+
+          <div class="payroll-results">
+            <section class="payroll-kpis">
+              <article class="panel payroll-kpi"><span>Neto anual</span><strong id="payrollNetAnnual">—</strong><small>después de IRPF y cotizaciones</small></article>
+              <article class="panel payroll-kpi"><span>Neto nómina ordinaria</span><strong id="payrollNetRegular">—</strong><small id="payrollNetRegularNote">12 nóminas ordinarias</small></article>
+              <article class="panel payroll-kpi"><span>Neto paga extra</span><strong id="payrollNetExtra">—</strong><small id="payrollNetExtraNote">—</small></article>
+              <article class="panel payroll-kpi"><span>IRPF</span><strong id="payrollIrpfRate">—</strong><small id="payrollIrpfMode">estimación AEAT 2026</small></article>
+              <article class="panel payroll-kpi"><span>Seguridad Social</span><strong id="payrollSSAnnual">—</strong><small>aportación anual del trabajador</small></article>
+              <article class="panel payroll-kpi"><span>Bruto por paga</span><strong id="payrollGrossPerPay">—</strong><small id="payrollGrossPerPayNote">—</small></article>
+            </section>
+
+            <section class="panel payroll-breakdown">
+              <div class="payroll-section-head">
+                <div>
+                  <h3>Desglose anual</h3>
+                  <p>Lo que sale del bruto y cómo se reparte.</p>
+                </div>
+                <span id="payrollEffectiveDeduction" class="payroll-chip">—</span>
+              </div>
+
+              <div class="payroll-breakdown-grid">
+                <div class="payroll-break-item"><span>IRPF anual</span><strong id="payrollIrpfAnnual">—</strong></div>
+                <div class="payroll-break-item"><span>Contingencias comunes</span><strong id="payrollSSCommon">—</strong></div>
+                <div class="payroll-break-item"><span>Desempleo</span><strong id="payrollSSUnemployment">—</strong></div>
+                <div class="payroll-break-item"><span>Formación profesional</span><strong id="payrollSSTraining">—</strong></div>
+                <div class="payroll-break-item"><span>MEI</span><strong id="payrollSSMei">—</strong></div>
+                <div class="payroll-break-item"><span>Solidaridad</span><strong id="payrollSSSolidarity">—</strong></div>
+                <div class="payroll-break-item"><span>Base de cotización mensual</span><strong id="payrollContributionBase">—</strong></div>
+                <div class="payroll-break-item"><span>Neto medio / mes</span><strong id="payrollNetAverage">—</strong></div>
+              </div>
+            </section>
+
+            <section class="panel payroll-table-panel">
+              <div class="payroll-section-head">
+                <div>
+                  <h3>Cómo queda cada paga</h3>
+                  <p>Las pagas extra no llevan una nueva deducción de Seguridad Social: su parte ya se prorratea en las bases mensuales.</p>
+                </div>
+              </div>
+              <div class="payroll-table-scroll">
+                <table class="payroll-table">
+                  <thead>
+                    <tr><th>Tipo</th><th>Nº</th><th>Bruto</th><th>IRPF</th><th>Seg. Social</th><th>Neto</th></tr>
+                  </thead>
+                  <tbody id="payrollPayRows"></tbody>
+                </table>
+              </div>
+            </section>
+
+            <section class="panel payroll-note">
+              <strong>Estimación 2026.</strong>
+              El IRPF automático reproduce las reglas principales del algoritmo oficial de retenciones de la AEAT para trabajadores activos.
+              Incluye mínimo personal, descendientes, reducción por rendimientos del trabajo, límites de retención, discapacidad del trabajador,
+              pensión compensatoria, anualidades y minoración de vivienda indicada. La Seguridad Social usa tipos y topes 2026 del Régimen General,
+              incluido MEI y cotización adicional de solidaridad. Casos especiales o regularizaciones de empresa pueden producir diferencias.
+            </section>
+          </div>
+        </div>
+      </section>
+
+<section id="topKpis" class="kpis">
+        <div id="kpiCard1" class="panel kpi"><div id="kpi1Label" class="kpi-label">Cuota inicial</div><div id="kpiPayment" class="kpi-value">—</div><div id="kpi1Note" class="kpi-note">antes de amortizaciones</div></div>
+        <div id="kpiCardPaid" class="panel kpi"><div class="kpi-label">Total pagado</div><div id="kpiPaid" class="kpi-value">—</div><div class="kpi-note">incluye apertura, extras y comisiones</div></div>
+        <div id="kpiCardInterest" class="panel kpi"><div class="kpi-label">Intereses pagados</div><div id="kpiInterest" class="kpi-value">—</div><div class="kpi-note">durante toda la vida del préstamo</div></div>
+        <div id="kpiCardEnd" class="panel kpi"><div class="kpi-label">Fin del préstamo</div><div id="kpiEnd" class="kpi-value">—</div><div id="kpiEndNote" class="kpi-note">—</div></div>
+        <div id="kpiCardReal" class="panel kpi"><div id="kpi4Label" class="kpi-label">Coste real · escenario actual</div><div id="kpiReal" class="kpi-value">—</div><div id="kpiRealNote" class="kpi-note">en euros del mes inicial</div></div>
+        <div id="kpiCard6" class="panel kpi"><div id="kpi6Label" class="kpi-label">Ahorro de intereses</div><div id="kpiSavings" class="kpi-value">—</div><div id="kpi6Note" class="kpi-note">frente a no amortizar</div></div>
+        <div id="kpiCardAnnualInterest" class="panel kpi kpi-all-extra"><div class="kpi-label">Intereses por año</div><div id="kpiAnnualInterest" class="kpi-value">—</div><div id="kpiAnnualInterestNote" class="kpi-note">—</div></div>
+        <div id="kpiCardAnnualPayments" class="panel kpi kpi-all-extra"><div class="kpi-label">Suma de las cuotas durante el año</div><div id="kpiAnnualPayments" class="kpi-value">—</div><div id="kpiAnnualPaymentsNote" class="kpi-note">—</div></div>
+      </section>
+
+      <section id="allCasesAnnualSection" class="panel all-cases-annual" style="display:none">
+        <div class="all-cases-annual-head">
+          <div>
+            <h2 class="section-title" style="margin-bottom:3px">Resumen por año natural</h2>
+            <div id="allCasesAnnualIntro" class="all-cases-annual-intro">Suma de los casos guardados que tienen cuotas en cada año.</div>
+          </div>
+        </div>
+        <div id="allCasesAnnualGrid" class="all-cases-annual-grid"></div>
+      </section>
+
+      <section id="semesterProjectionSection" class="panel semester-projection">
+        <div class="semester-projection-head">
+          <h2 class="section-title">Proyección semestral</h2>
+          <div class="semester-projection-copy">
+            Proyección desde el primer mes guardado hasta el final del último préstamo. La previsión queda cerrada como escenario base; cada seis meses puedes introducir el Ahorro real y ver automáticamente la diferencia frente a esa previsión.
+          </div>
+        </div>
+
+        <div class="projection-input-grid projection-input-grid-four">
+          <div class="projection-field">
+            <label for="projectionInitialSavings">Ahorro</label>
+            <div class="input-wrap has-suffix">
+              <input id="projectionInitialSavings" type="text" inputmode="decimal" autocomplete="off" value="25.878" readonly>
+              <span class="suffix">€</span>
+            </div>
+            <div id="projectionInitialSavingsNote" class="projection-field-note">Ahorro fijado y cerrado.</div>
+          </div>
+
+          <div class="projection-field">
+            <label for="projectionMonthlyAvailable">Dinero mensual con el que cuento</label>
+            <div class="input-wrap has-suffix">
+              <input id="projectionMonthlyAvailable" type="text" inputmode="decimal" autocomplete="off" value="0">
+              <span class="suffix">€</span>
+            </div>
+            <div id="projectionMonthlyNote" class="projection-field-note">Se aplicará desde el mes en que lo guardes.</div>
+          </div>
+
+          <div class="projection-field">
+            <label for="projectionLoanCapital">Capital de los préstamos</label>
+            <div class="input-wrap has-suffix">
+              <input id="projectionLoanCapital" type="text" value="0" readonly>
+              <span class="suffix">€</span>
+            </div>
+            <div class="projection-field-note">Capital inicial recibido: se restan las comisiones de apertura.</div>
+          </div>
+
+          <div class="projection-field">
+            <label for="projectionEndDate">Fin del último préstamo</label>
+            <input id="projectionEndDate" type="text" value="—" readonly>
+            <div class="projection-field-note">Fecha más tardía de los casos guardados.</div>
+          </div>
+        </div>
+
+        <div class="projection-save-row">
+          <button id="projectionSaveBtn" class="btn btn-primary" type="button">Guardar proyección</button>
+          <span id="projectionSaveStatus" class="projection-save-status"></span>
+        </div>
+
+        <div id="semesterProjectionYears" class="projection-years"></div>
+      </section>
+
+      <section id="detailCompareSection" class="panel compare">
+        <h2 id="compareTitle" class="section-title">Comparativa con el escenario sin amortizaciones</h2>
+
+        <div id="mortgageCompareContent">
+        <div class="compare-grid real" style="margin-bottom:12px">
+          <div class="compare-item"><span>Coste real sin amortizar</span><strong id="baseRealCost">—</strong></div>
+          <div class="compare-item"><span>Coste real escenario actual</span><strong id="actualRealCost">—</strong></div>
+          <div class="compare-item featured">
+            <span>Ahorro / pérdida en coste real</span>
+            <strong id="realSavings">—</strong>
+            <small id="realSavingsContext">Añade una amortización para comparar.</small>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:end;gap:14px;flex-wrap:wrap;margin:8px 0 12px">
+          <div>
+            <h3 style="margin:0 0 4px;font-size:14px">¿Y si en vez de amortizar invierto ese dinero?</h3>
+            <div style="font-size:11px;color:var(--muted)">Se mantiene invertido hasta la fecha de vencimiento original del préstamo.</div>
+          </div>
+          <div style="width:190px">
+            <label for="altReturnCompare">Rentabilidad anual</label>
+            <div class="input-wrap has-suffix">
+              <input id="altReturnCompare" type="number" min="-99" max="100" step="0.1" value="1">
+              <span class="suffix">%</span>
+            </div>
+          </div>
+        </div>
+        <div class="compare-grid" style="margin-bottom:12px">
+          <div class="compare-item">
+            <span>Capital que no amortizas</span>
+            <strong id="altCapital">—</strong>
+            <small>Es exactamente el importe nominal que has indicado en las amortizaciones. Aquí no se descuenta IPC.</small>
+          </div>
+          <div class="compare-item">
+            <span>Saldo final de la inversión</span>
+            <strong id="altFinalValue">—</strong>
+            <small id="altFinalValueNote">Capital + intereses al vencimiento original.</small>
+          </div>
+          <div class="compare-item">
+            <span>Intereses que habría generado</span>
+            <strong id="altProfit">—</strong>
+            <small id="altProfitNote">Ganancia nominal de la alternativa financiera.</small>
+          </div>
+          <div class="compare-item featured">
+            <span>Comparación en dinero real</span>
+            <strong id="simpleAlternativeDiff">—</strong>
+            <small id="simpleAlternativeDiffNote">Compara el ahorro real de amortizar con la ganancia de la inversión expresada también en euros del inicio.</small>
+          </div>
+        </div>
+        <div class="compare-grid">
+          <div class="compare-item"><span>Intereses sin amortizar</span><strong id="baseInterest">—</strong></div>
+          <div class="compare-item"><span>Ahorro de intereses</span><strong id="interestSavingsCompare">—</strong></div>
+          <div class="compare-item"><span>Meses ahorrados</span><strong id="monthsSaved">—</strong></div>
+          <div class="compare-item"><span>Comisiones</span><strong id="feesTotal">—</strong></div>
+        </div>
+        </div>
+
+        <div id="personalYearsContent" style="display:none">
+          <p class="personal-years-intro">
+            Cada tarjeta corresponde a un año natural. El primer y el último año pueden contener menos de 12 cuotas.
+          </p>
+          <div id="personalYearsGrid" class="personal-years-grid"></div>
+        </div>
+      </section>
+
+      <section id="detailChartsSection" class="charts">
+        <div class="panel chart-card">
+          <div class="chart-head">
+            <h2>Cuota nominal vs. cuota real</h2>
+            <div class="legend"><b class="l1">Nominal</b><b class="l2">€ del inicio</b></div>
+          </div>
+          <canvas id="paymentChart" aria-label="Gráfico de cuota nominal y cuota real"></canvas>
+        </div>
+        <div class="panel chart-card">
+          <div class="chart-head">
+            <h2>Capital pendiente</h2>
+            <div class="legend"><b class="l1">Con amortizaciones</b><b class="l3">Sin amortizaciones</b></div>
+          </div>
+          <canvas id="balanceChart" aria-label="Gráfico de capital pendiente"></canvas>
+        </div>
+      </section>
+
+      <section id="detailTableSection" class="panel table-panel">
+        <div class="table-toolbar">
+          <h2>Plan de amortización</h2>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <div class="segmented">
+              <button class="viewBtn active" data-view="monthly">Mensual</button>
+              <button class="viewBtn" data-view="annual">Anual</button>
+            </div>
+          </div>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead id="thead"></thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="detailHelpSection" class="panel help">
+        <strong>Supuestos V1.</strong> Tipo fijo con sistema francés. El tipo mensual del préstamo se calcula como TIN/12. El IPC mensual equivalente se obtiene como (1 + IPC anual)<sup>1/12</sup> − 1. La “cuota real” expresa cada pago en poder adquisitivo del mes inicial. Las amortizaciones se aplican después de la cuota ordinaria del mes indicado. Si eliges <strong>reducir cuota</strong>, se conserva la fecha de fin vigente; si eliges <strong>reducir plazo</strong>, se mantiene la cuota vigente y se adelanta el vencimiento. En <strong>Préstamo personal</strong>, la fecha de primera cuota se utiliza para construir el calendario, pero el cálculo financiero sigue el sistema francés mensual: cuotas constantes mientras no cambie el tipo ni haya amortizaciones extraordinarias. Su bloque de resumen agrupa las cuotas por año natural y muestra para cada año el desembolso nominal, su equivalente real descontando IPC y los intereses totales y mensuales. En <strong>Hipoteca</strong>, la comparación de rentabilidad alternativa supone que, en vez de amortizar, cada importe extraordinario se invierte desde esa fecha hasta el vencimiento original del préstamo al tipo anual indicado. Se muestra tanto la ganancia nominal como su equivalencia en euros del mes inicial para compararla con el ahorro real del préstamo. No incorpora impuestos ni riesgo; si quieres contemplarlos, introduce una rentabilidad anual neta.
+      </section>
+    </main>
+  </div>
+</div>
+<div id="gistModal" class="gist-modal" aria-hidden="true">
+  <div class="gist-modal-backdrop" data-close-gist></div>
+  <section class="gist-modal-card" role="dialog" aria-modal="true" aria-labelledby="gistModalTitle">
+    <div class="gist-modal-head">
+      <div>
+        <div class="gist-modal-eyebrow">Sincronización global</div>
+        <h2 id="gistModalTitle">GitHub Gist</h2>
+      </div>
+      <button id="gistModalClose" class="gist-modal-close" type="button" aria-label="Cerrar">×</button>
+    </div>
+    <p class="gist-modal-copy">Un único Gist guarda todos los casos del dashboard: hipotecas, préstamos personales y las calculadoras que añadamos más adelante.</p>
+    <div class="field">
+      <label for="gistToken">Token de GitHub</label>
+      <input id="gistToken" type="password" autocomplete="off" placeholder="github_pat_…">
+      <div class="gist-note">La app localiza o crea automáticamente su Gist. El token se conserva solo durante esta sesión del navegador.</div>
+    </div>
+    <div class="gist-buttons">
+      <button id="gistPushBtn" class="btn btn-primary" type="button">Sincronizar ahora</button>
+      <button id="gistPullBtn" class="btn btn-secondary" type="button">Traer del Gist</button>
+    </div>
+    <div id="gistStatus" class="gist-status"></div>
+    <div class="gist-auto-note"><strong>Guardado automático:</strong> después de guardar un caso por primera vez, cualquier cambio se guarda localmente y se sincroniza con Gist automáticamente.</div>
+  </section>
+</div>
+
+<div id="tooltip" class="tooltip"></div>
+
+<script>
+(() => {
+  const $ = s => document.querySelector(s);
+  const $$ = s => [...document.querySelectorAll(s)];
+  function formatEsNumber(value, decimals=2){
+    const n = Number(value);
+    if(!Number.isFinite(n)) return '—';
+    const sign = n < 0 ? '-' : '';
+    const abs = Math.abs(n);
+    const fixed = abs.toFixed(decimals);
+    let [intPart, decPart] = fixed.split('.');
+    intPart = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    return sign + intPart + (decimals ? ',' + decPart : '');
+  }
+  function parseEsAmount(value){
+    if(typeof value === 'number') return value;
+    const clean = String(value ?? '')
+      .replace(/\s/g,'')
+      .replace(/€/g,'')
+      .replace(/\./g,'')
+      .replace(',', '.')
+      .replace(/[^0-9.-]/g,'');
+    const n = Number(clean);
+    return Number.isFinite(n) ? n : 0;
+  }
+  function formatEditableAmount(value){
+    const n = parseEsAmount(value);
+    return formatSmartNumber(n, 2);
+  }
+  function hasMeaningfulDecimals(value){
+    const n = Number(value);
+    if(!Number.isFinite(n)) return false;
+    return Math.abs(n - Math.round(n)) > 0.000001;
+  }
+  function formatSmartNumber(value, maxDecimals=2){
+    const n = Number(value);
+    if(!Number.isFinite(n)) return '—';
+    if(!hasMeaningfulDecimals(n)) return formatEsNumber(n, 0);
+    return formatEsNumber(n, maxDecimals).replace(/,?0+$/,'');
+  }
+  const eur = { format: value => formatSmartNumber(value, 2) + ' €' };
+  const eur0 = { format: value => formatEsNumber(value, 0) + ' €' };
+  const num = { format: value => formatSmartNumber(value, 2) };
+  const monthFmt = new Intl.DateTimeFormat('es-ES',{month:'short',year:'numeric'});
+  const monthFmtLong = new Intl.DateTimeFormat('es-ES',{month:'long',year:'numeric'});
+  const fullDateFmt = new Intl.DateTimeFormat('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'});
+
+  function setActiveCalculatorName(name){
+    const safeName = String(name || '').trim() || 'Hipoteca';
+    const sideTitle = $('#calculatorDataTitle');
+    if(sideTitle) sideTitle.textContent = safeName;
+
+    const mainTitle = document.querySelector('.active-calculator-title');
+    if(mainTitle) mainTitle.textContent = safeName;
+
+    const subtitle=$('#loanSubtitle');
+    if(subtitle){
+      subtitle.textContent=activeCalculatorId==='personal'
+        ? 'Simulación de préstamo personal con cuotas, IPC y amortizaciones extraordinarias.'
+        : 'Simulación de hipoteca con amortización, IPC y amortizaciones extraordinarias.';
+    }
+  }
+
+  function termMonthsFromUI(){
+    const raw=Math.max(1,Number($('#years').value)||1);
+    return activeCalculatorId==='personal'
+      ? Math.max(1,Math.round(raw))
+      : Math.max(1,Math.round(raw*12));
+  }
+
+  function openingFeeAmountFromUI(principal=parseEsAmount($('#amount').value)){
+    if(activeCalculatorId!=='personal') return 0;
+    const value=Math.max(0,Number($('#openingFeeValue').value)||0);
+    return $('#openingFeeType').value==='fixed'
+      ? value
+      : Math.max(0,principal)*(value/100);
+  }
+
+  function snapshotCurrentCalculator(){
+    const d=defaultForCalculator(activeCalculatorId);
+    const personal=activeCalculatorId==='personal';
+    return {
+      amount: parseEsAmount($('#amount').value),
+      interest: Number($('#interest').value)||0,
+      termMonths: termMonthsFromUI(),
+      inflation: Number($('#inflation').value)||0,
+      altReturn: Number($('#altReturnCompare').value)||0,
+      start: personal ? monthKey(parseExactDate($('#firstPaymentDate').value)) : ($('#start').value || d.start),
+      firstPaymentDate: personal ? $('#firstPaymentDate').value : null,
+      openingFeeType: personal ? $('#openingFeeType').value : d.openingFeeType,
+      openingFeeValue: personal ? Math.max(0,Number($('#openingFeeValue').value)||0) : 0,
+      amortizations: amortizations.map(a=>({...a}))
+    };
+  }
+
+  function saveCurrentCalculatorState(){
+    calculatorStates[activeCalculatorId] = snapshotCurrentCalculator();
+    if(!isLoadingCalculator) autoSaveActiveCase();
+  }
+
+  function configureCalculatorUI(id){
+    const personal=id==='personal';
+    $('#termLabel').textContent = personal ? 'Cuotas / meses' : 'Plazo';
+    $('#termSuffix').textContent = personal ? 'meses' : 'años';
+    $('#years').min='1';
+    $('#years').max=personal ? '600' : '60';
+    $('#years').step='1';
+    $('#openingFeeBlock').style.display = personal ? 'block' : 'none';
+    $('#mortgageStartBlock').style.display = personal ? 'none' : 'block';
+    $('#personalDatesBlock').style.display = personal ? 'block' : 'none';
+  }
+
+  function updateOpeningFeeUI(){
+    const personal=activeCalculatorId==='personal';
+    if(!personal)return;
+    const isFixed=$('#openingFeeType').value==='fixed';
+    $('#openingFeeSuffix').textContent=isFixed?'€':'%';
+    const amount=openingFeeAmountFromUI();
+    $('#openingFeeComputed').textContent=`Comisión de apertura: ${eur.format(amount)}`;
+  }
+
+  function loadCalculatorState(id){
+    isLoadingCalculator=true;
+    const state = calculatorStates[id] || cloneDefaultCalculatorState(id);
+    activeCalculatorId = id;
+
+    const layout=document.querySelector('.layout');
+    if(layout){
+      layout.classList.remove('calculator-mortgage','calculator-personal','calculator-payroll');
+      layout.classList.add(`calculator-${id}`);
+    }
+
+    configureCalculatorUI(id);
+
+    $('#amount').value = formatEditableAmount(state.amount);
+    $('#interest').value = state.interest;
+    $('#years').value = id==='personal'
+      ? state.termMonths
+      : formatSmartNumber(state.termMonths/12,2);
+    $('#inflation').value = state.inflation;
+    $('#altReturnCompare').value = state.altReturn;
+    $('#start').value = state.start;
+    if(id==='personal'){
+      $('#firstPaymentDate').value = state.firstPaymentDate;
+      ensurePersonalDates();
+    }
+    $('#openingFeeType').value = state.openingFeeType || 'percent';
+    $('#openingFeeValue').value = state.openingFeeValue ?? 0;
+    amortizations = (state.amortizations || []).map(a=>({...a}));
+    updateOpeningFeeUI();
+
+    $$('.preset').forEach(b=>{
+      const val = Number(b.dataset.inflation);
+      b.classList.toggle('active', Number.isFinite(val) && Math.abs(val-Number(state.inflation))<0.000001);
+    });
+
+    const activeTab = document.querySelector(`.tab-btn[data-calculator-id="${id}"]`);
+    if(activeTab) setActiveCalculatorName(activeTab.dataset.calculatorName || activeTab.textContent.trim());
+
+    renderAmorts();
+    recalc();
+    renderSavedCases();
+    isLoadingCalculator=false;
+  }
+
+  function switchCalculator(id){
+    if(!id || id===activeCalculatorId) return;
+
+    // Nómina tendrá su propio estado; no debe intentar guardar los campos de préstamo.
+    if(activeCalculatorId!=='payroll'){
+      saveCurrentCalculatorState();
+    }
+
+    $$('.tab-btn').forEach(btn=>{
+      const isActive = btn.dataset.calculatorId === id;
+      btn.classList.toggle('active',isActive);
+      btn.setAttribute('aria-selected',isActive?'true':'false');
+    });
+
+    const layout=document.querySelector('.layout');
+
+    if(id==='payroll'){
+      activeCalculatorId='payroll';
+      if(layout){
+        layout.classList.remove('aggregate-mode','calculator-mortgage','calculator-personal');
+        layout.classList.add('payroll-mode','calculator-payroll');
+      }
+      setActiveCalculatorName('Nómina');
+      payrollApplyUI();
+      payrollRecalc();
+      renderPayrollCases();
+      return;
+    }
+
+    if(layout) layout.classList.remove('payroll-mode');
+
+    allCasesView[id]=canUseAllCases(id);
+    if(allCasesView[id]) activeSavedCaseIds[id]=null;
+    loadCalculatorState(id);
+  }
+
+  let amortizations = [];
+  let schedule = [];
+  let baseSchedule = [];
+  let view = 'monthly';
+
+  const calculatorDefaults = {
+    mortgage: {
+      amount:200000, interest:3, termMonths:300,
+      inflation:2, altReturn:1, start:'2026-08',
+      openingFeeType:'percent', openingFeeValue:0
+    },
+    personal: {
+      amount:25000, interest:5, termMonths:60,
+      inflation:2, altReturn:1, start:'2026-08',
+      firstPaymentDate:null,
+      openingFeeType:'percent', openingFeeValue:0
+    }
+  };
+
+  function defaultForCalculator(id=activeCalculatorId){
+    return calculatorDefaults[id] || calculatorDefaults.mortgage;
+  }
+
+  function cloneDefaultCalculatorState(id=activeCalculatorId){
+    const d=defaultForCalculator(id);
+    const personal=id==='personal';
+    const today=todayLocal();
+    const firstPayment=personal
+      ? (d.firstPaymentDate || dateKey(addMonthsClamped(today,1,today.getDate())))
+      : null;
+
+    return {
+      amount:d.amount,
+      interest:d.interest,
+      termMonths:d.termMonths,
+      inflation:d.inflation,
+      altReturn:d.altReturn,
+      start:personal ? monthKey(parseExactDate(firstPayment)) : d.start,
+      firstPaymentDate:firstPayment,
+      openingFeeType:d.openingFeeType,
+      openingFeeValue:d.openingFeeValue,
+      amortizations:[]
+    };
+  }
+
+  const calculatorStates = {
+    mortgage: cloneDefaultCalculatorState('mortgage'),
+    personal: cloneDefaultCalculatorState('personal')
+  };
+  let activeCalculatorId = 'personal';
+
+  const CASES_STORAGE_KEY = 'dashboard_financiero_saved_cases_v1';
+  const GIST_ID_STORAGE_KEY = 'dashboard_financiero_gist_id_v1';
+  const GIST_TOKEN_SESSION_KEY = 'dashboard_financiero_gist_token_v1';
+  const GIST_FILE_NAME = 'dashboard-financiero-casos.json';
+  const GITHUB_API_VERSION = '2026-03-10';
+  const PROJECTION_STORAGE_KEY = 'dashboard_financiero_projection_v1';
+  const PAYROLL_STORAGE_KEY = 'dashboard_financiero_payroll_v1';
+  const PAYROLL_CASES_STORAGE_KEY = 'dashboard_financiero_payroll_cases_v1';
+  const FIXED_PROJECTION_SAVINGS = 25878;
+  const PROJECTION_FORECAST_VERSION = 2;
+
+  let savedCases = [];
+  const activeSavedCaseIds = {mortgage:null, personal:null};
+  const allCasesView = {mortgage:false, personal:false};
+  let gistAutoSyncTimer=null;
+  let isLoadingCalculator=false;
+  let isSyncingGist=false;
+  let gistSyncPending=false;
+  let projectionSettings={
+    mortgage:{
+      initialSavings:null,startMonth:null,monthlyHistory:[],
+      forecastBases:{},forecastPayments:{},forecastResults:{},
+      forecastSnapshotVersion:0,forecastLoanIds:[],realSavings:{}
+    },
+    personal:{
+      initialSavings:null,startMonth:null,monthlyHistory:[],
+      forecastBases:{},forecastPayments:{},forecastResults:{},
+      forecastSnapshotVersion:0,forecastLoanIds:[],realSavings:{}
+    }
+  };
+
+  const PAYROLL_DEFAULTS={
+    grossAnnual:40000,
+    payCount:14,
+    contract:'indefinite',
+    birthYear:1990,
+    familySituation:3,
+    children:0,
+    childrenUnder3:0,
+    childShare:0.5,
+    disability:'none',
+    mobilityReduced:false,
+    manualIrpf:null,
+    contributionGroup:'4',
+    geoMobility:false,
+    asc65:0,
+    asc75:0,
+    spousePension:0,
+    childSupport:0,
+    homeLoan:false
+  };
+
+  let payrollSettings={...PAYROLL_DEFAULTS};
+  let payrollCases=[];
+  let activePayrollCaseId=null;
+  let isLoadingPayrollCase=false;
+
+  function safeStorageGet(storage,key){
+    try{return storage.getItem(key)}catch(e){return null}
+  }
+  function safeStorageSet(storage,key,value){
+    try{storage.setItem(key,value);return true}catch(e){return false}
+  }
+
+  function newId(){
+    if(window.crypto && typeof window.crypto.randomUUID==='function') return window.crypto.randomUUID();
+    return 'case-'+Date.now()+'-'+Math.random().toString(36).slice(2,10);
+  }
+
+  function calculatorName(id){
+    const tab=document.querySelector(`.tab-btn[data-calculator-id="${id}"]`);
+    if(tab?.dataset.calculatorName) return tab.dataset.calculatorName;
+    if(id==='mortgage') return 'Hipoteca';
+    if(id==='personal') return 'Préstamo personal';
+    if(id==='payroll') return 'Nómina';
+    return 'Calculadora';
+  }
+
+  function normalizeCaseState(state,calculatorId=activeCalculatorId){
+    const base=cloneDefaultCalculatorState(calculatorId);
+    let termMonths;
+    if(Number.isFinite(Number(state?.termMonths))){
+      termMonths=Math.max(1,Math.round(Number(state.termMonths)));
+    }else if(Number.isFinite(Number(state?.years))){
+      // Compatibilidad con casos de versiones anteriores: "years" siempre eran años.
+      termMonths=Math.max(1,Math.round(Number(state.years)*12));
+    }else{
+      termMonths=base.termMonths;
+    }
+
+    const personal=calculatorId==='personal';
+    let firstPaymentDate=state?.firstPaymentDate || base.firstPaymentDate || null;
+    if(personal && !firstPaymentDate){
+      const oldDate=state?.disbursementDate
+        ? parseExactDate(state.disbursementDate)
+        : (/^\d{4}-\d{2}$/.test(state?.start||'') ? parseExactDate(`${state.start}-01`) : todayLocal());
+      firstPaymentDate=dateKey(addMonthsClamped(oldDate,1,oldDate.getDate()));
+    }
+
+    return {
+      amount: Number(state?.amount ?? base.amount) || 0,
+      interest: Number(state?.interest ?? base.interest) || 0,
+      termMonths,
+      inflation: Number(state?.inflation ?? base.inflation) || 0,
+      altReturn: Number(state?.altReturn ?? base.altReturn) || 0,
+      start: personal ? monthKey(parseExactDate(firstPaymentDate)) : String(state?.start || base.start),
+      firstPaymentDate: personal ? firstPaymentDate : null,
+      openingFeeType: state?.openingFeeType==='fixed' ? 'fixed' : 'percent',
+      openingFeeValue: Math.max(0,Number(state?.openingFeeValue ?? base.openingFeeValue)||0),
+      amortizations: Array.isArray(state?.amortizations)
+        ? state.amortizations.map(a=>({...a,amount:parseEsAmount(a.amount)}))
+        : []
+    };
+  }
+
+  function loadSavedCasesLocal(){
+    try{
+      const raw=safeStorageGet(localStorage,CASES_STORAGE_KEY);
+      if(!raw){savedCases=[];return}
+      const data=JSON.parse(raw);
+      const arr=Array.isArray(data)?data:(Array.isArray(data?.cases)?data.cases:[]);
+      savedCases=arr
+        .filter(c=>c && c.id && c.name && (c.calculatorId==='mortgage'||c.calculatorId==='personal'))
+        .map(c=>({
+          id:String(c.id),
+          name:String(c.name).slice(0,80),
+          calculatorId:c.calculatorId,
+          state:normalizeCaseState(c.state,c.calculatorId),
+          createdAt:c.createdAt || new Date().toISOString(),
+          updatedAt:c.updatedAt || c.createdAt || new Date().toISOString()
+        }));
+    }catch(e){
+      savedCases=[];
+    }
+  }
+
+  function persistSavedCasesLocal(){
+    return safeStorageSet(localStorage,CASES_STORAGE_KEY,JSON.stringify({
+      schemaVersion:1,
+      updatedAt:new Date().toISOString(),
+      cases:savedCases
+    }));
+  }
+
+  function normalizeProjectionSettings(raw){
+    const currentMonth=monthKey(todayLocal());
+
+    const normalizeNumberMap=(obj,{nonNegative=false}={})=>{
+      const out={};
+      if(!obj || typeof obj!=='object' || Array.isArray(obj)) return out;
+      Object.entries(obj).forEach(([key,value])=>{
+        if(!/^\d{4}-S[12]$/.test(key))return;
+        const n=parseEsAmount(value);
+        if(Number.isFinite(n)) out[key]=nonNegative ? Math.max(0,n) : n;
+      });
+      return out;
+    };
+
+    const normalizeOne=v=>{
+      // Ahorro cerrado: valor definitivo de la proyección.
+      const initialSavings=FIXED_PROJECTION_SAVINGS;
+
+      let monthlyHistory=Array.isArray(v?.monthlyHistory)
+        ? v.monthlyHistory
+            .filter(x=>x && /^\d{4}-\d{2}$/.test(String(x.month||'')))
+            .map(x=>({month:String(x.month),amount:Math.max(0,parseEsAmount(x.amount)||0)}))
+        : [];
+
+      if(!monthlyHistory.length && Number(parseEsAmount(v?.monthlyAvailable))>0){
+        monthlyHistory=[{month:currentMonth,amount:Math.max(0,parseEsAmount(v.monthlyAvailable)||0)}];
+      }
+
+      monthlyHistory.sort((a,b)=>a.month.localeCompare(b.month));
+      const byMonth=new Map();
+      monthlyHistory.forEach(x=>byMonth.set(x.month,x.amount));
+      monthlyHistory=[...byMonth.entries()].map(([month,amount])=>({month,amount}));
+
+      const startMonth=/^\d{4}-\d{2}$/.test(String(v?.startMonth||''))
+        ? String(v.startMonth)
+        : (monthlyHistory[0]?.month || currentMonth);
+
+      return {
+        initialSavings,
+        startMonth,
+        monthlyHistory,
+        forecastBases:normalizeNumberMap(v?.forecastBases),
+        forecastPayments:normalizeNumberMap(v?.forecastPayments,{nonNegative:true}),
+        forecastResults:normalizeNumberMap(v?.forecastResults),
+        forecastSnapshotVersion:Math.max(0,Math.round(Number(v?.forecastSnapshotVersion)||0)),
+        forecastLoanIds:Array.isArray(v?.forecastLoanIds)
+          ? [...new Set(v.forecastLoanIds.map(x=>String(x)).filter(Boolean))]
+          : [],
+        realSavings:normalizeNumberMap(v?.realSavings,{nonNegative:true})
+      };
+    };
+
+    return {
+      mortgage:normalizeOne(raw?.mortgage),
+      personal:normalizeOne(raw?.personal)
+    };
+  }
+
+  function loadProjectionSettingsLocal(){
+    try{
+      const raw=safeStorageGet(localStorage,PROJECTION_STORAGE_KEY);
+      if(raw) projectionSettings=normalizeProjectionSettings(JSON.parse(raw));
+    }catch(e){}
+  }
+
+  function persistProjectionSettingsLocal(){
+    safeStorageSet(localStorage,PROJECTION_STORAGE_KEY,JSON.stringify(projectionSettings));
+  }
+
+  function normalizePayrollSettings(raw){
+    const d=PAYROLL_DEFAULTS;
+    const payCount=[12,14,15].includes(Number(raw?.payCount))?Number(raw.payCount):d.payCount;
+    const contract=['indefinite','temporary','under1'].includes(raw?.contract)?raw.contract:d.contract;
+    const family=[1,2,3].includes(Number(raw?.familySituation))?Number(raw.familySituation):d.familySituation;
+    const disability=['none','33','65'].includes(raw?.disability)?raw.disability:d.disability;
+    const group=['1','2','3','4'].includes(String(raw?.contributionGroup))?String(raw.contributionGroup):d.contributionGroup;
+    const manualRaw=raw?.manualIrpf;
+    const manualIrpf=manualRaw===null || manualRaw===undefined || manualRaw==='' ? null : Math.max(0,Math.min(60,Number(manualRaw)||0));
+
+    return {
+      grossAnnual:Math.max(0,parseEsAmount(raw?.grossAnnual ?? d.grossAnnual)||0),
+      payCount,
+      contract,
+      birthYear:Math.max(1906,Math.min(2026,Math.round(Number(raw?.birthYear ?? d.birthYear)||d.birthYear))),
+      familySituation:family,
+      children:Math.max(0,Math.round(Number(raw?.children ?? 0)||0)),
+      childrenUnder3:Math.max(0,Math.round(Number(raw?.childrenUnder3 ?? 0)||0)),
+      childShare:Number(raw?.childShare)===1?1:0.5,
+      disability,
+      mobilityReduced:!!raw?.mobilityReduced,
+      manualIrpf,
+      contributionGroup:group,
+      geoMobility:!!raw?.geoMobility,
+      asc65:Math.max(0,Math.round(Number(raw?.asc65 ?? 0)||0)),
+      asc75:Math.max(0,Math.round(Number(raw?.asc75 ?? 0)||0)),
+      spousePension:Math.max(0,parseEsAmount(raw?.spousePension)||0),
+      childSupport:Math.max(0,parseEsAmount(raw?.childSupport)||0),
+      homeLoan:!!raw?.homeLoan
+    };
+  }
+
+  function loadPayrollSettingsLocal(){
+    try{
+      const raw=safeStorageGet(localStorage,PAYROLL_STORAGE_KEY);
+      if(raw) payrollSettings=normalizePayrollSettings(JSON.parse(raw));
+    }catch(e){}
+  }
+
+  function persistPayrollSettingsLocal(){
+    safeStorageSet(localStorage,PAYROLL_STORAGE_KEY,JSON.stringify(payrollSettings));
+  }
+
+  function normalizePayrollCase(raw){
+    if(!raw || !raw.id || !raw.name) return null;
+    return {
+      id:String(raw.id),
+      name:String(raw.name).slice(0,80),
+      state:normalizePayrollSettings(raw.state||{}),
+      createdAt:raw.createdAt || new Date().toISOString(),
+      updatedAt:raw.updatedAt || raw.createdAt || new Date().toISOString()
+    };
+  }
+
+  function loadPayrollCasesLocal(){
+    try{
+      const raw=safeStorageGet(localStorage,PAYROLL_CASES_STORAGE_KEY);
+      if(!raw){payrollCases=[];return}
+      const data=JSON.parse(raw);
+      const arr=Array.isArray(data)?data:(Array.isArray(data?.cases)?data.cases:[]);
+      payrollCases=arr.map(normalizePayrollCase).filter(Boolean);
+    }catch(e){
+      payrollCases=[];
+    }
+  }
+
+  function persistPayrollCasesLocal(){
+    safeStorageSet(localStorage,PAYROLL_CASES_STORAGE_KEY,JSON.stringify({
+      schemaVersion:1,
+      updatedAt:new Date().toISOString(),
+      cases:payrollCases
+    }));
+  }
+
+  function setPayrollCaseStatus(text,type=''){
+    const el=$('#payrollCaseStatus');
+    if(!el)return;
+    el.textContent=text||'';
+    el.className='case-status'+(type?' '+type:'');
+  }
+
+  function renderPayrollCases(){
+    const list=$('#payrollCaseList');
+    const count=$('#payrollCaseCount');
+    if(!list || !count)return;
+
+    const items=[...payrollCases].sort((a,b)=>String(b.updatedAt).localeCompare(String(a.updatedAt)));
+    count.textContent=String(items.length);
+    list.innerHTML='';
+
+    const active=items.find(x=>x.id===activePayrollCaseId);
+    if($('#payrollCaseName') && document.activeElement!==$('#payrollCaseName')){
+      $('#payrollCaseName').value=active?.name || '';
+    }
+
+    if(!items.length){
+      const empty=document.createElement('div');
+      empty.className='payroll-case-empty';
+      empty.textContent='Sin nóminas guardadas';
+      list.appendChild(empty);
+      return;
+    }
+
+    items.forEach(c=>{
+      const row=document.createElement('div');
+      row.className='payroll-case-item'+(c.id===activePayrollCaseId?' active':'');
+
+      const load=document.createElement('button');
+      load.type='button';
+      load.className='payroll-case-load';
+      load.title=`${c.name} · ${formatEditableAmount(c.state.grossAnnual)} € brutos`;
+
+      const strong=document.createElement('strong');
+      strong.textContent=c.name;
+      load.appendChild(strong);
+      load.addEventListener('click',()=>loadPayrollCase(c.id));
+
+      const del=document.createElement('button');
+      del.type='button';
+      del.className='payroll-case-delete';
+      del.title='Eliminar nómina';
+      del.setAttribute('aria-label',`Eliminar ${c.name}`);
+      del.textContent='×';
+      del.addEventListener('click',e=>{
+        e.stopPropagation();
+        deletePayrollCase(c.id);
+      });
+
+      row.append(load,del);
+      list.appendChild(row);
+    });
+  }
+
+  function loadPayrollCase(id){
+    const c=payrollCases.find(x=>x.id===id);
+    if(!c)return;
+
+    isLoadingPayrollCase=true;
+    activePayrollCaseId=c.id;
+    payrollSettings=normalizePayrollSettings(c.state);
+    persistPayrollSettingsLocal();
+    payrollApplyUI();
+    payrollRecalc();
+    isLoadingPayrollCase=false;
+
+    $('#payrollCaseName').value=c.name;
+    renderPayrollCases();
+    setPayrollCaseStatus('Nómina cargada','ok');
+  }
+
+  async function savePayrollCase(){
+    const input=$('#payrollCaseName');
+    const name=input.value.trim();
+    if(!name){
+      setPayrollCaseStatus('Pon un nombre a la nómina','error');
+      input.focus();
+      return;
+    }
+
+    payrollRecalc();
+    const now=new Date().toISOString();
+    let existing=activePayrollCaseId ? payrollCases.find(c=>c.id===activePayrollCaseId) : null;
+
+    if(!existing){
+      existing=payrollCases.find(c=>c.name.trim().toLocaleLowerCase('es-ES')===name.toLocaleLowerCase('es-ES'));
+    }
+
+    if(existing){
+      existing.name=name;
+      existing.state=normalizePayrollSettings(payrollSettings);
+      existing.updatedAt=now;
+      activePayrollCaseId=existing.id;
+    }else{
+      const id=newId();
+      payrollCases.push({
+        id,
+        name,
+        state:normalizePayrollSettings(payrollSettings),
+        createdAt:now,
+        updatedAt:now
+      });
+      activePayrollCaseId=id;
+    }
+
+    persistPayrollCasesLocal();
+    renderPayrollCases();
+    setPayrollCaseStatus('Guardada · autosave activo','ok');
+
+    const token=$('#gistToken')?.value.trim();
+    if(token){
+      try{
+        await syncCasesToGist(true);
+        setPayrollCaseStatus('Guardada + Gist','ok');
+      }catch(e){
+        setPayrollCaseStatus('Guardada local; Gist con error','error');
+      }
+    }
+  }
+
+  async function deletePayrollCase(id){
+    const c=payrollCases.find(x=>x.id===id);
+    if(!c)return;
+    if(!confirm(`¿Seguro que quieres eliminar "${c.name}"?\n\nNo se borrará hasta que confirmes este mensaje.`))return;
+
+    payrollCases=payrollCases.filter(x=>x.id!==id);
+    if(activePayrollCaseId===id) activePayrollCaseId=null;
+    persistPayrollCasesLocal();
+    renderPayrollCases();
+    setPayrollCaseStatus('Nómina eliminada','ok');
+
+    const token=$('#gistToken')?.value.trim();
+    if(token){
+      try{await syncCasesToGist(true)}catch(e){}
+    }
+  }
+
+  function newPayrollCase(){
+    isLoadingPayrollCase=true;
+    activePayrollCaseId=null;
+    payrollSettings={...PAYROLL_DEFAULTS};
+    persistPayrollSettingsLocal();
+    payrollApplyUI();
+    payrollRecalc();
+    isLoadingPayrollCase=false;
+
+    $('#payrollCaseName').value='';
+    renderPayrollCases();
+    setPayrollCaseStatus('Nueva nómina');
+  }
+
+  function autoSaveActivePayrollCase(){
+    if(isLoadingPayrollCase || !activePayrollCaseId)return;
+    const c=payrollCases.find(x=>x.id===activePayrollCaseId);
+    if(!c)return;
+
+    c.state=normalizePayrollSettings(payrollSettings);
+    c.updatedAt=new Date().toISOString();
+    persistPayrollCasesLocal();
+    renderPayrollCases();
+    setPayrollCaseStatus('Guardada automáticamente','ok');
+    scheduleGistAutoSync();
+  }
+
+  function payrollReadUI(){
+    const manualRaw=$('#payrollManualIrpf')?.value.trim();
+    return normalizePayrollSettings({
+      grossAnnual:parseEsAmount($('#payrollGross')?.value),
+      payCount:Number($('#payrollPays')?.value),
+      contract:$('#payrollContract')?.value,
+      birthYear:Number($('#payrollBirthYear')?.value),
+      familySituation:Number($('#payrollFamily')?.value),
+      children:Number($('#payrollChildren')?.value),
+      childrenUnder3:Number($('#payrollUnder3')?.value),
+      childShare:Number($('#payrollChildShare')?.value),
+      disability:$('#payrollDisability')?.value,
+      mobilityReduced:$('#payrollMobilityReduced')?.checked,
+      manualIrpf:manualRaw===''?null:Number(manualRaw),
+      contributionGroup:$('#payrollContributionGroup')?.value,
+      geoMobility:$('#payrollGeoMobility')?.checked,
+      asc65:Number($('#payrollAsc65')?.value),
+      asc75:Number($('#payrollAsc75')?.value),
+      spousePension:parseEsAmount($('#payrollSpousePension')?.value),
+      childSupport:parseEsAmount($('#payrollChildSupport')?.value),
+      homeLoan:$('#payrollHomeLoan')?.checked
+    });
+  }
+
+  function payrollApplyUI(){
+    const p=payrollSettings;
+    if(!$('#payrollGross'))return;
+    $('#payrollGross').value=formatEditableAmount(p.grossAnnual);
+    $('#payrollPays').value=String(p.payCount);
+    $('#payrollContract').value=p.contract;
+    $('#payrollBirthYear').value=p.birthYear;
+    $('#payrollFamily').value=String(p.familySituation);
+    $('#payrollChildren').value=p.children;
+    $('#payrollUnder3').value=Math.min(p.childrenUnder3,p.children);
+    $('#payrollChildShare').value=String(p.childShare);
+    $('#payrollDisability').value=p.disability;
+    $('#payrollMobilityReduced').checked=p.mobilityReduced;
+    $('#payrollManualIrpf').value=p.manualIrpf===null?'':p.manualIrpf;
+    $('#payrollContributionGroup').value=p.contributionGroup;
+    $('#payrollGeoMobility').checked=p.geoMobility;
+    $('#payrollAsc65').value=p.asc65;
+    $('#payrollAsc75').value=p.asc75;
+    $('#payrollSpousePension').value=formatEditableAmount(p.spousePension);
+    $('#payrollChildSupport').value=formatEditableAmount(p.childSupport);
+    $('#payrollHomeLoan').checked=p.homeLoan;
+    payrollUpdateConditionalUI();
+  }
+
+  function payrollUpdateConditionalUI(){
+    if(!$('#payrollFamily'))return;
+    const family=Number($('#payrollFamily').value);
+    const children=Math.max(0,Number($('#payrollChildren').value)||0);
+    if(family===1){
+      if(children<1) $('#payrollChildren').value=1;
+      $('#payrollChildShare').value='1';
+      $('#payrollChildShare').disabled=true;
+    }else{
+      $('#payrollChildShare').disabled=false;
+    }
+
+    const disability=$('#payrollDisability').value;
+    const mobilityRow=$('#payrollMobilityReducedRow');
+    if(mobilityRow) mobilityRow.style.display=disability==='33'?'flex':'none';
+    if(disability!=='33') $('#payrollMobilityReduced').checked=false;
+
+    const maxUnder=Math.max(0,Number($('#payrollChildren').value)||0);
+    $('#payrollUnder3').max=String(maxUnder);
+    if(Number($('#payrollUnder3').value)>maxUnder) $('#payrollUnder3').value=maxUnder;
+  }
+
+  function setCaseStatus(text,type=''){
+    const el=$('#caseStatus');
+    if(!el)return;
+    el.textContent=text||'';
+    el.className='case-status'+(type?' '+type:'');
+  }
+
+  function setGistStatus(text,type=''){
+    const el=$('#gistStatus');
+    if(el){
+      el.textContent=text||'';
+      el.className='gist-status'+(type?' '+type:'');
+    }
+    const btn=$('#globalGistBtn');
+    const label=$('#globalGistBtnText');
+    if(!btn || !label)return;
+    btn.classList.remove('connected','syncing','error');
+    if(type==='ok'){
+      btn.classList.add('connected');
+      label.textContent='Gist sincronizado';
+    }else if(type==='error'){
+      btn.classList.add('error');
+      label.textContent='Gist · error';
+    }else if(text){
+      btn.classList.add('syncing');
+      label.textContent='Gist · sincronizando';
+    }else{
+      label.textContent='GitHub Gist';
+    }
+  }
+
+  function formatCaseUpdated(iso){
+    const d=new Date(iso);
+    if(Number.isNaN(d.getTime())) return '';
+    return new Intl.DateTimeFormat('es-ES',{day:'2-digit',month:'2-digit',year:'2-digit'}).format(d);
+  }
+
+  function scheduleGistAutoSync(){
+    const token=$('#gistToken')?.value.trim();
+    if(!token)return;
+    clearTimeout(gistAutoSyncTimer);
+    gistAutoSyncTimer=setTimeout(()=>{
+      syncCasesToGist(true).catch(e=>setGistStatus(e.message || 'No se pudo sincronizar','error'));
+    },1200);
+  }
+
+  function autoSaveActiveCase(){
+    const id=activeSavedCaseIds[activeCalculatorId];
+    if(!id)return;
+    const existing=savedCases.find(c=>c.id===id && c.calculatorId===activeCalculatorId);
+    if(!existing)return;
+    existing.state=normalizeCaseState(snapshotCurrentCalculator(),activeCalculatorId);
+    existing.updatedAt=new Date().toISOString();
+    persistSavedCasesLocal();
+    setCaseStatus('Guardado automáticamente','ok');
+    scheduleGistAutoSync();
+  }
+
+  function savedCasesFor(calculatorId=activeCalculatorId){
+    return savedCases.filter(c=>c.calculatorId===calculatorId);
+  }
+
+  function canUseAllCases(calculatorId=activeCalculatorId){
+    return savedCasesFor(calculatorId).length>=2;
+  }
+
+  function toggleAllCasesLayout(isAll){
+    const ids=['detailCompareSection','detailChartsSection','detailTableSection','detailHelpSection'];
+    ids.forEach(id=>{
+      const el=$('#'+id);
+      if(el) el.style.display=isAll?'none':'';
+    });
+
+    const annual=$('#allCasesAnnualSection');
+    if(annual) annual.style.display=isAll?'block':'none';
+
+    const projection=$('#semesterProjectionSection');
+    if(projection) projection.style.display=isAll?'block':'none';
+
+    const layout=document.querySelector('.layout');
+    if(layout) layout.classList.toggle('aggregate-mode',isAll);
+
+    const kpis=$('#topKpis');
+    if(kpis) kpis.classList.toggle('aggregate-mode',isAll);
+
+    if($('#caseName')) $('#caseName').disabled=isAll;
+    if($('#saveCaseBtn')) $('#saveCaseBtn').disabled=isAll;
+  }
+
+  function activateAllCasesView(){
+    if(!canUseAllCases(activeCalculatorId))return;
+    allCasesView[activeCalculatorId]=true;
+    activeSavedCaseIds[activeCalculatorId]=null;
+    if($('#caseName')) $('#caseName').value='';
+    renderSavedCases();
+    recalc();
+  }
+
+  function renderSavedCases(){
+    const list=$('#caseList');
+    if(!list)return;
+
+    const items=savedCases
+      .filter(c=>c.calculatorId===activeCalculatorId)
+      .sort((a,b)=>String(b.updatedAt).localeCompare(String(a.updatedAt)));
+
+    $('#caseCount').textContent=String(items.length);
+    list.innerHTML='';
+
+    const allBtn=$('#allCasesBtn');
+    const allEnabled=items.length>=2;
+    if(!allEnabled) allCasesView[activeCalculatorId]=false;
+    if(allBtn){
+      allBtn.disabled=!allEnabled;
+      allBtn.classList.toggle('active',allEnabled && allCasesView[activeCalculatorId]);
+      allBtn.title=allEnabled ? 'Ver todos los casos guardados juntos' : 'Necesitas al menos dos casos guardados';
+    }
+
+    const activeId=allCasesView[activeCalculatorId] ? null : activeSavedCaseIds[activeCalculatorId];
+    const activeCase=items.find(c=>c.id===activeId);
+    if(document.activeElement!==$('#caseName')){
+      $('#caseName').value=activeCase?.name || '';
+    }
+
+    if(!items.length){
+      const empty=document.createElement('div');
+      empty.className='case-empty';
+      empty.textContent=activeCalculatorId==='mortgage'
+        ? 'Sin hipotecas guardadas'
+        : 'Sin préstamos guardados';
+      list.appendChild(empty);
+      return;
+    }
+
+    items.forEach(c=>{
+      const row=document.createElement('div');
+      row.className='case-item'+(!allCasesView[activeCalculatorId] && c.id===activeId?' active':'');
+
+      const load=document.createElement('button');
+      load.type='button';
+      load.className='case-load';
+
+      const strong=document.createElement('strong');
+      strong.textContent=c.name;
+      const small=document.createElement('small');
+      const amount=formatSmartNumber(c.state.amount,2)+' €';
+      small.textContent=`${amount} · ${formatCaseUpdated(c.updatedAt)}`;
+      load.title=`${c.name} · ${amount}`;
+
+      load.append(strong,small);
+      load.addEventListener('click',()=>loadSavedCase(c.id));
+
+      const del=document.createElement('button');
+      del.type='button';
+      del.className='case-delete';
+      del.title='Eliminar caso';
+      del.setAttribute('aria-label',`Eliminar ${c.name}`);
+      del.textContent='×';
+      del.addEventListener('click',e=>{
+        e.stopPropagation();
+        deleteSavedCase(c.id);
+      });
+
+      row.append(load,del);
+      list.appendChild(row);
+    });
+  }
+
+  function loadSavedCase(id){
+    const c=savedCases.find(x=>x.id===id && x.calculatorId===activeCalculatorId);
+    if(!c)return;
+    allCasesView[activeCalculatorId]=false;
+    activeSavedCaseIds[activeCalculatorId]=c.id;
+    calculatorStates[activeCalculatorId]=normalizeCaseState(c.state,c.calculatorId);
+    loadCalculatorState(activeCalculatorId);
+    $('#caseName').value=c.name;
+    renderSavedCases();
+    setCaseStatus('Caso cargado','ok');
+  }
+
+  async function saveNamedCase(){
+    const input=$('#caseName');
+    const name=input.value.trim();
+    if(!name){
+      setCaseStatus('Pon un nombre al caso','error');
+      input.focus();
+      return;
+    }
+
+    saveCurrentCalculatorState();
+    const now=new Date().toISOString();
+    let id=activeSavedCaseIds[activeCalculatorId];
+    let existing=id ? savedCases.find(c=>c.id===id) : null;
+    let createdNew=false;
+
+    if(!existing){
+      existing=savedCases.find(c=>
+        c.calculatorId===activeCalculatorId &&
+        c.name.trim().toLocaleLowerCase('es-ES')===name.toLocaleLowerCase('es-ES')
+      );
+    }
+
+    if(existing){
+      existing.name=name;
+      existing.state=normalizeCaseState(snapshotCurrentCalculator(),activeCalculatorId);
+      existing.updatedAt=now;
+      id=existing.id;
+    }else{
+      createdNew=true;
+      id=newId();
+      savedCases.push({
+        id,
+        name,
+        calculatorId:activeCalculatorId,
+        state:normalizeCaseState(snapshotCurrentCalculator(),activeCalculatorId),
+        createdAt:now,
+        updatedAt:now
+      });
+    }
+
+    activeSavedCaseIds[activeCalculatorId]=id;
+    persistSavedCasesLocal();
+    if(createdNew && canUseAllCases(activeCalculatorId)){
+      allCasesView[activeCalculatorId]=true;
+      activeSavedCaseIds[activeCalculatorId]=null;
+    }
+    renderSavedCases();
+    if(allCasesView[activeCalculatorId]) recalc();
+    setCaseStatus(allCasesView[activeCalculatorId]?'Guardado · vista TODOS':'Guardado · autosave activo','ok');
+
+    const token=$('#gistToken')?.value.trim();
+    if(token){
+      try{
+        await syncCasesToGist(true);
+        setCaseStatus('Guardado + Gist','ok');
+      }catch(e){
+        setCaseStatus('Guardado local; Gist con error','error');
+      }
+    }
+  }
+
+  async function deleteSavedCase(id){
+    const c=savedCases.find(x=>x.id===id);
+    if(!c)return;
+    if(!confirm(`¿Seguro que quieres eliminar "${c.name}"?
+
+No se borrará hasta que confirmes este mensaje.`))return;
+    savedCases=savedCases.filter(x=>x.id!==id);
+    if(activeSavedCaseIds[c.calculatorId]===id) activeSavedCaseIds[c.calculatorId]=null;
+    const remaining=savedCasesFor(c.calculatorId);
+    if(remaining.length<2) allCasesView[c.calculatorId]=false;
+    persistSavedCasesLocal();
+
+    if(c.calculatorId===activeCalculatorId && remaining.length===1 && !allCasesView[c.calculatorId]){
+      activeSavedCaseIds[c.calculatorId]=remaining[0].id;
+      calculatorStates[c.calculatorId]=normalizeCaseState(remaining[0].state,c.calculatorId);
+      loadCalculatorState(c.calculatorId);
+    }else{
+      renderSavedCases();
+      recalc();
+    }
+    setCaseStatus('Caso eliminado','ok');
+
+    const token=$('#gistToken')?.value.trim();
+    if(token){
+      try{await syncCasesToGist(true)}catch(e){}
+    }
+  }
+
+  function newSavedCase(){
+    allCasesView[activeCalculatorId]=false;
+    activeSavedCaseIds[activeCalculatorId]=null;
+    calculatorStates[activeCalculatorId]=cloneDefaultCalculatorState(activeCalculatorId);
+    $('#caseName').value='';
+    loadCalculatorState(activeCalculatorId);
+    renderSavedCases();
+    setCaseStatus('Nuevo caso');
+  }
+
+  function normalizeGistId(value){
+    let v=String(value||'').trim();
+    if(!v)return '';
+    v=v.replace(/[?#].*$/,'').replace(/\/+$/,'');
+    if(v.includes('/')) v=v.split('/').filter(Boolean).pop() || '';
+    return v.trim();
+  }
+
+  function gistHeaders(token,withJson=true){
+    const h={
+      'Accept':'application/vnd.github+json',
+      'X-GitHub-Api-Version':GITHUB_API_VERSION
+    };
+    if(token)h['Authorization']='Bearer '+token;
+    if(withJson)h['Content-Type']='application/json';
+    return h;
+  }
+
+  function gistDocument(){
+    return {
+      schemaVersion:1,
+      app:'Dashboard financiero',
+      updatedAt:new Date().toISOString(),
+      cases:savedCases,
+      projectionSettings,
+      payrollSettings,
+      payrollCases
+    };
+  }
+
+  async function githubFetch(url,options={}){
+    const res=await fetch(url,options);
+    if(!res.ok){
+      let detail='';
+      try{
+        const data=await res.json();
+        detail=data?.message ? ` · ${data.message}` : '';
+      }catch(e){}
+      throw new Error(`GitHub ${res.status}${detail}`);
+    }
+    return res;
+  }
+
+  async function findDashboardGist(token){
+    // Fast path: use the internally remembered ID when it is still valid.
+    const remembered=safeStorageGet(localStorage,GIST_ID_STORAGE_KEY);
+    if(remembered){
+      try{
+        const res=await githubFetch(`https://api.github.com/gists/${encodeURIComponent(remembered)}`,{
+          method:'GET',
+          headers:gistHeaders(token,false)
+        });
+        const data=await res.json();
+        if(data?.files?.[GIST_FILE_NAME]) return data;
+      }catch(e){
+        // Ignore stale/deleted IDs and fall back to listing the user's Gists.
+      }
+    }
+
+    // Token-only discovery: search the authenticated user's Gists.
+    for(let page=1; page<=30; page++){
+      const res=await githubFetch(`https://api.github.com/gists?per_page=100&page=${page}`,{
+        method:'GET',
+        headers:gistHeaders(token,false)
+      });
+      const items=await res.json();
+      if(!Array.isArray(items)) break;
+
+      const found=items.find(g=>g?.files?.[GIST_FILE_NAME]);
+      if(found){
+        safeStorageSet(localStorage,GIST_ID_STORAGE_KEY,found.id);
+        return found;
+      }
+
+      if(items.length<100) break;
+    }
+
+    return null;
+  }
+
+  async function syncCasesToGist(silent=false){
+    const token=$('#gistToken').value.trim();
+    if(!token){
+      setGistStatus('Falta el token de GitHub','error');
+      throw new Error('Falta token');
+    }
+
+    if(isSyncingGist){
+      gistSyncPending=true;
+      return null;
+    }
+
+    isSyncingGist=true;
+    safeStorageSet(sessionStorage,GIST_TOKEN_SESSION_KEY,token);
+
+    try{
+      const content=JSON.stringify(gistDocument(),null,2);
+      const filePayload={};
+      filePayload[GIST_FILE_NAME]={content};
+      setGistStatus('Buscando Gist…');
+
+      let existing=await findDashboardGist(token);
+      let data;
+
+      if(existing?.id){
+        setGistStatus('Sincronizando…');
+        const res=await githubFetch(`https://api.github.com/gists/${encodeURIComponent(existing.id)}`,{
+          method:'PATCH',
+          headers:gistHeaders(token,true),
+          body:JSON.stringify({
+            description:'Dashboard financiero · casos guardados',
+            files:filePayload
+          })
+        });
+        data=await res.json();
+      }else{
+        setGistStatus('Creando Gist…');
+        const res=await githubFetch('https://api.github.com/gists',{
+          method:'POST',
+          headers:gistHeaders(token,true),
+          body:JSON.stringify({
+            description:'Dashboard financiero · casos guardados',
+            public:false,
+            files:filePayload
+          })
+        });
+        data=await res.json();
+      }
+
+      if(data?.id) safeStorageSet(localStorage,GIST_ID_STORAGE_KEY,data.id);
+      setGistStatus(`Sincronizado · ${savedCases.length} caso${savedCases.length===1?'':'s'}`,'ok');
+      return data;
+    }finally{
+      isSyncingGist=false;
+      if(gistSyncPending){
+        gistSyncPending=false;
+        clearTimeout(gistAutoSyncTimer);
+        gistAutoSyncTimer=setTimeout(()=>{
+          syncCasesToGist(true).catch(e=>setGistStatus(e.message || 'No se pudo sincronizar','error'));
+        },250);
+      }
+    }
+  }
+
+  async function pullCasesFromGist(){
+    const token=$('#gistToken').value.trim();
+    if(!token){
+      setGistStatus('Falta el token de GitHub','error');
+      $('#gistToken').focus();
+      return;
+    }
+
+    safeStorageSet(sessionStorage,GIST_TOKEN_SESSION_KEY,token);
+    setGistStatus('Buscando Gist…');
+
+    try{
+      const gist=await findDashboardGist(token);
+      if(!gist?.id){
+        setGistStatus('Todavía no existe un Gist del dashboard. Guarda o sincroniza un caso primero.','error');
+        return;
+      }
+
+      safeStorageSet(localStorage,GIST_ID_STORAGE_KEY,gist.id);
+
+      let file=gist?.files?.[GIST_FILE_NAME];
+      if(!file){
+        const res=await githubFetch(`https://api.github.com/gists/${encodeURIComponent(gist.id)}`,{
+          method:'GET',
+          headers:gistHeaders(token,false)
+        });
+        const full=await res.json();
+        file=full?.files?.[GIST_FILE_NAME];
+      }
+      if(!file) throw new Error(`El Gist no contiene ${GIST_FILE_NAME}`);
+
+      let content=file.content;
+      if(file.truncated && file.raw_url){
+        const raw=await githubFetch(file.raw_url,{
+          method:'GET',
+          headers:{'Authorization':'Bearer '+token}
+        });
+        content=await raw.text();
+      }
+
+      const parsed=JSON.parse(content);
+      const incoming=Array.isArray(parsed)?parsed:(Array.isArray(parsed?.cases)?parsed.cases:null);
+      if(!incoming) throw new Error('Formato de Gist no reconocido');
+
+      if(savedCases.length && !confirm('Esto sustituirá los casos guardados en este navegador por los del Gist. ¿Continuar?')){
+        setGistStatus('Importación cancelada');
+        return;
+      }
+
+      savedCases=incoming
+        .filter(c=>c && c.id && c.name && (c.calculatorId==='mortgage'||c.calculatorId==='personal'))
+        .map(c=>({
+          id:String(c.id),
+          name:String(c.name).slice(0,80),
+          calculatorId:c.calculatorId,
+          state:normalizeCaseState(c.state,c.calculatorId),
+          createdAt:c.createdAt || new Date().toISOString(),
+          updatedAt:c.updatedAt || c.createdAt || new Date().toISOString()
+        }));
+
+      if(parsed && !Array.isArray(parsed) && parsed.projectionSettings){
+        projectionSettings=normalizeProjectionSettings(parsed.projectionSettings);
+        persistProjectionSettingsLocal();
+      }
+      if(parsed && !Array.isArray(parsed) && parsed.payrollSettings){
+        payrollSettings=normalizePayrollSettings(parsed.payrollSettings);
+        persistPayrollSettingsLocal();
+        payrollApplyUI();
+        payrollRecalc();
+      }
+      if(parsed && !Array.isArray(parsed) && Array.isArray(parsed.payrollCases)){
+        payrollCases=parsed.payrollCases.map(normalizePayrollCase).filter(Boolean);
+        activePayrollCaseId=null;
+        persistPayrollCasesLocal();
+        renderPayrollCases();
+      }
+
+      activeSavedCaseIds.mortgage=null;
+      activeSavedCaseIds.personal=null;
+      allCasesView.mortgage=canUseAllCases('mortgage');
+      allCasesView.personal=canUseAllCases('personal');
+      persistSavedCasesLocal();
+      loadCalculatorState(activeCalculatorId);
+      setGistStatus(`Cargados ${savedCases.length} caso${savedCases.length===1?'':'s'} desde Gist`,'ok');
+    }catch(e){
+      setGistStatus(e.message || 'No se pudo cargar el Gist','error');
+    }
+  }
+
+
+
+  function parseMonth(s){
+    const [y,m] = String(s||'').split('-').map(Number);
+    return new Date(y,m-1,1);
+  }
+  function parseExactDate(s){
+    const [y,m,d] = String(s||'').split('-').map(Number);
+    if(!y || !m || !d) return todayLocal();
+    return new Date(y,m-1,d);
+  }
+  function addMonths(date,n){ return new Date(date.getFullYear(), date.getMonth()+n, 1); }
+  function addMonthsClamped(date,n,preferredDay=date.getDate()){
+    const first=new Date(date.getFullYear(),date.getMonth()+n,1);
+    const lastDay=new Date(first.getFullYear(),first.getMonth()+1,0).getDate();
+    return new Date(first.getFullYear(),first.getMonth(),Math.min(preferredDay,lastDay));
+  }
+  function daysBetween(a,b){
+    const ua=Date.UTC(a.getFullYear(),a.getMonth(),a.getDate());
+    const ub=Date.UTC(b.getFullYear(),b.getMonth(),b.getDate());
+    return Math.max(0,Math.round((ub-ua)/86400000));
+  }
+  function ensurePersonalDates(){
+    if(activeCalculatorId!=='personal') return;
+    if(!$('#firstPaymentDate').value){
+      const today=todayLocal();
+      $('#firstPaymentDate').value=dateKey(addMonthsClamped(today,1,today.getDate()));
+    }
+  }
+  function monthKey(date){ return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}`; }
+  function dateKey(date){
+    return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+  }
+  function todayLocal(){
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  }
+  function amortDateBounds(){
+    const today = todayLocal();
+    const currentYearStart = new Date(today.getFullYear(),0,1);
+    const d=defaultForCalculator(activeCalculatorId);
+    const personal=activeCalculatorId==='personal';
+
+    const loanStart = personal
+      ? parseExactDate($('#firstPaymentDate').value)
+      : parseMonth($('#start').value || d.start);
+
+    const minDate = loanStart > currentYearStart ? loanStart : currentYearStart;
+    const n0 = termMonthsFromUI();
+
+    let maxDate;
+    if(personal){
+      const first=parseExactDate($('#firstPaymentDate').value);
+      maxDate=addMonthsClamped(first,n0-1,first.getDate());
+    }else{
+      const lastMonth = addMonths(loanStart,n0-1);
+      maxDate = new Date(lastMonth.getFullYear(),lastMonth.getMonth()+1,0);
+    }
+    return {minDate,maxDate};
+  }
+  function monthDiff(a,b){ return (b.getFullYear()-a.getFullYear())*12 + b.getMonth()-a.getMonth(); }
+
+  function paymentFor(P,r,n){
+    if(P <= 0 || n <= 0) return 0;
+    if(Math.abs(r) < 1e-12) return P/n;
+    return P * r / (1 - Math.pow(1+r,-n));
+  }
+  function periodsFor(P,r,pmt){
+    if(P <= .005) return 0;
+    if(pmt <= 0) return Infinity;
+    if(Math.abs(r) < 1e-12) return Math.ceil(P/pmt);
+    if(pmt <= P*r) return Infinity;
+    return Math.ceil(-Math.log(1 - P*r/pmt) / Math.log(1+r));
+  }
+
+  function payrollRound2(v){
+    return Math.round((Number(v)+Number.EPSILON)*100)/100;
+  }
+
+  function payrollTrunc2(v){
+    const x=Math.max(0,Number(v)||0);
+    return Math.floor(x*100+1e-9)/100;
+  }
+
+  function payrollScale(base){
+    const x=Math.max(0,Number(base)||0);
+    if(x<=12450) return x*0.19;
+    if(x<=20200) return 2365.50+(x-12450)*0.24;
+    if(x<=35200) return 4225.50+(x-20200)*0.30;
+    if(x<=60000) return 8725.50+(x-35200)*0.37;
+    if(x<=300000) return 17901.50+(x-60000)*0.45;
+    return 125901.50+(x-300000)*0.47;
+  }
+
+  function payrollContributionMinimum(group){
+    if(group==='1')return 1989.30;
+    if(group==='2')return 1649.70;
+    if(group==='3')return 1435.20;
+    return 1424.40;
+  }
+
+  function payrollSocialSecurity(p){
+    const monthlyRemuneration=p.grossAnnual/12;
+    const minBase=payrollContributionMinimum(p.contributionGroup);
+    const maxBase=5101.20;
+    const monthlyBase=Math.max(minBase,Math.min(maxBase,monthlyRemuneration));
+
+    const unemploymentRate=p.contract==='indefinite'?0.0155:0.0160;
+    const common=monthlyBase*0.047*12;
+    const unemployment=monthlyBase*unemploymentRate*12;
+    const training=monthlyBase*0.001*12;
+    const mei=monthlyBase*0.0015*12;
+
+    const t1=Math.min(Math.max(monthlyRemuneration-5101.20,0),5611.32-5101.20);
+    const t2=Math.min(Math.max(monthlyRemuneration-5611.32,0),7651.80-5611.32);
+    const t3=Math.max(monthlyRemuneration-7651.80,0);
+    const solidarity=(t1*0.0019+t2*0.0021+t3*0.0024)*12;
+
+    return {
+      monthlyRemuneration,monthlyBase,
+      common,unemployment,training,mei,solidarity,
+      total:common+unemployment+training+mei+solidarity
+    };
+  }
+
+  function payrollDescendantMinimum(count,under3,share){
+    const scales=[2400,2700,4000,4500];
+    let total=0;
+    for(let i=0;i<count;i++){
+      total+=(i<4?scales[i]:4500)*share;
+    }
+    total+=Math.min(count,under3)*2800*share;
+    return total;
+  }
+
+  function payrollExemptThreshold(family,children){
+    const n=children<=0?0:(children===1?1:2);
+    if(family===1){
+      if(n===1)return 17644;
+      if(n===2)return 18694;
+      return 0;
+    }
+    if(family===2){
+      return n===0?17197:(n===1?18130:19262);
+    }
+    return n===0?15876:(n===1?16342:16867);
+  }
+
+  function payrollAutoIrpf(p,ss){
+    let family=p.familySituation;
+    let children=Math.max(0,p.children);
+    if(family===1 && children===0) family=3;
+
+    const gross=p.grossAnnual;
+    const cotizaciones=ss.total;
+
+    let disabilityExpense=0;
+    let disabilityMinimum=0;
+    if(p.disability==='33'){
+      disabilityExpense=p.mobilityReduced?7750:3500;
+      disabilityMinimum=3000+(p.mobilityReduced?3000:0);
+    }else if(p.disability==='65'){
+      disabilityExpense=7750;
+      disabilityMinimum=12000;
+    }
+
+    let otherExpenses=2000+(p.geoMobility?2000:0)+disabilityExpense;
+    otherExpenses=Math.max(0,Math.min(otherExpenses,gross-cotizaciones));
+
+    const rnt=Math.max(0,gross-cotizaciones);
+    let red20=0;
+    if(rnt<=14852){
+      red20=7302;
+    }else if(rnt<=17673.52){
+      red20=7302-1.75*(rnt-14852);
+    }else if(rnt<19747.50){
+      red20=2364.34-1.14*(rnt-17673.52);
+    }
+    red20=payrollRound2(Math.max(0,red20));
+
+    const rntReduced=Math.max(0,rnt-otherExpenses-red20);
+    const extraReduction=(children>2?600:0)+p.spousePension;
+    const base=Math.max(0,rntReduced-extraReduction);
+
+    const age=2026-p.birthYear;
+    const personalMinimum=5550+(age>=65?1150:0)+(age>=75?1400:0);
+    const descendantMinimum=payrollDescendantMinimum(children,p.childrenUnder3,p.childShare);
+    const ascendantMinimum=p.asc65*1150+p.asc75*(1150+1400);
+    const familyMinimum=personalMinimum+descendantMinimum+ascendantMinimum+disabilityMinimum;
+
+    const threshold=payrollExemptThreshold(family,children);
+    let quota=0;
+
+    if(gross>threshold){
+      let quota1;
+      let quota2;
+      if(p.childSupport>0 && (base-p.childSupport)>0){
+        quota1=payrollScale(base-p.childSupport)+payrollScale(p.childSupport);
+        quota2=payrollScale(familyMinimum+1980);
+      }else{
+        quota1=payrollScale(base);
+        quota2=payrollScale(familyMinimum);
+      }
+      quota=Math.max(0,quota1-quota2);
+
+      if(gross<=35200){
+        const limit=Math.max(0,(gross-threshold)*0.43);
+        quota=Math.min(quota,limit);
+      }
+    }
+
+    let housingMinor=0;
+    if(p.homeLoan && gross<33007.20){
+      housingMinor=payrollTrunc2(gross*0.02);
+    }
+
+    const positive=Math.max(0,quota-housingMinor);
+    let rate=gross>0?payrollTrunc2((positive/gross)*100):0;
+
+    if(p.contract==='under1' && rate<2) rate=2;
+
+    return {
+      rate,
+      annual:payrollRound2(gross*rate/100),
+      base,
+      familyMinimum,
+      threshold,
+      rnt,
+      red20,
+      otherExpenses
+    };
+  }
+
+  function payrollCalculate(p){
+    const ss=payrollSocialSecurity(p);
+    const autoIrpf=payrollAutoIrpf(p,ss);
+    const manual=p.manualIrpf!==null;
+    const irpfRate=manual?Math.max(0,Math.min(60,p.manualIrpf)):autoIrpf.rate;
+    const irpfAnnual=payrollRound2(p.grossAnnual*irpfRate/100);
+    const netAnnual=p.grossAnnual-ss.total-irpfAnnual;
+
+    const payCount=p.payCount;
+    const extraCount=Math.max(0,payCount-12);
+    const grossPerPay=payCount>0?p.grossAnnual/payCount:0;
+    const irpfPerPay=payCount>0?irpfAnnual/payCount:0;
+    const ssRegular=ss.total/12;
+    const regularNet=grossPerPay-irpfPerPay-ssRegular;
+    const extraNet=extraCount>0?grossPerPay-irpfPerPay:0;
+
+    return {
+      ss,autoIrpf,manual,irpfRate,irpfAnnual,netAnnual,
+      payCount,extraCount,grossPerPay,irpfPerPay,ssRegular,regularNet,extraNet,
+      effectiveDeduction:p.grossAnnual>0?((ss.total+irpfAnnual)/p.grossAnnual*100):0
+    };
+  }
+
+  function payrollRecalc(){
+    if(!$('#payrollGross'))return;
+    payrollUpdateConditionalUI();
+    payrollSettings=payrollReadUI();
+    const p=payrollSettings;
+    const r=payrollCalculate(p);
+
+    $('#payrollNetAnnual').textContent=eur0.format(r.netAnnual);
+    $('#payrollNetRegular').textContent=eur0.format(r.regularNet);
+    $('#payrollNetRegularNote').textContent='12 nóminas ordinarias';
+
+    $('#payrollNetExtra').textContent=r.extraCount?eur0.format(r.extraNet):'—';
+    $('#payrollNetExtraNote').textContent=r.extraCount
+      ? `${r.extraCount} paga${r.extraCount===1?'':'s'} extra${r.extraCount===1?'':'s'}`
+      : '12 pagas · sin extras';
+
+    $('#payrollIrpfRate').textContent=`${formatSmartNumber(r.irpfRate,2)} %`;
+    $('#payrollIrpfMode').textContent=r.manual?'IRPF indicado manualmente':'estimación AEAT 2026';
+    $('#payrollSSAnnual').textContent=eur0.format(r.ss.total);
+    $('#payrollGrossPerPay').textContent=eur0.format(r.grossPerPay);
+    $('#payrollGrossPerPayNote').textContent=`${r.payCount} pagas iguales`;
+
+    $('#payrollIrpfAnnual').textContent=eur0.format(r.irpfAnnual);
+    $('#payrollSSCommon').textContent=eur0.format(r.ss.common);
+    $('#payrollSSUnemployment').textContent=eur0.format(r.ss.unemployment);
+    $('#payrollSSTraining').textContent=eur0.format(r.ss.training);
+    $('#payrollSSMei').textContent=eur0.format(r.ss.mei);
+    $('#payrollSSSolidarity').textContent=r.ss.solidarity>0?eur.format(r.ss.solidarity):'0 €';
+    $('#payrollContributionBase').textContent=eur.format(r.ss.monthlyBase);
+    $('#payrollNetAverage').textContent=eur0.format(r.netAnnual/12);
+    $('#payrollEffectiveDeduction').textContent=`Descuentos efectivos · ${formatSmartNumber(r.effectiveDeduction,1)} %`;
+
+    const tbody=$('#payrollPayRows');
+    tbody.innerHTML='';
+    const addRow=(type,count,gross,irpf,ss,net)=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td>${type}</td><td>${count}</td><td>${eur.format(gross)}</td><td>${eur.format(irpf)}</td><td>${eur.format(ss)}</td><td><strong>${eur.format(net)}</strong></td>`;
+      tbody.appendChild(tr);
+    };
+    addRow('Nómina ordinaria',12,r.grossPerPay,r.irpfPerPay,r.ssRegular,r.regularNet);
+    if(r.extraCount){
+      addRow('Paga extra',r.extraCount,r.grossPerPay,r.irpfPerPay,0,r.extraNet);
+    }
+    addRow('Total anual','—',p.grossAnnual,r.irpfAnnual,r.ss.total,r.netAnnual);
+
+    persistPayrollSettingsLocal();
+    autoSaveActivePayrollCase();
+  }
+
+  function getInputs(){
+    const d=defaultForCalculator(activeCalculatorId);
+    const principal = Math.max(0, parseEsAmount($('#amount').value)||0);
+    const annualRate = Math.max(0, Number($('#interest').value)||0)/100;
+    const termMonths = termMonthsFromUI();
+    const annualInflation = Number($('#inflation').value||0)/100;
+    const alternativeAnnualReturn = Math.max(-0.99, Number($('#altReturnCompare').value||0)/100);
+    const personal=activeCalculatorId==='personal';
+
+    if(personal) ensurePersonalDates();
+
+    const firstPaymentDate = personal
+      ? parseExactDate($('#firstPaymentDate').value)
+      : parseMonth($('#start').value || d.start);
+
+    const start = firstPaymentDate;
+    const openingFee = openingFeeAmountFromUI(principal);
+
+    return {
+      principal,annualRate,termMonths,annualInflation,alternativeAnnualReturn,
+      start,firstPaymentDate,openingFee,personal
+    };
+  }
+
+  function normalizedEvents(x){
+    const anchor=x.personal ? x.firstPaymentDate : x.start;
+    return amortizations
+      .map((a,idx)=>{
+        const eventDate=parseExactDate(a.date);
+        const rawIndex=monthDiff(anchor,eventDate);
+        return {
+          ...a, idx,
+          amount: Math.max(0, parseEsAmount(a.amount)||0),
+          feePct: Math.max(0, Number(a.feePct)||0),
+          monthIndex: x.personal ? Math.max(0,rawIndex) : rawIndex
+        };
+      })
+      .filter(a=>a.amount>0 && a.monthIndex>=0)
+      .sort((a,b)=>a.monthIndex-b.monthIndex || a.idx-b.idx);
+  }
+
+  function simulate(useEvents){
+    const x = getInputs();
+    const r = x.annualRate/12;
+    const n0 = x.termMonths;
+    const inflM = Math.pow(1+x.annualInflation,1/12)-1;
+    const regularPayment = paymentFor(x.principal,r,n0);
+    const events = useEvents ? normalizedEvents(x) : [];
+    let balance = x.principal;
+    let currentPayment = regularPayment;
+    let targetEnd = n0;
+    let totalInterest=0,totalPaid=x.openingFee,totalReal=x.openingFee,totalFees=0,totalExtra=0;
+    const rows=[];
+    const maxMonths = Math.max(1200, n0+120);
+    const preferredPaymentDay = x.personal ? x.firstPaymentDate.getDate() : 1;
+
+    for(let i=0; i<maxMonths && balance>.005; i++){
+      const date = x.personal
+        ? addMonthsClamped(x.firstPaymentDate,i,preferredPaymentDay)
+        : addMonths(x.start,i);
+
+      const opening = balance;
+      const interest = opening*r;
+
+      let scheduled = Math.min(currentPayment, opening+interest);
+      let principalPaid = Math.max(0, scheduled-interest);
+      balance = Math.max(0, opening-principalPaid);
+
+      let extra=0, fees=0, modes=[];
+      const monthEvents = events.filter(e=>e.monthIndex===i);
+
+      for(const ev of monthEvents){
+        const applied = Math.min(ev.amount,balance);
+        if(applied<=0) continue;
+
+        extra += applied;
+        const fee = applied*(ev.feePct/100);
+        fees += fee;
+        balance = Math.max(0,balance-applied);
+        modes.push(ev.mode);
+
+        if(balance>.005){
+          if(ev.mode==='payment'){
+            const remaining = Math.max(1, targetEnd-(i+1));
+            currentPayment = paymentFor(balance,r,remaining);
+          }else{
+            const rem = periodsFor(balance,r,currentPayment);
+            if(Number.isFinite(rem)) targetEnd = (i+1)+rem;
+          }
+        }
+      }
+
+      // Clear any tiny residual in the planned final instalment.
+      if(balance>.005 && i+1>=targetEnd){
+        const extraFinal=balance;
+        scheduled += extraFinal;
+        principalPaid += extraFinal;
+        balance=0;
+      }
+
+      const cash = scheduled+extra+fees;
+      const discount=Math.pow(1+inflM,i);
+
+      const realPayment = scheduled/discount;
+      const realCash = cash/discount;
+      const realExtra = (extra+fees)/discount;
+
+      totalInterest += interest;
+      totalPaid += cash;
+      totalReal += realCash;
+      totalFees += fees;
+      totalExtra += extra;
+
+      rows.push({
+        i,date,opening,scheduled,principal:principalPaid,interest,extra,fees,
+        balance,realPayment,realCash,realExtra,cash,
+        inflationAccum:discount-1,
+        event:monthEvents.length>0,
+        mode:modes.join(', ')
+      });
+
+      if(balance<=.005) break;
+
+      if(!x.personal && i+1 >= targetEnd && balance>.005){
+        currentPayment = Math.max(currentPayment, balance*(1+r));
+      }
+    }
+
+    return {
+      rows,
+      initialPayment:regularPayment,
+      regularPayment,
+      firstPayment:rows[0]?.scheduled || regularPayment,
+      finalPayment:rows.at(-1)?.scheduled || regularPayment,
+      totalInterest,totalPaid,totalReal,totalFees,totalExtra,
+      openingFee:x.openingFee,inputs:x
+    };
+  }
+
+  function simulateSavedState(calculatorId,rawState,useEvents=true){
+    const state=normalizeCaseState(rawState,calculatorId);
+    const personal=calculatorId==='personal';
+    const principal=Math.max(0,Number(state.amount)||0);
+    const annualRate=Math.max(0,Number(state.interest)||0)/100;
+    const termMonths=Math.max(1,Math.round(Number(state.termMonths)||1));
+    const annualInflation=Number(state.inflation||0)/100;
+    const r=annualRate/12;
+    const inflM=Math.pow(1+annualInflation,1/12)-1;
+    const firstPaymentDate=personal ? parseExactDate(state.firstPaymentDate) : parseMonth(state.start);
+    const start=firstPaymentDate;
+    const openingFee=personal
+      ? (state.openingFeeType==='fixed'
+          ? Math.max(0,Number(state.openingFeeValue)||0)
+          : principal*Math.max(0,Number(state.openingFeeValue)||0)/100)
+      : 0;
+
+    const regularPayment=paymentFor(principal,r,termMonths);
+    const events=(useEvents ? (state.amortizations||[]) : [])
+      .map((a,idx)=>{
+        const eventDate=parseExactDate(a.date);
+        const rawIndex=monthDiff(firstPaymentDate,eventDate);
+        return {
+          ...a,idx,
+          amount:Math.max(0,parseEsAmount(a.amount)||0),
+          feePct:Math.max(0,Number(a.feePct)||0),
+          monthIndex:personal ? Math.max(0,rawIndex) : rawIndex
+        };
+      })
+      .filter(a=>a.amount>0 && a.monthIndex>=0)
+      .sort((a,b)=>a.monthIndex-b.monthIndex || a.idx-b.idx);
+
+    let balance=principal;
+    let currentPayment=regularPayment;
+    let targetEnd=termMonths;
+    let totalInterest=0,totalPaid=openingFee,totalReal=openingFee,totalFees=0,totalExtra=0;
+    const rows=[];
+    const maxMonths=Math.max(1200,termMonths+120);
+    const preferredPaymentDay=personal ? firstPaymentDate.getDate() : 1;
+
+    for(let i=0;i<maxMonths && balance>.005;i++){
+      const date=personal
+        ? addMonthsClamped(firstPaymentDate,i,preferredPaymentDay)
+        : addMonths(start,i);
+      const opening=balance;
+      const interest=opening*r;
+      let scheduled=Math.min(currentPayment,opening+interest);
+      let principalPaid=Math.max(0,scheduled-interest);
+      balance=Math.max(0,opening-principalPaid);
+
+      let extra=0,fees=0,modes=[];
+      const monthEvents=events.filter(e=>e.monthIndex===i);
+      for(const ev of monthEvents){
+        const applied=Math.min(ev.amount,balance);
+        if(applied<=0)continue;
+        extra+=applied;
+        const fee=applied*(ev.feePct/100);
+        fees+=fee;
+        balance=Math.max(0,balance-applied);
+        modes.push(ev.mode);
+        if(balance>.005){
+          if(ev.mode==='payment'){
+            const remaining=Math.max(1,targetEnd-(i+1));
+            currentPayment=paymentFor(balance,r,remaining);
+          }else{
+            const rem=periodsFor(balance,r,currentPayment);
+            if(Number.isFinite(rem)) targetEnd=(i+1)+rem;
+          }
+        }
+      }
+
+      if(balance>.005 && i+1>=targetEnd){
+        const extraFinal=balance;
+        scheduled+=extraFinal;
+        principalPaid+=extraFinal;
+        balance=0;
+      }
+
+      const cash=scheduled+extra+fees;
+      const discount=Math.pow(1+inflM,i);
+      const realPayment=scheduled/discount;
+      const realCash=cash/discount;
+      const realExtra=(extra+fees)/discount;
+      totalInterest+=interest;
+      totalPaid+=cash;
+      totalReal+=realCash;
+      totalFees+=fees;
+      totalExtra+=extra;
+
+      rows.push({
+        i,date,opening,scheduled,principal:principalPaid,interest,extra,fees,
+        balance,realPayment,realCash,realExtra,cash,
+        inflationAccum:discount-1,event:monthEvents.length>0,mode:modes.join(', ')
+      });
+      if(balance<=.005)break;
+    }
+
+    return {
+      rows,initialPayment:regularPayment,regularPayment,
+      firstPayment:rows[0]?.scheduled||regularPayment,
+      finalPayment:rows.at(-1)?.scheduled||regularPayment,
+      totalInterest,totalPaid,totalReal,totalFees,totalExtra,openingFee,
+      inputs:{principal,annualRate,termMonths,annualInflation,start,firstPaymentDate,openingFee,personal}
+    };
+  }
+
+  function annualize(rows){
+    const map = new Map();
+    for(const r of rows){
+      const y=r.date.getFullYear();
+      if(!map.has(y)) map.set(y,{year:y,scheduled:0,principal:0,interest:0,extra:0,fees:0,cash:0,realCash:0,balance:r.balance,months:0});
+      const a=map.get(y);
+      a.scheduled+=r.scheduled;a.principal+=r.principal;a.interest+=r.interest;a.extra+=r.extra;a.fees+=r.fees;
+      a.cash+=r.cash;a.realCash+=r.realCash;a.balance=r.balance;a.months++;
+    }
+    return [...map.values()];
+  }
+
+  function alternativeInvestmentComparison(baseRows, actualRows, annualInflation, annualReturn){
+    const endIndex = Math.max(0, baseRows.length-1);
+    const monthlyReturn = Math.pow(1+annualReturn,1/12)-1;
+    const monthlyInflation = Math.pow(1+annualInflation,1/12)-1;
+    let capital=0, finalValue=0;
+    let firstIndex=null;
+
+    for(const r of actualRows){
+      if(r.extra>0){
+        capital += r.extra;
+        if(firstIndex===null || r.i<firstIndex) firstIndex=r.i;
+        const months = Math.max(0,endIndex-r.i);
+        finalValue += r.extra * Math.pow(1+monthlyReturn,months);
+      }
+    }
+    const profitNominal = finalValue-capital;
+    const endInflationFactor = Math.pow(1+monthlyInflation,endIndex);
+    const profitReal = endInflationFactor!==0 ? profitNominal/endInflationFactor : profitNominal;
+
+    const monthsDuration = firstIndex===null ? 0 : Math.max(0,endIndex-firstIndex);
+    const yy = Math.floor(monthsDuration/12), mm = monthsDuration%12;
+    const durationText = firstIndex===null ? '—' : `${yy} años${mm?` y ${mm} meses`:''}`;
+
+    return {capital,finalValue,profitNominal,profitReal,monthsDuration,durationText};
+  }
+
+  function opportunityNPV(baseRows, actualRows, annualReturn){
+    const monthlyReturn = Math.pow(1+annualReturn,1/12)-1;
+    const n = Math.max(baseRows.length,actualRows.length);
+    let value = 0;
+    for(let i=0;i<n;i++){
+      const baseCash = i<baseRows.length ? baseRows[i].cash : 0;
+      const actualCash = i<actualRows.length ? actualRows[i].cash : 0;
+      value += (baseCash-actualCash) / Math.pow(1+monthlyReturn,i);
+    }
+    return value;
+  }
+
+  function breakEvenAnnualRate(baseRows, actualRows){
+    if(!actualRows.some(r=>r.extra>0 || r.fees>0)) return {kind:'none',rate:null};
+    const f0 = opportunityNPV(baseRows,actualRows,0);
+    if(Math.abs(f0)<0.01) return {kind:'rate',rate:0};
+    if(f0<0) return {kind:'belowZero',rate:null};
+
+    let lo=0, hi=0.01, fHi=opportunityNPV(baseRows,actualRows,hi);
+    while(fHi>0 && hi<5){
+      lo=hi;
+      hi=hi*1.8+0.01;
+      fHi=opportunityNPV(baseRows,actualRows,hi);
+    }
+    if(fHi>0) return {kind:'aboveRange',rate:null};
+
+    for(let i=0;i<80;i++){
+      const mid=(lo+hi)/2;
+      const fMid=opportunityNPV(baseRows,actualRows,mid);
+      if(fMid>0) lo=mid; else hi=mid;
+    }
+    return {kind:'rate',rate:(lo+hi)/2};
+  }
+
+  function aggregateSavedCases(calculatorId=activeCalculatorId){
+    const cases=savedCasesFor(calculatorId);
+    const today=todayLocal();
+    const simulations=cases.map(c=>{
+      const actual=simulateSavedState(calculatorId,c.state,true);
+      const base=simulateSavedState(calculatorId,c.state,false);
+      const endDate=actual.rows.length ? actual.rows.at(-1).date : actual.inputs.start;
+      const upcoming=actual.rows.find(r=>r.date>=today);
+      return {case:c,actual,base,endDate,upcoming,archived:endDate<today};
+    });
+    const active=simulations.filter(x=>!x.archived);
+    const archived=simulations.filter(x=>x.archived);
+    return {cases,simulations,active,archived,today};
+  }
+
+  function renderAllCasesAnnualCards(bundle){
+    const grid=$('#allCasesAnnualGrid');
+    if(!grid)return;
+    grid.innerHTML='';
+    const years=new Map();
+
+    bundle.simulations.forEach(item=>{
+      const actual=item.actual;
+      const firstYear=actual.rows[0]?.date.getFullYear();
+      actual.rows.forEach(r=>{
+        const year=r.date.getFullYear();
+        if(!years.has(year)) years.set(year,{year,paid:0,real:0,realInterest:0,caseIds:new Set()});
+        const a=years.get(year);
+        a.paid+=r.cash;
+        a.real+=r.realCash;
+        const discount=1+(r.inflationAccum||0);
+        a.realInterest+=discount!==0 ? r.interest/discount : r.interest;
+        a.caseIds.add(item.case.id);
+      });
+      if(firstYear && actual.openingFee>0){
+        if(!years.has(firstYear)) years.set(firstYear,{year:firstYear,paid:0,real:0,realInterest:0,caseIds:new Set()});
+        const a=years.get(firstYear);
+        a.paid+=actual.openingFee;
+        a.real+=actual.openingFee;
+        a.caseIds.add(item.case.id);
+      }
+    });
+
+    const rows=[...years.values()].sort((a,b)=>a.year-b.year);
+    if(!rows.length){
+      grid.innerHTML='<div class="empty">No hay años para mostrar.</div>';
+      return;
+    }
+
+    rows.forEach(a=>{
+      const n=a.caseIds.size;
+      const card=document.createElement('article');
+      card.className='all-year-card';
+      card.innerHTML=`
+        <div class="all-year-head">
+          <div class="all-year-title">${a.year}</div>
+          <div class="all-year-meta">${n} ${activeCalculatorId==='mortgage'?(n===1?'hipoteca':'hipotecas'):(n===1?'préstamo':'préstamos')}</div>
+        </div>
+        <div class="all-year-stats">
+          <div class="all-year-stat"><span>${activeCalculatorId==='personal'?'Pagado<br>al año':'Pagado al año'}</span><strong>${eur0.format(a.paid)}</strong></div>
+          <div class="all-year-stat"><span>${activeCalculatorId==='personal'?'Importe<br>real':'Importe real'}</span><strong>${eur0.format(a.real)}</strong></div>
+          <div class="all-year-stat"><span>${activeCalculatorId==='personal'?'Intereses<br>reales':'Intereses reales'}</span><strong>${eur0.format(a.realInterest)}</strong></div>
+        </div>`;
+      grid.appendChild(card);
+    });
+  }
+
+  function projectionSettingsFor(id=activeCalculatorId){
+    return projectionSettings[id] || {
+      initialSavings:FIXED_PROJECTION_SAVINGS,startMonth:null,monthlyHistory:[],
+      forecastBases:{},forecastPayments:{},forecastResults:{},
+      forecastSnapshotVersion:0,forecastLoanIds:[],realSavings:{}
+    };
+  }
+
+  function monthlyAmountFor(month,settings){
+    let amount=0;
+    (settings.monthlyHistory||[]).forEach(entry=>{
+      if(entry.month<=month) amount=entry.amount;
+    });
+    return amount;
+  }
+
+  function semesterNumber(date){
+    return date.getMonth()<6 ? 1 : 2;
+  }
+
+  function semesterStart(year,semester){
+    return new Date(year,semester===1?0:6,1);
+  }
+
+  function semesterEnd(year,semester){
+    return new Date(year,semester===1?6:12,0);
+  }
+
+  function monthStart(date){
+    return new Date(date.getFullYear(),date.getMonth(),1);
+  }
+
+  function monthsInclusive(a,b){
+    return Math.max(0,(b.getFullYear()-a.getFullYear())*12+b.getMonth()-a.getMonth()+1);
+  }
+
+  function projectionStatusForPeriod(periodStart,periodEnd,today){
+    const currentMonth=monthStart(today);
+    if(periodEnd<currentMonth) return 'cerrado';
+    if(periodStart>currentMonth) return 'futuro';
+    return 'en curso';
+  }
+
+  function setProjectionStatus(text,type=''){
+    const el=$('#projectionSaveStatus');
+    if(!el)return;
+    el.textContent=text||'';
+    el.className='projection-save-status'+(type?' '+type:'');
+  }
+
+  function renderSemesterProjection(bundle){
+    const container=$('#semesterProjectionYears');
+    if(!container)return;
+    container.innerHTML='';
+
+    const settings=projectionSettingsFor(activeCalculatorId);
+    settings.initialSavings=FIXED_PROJECTION_SAVINGS;
+    settings.forecastBases=settings.forecastBases || {};
+    settings.forecastPayments=settings.forecastPayments || {};
+    settings.forecastResults=settings.forecastResults || {};
+    settings.realSavings=settings.realSavings || {};
+    settings.forecastLoanIds=Array.isArray(settings.forecastLoanIds) ? settings.forecastLoanIds : [];
+
+    const currentMonthKey=monthKey(bundle.today);
+    const currentMonthly=monthlyAmountFor(currentMonthKey,settings);
+
+    const netCapitalFor=item=>{
+      const principal=Math.max(0,item.actual.inputs.principal||0);
+      const openingFee=Math.max(0,item.actual.openingFee||0);
+      return Math.max(0,principal-openingFee);
+    };
+
+    const capitalEntryMonthFor=item=>{
+      // Un préstamo nuevo entra en la proyección cuando se incorpora como caso guardado.
+      // Para casos antiguos sin fecha válida, usamos el inicio de su simulación.
+      const created=new Date(item.case?.createdAt || '');
+      const fallback=item.actual.inputs.start instanceof Date
+        ? item.actual.inputs.start
+        : bundle.today;
+      const d=Number.isNaN(created.getTime()) ? fallback : created;
+      return monthStart(d);
+    };
+
+    const totalLoanCapital=bundle.simulations.reduce((sum,item)=>sum+netCapitalFor(item),0);
+
+    if($('#projectionInitialSavings')){
+      $('#projectionInitialSavings').value=formatEditableAmount(FIXED_PROJECTION_SAVINGS);
+      $('#projectionInitialSavings').readOnly=true;
+    }
+    if($('#projectionMonthlyAvailable') && document.activeElement!==$('#projectionMonthlyAvailable')){
+      $('#projectionMonthlyAvailable').value=formatEditableAmount(currentMonthly);
+    }
+    if($('#projectionLoanCapital')){
+      $('#projectionLoanCapital').value=formatEditableAmount(totalLoanCapital);
+    }
+
+    const savingsNote=$('#projectionInitialSavingsNote');
+    if(savingsNote){
+      savingsNote.textContent=`Fijado en ${eur0.format(FIXED_PROJECTION_SAVINGS)} · no editable.`;
+    }
+    const monthlyNote=$('#projectionMonthlyNote');
+    if(monthlyNote){
+      monthlyNote.textContent=`Valor vigente en ${monthFmtLong.format(bundle.today)}. No modifica previsiones ya cerradas.`;
+    }
+
+    const latestEnd=bundle.simulations.length
+      ? bundle.simulations.reduce((max,item)=>!max || item.endDate>max ? item.endDate : max,null)
+      : null;
+
+    if($('#projectionEndDate')){
+      $('#projectionEndDate').value=latestEnd
+        ? (activeCalculatorId==='personal'?fullDateFmt.format(latestEnd):monthFmt.format(latestEnd))
+        : '—';
+    }
+
+    if(!latestEnd){
+      container.innerHTML='<div class="projection-empty">No hay préstamos guardados para proyectar.</div>';
+      return;
+    }
+
+    if(!settings.startMonth){
+      settings.startMonth=currentMonthKey;
+    }
+
+    const startParts=settings.startMonth.split('-').map(Number);
+    const startMonth=new Date(startParts[0],startParts[1]-1,1);
+    const endMonth=new Date(latestEnd.getFullYear(),latestEnd.getMonth(),1);
+
+    if(endMonth<startMonth){
+      container.innerHTML='<div class="projection-empty">La proyección empieza después del final del último préstamo.</div>';
+      return;
+    }
+
+    const periods=[];
+    let cursor=new Date(startMonth);
+
+    while(cursor<=endMonth){
+      const year=cursor.getFullYear();
+      const sem=semesterNumber(cursor);
+      const key=`${year}-S${sem}`;
+      const naturalSemStart=semesterStart(year,sem);
+      const naturalSemEnd=semesterEnd(year,sem);
+      const periodStart=cursor>naturalSemStart ? cursor : naturalSemStart;
+      const periodEnd=endMonth<naturalSemEnd ? endMonth : naturalSemEnd;
+      const monthCount=monthsInclusive(periodStart,periodEnd);
+
+      let savedThisPeriod=0;
+      let monthCursor=new Date(periodStart);
+      while(monthCursor<=periodEnd){
+        savedThisPeriod+=monthlyAmountFor(monthKey(monthCursor),settings);
+        monthCursor=new Date(monthCursor.getFullYear(),monthCursor.getMonth()+1,1);
+      }
+
+      let loanPayments=0;
+      bundle.simulations.forEach(item=>{
+        item.actual.rows.forEach(r=>{
+          const rm=monthStart(r.date);
+          if(rm>=periodStart && rm<=periodEnd){
+            loanPayments+=r.scheduled;
+          }
+        });
+      });
+
+      let capitalAdded=0;
+      bundle.simulations.forEach(item=>{
+        let entry=capitalEntryMonthFor(item);
+        // Capitales incorporados antes de comenzar la proyección forman parte de la base inicial.
+        if(entry<startMonth) entry=new Date(startMonth);
+        if(entry>=periodStart && entry<=periodEnd){
+          capitalAdded+=netCapitalFor(item);
+        }
+      });
+
+      const labelStart=new Intl.DateTimeFormat('es-ES',{month:'short'}).format(periodStart);
+      const labelEnd=new Intl.DateTimeFormat('es-ES',{month:'short'}).format(periodEnd);
+
+      periods.push({
+        key,year,semester:sem,
+        range:`${labelStart}–${labelEnd}`,
+        monthCount,
+        savedThisPeriod,
+        dynamicLoans:loanPayments,
+        capitalAdded,
+        periodStart,periodEnd,
+        status:projectionStatusForPeriod(periodStart,periodEnd,bundle.today)
+      });
+
+      cursor=new Date(periodEnd.getFullYear(),periodEnd.getMonth()+1,1);
+    }
+
+    // ----------------------------------------------------------
+    // PREVISIÓN CERRADA
+    // Se fotografía ahora como:
+    //   Ahorro + capital - cuotas
+    // y después no cambia por ajustes ordinarios.
+    //
+    // Excepción prevista: si en el futuro aparece un NUEVO préstamo
+    // guardado, recalculamos desde el semestre en que entra ese capital,
+    // manteniendo intactos los periodos anteriores.
+    // ----------------------------------------------------------
+    const currentLoanIds=bundle.simulations.map(item=>String(item.case.id));
+    const knownLoanIds=new Set(settings.forecastLoanIds.map(String));
+    const newLoanIds=currentLoanIds.filter(id=>!knownLoanIds.has(id));
+
+    let recalcFrom=-1;
+
+    if(settings.forecastSnapshotVersion!==PROJECTION_FORECAST_VERSION){
+      settings.forecastBases={};
+      settings.forecastPayments={};
+      settings.forecastResults={};
+      recalcFrom=0;
+    }else{
+      // Extensiones nuevas de la proyección también necesitan fotografía.
+      const missingIndex=periods.findIndex(row=>
+        !Object.prototype.hasOwnProperty.call(settings.forecastBases,row.key) ||
+        !Object.prototype.hasOwnProperty.call(settings.forecastPayments,row.key) ||
+        !Object.prototype.hasOwnProperty.call(settings.forecastResults,row.key)
+      );
+      if(missingIndex>=0) recalcFrom=missingIndex;
+
+      // Un préstamo nuevo es la única excepción que puede actualizar
+      // previsiones futuras, desde el mes en que se incorpora.
+      newLoanIds.forEach(id=>{
+        const item=bundle.simulations.find(x=>String(x.case.id)===id);
+        if(!item)return;
+        let entry=capitalEntryMonthFor(item);
+        if(entry<startMonth) entry=new Date(startMonth);
+        const idx=periods.findIndex(row=>entry>=row.periodStart && entry<=row.periodEnd);
+        if(idx>=0 && (recalcFrom<0 || idx<recalcFrom)) recalcFrom=idx;
+      });
+    }
+
+    let forecastChanged=false;
+
+    if(recalcFrom>=0){
+      let running=recalcFrom===0
+        ? FIXED_PROJECTION_SAVINGS
+        : parseEsAmount(settings.forecastResults[periods[recalcFrom-1].key]);
+
+      for(let i=recalcFrom;i<periods.length;i++){
+        const row=periods[i];
+        const gross=running+row.capitalAdded+row.savedThisPeriod;
+        const payments=row.dynamicLoans;
+        const forecast=gross-payments;
+
+        settings.forecastBases[row.key]=gross;
+        settings.forecastPayments[row.key]=payments;
+        settings.forecastResults[row.key]=forecast;
+        running=forecast;
+      }
+      forecastChanged=true;
+    }
+
+    settings.forecastSnapshotVersion=PROJECTION_FORECAST_VERSION;
+    settings.forecastLoanIds=[...new Set([...settings.forecastLoanIds,...currentLoanIds])];
+
+    periods.forEach(row=>{
+      row.gross=parseEsAmount(settings.forecastBases[row.key]);
+      row.loans=Math.max(0,parseEsAmount(settings.forecastPayments[row.key]));
+      row.forecastResult=parseEsAmount(settings.forecastResults[row.key]);
+
+      const hasReal=Object.prototype.hasOwnProperty.call(settings.realSavings,row.key);
+      row.hasRealSavings=hasReal;
+      row.realSavings=hasReal ? Math.max(0,parseEsAmount(settings.realSavings[row.key])) : null;
+      row.realDifference=hasReal ? row.realSavings-row.forecastResult : null;
+    });
+
+    if(forecastChanged || settings.forecastLoanIds.length!==knownLoanIds.size){
+      projectionSettings[activeCalculatorId]=settings;
+      persistProjectionSettingsLocal();
+      scheduleGistAutoSync();
+    }
+
+    const signedEur0=value=>{
+      if(value===null || value===undefined || !Number.isFinite(Number(value))) return '—';
+      const n=Number(value);
+      if(Math.abs(n)<0.5) return '0 €';
+      return `${n>0?'+':'−'}${formatEsNumber(Math.abs(n),0)} €`;
+    };
+
+    const rowsByYear=new Map();
+    periods.forEach(row=>{
+      if(!rowsByYear.has(row.year)) rowsByYear.set(row.year,[]);
+      rowsByYear.get(row.year).push(row);
+    });
+
+    [...rowsByYear.entries()].forEach(([year,rows])=>{
+      const yearCard=document.createElement('article');
+      yearCard.className='projection-year';
+
+      const rowsHtml=rows.map(row=>{
+        const isClosed=row.status==='cerrado';
+        const isFuture=row.status==='futuro';
+
+        let realSavingsHtml='';
+        if(row.hasRealSavings && isClosed){
+          realSavingsHtml=`
+            <strong>${eur0.format(row.realSavings)}</strong>
+            <small>cerrado</small>
+          `;
+        }else if(isFuture){
+          realSavingsHtml=`
+            <strong>—</strong>
+            <small>se introduce al cierre</small>
+          `;
+        }else{
+          realSavingsHtml=`
+            <div class="semester-edit-wrap">
+              <input
+                class="semester-real-savings-input"
+                type="text"
+                inputmode="decimal"
+                data-semester-key="${row.key}"
+                value="${row.hasRealSavings?formatEditableAmount(row.realSavings):''}"
+                placeholder="0"
+                aria-label="Ahorro real ${row.key}">
+              <span class="mini-euro">€</span>
+            </div>
+            <small>${isClosed?'pendiente · se cerrará al guardar':'editable hasta cerrar semestre'}</small>
+          `;
+        }
+
+        const capitalNote=row.capitalAdded>0
+          ? `+ ${eur0.format(row.capitalAdded)} capital · + ${eur0.format(row.savedThisPeriod)} ahorro`
+          : `+ ${eur0.format(row.savedThisPeriod)} de ahorro en el periodo`;
+
+        const diffClass=row.realDifference===null
+          ? ''
+          : (row.realDifference>0?'positive':(row.realDifference<0?'negative':''));
+
+        return `
+          <div class="semester-row" data-semester-key="${row.key}">
+            <div class="semester-label">
+              <strong>${row.semester===1?'1º semestre':'2º semestre'}</strong>
+              <span>${row.range} · ${row.monthCount} mes${row.monthCount===1?'':'es'} · ${row.status}</span>
+            </div>
+
+            <div class="semester-metric">
+              <span>Ahorro + capital</span>
+              <strong>${eur0.format(row.gross)}</strong>
+              <small>${capitalNote}</small>
+            </div>
+
+            <div class="semester-metric">
+              <span>Cuotas</span>
+              <strong>${eur0.format(row.loans)}</strong>
+              <small>suma del semestre</small>
+            </div>
+
+            <div class="semester-metric forecast">
+              <span>Previsión</span>
+              <strong>${eur0.format(row.forecastResult)}</strong>
+              <small>cerrada</small>
+            </div>
+
+            <div class="semester-metric real-savings ${isClosed&&row.hasRealSavings?'closed':''} ${isFuture?'future':''}">
+              <span>Ahorro real</span>
+              ${realSavingsHtml}
+            </div>
+
+            <div class="semester-metric result">
+              <span>Resultado real</span>
+              <strong class="${diffClass}">${signedEur0(row.realDifference)}</strong>
+              <small>${row.hasRealSavings?'diferencia vs previsión':'esperando ahorro real'}</small>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      yearCard.innerHTML=`
+        <div class="projection-year-title">${year}</div>
+        ${rowsHtml}
+      `;
+      container.appendChild(yearCard);
+    });
+
+    // Ahorro real:
+    // - semestre actual: se puede ir afinando hasta que cierre;
+    // - semestre ya cerrado sin dato: permite una primera carga;
+    // - una vez existe el dato y el semestre está cerrado, queda bloqueado.
+    container.querySelectorAll('.semester-real-savings-input').forEach(input=>{
+      input.addEventListener('keydown',e=>{
+        if(e.key==='Enter'){e.preventDefault();input.blur();}
+      });
+
+      input.addEventListener('blur',()=>{
+        const key=input.dataset.semesterKey;
+        const raw=input.value.trim();
+        if(raw==='')return;
+
+        const row=periods.find(x=>x.key===key);
+        if(!row)return;
+
+        // Si el semestre ya estaba cerrado y tenía dato, nunca llegaría aquí
+        // porque se renderiza como texto, no como input.
+        settings.realSavings[key]=Math.max(0,parseEsAmount(raw));
+        projectionSettings[activeCalculatorId]=settings;
+        persistProjectionSettingsLocal();
+        scheduleGistAutoSync();
+        renderSemesterProjection(aggregateSavedCases(activeCalculatorId));
+      });
+    });
+  }
+
+  function renderAllCasesView(){
+    const bundle=aggregateSavedCases(activeCalculatorId);
+    const isPersonal=activeCalculatorId==='personal';
+    const active=bundle.active;
+    const archived=bundle.archived;
+    const currentYear=bundle.today.getFullYear();
+
+    toggleAllCasesLayout(true);
+    renderSavedCases();
+    renderAllCasesAnnualCards(bundle);
+    renderSemesterProjection(bundle);
+
+    // Las 8 cards superiores solo usan casos todavía activos.
+    const currentPayment=active.reduce((sum,item)=>sum+(item.upcoming?.scheduled||0),0);
+    const principal=active.reduce((sum,item)=>sum+item.actual.inputs.principal,0);
+    const totalPaid=active.reduce((sum,item)=>sum+item.actual.totalPaid,0);
+    const totalInterest=active.reduce((sum,item)=>sum+item.actual.totalInterest,0);
+    const totalReal=active.reduce((sum,item)=>sum+item.actual.totalReal,0);
+
+    const annualInterest=active.reduce((sum,item)=>{
+      return sum+item.actual.rows
+        .filter(r=>r.date.getFullYear()===currentYear)
+        .reduce((s2,r)=>s2+r.interest,0);
+    },0);
+
+    const annualPayments=active.reduce((sum,item)=>{
+      return sum+item.actual.rows
+        .filter(r=>r.date.getFullYear()===currentYear)
+        .reduce((s2,r)=>s2+r.scheduled,0);
+    },0);
+
+    const endDate=active.length
+      ? active.reduce((max,item)=>!max || item.endDate>max ? item.endDate : max,null)
+      : null;
+
+    // Fila 1: Capital inicial · Total pagado · Intereses pagados · Cuota
+    $('#kpi1Label').textContent='Capital inicial';
+    $('#kpi1Note').textContent='suma de los casos activos';
+    $('#kpiPayment').textContent=eur0.format(principal);
+
+    $('#kpiPaid').textContent=eur0.format(totalPaid);
+    $('#kpiInterest').textContent=eur0.format(totalInterest);
+
+    $('#kpi6Label').textContent='Cuota';
+    $('#kpi6Note').textContent='cuotas vigentes sumadas';
+    $('#kpiSavings').textContent=eur0.format(currentPayment);
+    $('#kpiSavings').className='kpi-value';
+
+    // Fila 2: Fin · Coste real · Intereses del año · Suma de cuotas del año
+    $('#kpiEnd').textContent=endDate
+      ? (isPersonal?fullDateFmt.format(endDate):monthFmt.format(endDate))
+      : '—';
+    $('#kpiEndNote').textContent=active.length
+      ? `${active.length} activo${active.length===1?'':'s'}${archived.length?` · ${archived.length} archivado${archived.length===1?'':'s'}`:''}`
+      : `${archived.length} archivado${archived.length===1?'':'s'}`;
+
+    $('#kpi4Label').textContent='Coste real';
+    $('#kpiReal').textContent=eur0.format(totalReal);
+    $('#kpiRealNote').textContent='suma de los casos activos';
+
+    $('#kpiAnnualInterest').textContent=eur0.format(annualInterest);
+    $('#kpiAnnualInterestNote').textContent=`${currentYear} · casos activos`;
+
+    $('#kpiAnnualPayments').textContent=eur0.format(annualPayments);
+    $('#kpiAnnualPaymentsNote').textContent=`${currentYear} · cuotas ordinarias`;
+
+    const intro=$('#allCasesAnnualIntro');
+    if(intro){
+      intro.textContent=`Suma por año natural de ${bundle.cases.length} ${isPersonal?(bundle.cases.length===1?'préstamo guardado':'préstamos guardados'):(bundle.cases.length===1?'hipoteca guardada':'hipotecas guardadas')}. Los casos finalizados siguen en sus años históricos, pero dejan de entrar en las cards superiores.`;
+    }
+  }
+
+  function renderPersonalYearCards(actual){
+    const grid=$('#personalYearsGrid');
+    if(!grid)return;
+    grid.innerHTML='';
+
+    const rows=actual.rows || [];
+    if(!rows.length){
+      grid.innerHTML='<div class="empty">No hay cuotas para mostrar.</div>';
+      return;
+    }
+
+    const byYear=new Map();
+    rows.forEach(r=>{
+      const year=r.date.getFullYear();
+      if(!byYear.has(year)) byYear.set(year,[]);
+      byYear.get(year).push(r);
+    });
+
+    const years=[...byYear.keys()].sort((a,b)=>a-b);
+    const firstYear=years[0];
+
+    years.forEach(year=>{
+      const chunk=byYear.get(year);
+      const nominalRows=chunk.reduce((sum,r)=>sum+r.cash,0);
+      const realRows=chunk.reduce((sum,r)=>sum+r.realCash,0);
+      const openingFee=(year===firstYear ? (actual.openingFee||0) : 0);
+      const annualPaid=nominalRows+openingFee;
+      const annualReal=realRows+openingFee;
+      const annualInterest=chunk.reduce((sum,r)=>sum+r.interest,0);
+
+      const card=document.createElement('article');
+      card.className='loan-year-card';
+
+      const first=chunk[0];
+      const last=chunk.at(-1);
+      const rangeText=`${chunk.length} cuota${chunk.length===1?'':'s'} · ${fullDateFmt.format(first.date)} → ${fullDateFmt.format(last.date)}`;
+
+      const monthsHtml=chunk.map(r=>{
+        const monthName=new Intl.DateTimeFormat('es-ES',{month:'short'}).format(r.date);
+        return `
+          <div class="monthly-interest-item">
+            <span>${monthName}</span>
+            <strong>${eur0.format(r.interest)}</strong>
+          </div>`;
+      }).join('');
+
+      card.innerHTML=`
+        <div class="loan-year-head">
+          <div class="loan-year-title">${year}</div>
+          <div class="loan-year-range">${rangeText}</div>
+        </div>
+
+        <div class="loan-year-stats">
+          <div class="loan-year-stat">
+            <span>Pagado en el año</span>
+            <strong>${eur0.format(annualPaid)}</strong>
+          </div>
+          <div class="loan-year-stat">
+            <span>Importe real</span>
+            <strong>${eur0.format(annualReal)}</strong>
+          </div>
+          <div class="loan-year-stat">
+            <span>Intereses del año</span>
+            <strong>${eur0.format(annualInterest)}</strong>
+          </div>
+        </div>
+
+        ${openingFee>0 ? `<div class="loan-year-note">Incluye ${eur.format(openingFee)} de comisión de apertura.</div>` : ''}
+
+        <div class="monthly-interest-title">Intereses por mes</div>
+        <div class="monthly-interest-grid">${monthsHtml}</div>
+      `;
+
+      grid.appendChild(card);
+    });
+  }
+
+  function recalc(){
+    if(allCasesView[activeCalculatorId] && canUseAllCases(activeCalculatorId)){
+      renderAllCasesView();
+      return;
+    }
+    toggleAllCasesLayout(false);
+    const actual = simulate(true);
+    const base = simulate(false);
+    schedule = actual.rows;
+    baseSchedule = base.rows;
+    const x = actual.inputs;
+    const baseInterest = base.totalInterest;
+    const interestSavings = base.totalInterest-actual.totalInterest;
+    const monthsSaved = Math.max(0, base.rows.length-actual.rows.length);
+    const netSavings = interestSavings-actual.totalFees;
+    const realSavings = base.totalReal-actual.totalReal;
+
+    const isPersonal = activeCalculatorId==='personal';
+
+    $('#mortgageCompareContent').style.display = isPersonal ? 'none' : 'block';
+    $('#personalYearsContent').style.display = isPersonal ? 'block' : 'none';
+    $('#compareTitle').textContent = isPersonal ? 'Resumen por años del préstamo' : 'Comparativa con el escenario sin amortizaciones';
+    if(isPersonal) renderPersonalYearCards(actual);
+
+    $('#kpi1Label').textContent = isPersonal ? 'Capital inicial' : 'Cuota inicial';
+    $('#kpi1Note').textContent = isPersonal ? 'importe financiado' : 'antes de amortizaciones';
+    $('#kpiPayment').textContent = isPersonal ? eur0.format(x.principal) : eur0.format(actual.initialPayment);
+
+    $('#kpiPaid').textContent = eur0.format(actual.totalPaid);
+    $('#kpiInterest').textContent = eur0.format(actual.totalInterest);
+
+    $('#kpi4Label').textContent = isPersonal ? 'Coste real' : 'Coste real · escenario actual';
+    $('#kpiReal').textContent = eur0.format(actual.totalReal);
+    $('#kpiRealNote').textContent = `en euros de ${monthFmtLong.format(x.start)}`;
+
+    const endDate = actual.rows.length ? actual.rows.at(-1).date : x.start;
+    $('#kpiEnd').textContent = isPersonal ? fullDateFmt.format(endDate) : monthFmt.format(endDate);
+    $('#kpiEndNote').textContent = `${actual.rows.length} meses de préstamo`;
+
+    $('#kpi6Label').textContent = isPersonal ? 'Cuota' : 'Ahorro de intereses';
+    $('#kpi6Note').textContent = isPersonal ? 'cuota mensual constante' : 'frente a no amortizar';
+    if(isPersonal){
+      $('#kpiSavings').textContent = eur0.format(actual.regularPayment);
+      $('#kpiSavings').className = 'kpi-value';
+
+      $('#personalDateInfo').textContent =
+        `Primera cuota: ${fullDateFmt.format(actual.inputs.firstPaymentDate)} · ${actual.inputs.termMonths} cuotas mensuales constantes${actual.totalExtra>0?' salvo el efecto de las amortizaciones extraordinarias':''}.`;
+    }else{
+      $('#kpiSavings').textContent = eur0.format(interestSavings);
+      $('#kpiSavings').className = 'kpi-value ' + (interestSavings>=0?'positive':'negative');
+    }
+
+    $('#baseRealCost').textContent = eur0.format(base.totalReal);
+    $('#actualRealCost').textContent = eur0.format(actual.totalReal);
+    $('#realSavings').textContent = (realSavings > 0 ? '+' : '') + eur0.format(realSavings);
+    $('#realSavings').className = realSavings>0?'positive':realSavings<0?'negative':'';
+    $('#realSavingsContext').textContent = actual.totalExtra>0
+      ? `Comparado con no amortizar. Has aportado ${eur0.format(actual.totalExtra)} nominales de capital extra.`
+      : 'Añade una amortización para comparar.';
+    const alt = alternativeInvestmentComparison(base.rows, actual.rows, x.annualInflation, x.alternativeAnnualReturn);
+    $('#altCapital').textContent = alt.capital > 0 ? eur0.format(alt.capital) : '—';
+    $('#altFinalValue').textContent = alt.capital > 0 ? eur0.format(alt.finalValue) : '—';
+    $('#altFinalValueNote').textContent = alt.capital > 0
+      ? `Hasta ${monthFmt.format(base.rows.at(-1).date)} · ${alt.durationText}.`
+      : 'Capital + intereses al vencimiento original.';
+    $('#altProfit').textContent = alt.capital > 0 ? `+${eur0.format(alt.profitNominal)}` : '—';
+    $('#altProfit').className = alt.capital > 0 ? (alt.profitNominal>=0?'positive':'negative') : '';
+    $('#altProfitNote').textContent = alt.capital > 0
+      ? `Equivale a ${eur0.format(alt.profitReal)} en euros del mes inicial.`
+      : 'Ganancia nominal de la alternativa financiera.';
+
+    if(alt.capital<=0){
+      $('#simpleAlternativeDiff').textContent='—';
+      $('#simpleAlternativeDiff').className='';
+      $('#simpleAlternativeDiffNote').textContent='Añade una amortización para comparar.';
+    }else{
+      const diff = realSavings - alt.profitReal;
+      $('#simpleAlternativeDiff').textContent = `${diff>=0?'+':''}${eur0.format(diff)}`;
+      $('#simpleAlternativeDiff').className = diff>0?'positive':diff<0?'negative':'';
+      $('#simpleAlternativeDiffNote').textContent = diff>0
+        ? `A favor de amortizar: ahorro real ${eur0.format(realSavings)} frente a ${eur0.format(alt.profitReal)} de ganancia real en la inversión.`
+        : diff<0
+          ? `A favor de invertir: ${eur0.format(alt.profitReal)} de ganancia real frente a ${eur0.format(realSavings)} de ahorro real al amortizar.`
+          : 'Ambas opciones quedan prácticamente empatadas en dinero real.';
+    }
+
+    $('#baseInterest').textContent = eur0.format(baseInterest);
+    $('#interestSavingsCompare').textContent = (interestSavings > 0 ? '+' : '') + eur0.format(interestSavings);
+    $('#interestSavingsCompare').className = interestSavings>0?'positive':interestSavings<0?'negative':'';
+    $('#monthsSaved').textContent = monthsSaved ? `${monthsSaved} meses` : '0 meses';
+    $('#feesTotal').textContent = eur.format(actual.totalFees + actual.openingFee);
+
+    renderTable();
+    drawCharts();
+
+    calculatorStates[activeCalculatorId] = snapshotCurrentCalculator();
+  }
+
+  function renderTable(){
+    const head=$('#thead'), body=$('#tbody');
+    body.innerHTML='';
+
+    if(view==='monthly'){
+      const hasExtra = schedule.some(r=>Math.abs(r.extra)>0.000001);
+      const hasFees = schedule.some(r=>Math.abs(r.fees)>0.000001);
+
+      const cols = [
+        {key:'date', label:activeCalculatorId==='personal'?'Fecha':'Mes',
+          val:r=>`${activeCalculatorId==='personal'?fullDateFmt.format(r.date):monthFmt.format(r.date)}${r.event?' · ★':''}`},
+        {key:'scheduled', label:'Cuota', val:r=>eur.format(r.scheduled)},
+        {key:'principal', label:'Capital', val:r=>eur.format(r.principal)},
+        {key:'interest', label:'Intereses', val:r=>eur.format(r.interest)},
+        ...(hasExtra ? [{key:'extra', label:'Amort. extra', val:r=>eur.format(r.extra)}] : []),
+        ...(hasFees ? [{key:'fees', label:'Comisión', val:r=>eur.format(r.fees)}] : []),
+        {key:'cash', label:'Desembolso', val:r=>eur.format(r.cash)},
+        {key:'balance', label:'Pendiente', val:r=>eur.format(r.balance)},
+        {key:'inflation', label:'IPC acum.', val:r=>`${formatSmartNumber(r.inflationAccum*100,2)}%`},
+        {key:'realPayment', label:'Cuota real', val:r=>eur.format(r.realPayment)},
+        {key:'realCash', label:'Pago real total', val:r=>eur.format(r.realCash)}
+      ];
+
+      head.innerHTML=`<tr>${cols.map(c=>`<th>${c.label}</th>`).join('')}</tr>`;
+
+      for(const r of schedule){
+        const tr=document.createElement('tr');
+        if(r.event) tr.classList.add('event-row');
+        tr.innerHTML = cols.map(c=>`<td>${c.val(r)}</td>`).join('');
+        body.appendChild(tr);
+      }
+    }else{
+      const annualRows = annualize(schedule);
+      const hasExtra = annualRows.some(a=>Math.abs(a.extra)>0.000001);
+      const hasFees = annualRows.some(a=>Math.abs(a.fees)>0.000001);
+
+      const cols = [
+        {key:'year', label:'Año', val:a=>a.year},
+        {key:'scheduled', label:'Cuotas', val:a=>eur.format(a.scheduled)},
+        {key:'principal', label:'Capital ordinario', val:a=>eur.format(a.principal)},
+        {key:'interest', label:'Intereses', val:a=>eur.format(a.interest)},
+        ...(hasExtra ? [{key:'extra', label:'Amort. extra', val:a=>eur.format(a.extra)}] : []),
+        ...(hasFees ? [{key:'fees', label:'Comisiones', val:a=>eur.format(a.fees)}] : []),
+        {key:'cash', label:'Desembolso', val:a=>eur.format(a.cash)},
+        {key:'balance', label:'Pendiente al cierre', val:a=>eur.format(a.balance)},
+        {key:'realCash', label:'Pago real total', val:a=>eur.format(a.realCash)}
+      ];
+
+      head.innerHTML=`<tr>${cols.map(c=>`<th>${c.label}</th>`).join('')}</tr>`;
+
+      for(const a of annualRows){
+        const tr=document.createElement('tr');
+        tr.innerHTML = cols.map(c=>`<td>${c.val(a)}</td>`).join('');
+        body.appendChild(tr);
+      }
+    }
+  }
+
+  function renderAmorts(){
+    const list=$('#amortList');
+    list.innerHTML='';
+    $('#amortEmpty').style.display=amortizations.length?'none':'block';
+    const bounds=amortDateBounds();
+    const minKey=dateKey(bounds.minDate), maxKey=dateKey(bounds.maxDate);
+    amortizations.forEach((a,i)=>{
+      if(/^\d{4}-\d{2}$/.test(a.date)) a.date += '-01';
+      if(a.date<minKey) a.date=minKey;
+      if(a.date>maxKey) a.date=maxKey;
+      const d=document.createElement('div');
+      d.className='amort-card';
+      d.innerHTML=`
+        <div class="amort-head"><strong>Amortización ${i+1}</strong><button class="icon-btn" data-remove="${i}" title="Eliminar">×</button></div>
+        <div class="amort-top">
+          <div class="field"><label>Fecha</label><input type="date" min="${minKey}" max="${maxKey}" data-i="${i}" data-k="date" value="${a.date}"></div>
+          <div class="field amort-amount"><label>Importe</label><div class="input-wrap has-suffix"><input type="text" inputmode="numeric" autocomplete="off" data-i="${i}" data-k="amount" value="${formatEditableAmount(a.amount)}"><span class="suffix">€</span></div></div>
+        </div>
+        <div class="two">
+          <div class="field"><label>Objetivo</label><select data-i="${i}" data-k="mode">
+            <option value="term" ${a.mode==='term'?'selected':''}>Reducir plazo</option>
+            <option value="payment" ${a.mode==='payment'?'selected':''}>Reducir cuota</option>
+          </select></div>
+          <div class="field"><label>Comisión</label><div class="input-wrap has-suffix"><input type="number" min="0" step="0.1" data-i="${i}" data-k="feePct" value="${a.feePct}"><span class="suffix">%</span></div></div>
+        </div>`;
+      list.appendChild(d);
+    });
+
+    list.querySelectorAll('[data-remove]').forEach(b=>b.addEventListener('click',()=>{
+      amortizations.splice(Number(b.dataset.remove),1); renderAmorts(); recalc();
+    }));
+    list.querySelectorAll('input,select').forEach(el=>{
+      const i=Number(el.dataset.i), k=el.dataset.k;
+
+      if(k==='amount'){
+        el.addEventListener('focus',()=>{
+          const n=parseEsAmount(el.value);
+          el.value = n ? String(n).replace('.', ',') : '';
+        });
+        el.addEventListener('input',()=>{
+          amortizations[i][k]=parseEsAmount(el.value);
+          recalc();
+        });
+        el.addEventListener('blur',()=>{
+          amortizations[i][k]=parseEsAmount(el.value);
+          el.value=formatEditableAmount(amortizations[i][k]);
+          recalc();
+        });
+      }else{
+        el.addEventListener('input',()=>{
+          amortizations[i][k]=el.value;
+          recalc();
+        });
+      }
+    });
+  }
+
+  function addAmort(){
+    const bounds=amortDateBounds();
+    let d=todayLocal();
+    if(d<bounds.minDate) d=bounds.minDate;
+    if(d>bounds.maxDate) d=bounds.maxDate;
+    amortizations.push({date:dateKey(d),amount:10000,mode:'term',feePct:0});
+    renderAmorts(); recalc();
+  }
+
+  function exportCSV(){
+    const personal=activeCalculatorId==='personal';
+    const header=[
+      personal?'Fecha':'Mes',
+      'Cuota','Capital','Intereses','Amortizacion extra','Comision','Desembolso','Pendiente','IPC acumulado','Cuota real','Pago real total'
+    ];
+    const lines=[header.join(';')];
+    for(const r of schedule){
+      const vals=[
+        personal?dateKey(r.date):monthKey(r.date),
+        r.scheduled,r.principal,r.interest,r.extra,r.fees,r.cash,r.balance,
+        r.inflationAccum,r.realPayment,r.realCash
+      ].map(v=>typeof v==='number'?v.toFixed(6).replace('.',','):v);
+      lines.push(vals.join(';'));
+    }
+    const blob=new Blob(["\ufeff"+lines.join('\n')],{type:'text/csv;charset=utf-8'});
+    const url=URL.createObjectURL(blob), a=document.createElement('a');
+    a.href=url;a.download='plan_amortizacion.csv';a.click();URL.revokeObjectURL(url);
+  }
+
+  function reset(){
+    activeSavedCaseIds[activeCalculatorId]=null;
+    calculatorStates[activeCalculatorId] = cloneDefaultCalculatorState(activeCalculatorId);
+    $('#caseName').value='';
+    loadCalculatorState(activeCalculatorId);
+    renderSavedCases();
+    setCaseStatus('Restablecido');
+  }
+
+  function lineChart(canvas, series, opts={}){
+    const rect=canvas.getBoundingClientRect(), dpr=window.devicePixelRatio||1;
+    const w=Math.max(320,rect.width), h=Math.max(220,rect.height);
+    canvas.width=w*dpr; canvas.height=h*dpr;
+    const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
+    const pad={l:54,r:16,t:18,b:36};
+    const all=series.flatMap(s=>s.data).filter(Number.isFinite);
+    if(!all.length) return;
+    const min=opts.zero?0:Math.min(...all), max=Math.max(...all);
+    const lo=opts.zero?0:min, hi=max===lo?lo+1:max;
+    const X=i=>pad.l+(w-pad.l-pad.r)*(i/Math.max(1,series[0].data.length-1));
+    const Y=v=>pad.t+(h-pad.t-pad.b)*(1-(v-lo)/(hi-lo));
+
+    ctx.clearRect(0,0,w,h);
+    ctx.strokeStyle='#e4e7ec';ctx.lineWidth=1;ctx.fillStyle='#667085';ctx.font='11px system-ui';
+    for(let g=0;g<=4;g++){
+      const y=pad.t+(h-pad.t-pad.b)*g/4;
+      ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(w-pad.r,y);ctx.stroke();
+      const v=hi-(hi-lo)*g/4;
+      ctx.fillText(eur0.format(v),4,y+4);
+    }
+    const n=series[0].data.length;
+    const ticks=5;
+    for(let t=0;t<=ticks;t++){
+      const i=Math.round((n-1)*t/ticks), x=X(i);
+      ctx.fillStyle='#667085';ctx.textAlign=t===0?'left':t===ticks?'right':'center';
+      const date=schedule[i]?.date || baseSchedule[i]?.date;
+      if(date) ctx.fillText(String(date.getFullYear()),x,h-12);
+    }
+    ctx.textAlign='left';
+
+    const colors=['#2563eb','#0f766e','#98a2b3'];
+    series.forEach((s,si)=>{
+      ctx.strokeStyle=s.color||colors[si]||'#111827';ctx.lineWidth=s.width||2.25;
+      if(s.dash) ctx.setLineDash(s.dash); else ctx.setLineDash([]);
+      ctx.beginPath();
+      s.data.forEach((v,i)=>{const x=X(i),y=Y(v); if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);});
+      ctx.stroke();ctx.setLineDash([]);
+    });
+
+    canvas._chartMeta={pad,w,h,series,X,Y};
+  }
+
+  function drawCharts(){
+    const nominal=schedule.map(r=>r.scheduled);
+    const real=schedule.map(r=>r.realPayment);
+    lineChart($('#paymentChart'),[
+      {data:nominal,color:'#2563eb'},
+      {data:real,color:'#0f766e'}
+    ],{zero:true});
+    const n=Math.max(schedule.length,baseSchedule.length);
+    const a=[],b=[];
+    for(let i=0;i<n;i++){
+      a.push(i<schedule.length?schedule[i].balance:0);
+      b.push(i<baseSchedule.length?baseSchedule[i].balance:0);
+    }
+    lineChart($('#balanceChart'),[
+      {data:a,color:'#2563eb'},
+      {data:b,color:'#98a2b3',dash:[5,5],width:1.7}
+    ],{zero:true});
+  }
+
+  function attachTooltip(canvas, kind){
+    canvas.addEventListener('mousemove',e=>{
+      const m=canvas._chartMeta;if(!m)return;
+      const r=canvas.getBoundingClientRect();
+      const x=e.clientX-r.left;
+      const idx=Math.max(0,Math.min(m.series[0].data.length-1,Math.round((x-m.pad.l)/(m.w-m.pad.l-m.pad.r)*(m.series[0].data.length-1))));
+      const row=schedule[idx] || baseSchedule[idx];
+      if(!row)return;
+      const tt=$('#tooltip');
+      if(kind==='payment'){
+        tt.innerHTML=`<strong>${activeCalculatorId==='personal'?fullDateFmt.format(row.date):monthFmt.format(row.date)}</strong><br>Cuota: ${eur.format(schedule[idx]?.scheduled||0)}<br>Cuota real: ${eur.format(schedule[idx]?.realPayment||0)}`;
+      }else{
+        tt.innerHTML=`<strong>${activeCalculatorId==='personal'?fullDateFmt.format(row.date):monthFmt.format(row.date)}</strong><br>Pendiente: ${eur.format(schedule[idx]?.balance||0)}<br>Sin amortizar: ${eur.format(baseSchedule[idx]?.balance||0)}`;
+      }
+      tt.style.display='block';tt.style.left=(e.clientX+12)+'px';tt.style.top=(e.clientY+12)+'px';
+    });
+    canvas.addEventListener('mouseleave',()=>$('#tooltip').style.display='none');
+  }
+
+  $('#amount').addEventListener('focus',()=>{
+    const n=parseEsAmount($('#amount').value);
+    $('#amount').value = n ? String(n).replace('.', ',') : '';
+  });
+  $('#amount').addEventListener('input',()=>{updateOpeningFeeUI();recalc();});
+  $('#amount').addEventListener('blur',()=>{
+    $('#amount').value = formatEditableAmount($('#amount').value);
+    updateOpeningFeeUI();
+    recalc();
+  });
+
+  ['interest','years','inflation','altReturnCompare','start'].forEach(id=>$('#'+id).addEventListener('input',()=>{
+    if(id==='inflation') $$('.preset').forEach(b=>b.classList.remove('active'));
+    if(id==='start' || id==='years') renderAmorts();
+    recalc();
+  }));
+
+  $('#openingFeeType').addEventListener('change',()=>{
+    updateOpeningFeeUI();
+    recalc();
+  });
+  $('#openingFeeValue').addEventListener('input',()=>{
+    updateOpeningFeeUI();
+    recalc();
+  });
+
+  $('#firstPaymentDate').addEventListener('change',()=>{
+    ensurePersonalDates();
+    renderAmorts();
+    recalc();
+  });
+  $$('.preset').forEach(b=>b.addEventListener('click',()=>{
+    if(b.dataset.inflation!=='custom') $('#inflation').value=b.dataset.inflation;
+    else $('#inflation').focus();
+    $$('.preset').forEach(x=>x.classList.toggle('active',x===b));
+    recalc();
+  }));
+  $$('.viewBtn').forEach(b=>b.addEventListener('click',()=>{
+    view=b.dataset.view; $$('.viewBtn').forEach(x=>x.classList.toggle('active',x===b));renderTable();
+  }));
+  $$('.tab-btn').forEach(btn=>btn.addEventListener('click',()=>{
+    switchCalculator(btn.dataset.calculatorId);
+  }));
+
+  function openGistModal(){
+    $('#gistModal').classList.add('open');
+    $('#gistModal').setAttribute('aria-hidden','false');
+  }
+  function closeGistModal(){
+    $('#gistModal').classList.remove('open');
+    $('#gistModal').setAttribute('aria-hidden','true');
+  }
+
+  $('#globalGistBtn').addEventListener('click',openGistModal);
+  $('#allCasesBtn').addEventListener('click',activateAllCasesView);
+  $('#gistModalClose').addEventListener('click',closeGistModal);
+  document.querySelectorAll('[data-close-gist]').forEach(el=>el.addEventListener('click',closeGistModal));
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeGistModal();});
+
+  function saveProjectionSettings(){
+    const id=activeCalculatorId;
+    const settings=projectionSettingsFor(id);
+    const currentMonth=monthKey(todayLocal());
+
+    const monthlyInput=Math.max(0,parseEsAmount($('#projectionMonthlyAvailable')?.value)||0);
+
+    settings.initialSavings=FIXED_PROJECTION_SAVINGS;
+    if(!settings.startMonth){
+      settings.startMonth=currentMonth;
+    }
+
+    const history=Array.isArray(settings.monthlyHistory)?settings.monthlyHistory:[];
+    const existing=history.find(x=>x.month===currentMonth);
+    if(existing){
+      existing.amount=monthlyInput;
+    }else{
+      history.push({month:currentMonth,amount:monthlyInput});
+    }
+    history.sort((a,b)=>a.month.localeCompare(b.month));
+    settings.monthlyHistory=history;
+    if(!settings.startMonth) settings.startMonth=currentMonth;
+
+    projectionSettings[id]=settings;
+    persistProjectionSettingsLocal();
+    scheduleGistAutoSync();
+
+    setProjectionStatus(`Datos guardados · previsión cerrada`,'ok');
+    renderSemesterProjection(aggregateSavedCases(id));
+  }
+
+  $('#projectionSaveBtn').addEventListener('click',saveProjectionSettings);
+
+  $('#projectionMonthlyAvailable').addEventListener('blur',()=>{
+    $('#projectionMonthlyAvailable').value=formatEditableAmount($('#projectionMonthlyAvailable').value);
+  });
+
+
+  const payrollInputIds=[
+    'payrollGross','payrollPays','payrollContract','payrollBirthYear','payrollFamily',
+    'payrollChildren','payrollUnder3','payrollChildShare','payrollDisability',
+    'payrollMobilityReduced','payrollManualIrpf','payrollContributionGroup',
+    'payrollGeoMobility','payrollAsc65','payrollAsc75','payrollSpousePension',
+    'payrollChildSupport','payrollHomeLoan'
+  ];
+
+  payrollInputIds.forEach(id=>{
+    const el=$('#'+id);
+    if(!el)return;
+    const evt=(el.type==='checkbox'||el.tagName==='SELECT')?'change':'input';
+    el.addEventListener(evt,()=>{
+      payrollRecalc();
+      scheduleGistAutoSync();
+    });
+  });
+
+  ['payrollGross','payrollSpousePension','payrollChildSupport'].forEach(id=>{
+    const el=$('#'+id);
+    if(!el)return;
+    el.addEventListener('blur',()=>{
+      el.value=formatEditableAmount(el.value);
+      payrollRecalc();
+    });
+  });
+
+  $('#payrollSaveCaseBtn').addEventListener('click',savePayrollCase);
+  $('#payrollCaseName').addEventListener('keydown',e=>{
+    if(e.key==='Enter'){e.preventDefault();savePayrollCase();}
+  });
+  $('#payrollNewCaseBtn').addEventListener('click',newPayrollCase);
+
+  $('#saveCaseBtn').addEventListener('click',saveNamedCase);
+  $('#caseName').addEventListener('keydown',e=>{
+    if(e.key==='Enter'){e.preventDefault();saveNamedCase();}
+  });
+  $('#newCaseBtn').addEventListener('click',newSavedCase);
+  $('#gistPushBtn').addEventListener('click',()=>syncCasesToGist(false).catch(e=>{
+    setGistStatus(e.message || 'No se pudo sincronizar','error');
+  }));
+  $('#gistPullBtn').addEventListener('click',pullCasesFromGist);
+  $('#gistToken').addEventListener('input',()=>{
+    const token=$('#gistToken').value.trim();
+    safeStorageSet(sessionStorage,GIST_TOKEN_SESSION_KEY,token);
+    const btn=$('#globalGistBtn');
+    const label=$('#globalGistBtnText');
+    btn.classList.remove('connected','syncing','error');
+    if(token){
+      btn.classList.add('connected');
+      label.textContent='Gist configurado';
+    }else{
+      label.textContent='GitHub Gist';
+    }
+  });
+  $('#addAmort').addEventListener('click',addAmort);
+  $('#csvBtn').addEventListener('click',exportCSV);
+  $('#resetBtn').addEventListener('click',reset);
+  window.addEventListener('resize',()=>requestAnimationFrame(drawCharts));
+  attachTooltip($('#paymentChart'),'payment'); attachTooltip($('#balanceChart'),'balance');
+
+  loadSavedCasesLocal();
+  loadProjectionSettingsLocal();
+  loadPayrollSettingsLocal();
+  loadPayrollCasesLocal();
+  payrollApplyUI();
+  payrollRecalc();
+  renderPayrollCases();
+  allCasesView.mortgage=canUseAllCases('mortgage');
+  allCasesView.personal=canUseAllCases('personal');
+  if(allCasesView.mortgage) activeSavedCaseIds.mortgage=null;
+  if(allCasesView.personal) activeSavedCaseIds.personal=null;
+  $('#gistToken').value=safeStorageGet(sessionStorage,GIST_TOKEN_SESSION_KEY)||'';
+  if($('#gistToken').value.trim()){
+    $('#globalGistBtn').classList.add('connected');
+    $('#globalGistBtnText').textContent='Gist configurado';
+  }
+  renderSavedCases();
+
+  const activeTab = document.querySelector('.tab-btn.active');
+  if(activeTab){
+    activeCalculatorId = activeTab.dataset.calculatorId || 'mortgage';
+    loadCalculatorState(activeCalculatorId);
+  }else{
+    renderAmorts();
+    recalc();
+  }
+})();
+</script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('./service-worker.js').catch(function () {});
+    });
+  }
+</script>
+
+</body>
+</html>
