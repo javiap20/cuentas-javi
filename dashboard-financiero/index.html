@@ -1598,11 +1598,11 @@
     <div class="field">
       <label for="gistToken">Token de GitHub</label>
       <input id="gistToken" type="password" autocomplete="off" placeholder="github_pat_…">
-      <div class="gist-note">La app localiza o crea automáticamente su Gist. El token se guarda solo en este dispositivo y navegador; nunca se incluye en el JSON ni en el Gist.</div>
+      <div class="gist-note">En un navegador nuevo: introduce el token y pulsa <strong>Conectar / cargar Gist</strong>. La app no permitirá sobrescribir un Gist existente hasta haber cargado antes sus datos. El token se guarda solo en este dispositivo y navegador; nunca se incluye en el JSON ni en el Gist.</div>
     </div>
     <div class="gist-buttons">
-      <button id="gistPushBtn" class="btn btn-primary" type="button">Sincronizar ahora</button>
-      <button id="gistPullBtn" class="btn btn-secondary" type="button">Traer del Gist</button>
+      <button id="gistPullBtn" class="btn btn-primary" type="button">Conectar / cargar Gist</button>
+      <button id="gistPushBtn" class="btn btn-secondary" type="button">Guardar en Gist</button>
     </div>
     <div class="gist-buttons" style="margin-top:8px;">
       <button id="backupDownloadBtn" class="btn btn-secondary" type="button">Descargar JSON</button>
@@ -1873,6 +1873,7 @@
   const GIST_ID_STORAGE_KEY = 'dashboard_financiero_gist_id_v1';
   const GIST_TOKEN_STORAGE_KEY = 'dashboard_financiero_gist_token_v1';
   const GIST_TOKEN_SESSION_KEY = 'dashboard_financiero_gist_token_v1'; // migración desde versiones anteriores
+  const GIST_REMOTE_STATE_STORAGE_KEY = 'dashboard_financiero_gist_remote_state_v1';
   const GIST_FILE_NAME = 'dashboard-financiero-casos.json';
   const GITHUB_API_VERSION = '2026-03-10';
   const PROJECTION_STORAGE_KEY = 'dashboard_financiero_projection_v1';
@@ -2693,6 +2694,30 @@ No se borrará hasta que confirmes este mensaje.`))return;
     return h;
   }
 
+  function readRememberedGistRemoteState(){
+    try{
+      const raw=safeStorageGet(localStorage,GIST_REMOTE_STATE_STORAGE_KEY);
+      if(!raw)return null;
+      const data=JSON.parse(raw);
+      if(!data || !data.id)return null;
+      return {id:String(data.id),updatedAt:String(data.updatedAt||'')};
+    }catch(e){
+      return null;
+    }
+  }
+
+  function rememberGistRemoteState(gist){
+    if(!gist?.id)return;
+    safeStorageSet(localStorage,GIST_REMOTE_STATE_STORAGE_KEY,JSON.stringify({
+      id:String(gist.id),
+      updatedAt:String(gist.updated_at||'')
+    }));
+  }
+
+  function clearRememberedGistRemoteState(){
+    try{localStorage.removeItem(GIST_REMOTE_STATE_STORAGE_KEY);}catch(e){}
+  }
+
   function gistDocument(){
     return {
       schemaVersion:1,
@@ -2884,7 +2909,19 @@ No se borrará hasta que confirmes este mensaje.`))return;
       let data;
 
       if(existing?.id){
-        setGistStatus('Sincronizando…');
+        const seen=readRememberedGistRemoteState();
+
+        if(!seen || seen.id!==String(existing.id)){
+          setGistStatus('Este navegador aún no ha cargado el Gist. Pulsa “Conectar / cargar Gist” para recuperar primero los datos remotos.','error');
+          throw new Error('Primero carga el Gist en este navegador');
+        }
+
+        if(existing.updated_at && seen.updatedAt && String(existing.updated_at)!==String(seen.updatedAt)){
+          setGistStatus('El Gist ha cambiado desde otro navegador o dispositivo. Cárgalo primero para no sobrescribir esos cambios.','error');
+          throw new Error('El Gist remoto tiene cambios más recientes');
+        }
+
+        setGistStatus('Guardando en Gist…');
         const res=await githubFetch(`https://api.github.com/gists/${encodeURIComponent(existing.id)}`,{
           method:'PATCH',
           headers:gistHeaders(token,true),
@@ -2908,8 +2945,11 @@ No se borrará hasta que confirmes este mensaje.`))return;
         data=await res.json();
       }
 
-      if(data?.id) safeStorageSet(localStorage,GIST_ID_STORAGE_KEY,data.id);
-      setGistStatus(`Sincronizado · ${savedCases.length} caso${savedCases.length===1?'':'s'}`,'ok');
+      if(data?.id){
+        safeStorageSet(localStorage,GIST_ID_STORAGE_KEY,data.id);
+        rememberGistRemoteState(data);
+      }
+      setGistStatus(`Guardado en Gist · ${savedCases.length} caso${savedCases.length===1?'':'s'}`,'ok');
       return data;
     }finally{
       isSyncingGist=false;
@@ -2937,7 +2977,7 @@ No se borrará hasta que confirmes este mensaje.`))return;
     try{
       const gist=await findDashboardGist(token);
       if(!gist?.id){
-        setGistStatus('Todavía no existe un Gist del dashboard. Guarda o sincroniza un caso primero.','error');
+        setGistStatus('No existe todavía un Gist del dashboard con este token. Puedes trabajar normalmente y usar “Guardar en Gist” para crearlo.','error');
         return;
       }
 
@@ -2967,7 +3007,7 @@ No se borrará hasta que confirmes este mensaje.`))return;
       const incoming=Array.isArray(parsed)?parsed:(Array.isArray(parsed?.cases)?parsed.cases:null);
       if(!incoming) throw new Error('Formato de Gist no reconocido');
 
-      if(savedCases.length && !confirm('Esto sustituirá los casos guardados en este navegador por los del Gist. ¿Continuar?')){
+      if(savedCases.length && !confirm('Se cargarán en este navegador los datos guardados en el Gist. Los datos locales del Dashboard serán sustituidos por esa copia remota. ¿Continuar?')){
         setGistStatus('Importación cancelada');
         return;
       }
@@ -3006,7 +3046,8 @@ No se borrará hasta que confirmes este mensaje.`))return;
       allCasesView.personal=canUseAllCases('personal');
       persistSavedCasesLocal();
       loadCalculatorState(activeCalculatorId);
-      setGistStatus(`Cargados ${savedCases.length} caso${savedCases.length===1?'':'s'} desde Gist`,'ok');
+      rememberGistRemoteState(gist);
+      setGistStatus(`Gist cargado · ${savedCases.length} caso${savedCases.length===1?'':'s'} recuperado${savedCases.length===1?'':'s'}`,'ok');
     }catch(e){
       setGistStatus(e.message || 'No se pudo cargar el Gist','error');
     }
@@ -4739,6 +4780,7 @@ No se borrará hasta que confirmes este mensaje.`))return;
     }else{
       try{localStorage.removeItem(GIST_TOKEN_STORAGE_KEY);}catch(e){}
       try{sessionStorage.removeItem(GIST_TOKEN_SESSION_KEY);}catch(e){}
+      clearRememberedGistRemoteState();
     }
     const btn=$('#globalGistBtn');
     const label=$('#globalGistBtnText');
