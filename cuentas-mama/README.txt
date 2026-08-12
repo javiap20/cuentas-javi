@@ -13,3 +13,8 @@ Cambios realizados:
 Para GitHub Pages:
 - Sube esta carpeta completa como /cuentas-mama/
 - Deben ir juntos index.html, manifest.webmanifest, service-worker.js e icons/
+
+Cambio de icono:
+- Cuentas Mamá usa ahora el mismo icono rosa/corazón/€ que aparece en Javi Apps.
+- Se usan nombres de archivo nuevos para evitar que el navegador reutilice el icono anterior desde caché.
+- Service worker actualizado a caché v2.
