@@ -12,12 +12,12 @@
     html,body{margin:0;min-height:100%;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
     body{min-height:100vh;background:radial-gradient(circle at 17% 13%,#273761 0,transparent 34%),radial-gradient(circle at 87% 18%,#3d3474 0,transparent 31%),linear-gradient(145deg,#09111f,#111a2d 52%,#0a1020);color:var(--text);padding:calc(34px + env(safe-area-inset-top)) max(22px,env(safe-area-inset-right)) calc(34px + env(safe-area-inset-bottom)) max(22px,env(safe-area-inset-left))}
     .wrap{width:min(1320px,100%);margin:0 auto}
-    .eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.24em;color:#a9b7cb;font-weight:850;margin-bottom:15px}
-    .head{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(300px,.9fr);align-items:end;gap:50px;margin-bottom:38px}
+    .eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.24em;color:#a9b7cb;font-weight:850;margin-bottom:15px;text-align:center}
+    .head{display:block;text-align:center;margin-bottom:38px}
     h1{font-size:clamp(46px,7vw,76px);line-height:.95;margin:0;letter-spacing:-.055em;font-weight:850}
     .head p{max-width:520px;margin:0;color:#c3cede;font-size:16px;line-height:1.55}
     .head p strong{color:#fff}
-    .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+    .grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:16px}.grid>.card{grid-column:span 2}.grid>.card:nth-child(4){grid-column:2/span 2}.grid>.card:nth-child(5){grid-column:4/span 2}
     .card{position:relative;overflow:hidden;display:flex;min-height:252px;flex-direction:column;padding:22px;border:1px solid var(--line);border-radius:28px;background:rgba(255,255,255,.07);box-shadow:0 24px 70px rgba(0,0,0,.24);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);color:inherit;text-decoration:none;transition:transform .18s ease,border-color .18s ease,background .18s ease,box-shadow .18s ease}
     .card::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 92% 0%,var(--glow),transparent 42%);pointer-events:none}
     .card:hover{transform:translateY(-5px);border-color:rgba(255,255,255,.23);background:rgba(255,255,255,.095);box-shadow:0 28px 80px rgba(0,0,0,.31)}
@@ -25,6 +25,7 @@
     .card.english{--glow:rgba(59,130,246,.23)}
     .card.cuentas{--glow:rgba(139,92,246,.25)}
     .card.valores{--glow:rgba(16,185,129,.20)}
+    .card.dashboard{--glow:rgba(56,189,248,.22)}
     .card.mama{--glow:rgba(244,114,182,.22)}
     .icon{width:68px;height:68px;border-radius:19px;display:grid;place-items:center;margin-bottom:auto;box-shadow:0 14px 34px rgba(0,0,0,.30);overflow:hidden;position:relative;z-index:1}
     .icon svg{width:100%;height:100%;display:block}
@@ -34,10 +35,20 @@
     .card p{color:var(--muted);font-size:13px;line-height:1.55;margin:0;position:relative;z-index:1}
     .note{margin-top:26px;padding:17px 20px;border-radius:19px;border:1px solid rgba(255,255,255,.09);background:rgba(0,0,0,.14);color:#aab8cc;font-size:13px;line-height:1.55}.note strong{color:#e7edf7}
     .footer{margin-top:25px;color:#72829b;font-size:11px;text-align:center;letter-spacing:.03em}
-    @media(max-width:700px){body{padding-top:calc(25px + env(safe-area-inset-top))}.head{grid-template-columns:1fr;gap:18px;margin-bottom:28px}.head p{max-width:680px}.grid{grid-template-columns:1fr}.card{min-height:210px;padding:21px}.icon{width:66px;height:66px;border-radius:19px}.tag{margin-top:21px}.card h2{font-size:24px}}
+    @media(max-width:700px){body{padding-top:calc(25px + env(safe-area-inset-top))}.head{margin-bottom:28px}.head p{max-width:680px}.grid{grid-template-columns:1fr}.card{min-height:210px;padding:21px}.icon{width:66px;height:66px;border-radius:19px}.tag{margin-top:21px}.card h2{font-size:24px}}
     @media(min-width:701px) and (max-width:1050px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.card{min-width:0}}
-    @media(min-width:1051px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
-  </style>
+    @media(min-width:1051px){.grid{grid-template-columns:repeat(6,minmax(0,1fr))}.grid>.card{grid-column:span 2}.grid>.card:nth-child(4){grid-column:2/span 2}.grid>.card:nth-child(5){grid-column:4/span 2}}
+  
+    @media(max-width:1050px) and (min-width:701px){
+      .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .grid>.card,.grid>.card:nth-child(4),.grid>.card:nth-child(5){grid-column:auto}
+    }
+
+    @media(max-width:700px){
+      .grid>.card,.grid>.card:nth-child(4),.grid>.card:nth-child(5){grid-column:auto}
+    }
+
+</style>
 </head>
 <body>
   <main class="wrap">
@@ -99,7 +110,25 @@
         <p>Valores, cripto, precios, niveles técnicos y evolución de la cartera.</p>
       </a>
 
-      <a class="card mama" href="./cuentas-mama.html" aria-label="Abrir Cuentas Mamá">
+      <a class="card dashboard" href="./dashboard-financiero/" aria-label="Abrir Dashboard financiero">
+        <span class="arrow">→</span>
+        <span class="icon" aria-hidden="true">
+          <svg viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
+            <defs><linearGradient id="dashBg" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#0f2942"/><stop offset="1" stop-color="#155e75"/></linearGradient></defs>
+            <rect width="192" height="192" rx="43" fill="url(#dashBg)"/>
+            <rect x="38" y="43" width="116" height="106" rx="18" fill="#fff" opacity=".96"/>
+            <rect x="52" y="59" width="37" height="31" rx="8" fill="#bfdbfe"/>
+            <rect x="103" y="59" width="37" height="31" rx="8" fill="#ddd6fe"/>
+            <rect x="52" y="103" width="88" height="31" rx="8" fill="#ccfbf1"/>
+            <path d="M61 119l18-11 18 7 30-22" fill="none" stroke="#0f766e" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <div class="tag">Finanzas · app</div>
+        <h2>Dashboard financiero</h2>
+        <p>Préstamos, hipoteca, nómina y proyección financiera en un mismo espacio.</p>
+      </a>
+
+      <a class="card mama" href="./cuentas-mama/" aria-label="Abrir Cuentas Mamá">
         <span class="arrow">→</span>
         <span class="icon" aria-hidden="true">
           <svg viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
@@ -110,14 +139,14 @@
             <text x="96" y="104" text-anchor="middle" font-family="Arial,sans-serif" font-size="44" font-weight="800" fill="#9d174d">€</text>
           </svg>
         </span>
-        <div class="tag">Web familiar · no instalable</div>
+        <div class="tag">Finanzas · app</div>
         <h2>Cuentas Mamá</h2>
         <p>Acceso directo a la web de cuentas. Se abre normalmente en el navegador.</p>
       </a>
     </section>
 
-    <div class="note"><strong>Para instalar en iPhone/iPad:</strong> abre English Daily, Cuentas o Cartera, pulsa Compartir y elige “Añadir a pantalla de inicio”. <strong>Cuentas Mamá</strong> está pensada solo como web y no necesita instalarse.</div>
-    <div class="footer">Javi Apps · 3 apps + 1 acceso web</div>
+    <div class="note"><strong>Para instalar en iPhone/iPad:</strong> abre cualquiera de las cinco apps, pulsa Compartir y elige “Añadir a pantalla de inicio”.</div>
+    <div class="footer">Javi Apps · 5 apps</div>
   </main>
 </body>
 </html>
