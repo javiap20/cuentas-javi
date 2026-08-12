@@ -1594,16 +1594,22 @@
       </div>
       <button id="gistModalClose" class="gist-modal-close" type="button" aria-label="Cerrar">×</button>
     </div>
-    <p class="gist-modal-copy">Un único Gist guarda todos los casos del dashboard: hipotecas, préstamos personales y las calculadoras que añadamos más adelante.</p>
+    <p class="gist-modal-copy">Un único Gist guarda los casos del dashboard, la proyección y las nóminas guardadas.</p>
     <div class="field">
       <label for="gistToken">Token de GitHub</label>
       <input id="gistToken" type="password" autocomplete="off" placeholder="github_pat_…">
-      <div class="gist-note">La app localiza o crea automáticamente su Gist. El token se conserva solo durante esta sesión del navegador.</div>
+      <div class="gist-note">La app localiza o crea automáticamente su Gist. El token se guarda solo en este dispositivo y navegador; nunca se incluye en el JSON ni en el Gist.</div>
     </div>
     <div class="gist-buttons">
       <button id="gistPushBtn" class="btn btn-primary" type="button">Sincronizar ahora</button>
       <button id="gistPullBtn" class="btn btn-secondary" type="button">Traer del Gist</button>
     </div>
+    <div class="gist-buttons" style="margin-top:8px;">
+      <button id="backupDownloadBtn" class="btn btn-secondary" type="button">Descargar JSON</button>
+      <button id="backupImportBtn" class="btn btn-secondary" type="button">Importar JSON</button>
+      <input id="backupImportFile" type="file" accept=".json,application/json" hidden>
+    </div>
+    <div class="gist-note" style="margin-top:8px;">El JSON guarda casos, proyección y nómina. No guarda el token de GitHub.</div>
     <div id="gistStatus" class="gist-status"></div>
     <div class="gist-auto-note"><strong>Guardado automático:</strong> después de guardar un caso por primera vez, cualquier cambio se guarda localmente y se sincroniza con Gist automáticamente.</div>
   </section>
@@ -1865,7 +1871,8 @@
 
   const CASES_STORAGE_KEY = 'dashboard_financiero_saved_cases_v1';
   const GIST_ID_STORAGE_KEY = 'dashboard_financiero_gist_id_v1';
-  const GIST_TOKEN_SESSION_KEY = 'dashboard_financiero_gist_token_v1';
+  const GIST_TOKEN_STORAGE_KEY = 'dashboard_financiero_gist_token_v1';
+  const GIST_TOKEN_SESSION_KEY = 'dashboard_financiero_gist_token_v1'; // migración desde versiones anteriores
   const GIST_FILE_NAME = 'dashboard-financiero-casos.json';
   const GITHUB_API_VERSION = '2026-03-10';
   const PROJECTION_STORAGE_KEY = 'dashboard_financiero_projection_v1';
@@ -2698,6 +2705,110 @@ No se borrará hasta que confirmes este mensaje.`))return;
     };
   }
 
+  function dashboardBackupDocument(){
+    const doc=gistDocument();
+    return {
+      ...doc,
+      backupType:'dashboard-financiero-json-backup',
+      backupCreatedAt:new Date().toISOString()
+    };
+  }
+
+  function downloadDashboardBackupJson(){
+    try{
+      const payload=dashboardBackupDocument();
+      const json=JSON.stringify(payload,null,2);
+      const blob=new Blob([json],{type:'application/json;charset=utf-8'});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      const d=new Date();
+      const stamp=[
+        d.getFullYear(),
+        String(d.getMonth()+1).padStart(2,'0'),
+        String(d.getDate()).padStart(2,'0')
+      ].join('-');
+      a.href=url;
+      a.download=`dashboard-financiero-backup-${stamp}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),0);
+      setGistStatus('JSON descargado · copia local creada','ok');
+    }catch(e){
+      setGistStatus(e.message || 'No se pudo descargar el JSON','error');
+    }
+  }
+
+  function applyDashboardBackupDocument(parsed,{confirmReplace=true}={}){
+    const incoming=Array.isArray(parsed)
+      ? parsed
+      : (Array.isArray(parsed?.cases)?parsed.cases:null);
+
+    if(!incoming) throw new Error('Formato de JSON no reconocido');
+
+    if(confirmReplace){
+      if(!confirm(
+        'Esto sustituirá los datos locales del Dashboard por los del JSON seleccionado.\\n\\nEl token de GitHub NO se modificará. ¿Continuar?'
+      )){
+        return false;
+      }
+    }
+
+    savedCases=incoming
+      .filter(c=>c && c.id && c.name && (c.calculatorId==='mortgage'||c.calculatorId==='personal'))
+      .map(c=>({
+        id:String(c.id),
+        name:String(c.name).slice(0,80),
+        calculatorId:c.calculatorId,
+        state:normalizeCaseState(c.state,c.calculatorId),
+        createdAt:c.createdAt || new Date().toISOString(),
+        updatedAt:c.updatedAt || c.createdAt || new Date().toISOString()
+      }));
+
+    if(parsed && !Array.isArray(parsed) && parsed.projectionSettings){
+      projectionSettings=normalizeProjectionSettings(parsed.projectionSettings);
+      persistProjectionSettingsLocal();
+    }
+
+    if(parsed && !Array.isArray(parsed) && parsed.payrollSettings){
+      payrollSettings=normalizePayrollSettings(parsed.payrollSettings);
+      persistPayrollSettingsLocal();
+      payrollApplyUI();
+      payrollRecalc();
+    }
+
+    if(parsed && !Array.isArray(parsed) && Array.isArray(parsed.payrollCases)){
+      payrollCases=parsed.payrollCases.map(normalizePayrollCase).filter(Boolean);
+      activePayrollCaseId=null;
+      persistPayrollCasesLocal();
+      renderPayrollCases();
+    }
+
+    activeSavedCaseIds.mortgage=null;
+    activeSavedCaseIds.personal=null;
+    allCasesView.mortgage=canUseAllCases('mortgage');
+    allCasesView.personal=canUseAllCases('personal');
+    persistSavedCasesLocal();
+    loadCalculatorState(activeCalculatorId);
+    return true;
+  }
+
+  async function importDashboardBackupJson(file){
+    if(!file)return;
+    try{
+      const text=await file.text();
+      const parsed=JSON.parse(text);
+      const applied=applyDashboardBackupDocument(parsed,{confirmReplace:true});
+      if(!applied){
+        setGistStatus('Importación JSON cancelada');
+        return;
+      }
+      setGistStatus('JSON importado · datos restaurados localmente','ok');
+    }catch(e){
+      setGistStatus(e.message || 'No se pudo importar el JSON','error');
+    }
+  }
+
   async function githubFetch(url,options={}){
     const res=await fetch(url,options);
     if(!res.ok){
@@ -2761,7 +2872,7 @@ No se borrará hasta que confirmes este mensaje.`))return;
     }
 
     isSyncingGist=true;
-    safeStorageSet(sessionStorage,GIST_TOKEN_SESSION_KEY,token);
+    safeStorageSet(localStorage,GIST_TOKEN_STORAGE_KEY,token);
 
     try{
       const content=JSON.stringify(gistDocument(),null,2);
@@ -2820,7 +2931,7 @@ No se borrará hasta que confirmes este mensaje.`))return;
       return;
     }
 
-    safeStorageSet(sessionStorage,GIST_TOKEN_SESSION_KEY,token);
+    safeStorageSet(localStorage,GIST_TOKEN_STORAGE_KEY,token);
     setGistStatus('Buscando Gist…');
 
     try{
@@ -4614,9 +4725,21 @@ No se borrará hasta que confirmes este mensaje.`))return;
     setGistStatus(e.message || 'No se pudo sincronizar','error');
   }));
   $('#gistPullBtn').addEventListener('click',pullCasesFromGist);
+  $('#backupDownloadBtn').addEventListener('click',downloadDashboardBackupJson);
+  $('#backupImportBtn').addEventListener('click',()=>$('#backupImportFile').click());
+  $('#backupImportFile').addEventListener('change',async e=>{
+    const file=e.target.files?.[0];
+    try{await importDashboardBackupJson(file);}
+    finally{e.target.value='';}
+  });
   $('#gistToken').addEventListener('input',()=>{
     const token=$('#gistToken').value.trim();
-    safeStorageSet(sessionStorage,GIST_TOKEN_SESSION_KEY,token);
+    if(token){
+      safeStorageSet(localStorage,GIST_TOKEN_STORAGE_KEY,token);
+    }else{
+      try{localStorage.removeItem(GIST_TOKEN_STORAGE_KEY);}catch(e){}
+      try{sessionStorage.removeItem(GIST_TOKEN_SESSION_KEY);}catch(e){}
+    }
     const btn=$('#globalGistBtn');
     const label=$('#globalGistBtnText');
     btn.classList.remove('connected','syncing','error');
@@ -4644,7 +4767,15 @@ No se borrará hasta que confirmes este mensaje.`))return;
   allCasesView.personal=canUseAllCases('personal');
   if(allCasesView.mortgage) activeSavedCaseIds.mortgage=null;
   if(allCasesView.personal) activeSavedCaseIds.personal=null;
-  $('#gistToken').value=safeStorageGet(sessionStorage,GIST_TOKEN_SESSION_KEY)||'';
+  {
+    const persistentToken=safeStorageGet(localStorage,GIST_TOKEN_STORAGE_KEY)||'';
+    const legacySessionToken=safeStorageGet(sessionStorage,GIST_TOKEN_SESSION_KEY)||'';
+    const initialToken=persistentToken||legacySessionToken;
+    $('#gistToken').value=initialToken;
+    if(initialToken && !persistentToken){
+      safeStorageSet(localStorage,GIST_TOKEN_STORAGE_KEY,initialToken);
+    }
+  }
   if($('#gistToken').value.trim()){
     $('#globalGistBtn').classList.add('connected');
     $('#globalGistBtnText').textContent='Gist configurado';
