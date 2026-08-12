@@ -1598,10 +1598,10 @@
     <div class="field">
       <label for="gistToken">Token de GitHub</label>
       <input id="gistToken" type="password" autocomplete="off" placeholder="github_pat_…">
-      <div class="gist-note">En un navegador nuevo: introduce el token y pulsa <strong>Conectar / cargar Gist</strong>. La app no permitirá sobrescribir un Gist existente hasta haber cargado antes sus datos. El token se guarda solo en este dispositivo y navegador; nunca se incluye en el JSON ni en el Gist.</div>
+      <div class="gist-note">Si el token ya está guardado, al abrir la app se carga primero el Gist automáticamente. En un navegador nuevo, introduce el token una vez: al confirmar el campo la app cargará el Gist remoto. Hasta que esa lectura termine correctamente, cualquier escritura al Gist queda bloqueada.</div>
     </div>
     <div class="gist-buttons">
-      <button id="gistPullBtn" class="btn btn-primary" type="button">Conectar / cargar Gist</button>
+      <button id="gistPullBtn" class="btn btn-primary" type="button">Recargar desde Gist</button>
       <button id="gistPushBtn" class="btn btn-secondary" type="button">Guardar en Gist</button>
     </div>
     <div class="gist-buttons" style="margin-top:8px;">
@@ -1618,7 +1618,7 @@
 <div id="tooltip" class="tooltip"></div>
 
 <script>
-(() => {
+(async () => {
   const $ = s => document.querySelector(s);
   const $$ = s => [...document.querySelectorAll(s)];
   function formatEsNumber(value, decimals=2){
@@ -1889,6 +1889,8 @@
   let isLoadingCalculator=false;
   let isSyncingGist=false;
   let gistSyncPending=false;
+  let gistBootstrapping=false;
+  let gistRemoteReadyThisSession=false;
   let projectionSettings={
     mortgage:{
       initialSavings:null,startMonth:null,monthlyHistory:[],
@@ -2436,7 +2438,7 @@
 
   function scheduleGistAutoSync(){
     const token=$('#gistToken')?.value.trim();
-    if(!token)return;
+    if(!token || gistBootstrapping || !gistRemoteReadyThisSession)return;
     clearTimeout(gistAutoSyncTimer);
     gistAutoSyncTimer=setTimeout(()=>{
       syncCasesToGist(true).catch(e=>setGistStatus(e.message || 'No se pudo sincronizar','error'));
@@ -2911,9 +2913,14 @@ No se borrará hasta que confirmes este mensaje.`))return;
       if(existing?.id){
         const seen=readRememberedGistRemoteState();
 
+        if(!gistRemoteReadyThisSession){
+          setGistStatus('Protección activa: primero hay que cargar el Gist remoto en esta sesión. No se ha escrito nada.','error');
+          throw new Error('Primero carga el Gist remoto');
+        }
+
         if(!seen || seen.id!==String(existing.id)){
-          setGistStatus('Este navegador aún no ha cargado el Gist. Pulsa “Conectar / cargar Gist” para recuperar primero los datos remotos.','error');
-          throw new Error('Primero carga el Gist en este navegador');
+          setGistStatus('Este navegador aún no ha validado el Gist remoto. No se ha escrito nada.','error');
+          throw new Error('Primero carga el Gist remoto');
         }
 
         if(existing.updated_at && seen.updatedAt && String(existing.updated_at)!==String(seen.updatedAt)){
@@ -2948,6 +2955,7 @@ No se borrará hasta que confirmes este mensaje.`))return;
       if(data?.id){
         safeStorageSet(localStorage,GIST_ID_STORAGE_KEY,data.id);
         rememberGistRemoteState(data);
+        gistRemoteReadyThisSession=true;
       }
       setGistStatus(`Guardado en Gist · ${savedCases.length} caso${savedCases.length===1?'':'s'}`,'ok');
       return data;
@@ -2963,39 +2971,53 @@ No se borrará hasta que confirmes este mensaje.`))return;
     }
   }
 
-  async function pullCasesFromGist(){
+  async function pullCasesFromGist(options={}){
+    const {
+      confirmReplace=true,
+      startup=false,
+      quietMissing=false
+    }=options;
+
     const token=$('#gistToken').value.trim();
     if(!token){
-      setGistStatus('Falta el token de GitHub','error');
-      $('#gistToken').focus();
-      return;
+      if(!startup){
+        setGistStatus('Falta el token de GitHub','error');
+        $('#gistToken').focus();
+      }
+      return false;
     }
 
     safeStorageSet(localStorage,GIST_TOKEN_STORAGE_KEY,token);
-    setGistStatus('Buscando Gist…');
+    setGistStatus(startup ? 'Cargando datos del Gist…' : 'Buscando Gist…');
 
     try{
-      const gist=await findDashboardGist(token);
-      if(!gist?.id){
-        setGistStatus('No existe todavía un Gist del dashboard con este token. Puedes trabajar normalmente y usar “Guardar en Gist” para crearlo.','error');
-        return;
+      const discovered=await findDashboardGist(token);
+      if(!discovered?.id){
+        gistRemoteReadyThisSession=false;
+        if(!quietMissing){
+          setGistStatus('No existe todavía un Gist del dashboard con este token.','error');
+        }
+        return false;
       }
 
-      safeStorageSet(localStorage,GIST_ID_STORAGE_KEY,gist.id);
+      safeStorageSet(localStorage,GIST_ID_STORAGE_KEY,discovered.id);
 
-      let file=gist?.files?.[GIST_FILE_NAME];
-      if(!file){
-        const res=await githubFetch(`https://api.github.com/gists/${encodeURIComponent(gist.id)}`,{
+      // La lista de Gists sirve para localizar el ID.
+      // Para leer el JSON pedimos SIEMPRE el Gist completo por ID.
+      const fullResponse=await githubFetch(
+        `https://api.github.com/gists/${encodeURIComponent(discovered.id)}`,
+        {
           method:'GET',
           headers:gistHeaders(token,false)
-        });
-        const full=await res.json();
-        file=full?.files?.[GIST_FILE_NAME];
-      }
+        }
+      );
+      const gist=await fullResponse.json();
+
+      const file=gist?.files?.[GIST_FILE_NAME];
       if(!file) throw new Error(`El Gist no contiene ${GIST_FILE_NAME}`);
 
       let content=file.content;
-      if(file.truncated && file.raw_url){
+      if((file.truncated || typeof content!=='string') && file.raw_url){
         const raw=await githubFetch(file.raw_url,{
           method:'GET',
           headers:{'Authorization':'Bearer '+token}
@@ -3003,13 +3025,19 @@ No se borrará hasta que confirmes este mensaje.`))return;
         content=await raw.text();
       }
 
+      if(typeof content!=='string' || !content.trim()){
+        throw new Error('El archivo del Gist no contiene datos legibles');
+      }
+
       const parsed=JSON.parse(content);
       const incoming=Array.isArray(parsed)?parsed:(Array.isArray(parsed?.cases)?parsed.cases:null);
       if(!incoming) throw new Error('Formato de Gist no reconocido');
 
-      if(savedCases.length && !confirm('Se cargarán en este navegador los datos guardados en el Gist. Los datos locales del Dashboard serán sustituidos por esa copia remota. ¿Continuar?')){
-        setGistStatus('Importación cancelada');
-        return;
+      if(confirmReplace && savedCases.length && !confirm(
+        'Se cargarán en este navegador los datos guardados en el Gist. Los datos locales del Dashboard serán sustituidos por esa copia remota. ¿Continuar?'
+      )){
+        setGistStatus('Carga del Gist cancelada');
+        return false;
       }
 
       savedCases=incoming
@@ -3027,12 +3055,14 @@ No se borrará hasta que confirmes este mensaje.`))return;
         projectionSettings=normalizeProjectionSettings(parsed.projectionSettings);
         persistProjectionSettingsLocal();
       }
+
       if(parsed && !Array.isArray(parsed) && parsed.payrollSettings){
         payrollSettings=normalizePayrollSettings(parsed.payrollSettings);
         persistPayrollSettingsLocal();
         payrollApplyUI();
         payrollRecalc();
       }
+
       if(parsed && !Array.isArray(parsed) && Array.isArray(parsed.payrollCases)){
         payrollCases=parsed.payrollCases.map(normalizePayrollCase).filter(Boolean);
         activePayrollCaseId=null;
@@ -3044,15 +3074,67 @@ No se borrará hasta que confirmes este mensaje.`))return;
       activeSavedCaseIds.personal=null;
       allCasesView.mortgage=canUseAllCases('mortgage');
       allCasesView.personal=canUseAllCases('personal');
+
       persistSavedCasesLocal();
-      loadCalculatorState(activeCalculatorId);
       rememberGistRemoteState(gist);
-      setGistStatus(`Gist cargado · ${savedCases.length} caso${savedCases.length===1?'':'s'} recuperado${savedCases.length===1?'':'s'}`,'ok');
+      gistRemoteReadyThisSession=true;
+
+      renderSavedCases();
+      renderPayrollCases();
+      loadCalculatorState(activeCalculatorId);
+
+      const parts=[];
+      parts.push(`${savedCases.length} caso${savedCases.length===1?'':'s'}`);
+      if(payrollCases.length) parts.push(`${payrollCases.length} nómina${payrollCases.length===1?'':'s'}`);
+      setGistStatus(
+        `${startup?'Gist cargado al iniciar':'Gist cargado'} · ${parts.join(' · ')}`,
+        'ok'
+      );
+      return true;
     }catch(e){
-      setGistStatus(e.message || 'No se pudo cargar el Gist','error');
+      gistRemoteReadyThisSession=false;
+      setGistStatus(
+        `No se pudo cargar el Gist · ${e.message || 'error desconocido'}`,
+        'error'
+      );
+      return false;
     }
   }
 
+  async function autoLoadGistOnStartup(){
+    const token=$('#gistToken')?.value.trim();
+    if(!token){
+      gistRemoteReadyThisSession=false;
+      return false;
+    }
+
+    gistBootstrapping=true;
+    const btn=$('#globalGistBtn');
+    const label=$('#globalGistBtnText');
+
+    if(btn){
+      btn.classList.remove('connected','error');
+      btn.classList.add('syncing');
+    }
+    if(label) label.textContent='Cargando Gist…';
+
+    try{
+      const ok=await pullCasesFromGist({
+        confirmReplace:false,
+        startup:true,
+        quietMissing:true
+      });
+
+      if(btn){
+        btn.classList.remove('syncing','error');
+        btn.classList.add(ok?'connected':'error');
+      }
+      if(label) label.textContent=ok?'Gist cargado':'Revisar Gist';
+      return ok;
+    }finally{
+      gistBootstrapping=false;
+    }
+  }
 
 
   function parseMonth(s){
@@ -4774,6 +4856,7 @@ No se borrará hasta que confirmes este mensaje.`))return;
     finally{e.target.value='';}
   });
   $('#gistToken').addEventListener('input',()=>{
+    gistRemoteReadyThisSession=false;
     const token=$('#gistToken').value.trim();
     if(token){
       safeStorageSet(localStorage,GIST_TOKEN_STORAGE_KEY,token);
@@ -4791,6 +4874,18 @@ No se borrará hasta que confirmes este mensaje.`))return;
     }else{
       label.textContent='GitHub Gist';
     }
+  });
+  $('#gistToken').addEventListener('change',async()=>{
+    const token=$('#gistToken').value.trim();
+    if(!token)return;
+    await autoLoadGistOnStartup();
+  });
+  $('#gistToken').addEventListener('keydown',async e=>{
+    if(e.key!=='Enter')return;
+    e.preventDefault();
+    const token=$('#gistToken').value.trim();
+    if(!token)return;
+    await autoLoadGistOnStartup();
   });
   $('#addAmort').addEventListener('click',addAmort);
   $('#csvBtn').addEventListener('click',exportCSV);
@@ -4818,10 +4913,13 @@ No se borrará hasta que confirmes este mensaje.`))return;
       safeStorageSet(localStorage,GIST_TOKEN_STORAGE_KEY,initialToken);
     }
   }
-  if($('#gistToken').value.trim()){
-    $('#globalGistBtn').classList.add('connected');
-    $('#globalGistBtnText').textContent='Gist configurado';
+  const startupToken=$('#gistToken').value.trim();
+  if(startupToken){
+    // Fuente de verdad al arrancar: el Gist remoto.
+    // El estado local queda únicamente como fallback si GitHub no responde.
+    await autoLoadGistOnStartup();
   }
+
   renderSavedCases();
 
   const activeTab = document.querySelector('.tab-btn.active');
@@ -4837,7 +4935,9 @@ No se borrará hasta que confirmes este mensaje.`))return;
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {
-      navigator.serviceWorker.register('./service-worker.js').catch(function () {});
+      navigator.serviceWorker.register('./service-worker.js')
+        .then(function (registration) { return registration.update(); })
+        .catch(function () {});
     });
   }
 </script>

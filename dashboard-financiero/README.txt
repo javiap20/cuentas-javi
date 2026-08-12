@@ -37,3 +37,23 @@ Protección contra sobrescrituras:
 - El JSON queda como copia de seguridad, no como método normal de sincronización.
 - El token sigue siendo local a cada navegador/dispositivo.
 - Service worker actualizado a v3.
+
+GIST PRIMERO · CORRECCION IPAD / NAVEGADOR NUEVO
+================================================
+Corrección principal:
+- Al localizar un Gist mediante GET /gists, la app ya NO intenta leer el JSON desde ese resultado.
+- Después de localizar el ID, SIEMPRE solicita GET /gists/{id} y solo entonces lee dashboard-financiero-casos.json.
+
+Arranque remoto:
+- Si existe token guardado, al abrir la página la app carga automáticamente el Gist antes de continuar con los datos locales.
+- Si se introduce el token por primera vez, al confirmar el campo o pulsar Enter se carga automáticamente el Gist.
+- El botón manual queda como "Recargar desde Gist".
+
+Protección:
+- No se permite escribir sobre un Gist existente mientras la sesión actual no haya leído correctamente el remoto.
+- Durante la carga inicial el autosync está desactivado.
+- Si la carga remota falla, puede mostrarse el fallback local, pero la sesión NO queda autorizada para sobrescribir el Gist.
+
+PWA:
+- Service worker v4.
+- Las navegaciones intentan descargar el HTML sin caché antes de usar el fallback offline.

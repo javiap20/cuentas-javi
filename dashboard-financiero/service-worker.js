@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dashboard-financiero-v3';
+const CACHE_NAME = 'dashboard-financiero-v4';
 const APP_SHELL = [
   './',
   './index.html',
@@ -32,8 +32,12 @@ self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
 
+  const networkRequest = event.request.mode === 'navigate'
+    ? new Request(event.request, { cache: 'no-store' })
+    : event.request;
+
   event.respondWith(
-    fetch(event.request)
+    fetch(networkRequest)
       .then(response => {
         if (response && response.ok) {
           const copy = response.clone();
