@@ -140,6 +140,27 @@ details summary::-webkit-details-marker{display:none}
 .expense-table{max-height:340px;overflow:auto;border:1px solid var(--line);border-radius:13px}.expense-table table{min-width:760px}.expense-table thead th{top:0}.expense-table td,.expense-table th{padding:10px 12px;text-align:center!important}
 .notice{display:none;margin-bottom:18px;padding:13px 15px;border-radius:14px;border:1px solid #f0d9a7;background:#fff8e8;color:#7c5b18;font-size:12px;line-height:1.5}.notice.show{display:block}
 .error-box{display:none;margin-bottom:18px;padding:14px 16px;border-radius:14px;border:1px solid #f0c4ca;background:var(--red-soft);color:#953646;font-size:12px;line-height:1.55}.error-box.show{display:block}
+.forecast-scenarios{margin-top:15px;padding-top:15px;border-top:1px solid var(--line)}
+.scenario-library-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:10px}
+.scenario-library-title{font-family:"Manrope",sans-serif;font-size:13px;font-weight:800;letter-spacing:-.01em}
+.scenario-library-note{font-size:10.5px;color:var(--muted);line-height:1.45;margin-top:3px;max-width:800px}
+.scenario-toolbar{display:grid;grid-template-columns:minmax(180px,1fr) minmax(180px,1fr) auto auto auto auto;gap:8px;align-items:stretch}
+.scenario-field{background:#fafbfe;border:1px solid var(--line);border-radius:12px;padding:8px 10px;min-width:0}
+.scenario-field label{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.08em;font-weight:800;color:var(--muted);margin-bottom:4px}
+.scenario-select,.scenario-name{width:100%;border:0;outline:0;background:transparent;color:var(--ink);font-size:12px;font-weight:750;min-width:0}
+.scenario-select{cursor:pointer}
+.scenario-btn{border:1px solid var(--line);background:#fff;border-radius:12px;padding:9px 11px;color:var(--ink);font-size:10.5px;font-weight:800;white-space:nowrap;transition:.18s}
+.scenario-btn:hover:not(:disabled){transform:translateY(-1px);border-color:#d8ddec}.scenario-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}.scenario-btn.danger{color:var(--red)}.scenario-btn:disabled{opacity:.42;cursor:not-allowed;transform:none}
+.scenario-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:9px;min-height:20px}
+.scenario-chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:4px 8px;background:#f0f2f7;color:var(--ink-2);font-size:9.5px;font-weight:800}
+.scenario-chip.base{background:var(--accent-soft);color:var(--accent)}.scenario-chip.dirty{background:var(--amber-soft);color:var(--amber)}.scenario-chip.good{background:var(--green-soft);color:var(--green)}.scenario-chip.bad{background:var(--red-soft);color:var(--red)}
+.expense-table table{min-width:1120px}
+.expense-table tr.expense-modified td{background:#fafaff}.expense-table tr.expense-modified td:first-child{box-shadow:inset 3px 0 0 var(--accent)}.expense-table tr.expense-disabled td{color:#9ba4b5}
+.expense-toggle{width:16px;height:16px;accent-color:var(--accent);cursor:pointer}.expense-toggle:disabled{cursor:not-allowed}
+.expense-edit-input{width:112px;border:1px solid var(--line);background:#fff;border-radius:9px;padding:6px 8px;text-align:center;color:var(--ink);font-weight:800;font-variant-numeric:tabular-nums;outline:0}
+.expense-edit-input:focus{border-color:rgba(91,99,242,.55);box-shadow:0 0 0 3px rgba(91,99,242,.08)}.expense-edit-input:disabled{background:#f5f6f9;color:#9ca5b5;cursor:not-allowed}
+.expense-reset{border:0;background:transparent;color:var(--muted);font-size:14px;padding:4px 7px;border-radius:8px}.expense-reset:hover:not(:disabled){background:var(--accent-soft);color:var(--accent)}.expense-reset:disabled{opacity:.25;cursor:not-allowed}
+.expense-origin{font-size:9px;color:var(--muted);margin-top:2px}.expense-changed-badge{display:inline-flex;margin-left:5px;padding:2px 5px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:8px;font-weight:800;vertical-align:1px}
 .sync-panel{margin-top:15px;padding-top:15px;border-top:1px solid var(--line)}
 .sync-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:11px}
 .sync-title{font-family:"Manrope",sans-serif;font-size:13px;font-weight:800;letter-spacing:-.01em}
@@ -154,9 +175,9 @@ details summary::-webkit-details-marker{display:none}
 .sync-status-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex:0 0 auto}
 .sync-status a{color:inherit;font-weight:800;text-decoration:none}.sync-status a:hover{text-decoration:underline}
 .footer{margin-top:20px;display:flex;justify-content:space-between;gap:20px;color:var(--muted);font-size:10.5px;line-height:1.55;padding:0 3px}.footer a{color:var(--ink-2);text-decoration:none}.footer a:hover{text-decoration:underline}
-@media(max-width:1120px){.sync-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.sync-btn{white-space:normal}}
+@media(max-width:1120px){.sync-grid,.scenario-toolbar{grid-template-columns:repeat(2,minmax(0,1fr))}.sync-btn{white-space:normal}}
 @media(max-width:980px){.input-grid{grid-template-columns:repeat(2,1fr)}.advanced{grid-template-columns:repeat(2,1fr)}.dashboard-grid{grid-template-columns:1fr}.topbar{flex-direction:column}.top-actions{justify-content:flex-start}.group-cards{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:620px){.shell{width:min(100% - 20px,1460px);padding-top:18px}.input-grid,.advanced,.kpis,.sync-grid{grid-template-columns:1fr}.scenario-panel{padding:15px}.panel{border-radius:16px}.group-cards{grid-template-columns:1fr}.footer{flex-direction:column}.money-input{font-size:23px}.sync-head{flex-direction:column}.table-header{grid-template-columns:1fr}.table-header::before{display:none}.table-header>div:first-child,.table-header>.mini-control{grid-column:1}.table-header>.mini-control{justify-self:center;margin-top:4px}.summary-right{position:static}}
+@media(max-width:620px){.shell{width:min(100% - 20px,1460px);padding-top:18px}.input-grid,.advanced,.kpis,.sync-grid,.scenario-toolbar{grid-template-columns:1fr}.scenario-panel{padding:15px}.panel{border-radius:16px}.group-cards{grid-template-columns:1fr}.footer{flex-direction:column}.money-input{font-size:23px}.sync-head{flex-direction:column}.table-header{grid-template-columns:1fr}.table-header::before{display:none}.table-header>div:first-child,.table-header>.mini-control{grid-column:1}.table-header>.mini-control{justify-self:center;margin-top:4px}.summary-right{position:static}}
 </style>
 </head>
 <body>
@@ -230,11 +251,35 @@ details summary::-webkit-details-marker{display:none}
       </div>
     </div>
 
+    <div class="forecast-scenarios">
+      <div class="scenario-library-head">
+        <div>
+          <div class="scenario-library-title">Escenarios de previsión</div>
+          <div class="scenario-library-note">El Excel sigue siendo la base y nunca se modifica. Crea un escenario para apagar partidas o cambiar sus importes; solo se guardan las diferencias respecto a <b>DESPIDO</b>.</div>
+        </div>
+      </div>
+      <div class="scenario-toolbar">
+        <div class="scenario-field">
+          <label for="scenarioSelect">Escenario</label>
+          <select id="scenarioSelect" class="scenario-select"><option value="base">Base Excel</option></select>
+        </div>
+        <div class="scenario-field">
+          <label for="scenarioName">Nombre</label>
+          <input id="scenarioName" class="scenario-name" type="text" maxlength="60" autocomplete="off" placeholder="Ej. Recorte moderado">
+        </div>
+        <button id="newScenarioBtn" class="scenario-btn" type="button">＋ Nuevo</button>
+        <button id="saveScenarioBtn" class="scenario-btn primary" type="button">Guardar</button>
+        <button id="resetScenarioBtn" class="scenario-btn" type="button">↺ Restaurar gastos</button>
+        <button id="deleteScenarioBtn" class="scenario-btn danger" type="button">Eliminar</button>
+      </div>
+      <div id="scenarioMeta" class="scenario-meta"></div>
+    </div>
+
     <div class="sync-panel">
       <div class="sync-head">
         <div>
-          <div class="sync-title">Guardar y recuperar el escenario</div>
-          <div class="sync-note">El navegador sigue guardando los campos localmente. Además puedes descargar/importar un JSON o sincronizar ese mismo JSON con un GitHub Gist. El token solo se usa para la petición a GitHub: no se guarda en el HTML, en localStorage ni dentro del JSON.</div>
+          <div class="sync-title">Guardar y recuperar los escenarios</div>
+          <div class="sync-note">El navegador guarda la biblioteca de escenarios localmente. El JSON y el GitHub Gist incluyen todos los escenarios guardados y sus ajustes de gasto. El token solo se usa para la petición a GitHub: no se guarda en el HTML, en localStorage ni dentro del JSON.</div>
         </div>
       </div>
       <div class="sync-grid">
@@ -323,7 +368,7 @@ details summary::-webkit-details-marker{display:none}
   </section>
 
   <section class="panel data-details">
-    <details>
+    <details id="expenseDetails">
       <summary>
         <span>Gastos que alimentan la previsión</span>
         <span class="summary-right"><span id="expenseSummary">DESPIDO</span><span class="chev">⌄</span></span>
@@ -332,8 +377,8 @@ details summary::-webkit-details-marker{display:none}
         <div id="groupCards" class="group-cards"></div>
         <div class="expense-table">
           <table>
-            <thead><tr><th>Concepto</th><th>Grupo</th><th>Frecuencia</th><th>Valor base</th><th>Meses</th><th>Coste anual 2027</th></tr></thead>
-            <tbody id="expenseBody"><tr><td colspan="6" class="empty-row">Esperando datos.</td></tr></tbody>
+            <thead><tr><th>Activo</th><th>Concepto</th><th>Grupo</th><th>Frecuencia</th><th>Valor Excel</th><th>Valor escenario</th><th>Meses</th><th>Coste anual 2027</th><th></th></tr></thead>
+            <tbody id="expenseBody"><tr><td colspan="9" class="empty-row">Esperando datos.</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -341,7 +386,7 @@ details summary::-webkit-details-marker{display:none}
   </section>
 
   <footer class="footer">
-    <div>El dashboard no contiene importes del Excel: prioriza <b>../excel/finanzas-master.xlsx</b> y lee únicamente <b>DESPIDO</b>. Si no está disponible, permite cargar el archivo manualmente. <b>v1.8</b></div>
+    <div>El dashboard no contiene importes del Excel: prioriza <b>../excel/finanzas-master.xlsx</b> y lee únicamente <b>DESPIDO</b>. Si no está disponible, permite cargar el archivo manualmente. <b>v1.9</b></div>
     <div>Referencia de jubilación editable: desde 2027 la edad ordinaria general es 67 años, o 65 con al menos 38 años y 6 meses cotizados. <a href="https://www.seg-social.es/" target="_blank" rel="noreferrer">Seguridad Social</a></div>
   </footer>
 </div>
@@ -371,6 +416,12 @@ details summary::-webkit-details-marker{display:none}
   let expenseRecords = [];
   let excelMeta = { loaded: false, lastModified: null };
   let currentAgeAuto = true;
+  let savedScenarios = [];
+  let activeScenarioId = 'base';
+  let expenseOverrides = {};
+  let baseAssumptions = null;
+  let scenarioDirty = false;
+  let workingScenarioName = 'Base Excel';
 
   const $ = id => document.getElementById(id);
   const els = {
@@ -384,7 +435,9 @@ details summary::-webkit-details-marker{display:none}
     kpiEndCard:$('kpiEndCard'), kpiEnd:$('kpiEnd'), kpiEndSub:$('kpiEndSub'), reloadBtn:$('reloadBtn'),
     manualExcelBtn:$('manualExcelBtn'), manualExcelInput:$('manualExcelInput'),
     githubToken:$('githubToken'), gistId:$('gistId'), saveGistBtn:$('saveGistBtn'), loadGistBtn:$('loadGistBtn'),
-    downloadJsonBtn:$('downloadJsonBtn'), importJsonBtn:$('importJsonBtn'), importJsonInput:$('importJsonInput'), syncStatus:$('syncStatus')
+    downloadJsonBtn:$('downloadJsonBtn'), importJsonBtn:$('importJsonBtn'), importJsonInput:$('importJsonInput'), syncStatus:$('syncStatus'),
+    scenarioSelect:$('scenarioSelect'), scenarioName:$('scenarioName'), newScenarioBtn:$('newScenarioBtn'), saveScenarioBtn:$('saveScenarioBtn'),
+    resetScenarioBtn:$('resetScenarioBtn'), deleteScenarioBtn:$('deleteScenarioBtn'), scenarioMeta:$('scenarioMeta'), expenseDetails:$('expenseDetails')
   };
 
   // Formato numérico español forzado: punto para millares y coma para decimales.
@@ -473,7 +526,7 @@ details summary::-webkit-details-marker{display:none}
     return clean(record.id) || `${clean(record.grupo)}__${clean(record.concepto)}__${index}`;
   }
 
-  function recordsForYear(year){
+  function baseRecordsForYear(year){
     const grouped = new Map();
     expenseRecords.forEach((r,index)=>{
       const y = Number(r.ano_base);
@@ -482,13 +535,32 @@ details summary::-webkit-details-marker{display:none}
       const current = grouped.get(key);
       const currentYear = current ? Number(current.ano_base) || -Infinity : -Infinity;
       const rowYear = Number.isFinite(y) ? y : -Infinity;
-      if (!current || rowYear >= currentYear) grouped.set(key,r);
+      if (!current || rowYear >= currentYear) grouped.set(key,{...r,__key:key});
     });
-    return [...grouped.values()].filter(r=>isActive(r.activo));
+    return [...grouped.values()];
+  }
+
+  function effectiveRecord(record){
+    const key=record.__key || clean(record.id);
+    const ov=expenseOverrides[key];
+    if(!ov) return {...record};
+    return {
+      ...record,
+      valor_base:Object.prototype.hasOwnProperty.call(ov,'value') ? ov.value : record.valor_base,
+      activo:Object.prototype.hasOwnProperty.call(ov,'active') ? ov.active : record.activo
+    };
+  }
+
+  function recordsForYear(year){
+    return baseRecordsForYear(year).map(effectiveRecord).filter(r=>isActive(r.activo));
   }
 
   function expensesForYear(year){
     return recordsForYear(year).reduce((sum,r)=>sum+annualize(r),0);
+  }
+
+  function baseExpensesForYear(year){
+    return baseRecordsForYear(year).filter(r=>isActive(r.activo)).reduce((sum,r)=>sum+annualize(r),0);
   }
 
   function normalizeGistId(value){
@@ -512,44 +584,247 @@ details summary::-webkit-details-marker{display:none}
     };
   }
 
+  function cloneJson(value){
+    return JSON.parse(JSON.stringify(value ?? null));
+  }
+
+  function defaultAssumptions(){
+    return {savings:0,severance:0,assets:0,unemployment:0,currentAge:DEFAULT_CURRENT_AGE,currentAgeAuto:true,pension:0,longContribution:false,retirementAge:67,endYear:2075};
+  }
+
+  function assumptionsFromUI(){
+    return {...getInputs(),currentAgeAuto};
+  }
+
+  function applyAssumptions(a){
+    const x={...defaultAssumptions(),...(a||{})};
+    els.savings.value=x.savings ?? 0;
+    els.severance.value=x.severance ?? 0;
+    els.assets.value=x.assets ?? 0;
+    els.unemployment.value=x.unemployment ?? 0;
+    els.pension.value=x.pension ?? 0;
+    els.endYear.value=x.endYear ?? 2075;
+    if(Object.prototype.hasOwnProperty.call(x,'longContribution')) els.longContribution.checked=!!x.longContribution;
+    else els.longContribution.checked=num(x.retirementAge)===65;
+    currentAgeAuto=x.currentAgeAuto!==false;
+    els.currentAge.value=currentAgeAuto ? DEFAULT_CURRENT_AGE : (x.currentAge ?? DEFAULT_CURRENT_AGE);
+    formatAllMoneyInputs();
+  }
+
+  function activeScenario(){
+    return savedScenarios.find(s=>s.id===activeScenarioId) || null;
+  }
+
+  function scenarioOverrideCount(){
+    return Object.keys(expenseOverrides||{}).length;
+  }
+
+  function persistState(){
+    try{
+      localStorage.setItem(STORAGE_KEY,JSON.stringify({
+        stateVersion:3,
+        gistId:normalizeGistId(els.gistId.value),
+        baseAssumptions:cloneJson(baseAssumptions || assumptionsFromUI()),
+        scenarios:cloneJson(savedScenarios),
+        activeScenarioId,
+        working:{
+          activeScenarioId,
+          name:workingScenarioName,
+          assumptions:assumptionsFromUI(),
+          expenseOverrides:cloneJson(expenseOverrides),
+          dirty:scenarioDirty
+        }
+      }));
+    }catch(e){}
+  }
+
   function saveInputs(){
-    const data = {};
-    ['savings','severance','assets','unemployment','currentAge','pension','endYear'].forEach(k=>data[k]=els[k].value);
-    data.longContribution=!!els.longContribution.checked;
-    data.retirementAge=els.longContribution.checked?65:67;
-    data.currentAgeAuto=currentAgeAuto;
-    data.gistId=normalizeGistId(els.gistId.value);
-    try{ localStorage.setItem(STORAGE_KEY,JSON.stringify(data)); }catch(e){}
+    if(activeScenarioId==='base') baseAssumptions=assumptionsFromUI();
+    persistState();
+  }
+
+  function legacyAssumptions(data){
+    const a=defaultAssumptions();
+    ['savings','severance','assets','unemployment','pension','endYear'].forEach(k=>{
+      if(data[k]!==null && data[k]!==undefined && data[k]!=='') a[k]=num(data[k]);
+    });
+    if(Object.prototype.hasOwnProperty.call(data,'longContribution')) a.longContribution=!!data.longContribution;
+    else if(Object.prototype.hasOwnProperty.call(data,'retirementAge')) a.longContribution=num(data.retirementAge)===65;
+    a.retirementAge=a.longContribution?65:67;
+    if(data.currentAgeAuto===false && data.currentAge!==null && data.currentAge!==undefined && data.currentAge!==''){
+      a.currentAgeAuto=false;a.currentAge=num(data.currentAge);
+    }else if(data.age2027!==null && data.age2027!==undefined && data.age2027!==''){
+      a.currentAgeAuto=false;a.currentAge=Math.max(18,num(data.age2027)-(START_YEAR-CURRENT_YEAR));
+    }else{
+      a.currentAgeAuto=true;a.currentAge=DEFAULT_CURRENT_AGE;
+    }
+    return a;
   }
 
   function loadInputs(){
     let data={};
-    try{ data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') || {}; }catch(e){}
-    ['savings','severance','assets','unemployment','pension','endYear'].forEach(k=>{
-      if (data[k] !== null && data[k] !== undefined && data[k] !== '') els[k].value=data[k];
-    });
-    // v1.7: la edad ordinaria se deriva del requisito de cotización.
-    // Compatibilidad con escenarios anteriores que guardaban retirementAge=65/67.
-    if(Object.prototype.hasOwnProperty.call(data,'longContribution')){
-      els.longContribution.checked=!!data.longContribution;
-    }else if(Object.prototype.hasOwnProperty.call(data,'retirementAge')){
-      els.longContribution.checked=num(data.retirementAge)===65;
-    }else{
-      els.longContribution.checked=false;
-    }
-    if(data.currentAgeAuto === false && data.currentAge !== null && data.currentAge !== undefined && data.currentAge !== ''){
-      currentAgeAuto=false;
-      els.currentAge.value=data.currentAge;
-    }else if(data.age2027 !== null && data.age2027 !== undefined && data.age2027 !== ''){
-      // Migración suave desde v1.2, donde el campo representaba la edad en 2027.
-      currentAgeAuto=false;
-      els.currentAge.value=Math.max(18,num(data.age2027)-(START_YEAR-CURRENT_YEAR));
-    }else{
-      currentAgeAuto=true;
-      els.currentAge.value=DEFAULT_CURRENT_AGE;
-    }
+    try{ data=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}')||{}; }catch(e){}
     if(data.gistId) els.gistId.value=normalizeGistId(data.gistId);
-    formatAllMoneyInputs();
+
+    if(num(data.stateVersion)>=3){
+      baseAssumptions={...defaultAssumptions(),...(data.baseAssumptions||{})};
+      savedScenarios=Array.isArray(data.scenarios)?data.scenarios.filter(x=>x&&x.id&&x.name):[];
+      activeScenarioId=data.activeScenarioId==='base'||savedScenarios.some(x=>x.id===data.activeScenarioId)?data.activeScenarioId:'base';
+      const working=data.working && data.working.activeScenarioId===activeScenarioId ? data.working : null;
+      if(activeScenarioId==='base'){
+        workingScenarioName='Base Excel';
+        expenseOverrides={};
+        scenarioDirty=false;
+        applyAssumptions(working?.assumptions || baseAssumptions);
+        baseAssumptions=assumptionsFromUI();
+      }else{
+        const sc=activeScenario();
+        workingScenarioName=clean(working?.name)||sc.name;
+        expenseOverrides=cloneJson(working?.expenseOverrides ?? sc.expenseOverrides ?? {}) || {};
+        scenarioDirty=!!working?.dirty;
+        applyAssumptions(working?.assumptions || sc.assumptions || baseAssumptions);
+      }
+      renderScenarioControls();
+      return;
+    }
+
+    baseAssumptions=legacyAssumptions(data);
+    savedScenarios=[];
+    activeScenarioId='base';
+    expenseOverrides={};
+    scenarioDirty=false;
+    workingScenarioName='Base Excel';
+    applyAssumptions(baseAssumptions);
+    renderScenarioControls();
+  }
+
+  function markScenarioDirty(){
+    if(activeScenarioId!=='base') scenarioDirty=true;
+  }
+
+  function uniqueScenarioName(){
+    let n=1;
+    const names=new Set(savedScenarios.map(s=>clean(s.name).toLowerCase()));
+    while(names.has(`previsión ${n}`)) n++;
+    return `Previsión ${n}`;
+  }
+
+  function renderScenarioControls(){
+    if(!els.scenarioSelect) return;
+    els.scenarioSelect.innerHTML=`<option value="base">Base Excel · sin ajustes</option>`+savedScenarios.map(s=>`<option value="${esc(s.id)}">${esc(s.name)}</option>`).join('');
+    els.scenarioSelect.value=activeScenarioId;
+    const isBase=activeScenarioId==='base';
+    els.scenarioName.disabled=isBase;
+    els.scenarioName.value=isBase?'Base Excel':workingScenarioName;
+    els.saveScenarioBtn.disabled=isBase;
+    els.resetScenarioBtn.disabled=isBase || scenarioOverrideCount()===0;
+    els.deleteScenarioBtn.disabled=isBase;
+    const adjustments=scenarioOverrideCount();
+    const chips=[];
+    chips.push(`<span class="scenario-chip ${isBase?'base':''}">${isBase?'BASE · Excel intacto':`${adjustments} ajuste${adjustments===1?'':'s'} de gasto`}</span>`);
+    if(!isBase && scenarioDirty) chips.push('<span class="scenario-chip dirty">Cambios sin guardar</span>');
+    if(excelMeta.loaded){
+      const base=baseExpensesForYear(START_YEAR), current=expensesForYear(START_YEAR), saving=base-current;
+      if(!isBase && Math.abs(saving)>=.5){
+        chips.push(`<span class="scenario-chip ${saving>0?'good':'bad'}">${saving>0?'Ahorro':'Sobrecoste'} ${euro0.format(Math.abs(saving))}/año vs Excel</span>`);
+      }else if(!isBase){
+        chips.push('<span class="scenario-chip">Mismo gasto anual que Excel</span>');
+      }
+    }
+    els.scenarioMeta.innerHTML=chips.join('');
+  }
+
+  function loadScenario(id){
+    if(id==='base'){
+      activeScenarioId='base';
+      workingScenarioName='Base Excel';
+      expenseOverrides={};
+      scenarioDirty=false;
+      applyAssumptions(baseAssumptions || defaultAssumptions());
+    }else{
+      const sc=savedScenarios.find(x=>x.id===id);
+      if(!sc) return;
+      activeScenarioId=id;
+      workingScenarioName=sc.name;
+      expenseOverrides=cloneJson(sc.expenseOverrides||{}) || {};
+      scenarioDirty=false;
+      applyAssumptions(sc.assumptions || baseAssumptions || defaultAssumptions());
+    }
+    render();
+  }
+
+  function createScenario(){
+    const now=new Date().toISOString();
+    const sc={
+      id:`esc_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,6)}`,
+      name:uniqueScenarioName(),
+      assumptions:cloneJson(assumptionsFromUI()),
+      expenseOverrides:{},
+      createdAt:now,
+      updatedAt:now
+    };
+    savedScenarios.push(sc);
+    activeScenarioId=sc.id;
+    workingScenarioName=sc.name;
+    expenseOverrides={};
+    scenarioDirty=false;
+    persistState();
+    render();
+    if(els.expenseDetails){els.expenseDetails.open=true;els.expenseDetails.scrollIntoView({behavior:'smooth',block:'start'});}
+  }
+
+  function saveActiveScenario(){
+    if(activeScenarioId==='base') return;
+    const sc=activeScenario();
+    if(!sc) return;
+    const name=clean(workingScenarioName)||sc.name||'Previsión';
+    workingScenarioName=name;
+    sc.name=name;
+    sc.assumptions=cloneJson(assumptionsFromUI());
+    sc.expenseOverrides=cloneJson(expenseOverrides)||{};
+    sc.updatedAt=new Date().toISOString();
+    scenarioDirty=false;
+    persistState();
+    renderScenarioControls();
+  }
+
+  function deleteActiveScenario(){
+    if(activeScenarioId==='base') return;
+    const sc=activeScenario();
+    if(!sc) return;
+    if(!confirm(`¿Eliminar el escenario “${sc.name}”?`)) return;
+    savedScenarios=savedScenarios.filter(x=>x.id!==activeScenarioId);
+    activeScenarioId='base';workingScenarioName='Base Excel';expenseOverrides={};scenarioDirty=false;
+    applyAssumptions(baseAssumptions||defaultAssumptions());
+    render();
+  }
+
+  function resetScenarioExpenses(){
+    if(activeScenarioId==='base'||!scenarioOverrideCount()) return;
+    expenseOverrides={};
+    scenarioDirty=true;
+    render();
+  }
+
+  function updateExpenseOverride(key,patch){
+    if(activeScenarioId==='base') return;
+    const base=baseRecordsForYear(START_YEAR).find(r=>r.__key===key);
+    if(!base) return;
+    const next={...(expenseOverrides[key]||{})};
+    Object.assign(next,patch);
+    const baseValue=num(base.valor_base), baseActive=isActive(base.activo);
+    if(Object.prototype.hasOwnProperty.call(next,'value') && Math.abs(num(next.value)-baseValue)<0.000001) delete next.value;
+    if(Object.prototype.hasOwnProperty.call(next,'active') && !!next.active===baseActive) delete next.active;
+    if(Object.keys(next).length) expenseOverrides[key]=next; else delete expenseOverrides[key];
+    scenarioDirty=true;
+    render();
+  }
+
+  function resetExpenseOverride(key){
+    if(activeScenarioId==='base'||!expenseOverrides[key]) return;
+    delete expenseOverrides[key];
+    scenarioDirty=true;
+    render();
   }
 
   function ageForYear(year,input){
@@ -589,6 +864,7 @@ details summary::-webkit-details-marker{display:none}
     renderForecastTable(model);
     renderChart(model);
     renderExpenses(model.input);
+    renderScenarioControls();
     const reachesRetirement=model.rows.some(r=>r.age!==null && r.age>=model.input.retirementAge);
     els.retirementNotice.classList.toggle('show', reachesRetirement && model.input.pension===0);
     els.tableNote.textContent = `Desde ${START_YEAR} hasta ${model.input.endYear}. Jubilación prevista a los ${model.input.retirementAge} años · año clave resaltado.`;
@@ -682,85 +958,99 @@ details summary::-webkit-details-marker{display:none}
 
   function renderExpenses(input){
     if(!excelMeta.loaded){return}
-    const records=recordsForYear(START_YEAR);
+    const bases=baseRecordsForYear(START_YEAR);
+    const effective=recordsForYear(START_YEAR);
     const byGroup=new Map();
-    records.forEach(r=>{const g=groupLabel(r.grupo);byGroup.set(g,(byGroup.get(g)||0)+annualize(r));});
+    effective.forEach(r=>{const g=groupLabel(r.grupo);byGroup.set(g,(byGroup.get(g)||0)+annualize(r));});
+    const baseTotal=baseExpensesForYear(START_YEAR);
+    const currentTotal=expensesForYear(START_YEAR);
     els.groupCards.innerHTML=[...byGroup.entries()].sort((a,b)=>b[1]-a[1]).map(([g,v])=>`<div class="group-card"><div class="gname">${esc(g)}</div><div class="gval">${euro0.format(v)}</div></div>`).join('');
-    els.expenseSummary.textContent=`${records.length} partidas · ${euro0.format(expensesForYear(START_YEAR))}/año`;
-    const sorted=[...records].sort((a,b)=>String(a.grupo).localeCompare(String(b.grupo),'es') || num(a.orden)-num(b.orden) || String(a.concepto).localeCompare(String(b.concepto),'es'));
-    els.expenseBody.innerHTML=sorted.map(r=>`<tr>
-      <td>${esc(r.concepto||'—')}</td>
-      <td>${esc(groupLabel(r.grupo))}</td>
-      <td>${esc(frequencyLabel(r.frecuencia))}</td>
-      <td>${euro2.format(num(r.valor_base))}</td>
-      <td>${esc(r.meses||'—')}</td>
-      <td><b>${euro0.format(annualize(r))}</b></td>
-    </tr>`).join('') || '<tr><td colspan="6" class="empty-row">No hay gastos activos en DESPIDO.</td></tr>';
+    const diff=currentTotal-baseTotal;
+    els.expenseSummary.textContent=`${effective.length} partidas · ${euro0.format(currentTotal)}/año${activeScenarioId!=='base'&&Math.abs(diff)>=.5?` · ${diff>0?'+':''}${euro0.format(diff)} vs Excel`:''}`;
+    const sorted=[...bases].sort((a,b)=>String(a.grupo).localeCompare(String(b.grupo),'es') || num(a.orden)-num(b.orden) || String(a.concepto).localeCompare(String(b.concepto),'es'));
+    const editable=activeScenarioId!=='base';
+    els.expenseBody.innerHTML=sorted.map(r=>{
+      const key=r.__key;
+      const ov=expenseOverrides[key]||{};
+      const hasValue=Object.prototype.hasOwnProperty.call(ov,'value');
+      const hasActive=Object.prototype.hasOwnProperty.call(ov,'active');
+      const changed=hasValue||hasActive;
+      const er=effectiveRecord(r);
+      const active=isActive(er.activo);
+      const annual=active?annualize(er):0;
+      return `<tr class="${changed?'expense-modified':''} ${active?'':'expense-disabled'}">
+        <td><input class="expense-toggle" type="checkbox" data-key="${esc(key)}" ${active?'checked':''} ${editable?'':'disabled'} aria-label="Activar o desactivar ${esc(r.concepto||'gasto')}"></td>
+        <td><b>${esc(r.concepto||'—')}</b>${changed?'<span class="expense-changed-badge">AJUSTADO</span>':''}</td>
+        <td>${esc(groupLabel(r.grupo))}</td>
+        <td>${esc(frequencyLabel(r.frecuencia))}</td>
+        <td>${euro2.format(num(r.valor_base))}<div class="expense-origin">Excel</div></td>
+        <td><input class="expense-edit-input" type="text" inputmode="decimal" data-key="${esc(key)}" value="${esc(formatNumberES(num(er.valor_base),2))}" ${editable?'':'disabled'}></td>
+        <td>${esc(r.meses||'—')}</td>
+        <td><b>${euro0.format(annual)}</b></td>
+        <td><button class="expense-reset" type="button" data-key="${esc(key)}" title="Restaurar esta partida al Excel" ${editable&&changed?'':'disabled'}>↺</button></td>
+      </tr>`;
+    }).join('') || '<tr><td colspan="9" class="empty-row">No hay gastos en DESPIDO.</td></tr>';
+  }
+
+  function scenariosForExport(){
+    const list=cloneJson(savedScenarios)||[];
+    if(activeScenarioId!=='base'){
+      const idx=list.findIndex(x=>x.id===activeScenarioId);
+      if(idx>=0){
+        list[idx]={...list[idx],name:clean(workingScenarioName)||list[idx].name,assumptions:cloneJson(assumptionsFromUI()),expenseOverrides:cloneJson(expenseOverrides)||{},updatedAt:new Date().toISOString()};
+      }
+    }
+    return list;
   }
 
   function scenarioPayload(){
-    const input=getInputs();
+    const input=assumptionsFromUI();
     return {
       schema:'independencia-financiera',
-      version:2,
+      version:3,
       savedAt:new Date().toISOString(),
-      assumptions:{
-        projectionStartYear:START_YEAR,
-        unemploymentMonths:UNEMPLOYMENT_MONTHS,
-        defaultBirthYear:BIRTH_YEAR,
-        excelSheet:SHEET_NAME
-      },
-      scenario:{
-        savings:input.savings,
-        severance:input.severance,
-        assets:input.assets,
-        unemployment:input.unemployment,
-        currentAge:input.currentAge,
-        currentAgeAuto:currentAgeAuto,
-        birthYear:BIRTH_YEAR,
-        pension:input.pension,
-        longContribution:input.longContribution,
-        retirementAge:input.retirementAge,
-        endYear:input.endYear
-      }
+      assumptions:{projectionStartYear:START_YEAR,unemploymentMonths:UNEMPLOYMENT_MONTHS,defaultBirthYear:BIRTH_YEAR,excelSheet:SHEET_NAME},
+      baseAssumptions:cloneJson(baseAssumptions||input),
+      activeScenarioId,
+      scenarios:scenariosForExport(),
+      scenario:{...cloneJson(input),name:workingScenarioName,expenseOverrides:cloneJson(expenseOverrides)||{}}
     };
   }
 
   function applyScenarioPayload(payload){
     if(!payload || typeof payload!=='object') throw new Error('El JSON no contiene un escenario válido.');
-    const s=payload.scenario && typeof payload.scenario==='object' ? payload.scenario : payload;
-    const keys=['savings','severance','assets','unemployment','pension','endYear'];
-    let applied=0;
-    keys.forEach(k=>{
-      if(Object.prototype.hasOwnProperty.call(s,k) && s[k]!==null && s[k]!==undefined){
-        els[k].value=s[k];
-        applied++;
+
+    if(Array.isArray(payload.scenarios)){
+      savedScenarios=payload.scenarios.filter(x=>x&&x.id&&x.name).map(x=>({...x,expenseOverrides:x.expenseOverrides||{}}));
+      baseAssumptions={...defaultAssumptions(),...(payload.baseAssumptions||{})};
+      activeScenarioId=payload.activeScenarioId==='base'||savedScenarios.some(x=>x.id===payload.activeScenarioId)?payload.activeScenarioId:'base';
+      if(activeScenarioId==='base'){
+        workingScenarioName='Base Excel';expenseOverrides={};scenarioDirty=false;applyAssumptions(baseAssumptions);
+      }else{
+        const sc=activeScenario();
+        workingScenarioName=sc.name;expenseOverrides=cloneJson(sc.expenseOverrides||{})||{};scenarioDirty=false;applyAssumptions(sc.assumptions||baseAssumptions);
       }
+      persistState();
+      render();
+      return;
+    }
+
+    // Compatibilidad con JSON v1/v2: se importa como nueva base, sin ajustes de gasto.
+    const s0=payload.scenario && typeof payload.scenario==='object' ? payload.scenario : payload;
+    const a=defaultAssumptions();
+    let applied=0;
+    ['savings','severance','assets','unemployment','pension','endYear'].forEach(k=>{
+      if(Object.prototype.hasOwnProperty.call(s0,k)&&s0[k]!==null&&s0[k]!==undefined){a[k]=num(s0[k]);applied++;}
     });
-    if(Object.prototype.hasOwnProperty.call(s,'longContribution')){
-      els.longContribution.checked=!!s.longContribution;
-      applied++;
-    }else if(Object.prototype.hasOwnProperty.call(s,'retirementAge')){
-      els.longContribution.checked=num(s.retirementAge)===65;
-      applied++;
-    }
-    if(s.currentAgeAuto===true){
-      currentAgeAuto=true;
-      els.currentAge.value=DEFAULT_CURRENT_AGE;
-      applied++;
-    }else if(Object.prototype.hasOwnProperty.call(s,'currentAge') && s.currentAge!==null && s.currentAge!==undefined){
-      currentAgeAuto=false;
-      els.currentAge.value=s.currentAge;
-      applied++;
-    }else if(Object.prototype.hasOwnProperty.call(s,'age2027')){
-      // Compatibilidad con JSON antiguos que pudieran guardar age2027.
-      currentAgeAuto=false;
-      els.currentAge.value=Math.max(18,num(s.age2027)-(START_YEAR-CURRENT_YEAR));
-      applied++;
-    }
+    if(Object.prototype.hasOwnProperty.call(s0,'longContribution')){a.longContribution=!!s0.longContribution;applied++;}
+    else if(Object.prototype.hasOwnProperty.call(s0,'retirementAge')){a.longContribution=num(s0.retirementAge)===65;applied++;}
+    a.retirementAge=a.longContribution?65:67;
+    if(s0.currentAgeAuto===true){a.currentAgeAuto=true;a.currentAge=DEFAULT_CURRENT_AGE;applied++;}
+    else if(Object.prototype.hasOwnProperty.call(s0,'currentAge')&&s0.currentAge!==null&&s0.currentAge!==undefined){a.currentAgeAuto=false;a.currentAge=num(s0.currentAge);applied++;}
+    else if(Object.prototype.hasOwnProperty.call(s0,'age2027')){a.currentAgeAuto=false;a.currentAge=Math.max(18,num(s0.age2027)-(START_YEAR-CURRENT_YEAR));applied++;}
     if(!applied) throw new Error('No he encontrado campos reconocibles dentro del JSON.');
-    formatAllMoneyInputs();
-    render();
+    baseAssumptions=a;savedScenarios=[];activeScenarioId='base';workingScenarioName='Base Excel';expenseOverrides={};scenarioDirty=false;
+    applyAssumptions(a);persistState();render();
   }
 
   function setSyncStatus(type,htmlText){
@@ -787,7 +1077,7 @@ details summary::-webkit-details-marker{display:none}
     try{
       const payload=JSON.parse(await file.text());
       applyScenarioPayload(payload);
-      setSyncStatus('ok',`Escenario importado desde <b>${esc(file.name)}</b>.`);
+      setSyncStatus('ok',`Escenarios importados desde <b>${esc(file.name)}</b>.`);
     }catch(err){
       console.error(err);
       setSyncStatus('error',`No he podido importar el JSON: ${esc(err.message)}`);
@@ -827,7 +1117,7 @@ details summary::-webkit-details-marker{display:none}
     const gistId=normalizeGistId(els.gistId.value);
     if(gistId) els.gistId.value=gistId;
     const body={
-      description:'Escenario · Independencia financiera',
+      description:'Escenarios · Independencia financiera',
       files:{[GIST_FILENAME]:{content:JSON.stringify(scenarioPayload(),null,2)}}
     };
     if(!gistId) body.public=false;
@@ -977,18 +1267,47 @@ details summary::-webkit-details-marker{display:none}
 
   loadInputs();
   MONEY_INPUT_IDS.forEach(id=>{
-    els[id].addEventListener('input',()=>{formatMoneyInputLive(els[id]);render();});
-    els[id].addEventListener('change',()=>{formatMoneyInput(els[id]);render();});
+    els[id].addEventListener('input',()=>{formatMoneyInputLive(els[id]);markScenarioDirty();render();});
+    els[id].addEventListener('change',()=>{formatMoneyInput(els[id]);markScenarioDirty();render();});
     els[id].addEventListener('blur',()=>{formatMoneyInput(els[id]);render();});
   });
   ['endYear'].forEach(id=>{
-    els[id].addEventListener('input',render);
-    els[id].addEventListener('change',render);
+    els[id].addEventListener('input',()=>{markScenarioDirty();render();});
+    els[id].addEventListener('change',()=>{markScenarioDirty();render();});
   });
-  els.longContribution.addEventListener('change',render);
-  els.currentAge.addEventListener('input',()=>{currentAgeAuto=false;render();});
-  els.currentAge.addEventListener('change',()=>{currentAgeAuto=false;render();});
+  els.longContribution.addEventListener('change',()=>{markScenarioDirty();render();});
+  els.currentAge.addEventListener('input',()=>{currentAgeAuto=false;markScenarioDirty();render();});
+  els.currentAge.addEventListener('change',()=>{currentAgeAuto=false;markScenarioDirty();render();});
   els.gistId.addEventListener('change',()=>{els.gistId.value=normalizeGistId(els.gistId.value);saveInputs();});
+
+  els.scenarioSelect.addEventListener('change',()=>{
+    const next=els.scenarioSelect.value;
+    if(activeScenarioId!=='base' && scenarioDirty && next!==activeScenarioId && !confirm('Hay cambios sin guardar en este escenario. ¿Cambiar de escenario y descartarlos?')){
+      els.scenarioSelect.value=activeScenarioId;return;
+    }
+    loadScenario(next);
+  });
+  els.scenarioName.addEventListener('input',()=>{if(activeScenarioId!=='base'){workingScenarioName=els.scenarioName.value;scenarioDirty=true;persistState();renderScenarioControls();}});
+  els.newScenarioBtn.addEventListener('click',createScenario);
+  els.saveScenarioBtn.addEventListener('click',saveActiveScenario);
+  els.resetScenarioBtn.addEventListener('click',resetScenarioExpenses);
+  els.deleteScenarioBtn.addEventListener('click',deleteActiveScenario);
+
+  els.expenseBody.addEventListener('change',e=>{
+    const key=e.target?.dataset?.key;
+    if(!key) return;
+    if(e.target.classList.contains('expense-toggle')) updateExpenseOverride(key,{active:!!e.target.checked});
+    if(e.target.classList.contains('expense-edit-input')){
+      const value=Math.max(0,num(e.target.value));
+      e.target.value=formatNumberES(value,2);
+      updateExpenseOverride(key,{value});
+    }
+  });
+  els.expenseBody.addEventListener('click',e=>{
+    const btn=e.target.closest?.('.expense-reset');
+    if(btn?.dataset?.key) resetExpenseOverride(btn.dataset.key);
+  });
+
   els.reloadBtn.addEventListener('click',loadExcel);
   els.manualExcelBtn.addEventListener('click',()=>els.manualExcelInput.click());
   els.manualExcelInput.addEventListener('change',()=>loadManualExcel(els.manualExcelInput.files?.[0]));
