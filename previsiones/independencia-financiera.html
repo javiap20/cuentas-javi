@@ -305,7 +305,7 @@ details summary::-webkit-details-marker{display:none}
       <div class="sync-head">
         <div>
           <div class="sync-title">Guardar y recuperar los escenarios</div>
-          <div class="sync-note">El navegador guarda la biblioteca de escenarios localmente. El JSON y el GitHub Gist incluyen todos los escenarios guardados y sus ajustes de gasto. El token solo se usa para la petición a GitHub: no se guarda en el HTML, en localStorage ni dentro del JSON.</div>
+          <div class="sync-note">Al abrir el dashboard se carga automáticamente el Gist vinculado y después el Excel. El JSON y el Gist incluyen el ahorro, el resto de supuestos y todos los escenarios guardados con sus ajustes de gasto. La lectura automática usa el JSON raw del Gist. El token solo hace falta para guardar cambios en GitHub: no se guarda en el HTML, en localStorage ni dentro del JSON.</div>
         </div>
       </div>
       <div class="sync-grid">
@@ -314,8 +314,9 @@ details summary::-webkit-details-marker{display:none}
           <input id="githubToken" class="sync-input" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_… / ghp_…">
         </div>
         <div class="sync-field">
-          <label for="gistId">Gist ID</label>
-          <input id="gistId" class="sync-input" type="text" autocomplete="off" spellcheck="false" placeholder="Se crea al guardar por primera vez">
+          <label>Gist vinculado</label>
+          <div class="sync-input" style="display:flex;align-items:center;color:var(--green);font-weight:700;background:#f4fbf7;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;">✓ bcb12de9d4e6b476062a8d13a676532f</div>
+          <input id="gistId" type="hidden" value="bcb12de9d4e6b476062a8d13a676532f">
         </div>
         <button id="saveGistBtn" class="sync-btn primary" type="button">☁ Guardar en Gist</button>
         <button id="loadGistBtn" class="sync-btn" type="button">↓ Cargar Gist</button>
@@ -413,7 +414,7 @@ details summary::-webkit-details-marker{display:none}
   </section>
 
   <footer class="footer">
-    <div>El dashboard no contiene importes del Excel: prioriza <b>../excel/finanzas-master.xlsx</b> y lee únicamente <b>DESPIDO</b>. Si no está disponible, permite cargar el archivo manualmente. <b>v1.10</b></div>
+    <div>El dashboard no contiene importes del Excel: prioriza <b>../excel/finanzas-master.xlsx</b> y lee únicamente <b>DESPIDO</b>. Si no está disponible, permite cargar el archivo manualmente. <b>v1.12</b></div>
     <div>Referencia de jubilación editable: desde 2027 la edad ordinaria general es 67 años, o 65 con al menos 38 años y 6 meses cotizados. <a href="https://www.seg-social.es/" target="_blank" rel="noreferrer">Seguridad Social</a></div>
   </footer>
 </div>
@@ -438,6 +439,12 @@ details summary::-webkit-details-marker{display:none}
   const DEFAULT_CURRENT_AGE = CURRENT_YEAR - BIRTH_YEAR;
   const STORAGE_KEY = 'prevision_independencia_v1';
   const GIST_FILENAME = 'independencia-financiera.json';
+  const DEFAULT_GIST_ID = 'bcb12de9d4e6b476062a8d13a676532f';
+  const GIST_OWNER = 'javiap20';
+  const GIST_RAW_URLS = [
+    `https://gist.githubusercontent.com/raw/${DEFAULT_GIST_ID}/${GIST_FILENAME}`,
+    `https://gist.githubusercontent.com/${GIST_OWNER}/${DEFAULT_GIST_ID}/raw/${GIST_FILENAME}`
+  ];
   const GITHUB_API_VERSION = '2026-03-10';
 
   let expenseRecords = [];
@@ -692,7 +699,7 @@ details summary::-webkit-details-marker{display:none}
   function loadInputs(){
     let data={};
     try{ data=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}')||{}; }catch(e){}
-    if(data.gistId) els.gistId.value=normalizeGistId(data.gistId);
+    els.gistId.value=DEFAULT_GIST_ID;
 
     if(num(data.stateVersion)>=3){
       baseAssumptions={...defaultAssumptions(),...(data.baseAssumptions||{})};
@@ -1142,19 +1149,18 @@ details summary::-webkit-details-marker{display:none}
       els.githubToken.focus();
       return;
     }
-    const gistId=normalizeGistId(els.gistId.value);
-    if(gistId) els.gistId.value=gistId;
+    const gistId=DEFAULT_GIST_ID;
+    els.gistId.value=gistId;
     const body={
       description:'Escenarios · Independencia financiera',
       files:{[GIST_FILENAME]:{content:JSON.stringify(scenarioPayload(),null,2)}}
     };
-    if(!gistId) body.public=false;
     els.saveGistBtn.disabled=true;
     els.loadGistBtn.disabled=true;
-    setSyncStatus('warn',gistId?'Actualizando Gist…':'Creando Gist secreto…');
+    setSyncStatus('warn','Actualizando Gist…');
     try{
-      const res=await fetch(gistId?`https://api.github.com/gists/${encodeURIComponent(gistId)}`:'https://api.github.com/gists',{
-        method:gistId?'PATCH':'POST',
+      const res=await fetch(`https://api.github.com/gists/${encodeURIComponent(gistId)}`,{
+        method:'PATCH',
         headers:{...githubHeaders(true),'Content-Type':'application/json'},
         body:JSON.stringify(body)
       });
@@ -1162,7 +1168,7 @@ details summary::-webkit-details-marker{display:none}
       if(data?.id) els.gistId.value=data.id;
       saveInputs();
       const link=data?.html_url ? ` · <a href="${esc(data.html_url)}" target="_blank" rel="noreferrer">Abrir Gist</a>` : '';
-      setSyncStatus('ok',`${gistId?'Gist actualizado':'Gist creado y guardado'} correctamente${link}.`);
+      setSyncStatus('ok',`Gist actualizado correctamente${link}.`);
     }catch(err){
       console.error(err);
       setSyncStatus('error',`No he podido guardar en GitHub: ${esc(err.message)}. Revisa el token y que tenga permiso <b>Gists: write</b>.`);
@@ -1172,39 +1178,60 @@ details summary::-webkit-details-marker{display:none}
     }
   }
 
-  async function loadFromGist(){
-    const gistId=normalizeGistId(els.gistId.value);
-    if(gistId) els.gistId.value=gistId;
-    if(!gistId){
-      setSyncStatus('error','Introduce el <b>Gist ID</b> que quieres cargar.');
-      els.gistId.focus();
-      return;
-    }
+  async function loadFromGist({auto=false}={}){
+    const gistId=DEFAULT_GIST_ID;
+    els.gistId.value=gistId;
     els.saveGistBtn.disabled=true;
     els.loadGistBtn.disabled=true;
-    setSyncStatus('warn','Cargando Gist…');
+    setSyncStatus('warn',auto?'Sincronizando Gist al iniciar…':'Cargando Gist…');
     try{
-      const res=await fetch(`https://api.github.com/gists/${encodeURIComponent(gistId)}`,{headers:githubHeaders(true)});
-      const data=await parseGitHubResponse(res);
-      let file=data?.files?.[GIST_FILENAME];
-      if(!file && data?.files){
-        file=Object.values(data.files).find(f=>String(f?.filename||'').toLowerCase().endsWith('.json'));
+      // Para la lectura usamos el fichero RAW del Gist. Así no hace falta exponer
+      // ni guardar el token: conocer la URL/ID del Gist basta para leer el JSON.
+      let payload=null;
+      let rawError=null;
+      for(const baseRawUrl of GIST_RAW_URLS){
+        try{
+          const rawUrl=`${baseRawUrl}${baseRawUrl.includes('?')?'&':'?'}t=${Date.now()}`;
+          const rawRes=await fetch(rawUrl,{cache:'no-store'});
+          if(!rawRes.ok) throw new Error(`RAW HTTP ${rawRes.status}`);
+          payload=JSON.parse(await rawRes.text());
+          break;
+        }catch(err){
+          rawError=err;
+        }
       }
-      if(!file) throw new Error(`El Gist no contiene ${GIST_FILENAME} ni otro archivo JSON.`);
-      let content=file.content;
-      if(file.truncated && file.raw_url){
-        const rawRes=await fetch(file.raw_url,{cache:'no-store'});
-        if(!rawRes.ok) throw new Error(`No he podido leer el contenido completo del JSON (HTTP ${rawRes.status}).`);
-        content=await rawRes.text();
+
+      // Fallback: si el RAW falla y el usuario ha introducido un token en esta sesión,
+      // intentamos la API autenticada. El token nunca se persiste.
+      if(!payload){
+        const token=clean(els.githubToken.value);
+        if(!token){
+          throw new Error(`No he podido leer el JSON raw del Gist (${rawError?.message||'error desconocido'}). No hace falta token normalmente; si GitHub bloquea temporalmente el RAW puedes introducirlo y pulsar Cargar Gist.`);
+        }
+        const res=await fetch(`https://api.github.com/gists/${encodeURIComponent(gistId)}`,{headers:githubHeaders(true),cache:'no-store'});
+        const data=await parseGitHubResponse(res);
+        let file=data?.files?.[GIST_FILENAME];
+        if(!file && data?.files){
+          file=Object.values(data.files).find(f=>String(f?.filename||'').toLowerCase().endsWith('.json'));
+        }
+        if(!file) throw new Error(`El Gist no contiene ${GIST_FILENAME} ni otro archivo JSON.`);
+        let content=file.content;
+        if(file.truncated && file.raw_url){
+          const rawRes=await fetch(`${file.raw_url}${file.raw_url.includes('?')?'&':'?'}t=${Date.now()}`,{cache:'no-store'});
+          if(!rawRes.ok) throw new Error(`No he podido leer el contenido completo del JSON (HTTP ${rawRes.status}).`);
+          content=await rawRes.text();
+        }
+        payload=JSON.parse(content);
       }
-      const payload=JSON.parse(content);
+
       applyScenarioPayload(payload);
       saveInputs();
-      const link=data?.html_url ? ` · <a href="${esc(data.html_url)}" target="_blank" rel="noreferrer">Abrir Gist</a>` : '';
-      setSyncStatus('ok',`Escenario cargado desde GitHub${link}.`);
+      setSyncStatus('ok',`${auto?'Gist cargado automáticamente':'Escenarios cargados desde GitHub'} · <b>${esc(gistId)}</b>.`);
+      return true;
     }catch(err){
       console.error(err);
-      setSyncStatus('error',`No he podido cargar el Gist: ${esc(err.message)}`);
+      setSyncStatus('error',`${auto?'No he podido cargar automáticamente el Gist':'No he podido cargar el Gist'}: ${esc(err.message)}`);
+      return false;
     }finally{
       els.saveGistBtn.disabled=false;
       els.loadGistBtn.disabled=false;
@@ -1319,7 +1346,6 @@ details summary::-webkit-details-marker{display:none}
   els.longContribution.addEventListener('change',()=>{markScenarioDirty();render();});
   els.currentAge.addEventListener('input',()=>{currentAgeAuto=false;markScenarioDirty();render();});
   els.currentAge.addEventListener('change',()=>{currentAgeAuto=false;markScenarioDirty();render();});
-  els.gistId.addEventListener('change',()=>{els.gistId.value=normalizeGistId(els.gistId.value);saveInputs();});
 
   els.scenarioSelect.addEventListener('change',()=>{
     const next=els.scenarioSelect.value;
@@ -1357,12 +1383,19 @@ details summary::-webkit-details-marker{display:none}
   els.syncModal.addEventListener('click',e=>{if(e.target===els.syncModal) closeSyncModal();});
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&els.syncModal.classList.contains('open')) closeSyncModal();});
   els.saveGistBtn.addEventListener('click',saveToGist);
-  els.loadGistBtn.addEventListener('click',loadFromGist);
+  els.loadGistBtn.addEventListener('click',()=>loadFromGist());
   els.downloadJsonBtn.addEventListener('click',downloadJson);
   els.importJsonBtn.addEventListener('click',()=>els.importJsonInput.click());
   els.importJsonInput.addEventListener('change',()=>importJson(els.importJsonInput.files?.[0]));
-  setSyncStatus('warn','Gist secreto = no indexado, pero <b>no privado</b>. El token nunca se guarda en el dashboard.');
-  loadExcel();
+  setSyncStatus('warn','El Gist vinculado se carga automáticamente al abrir. Gist secreto = no indexado, pero <b>no privado</b>. El token nunca se guarda en el dashboard.');
+
+  async function bootstrap(){
+    // El Gist es la fuente de verdad de ahorro, supuestos y escenarios.
+    // Solo después cargamos DESPIDO para aplicar los gastos base y recalcular.
+    await loadFromGist({auto:true});
+    await loadExcel();
+  }
+  bootstrap();
 })();
 </script>
 </body>
