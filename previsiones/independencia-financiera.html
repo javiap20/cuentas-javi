@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
-<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root{
   --bg:#f5f7fb;
@@ -144,7 +144,9 @@ details summary::-webkit-details-marker{display:none}
     </div>
     <div class="top-actions">
       <div id="excelStatus" class="status-pill"><span class="status-dot"></span><span>Cargando finanzas-master.xlsx…</span></div>
-      <button id="reloadBtn" class="ghost-btn" type="button" title="Volver a leer el Excel">↻ Actualizar datos</button>
+      <button id="reloadBtn" class="ghost-btn" type="button" title="Volver a leer el Excel del servidor">↻ Actualizar datos</button>
+      <button id="manualExcelBtn" class="ghost-btn" type="button" hidden>↑ Cargar Excel manualmente</button>
+      <input id="manualExcelInput" type="file" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" hidden>
     </div>
   </header>
 
@@ -285,7 +287,7 @@ details summary::-webkit-details-marker{display:none}
   </section>
 
   <footer class="footer">
-    <div>El dashboard no contiene importes del Excel: lee siempre <b>finanzas-master.xlsx</b> → <b>DESPIDO</b> desde la misma carpeta.</div>
+    <div>El dashboard no contiene importes del Excel: busca <b>finanzas-master.xlsx</b> en las ubicaciones habituales del proyecto y lee únicamente <b>DESPIDO</b>. Si no está disponible, permite cargar el archivo manualmente. <b>v1.2</b></div>
     <div>Referencia de jubilación editable: desde 2027 la edad ordinaria general es 67 años, o 65 con al menos 38 años y 6 meses cotizados. <a href="https://www.seg-social.es/" target="_blank" rel="noreferrer">Seguridad Social</a></div>
   </footer>
 </div>
@@ -294,7 +296,12 @@ details summary::-webkit-details-marker{display:none}
 (() => {
   'use strict';
 
-  const EXCEL_PATH = './finanzas-master.xlsx';
+  const EXCEL_PATHS = [
+    'Excel/finanzas-master.xlsx',
+    '../Excel/finanzas-master.xlsx',
+    'finanzas-master.xlsx',
+    '../finanzas-master.xlsx'
+  ];
   const SHEET_NAME = 'DESPIDO';
   const START_YEAR = 2027;
   const UNEMPLOYMENT_MONTHS = 24;
@@ -312,7 +319,8 @@ details summary::-webkit-details-marker{display:none}
     expenseBody:$('expenseBody'), groupCards:$('groupCards'), expenseSummary:$('expenseSummary'),
     kpiInitial:$('kpiInitial'), kpiSpend:$('kpiSpend'), kpiSpendSub:$('kpiSpendSub'),
     kpiRunwayCard:$('kpiRunwayCard'), kpiRunway:$('kpiRunway'), kpiRunwaySub:$('kpiRunwaySub'),
-    kpiEndCard:$('kpiEndCard'), kpiEnd:$('kpiEnd'), kpiEndSub:$('kpiEndSub'), reloadBtn:$('reloadBtn')
+    kpiEndCard:$('kpiEndCard'), kpiEnd:$('kpiEnd'), kpiEndSub:$('kpiEndSub'), reloadBtn:$('reloadBtn'),
+    manualExcelBtn:$('manualExcelBtn'), manualExcelInput:$('manualExcelInput')
   };
 
   const euro0 = new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR',maximumFractionDigits:0});
@@ -531,29 +539,80 @@ details summary::-webkit-details-marker{display:none}
     els.excelStatus.querySelector('span:last-child').textContent=text;
   }
 
-  async function loadExcel(){
-    setStatus('','Cargando finanzas-master.xlsx…');
+  function applyExcelBuffer(buffer, sourceLabel, lastModified=null){
+    if(typeof XLSX==='undefined') throw new Error('No se ha podido cargar el lector de Excel (SheetJS).');
+    const wb=XLSX.read(buffer,{type:'array',cellDates:true});
+    if(!wb.SheetNames.includes(SHEET_NAME)) throw new Error(`El Excel no contiene la hoja ${SHEET_NAME}.`);
+    const raw=XLSX.utils.sheet_to_json(wb.Sheets[SHEET_NAME],{defval:null,raw:true});
+    expenseRecords=raw.filter(r=>clean(r.tipo).toLowerCase()==='gasto');
+    excelMeta={loaded:true,lastModified,source:sourceLabel};
+    const active=recordsForYear(START_YEAR).length;
+    setStatus('ok',`DESPIDO · ${active} gastos activos · ${sourceLabel}`);
+    els.manualExcelBtn.hidden=true;
     els.errorBox.classList.remove('show');
-    try{
-      if(typeof XLSX==='undefined') throw new Error('No se ha podido cargar el lector de Excel (SheetJS).');
-      const res=await fetch(`${EXCEL_PATH}?v=${Date.now()}`,{cache:'no-store'});
-      if(!res.ok) throw new Error(`No se pudo leer ${EXCEL_PATH} (HTTP ${res.status}).`);
-      const buffer=await res.arrayBuffer();
-      const wb=XLSX.read(buffer,{type:'array',cellDates:true});
-      if(!wb.SheetNames.includes(SHEET_NAME)) throw new Error(`El Excel no contiene la hoja ${SHEET_NAME}.`);
-      const raw=XLSX.utils.sheet_to_json(wb.Sheets[SHEET_NAME],{defval:null,raw:true});
-      expenseRecords=raw.filter(r=>clean(r.tipo).toLowerCase()==='gasto');
-      excelMeta={loaded:true,lastModified:res.headers.get('last-modified')};
-      const active=recordsForYear(START_YEAR).length;
-      setStatus('ok',`DESPIDO · ${active} gastos activos`);
+    render();
+  }
+
+  async function loadExcel(){
+    setStatus('','Buscando finanzas-master.xlsx…');
+    els.errorBox.classList.remove('show');
+    els.manualExcelBtn.hidden=true;
+
+    if(typeof XLSX==='undefined'){
+      const err=new Error('No se ha podido cargar el lector de Excel (SheetJS).');
+      console.error(err);
+      excelMeta.loaded=false;
+      setStatus('error','Excel no disponible · carga manual');
+      els.manualExcelBtn.hidden=false;
+      els.errorBox.innerHTML=`<b>No he podido preparar el lector de Excel.</b><br>${esc(err.message)}<br><br>Pulsa <b>Cargar Excel manualmente</b> y selecciona finanzas-master.xlsx.`;
+      els.errorBox.classList.add('show');
       render();
+      return;
+    }
+
+    const attempts=[];
+    for(const path of EXCEL_PATHS){
+      try{
+        const sep=path.includes('?')?'&':'?';
+        const res=await fetch(`${path}${sep}v=${Date.now()}`,{cache:'no-store'});
+        if(!res.ok){
+          attempts.push(`${path} → HTTP ${res.status}`);
+          continue;
+        }
+        const buffer=await res.arrayBuffer();
+        applyExcelBuffer(buffer,`Servidor · ${path}`,res.headers.get('last-modified'));
+        return;
+      }catch(err){
+        attempts.push(`${path} → ${err?.message || 'no accesible'}`);
+      }
+    }
+
+    excelMeta.loaded=false;
+    setStatus('error','Excel no disponible · carga manual');
+    els.manualExcelBtn.hidden=false;
+    const attempted=EXCEL_PATHS.map(p=>`<code>${esc(p)}</code>`).join(' · ');
+    els.errorBox.innerHTML=`<b>No he podido leer el Excel automáticamente.</b><br><br>He probado estas rutas: ${attempted}.<br><br>Si estás abriendo el dashboard desde <b>C:</b>, esto es normal: muchos navegadores bloquean la lectura automática de otros archivos locales. Pulsa <b>↑ Cargar Excel manualmente</b> y selecciona finanzas-master.xlsx. En GitHub, en cuanto encuentre el archivo en una de esas rutas, lo cargará sin preguntarte.`;
+    els.errorBox.classList.add('show');
+    console.warn('Rutas de Excel probadas:', attempts);
+    render();
+  }
+
+  async function loadManualExcel(file){
+    if(!file) return;
+    setStatus('','Leyendo Excel seleccionado…');
+    try{
+      const buffer=await file.arrayBuffer();
+      applyExcelBuffer(buffer,'Carga manual',file.lastModified ? new Date(file.lastModified).toISOString() : null);
     }catch(err){
       console.error(err);
       excelMeta.loaded=false;
-      setStatus('error','No se pudo cargar el Excel');
-      els.errorBox.innerHTML=`<b>No he podido leer finanzas-master.xlsx.</b><br>${esc(err.message)}<br><br>El HTML está preparado para funcionar cuando esté publicado en el mismo servidor/carpeta que el Excel. Si lo abres directamente como archivo local, el navegador puede bloquear la lectura por seguridad.`;
+      setStatus('error','El Excel seleccionado no es válido');
+      els.manualExcelBtn.hidden=false;
+      els.errorBox.innerHTML=`<b>No he podido usar el Excel seleccionado.</b><br>${esc(err.message)}<br><br>Comprueba que sea <b>finanzas-master.xlsx</b> y que contenga la hoja <b>${esc(SHEET_NAME)}</b>.`;
       els.errorBox.classList.add('show');
       render();
+    }finally{
+      els.manualExcelInput.value='';
     }
   }
 
@@ -563,6 +622,8 @@ details summary::-webkit-details-marker{display:none}
     els[id].addEventListener('change',render);
   });
   els.reloadBtn.addEventListener('click',loadExcel);
+  els.manualExcelBtn.addEventListener('click',()=>els.manualExcelInput.click());
+  els.manualExcelInput.addEventListener('change',()=>loadManualExcel(els.manualExcelInput.files?.[0]));
   loadExcel();
 })();
 </script>
