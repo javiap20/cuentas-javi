@@ -95,19 +95,20 @@ h1{font-family:"Manrope",sans-serif;font-size:clamp(26px,3vw,40px);line-height:1
 .chart-wrap{height:195px;width:100%;display:flex;align-items:center;justify-content:center;color:var(--accent)}
 .chart-empty{color:var(--muted);font-size:12px;text-align:center}
 .table-panel{overflow:hidden}
-.table-header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 20px;border-bottom:1px solid var(--line)}
+.table-header{display:grid;grid-template-columns:minmax(118px,1fr) auto minmax(118px,1fr);align-items:center;gap:16px;padding:18px 20px;border-bottom:1px solid var(--line)}
+.table-header::before{content:"";display:block}
+.table-header>div:first-child{text-align:center;grid-column:2}
+.table-header>.mini-control{grid-column:3;justify-self:end}
 .table-wrap{overflow:auto;max-height:660px}
 table{width:100%;border-collapse:separate;border-spacing:0;min-width:930px}
-thead th{position:sticky;top:0;z-index:2;background:#f8f9fc;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-size:10px;font-weight:800;text-align:right;padding:12px 16px;border-bottom:1px solid var(--line)}
-thead th:first-child,thead th:nth-child(2){text-align:left}
-tbody td{padding:13px 16px;border-bottom:1px solid #edf0f5;text-align:right;vertical-align:middle;font-variant-numeric:tabular-nums}
-tbody td:first-child,tbody td:nth-child(2){text-align:left}
+thead th{position:sticky;top:0;z-index:2;background:#f8f9fc;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-size:10px;font-weight:800;text-align:center;padding:12px 16px;border-bottom:1px solid var(--line)}
+tbody td{padding:13px 16px;border-bottom:1px solid #edf0f5;text-align:center;vertical-align:middle;font-variant-numeric:tabular-nums}
 tbody tr:hover td{background:#fbfcff}
 .year{font-family:"Manrope",sans-serif;font-weight:800;font-size:14px}
 .age{color:var(--ink-2);font-weight:600}
 .amount{font-weight:700}
 .amount.muted{color:var(--ink-2);font-weight:600}
-.income-cell{display:flex;justify-content:flex-end;align-items:center;gap:8px;white-space:nowrap}
+.income-cell{display:flex;justify-content:center;align-items:center;gap:8px;white-space:nowrap}
 .badge{display:inline-flex;align-items:center;border-radius:999px;padding:4px 8px;font-size:10px;font-weight:800;letter-spacing:.02em}
 .badge.paro{background:var(--accent-soft);color:var(--accent)}
 .badge.pension{background:var(--green-soft);color:var(--green)}
@@ -118,20 +119,34 @@ tbody tr:hover td{background:#fbfcff}
 .delta.negative{color:var(--red)}
 .empty-row{text-align:center!important;color:var(--muted);padding:32px!important}
 .data-details{margin-top:18px;overflow:hidden}
-details summary{list-style:none;cursor:pointer;padding:17px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;font-family:"Manrope",sans-serif;font-weight:800;font-size:14px}
+details summary{list-style:none;cursor:pointer;padding:17px 20px;display:flex;align-items:center;justify-content:center;gap:16px;font-family:"Manrope",sans-serif;font-weight:800;font-size:14px;position:relative;text-align:center}
 details summary::-webkit-details-marker{display:none}
-.summary-right{display:flex;align-items:center;gap:9px;color:var(--muted);font-family:"DM Sans",sans-serif;font-size:11px;font-weight:600}
+.summary-right{display:flex;align-items:center;gap:9px;color:var(--muted);font-family:"DM Sans",sans-serif;font-size:11px;font-weight:600;position:absolute;right:20px}
 .chev{transition:.2s;font-size:16px}details[open] .chev{transform:rotate(180deg)}
 .details-body{border-top:1px solid var(--line);padding:16px 20px 20px}
 .group-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:14px}
-.group-card{border:1px solid var(--line);border-radius:13px;padding:12px;background:#fbfcfe}
+.group-card{border:1px solid var(--line);border-radius:13px;padding:12px;background:#fbfcfe;text-align:center}
 .group-card .gname{font-size:11px;color:var(--muted);font-weight:700;margin-bottom:5px}.group-card .gval{font-family:"Manrope",sans-serif;font-size:17px;font-weight:800}
-.expense-table{max-height:340px;overflow:auto;border:1px solid var(--line);border-radius:13px}.expense-table table{min-width:760px}.expense-table thead th{top:0}.expense-table td,.expense-table th{padding:10px 12px}.expense-table td:first-child,.expense-table th:first-child{text-align:left}.expense-table td:nth-child(2),.expense-table th:nth-child(2){text-align:left}
+.expense-table{max-height:340px;overflow:auto;border:1px solid var(--line);border-radius:13px}.expense-table table{min-width:760px}.expense-table thead th{top:0}.expense-table td,.expense-table th{padding:10px 12px;text-align:center!important}
 .notice{display:none;margin-bottom:18px;padding:13px 15px;border-radius:14px;border:1px solid #f0d9a7;background:#fff8e8;color:#7c5b18;font-size:12px;line-height:1.5}.notice.show{display:block}
 .error-box{display:none;margin-bottom:18px;padding:14px 16px;border-radius:14px;border:1px solid #f0c4ca;background:var(--red-soft);color:#953646;font-size:12px;line-height:1.55}.error-box.show{display:block}
+.sync-panel{margin-top:15px;padding-top:15px;border-top:1px solid var(--line)}
+.sync-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:11px}
+.sync-title{font-family:"Manrope",sans-serif;font-size:13px;font-weight:800;letter-spacing:-.01em}
+.sync-note{font-size:10.5px;color:var(--muted);line-height:1.45;margin-top:3px;max-width:760px}
+.sync-grid{display:grid;grid-template-columns:minmax(190px,1.25fr) minmax(160px,1fr) auto auto auto auto;gap:8px;align-items:stretch}
+.sync-field{background:#fafbfe;border:1px solid var(--line);border-radius:12px;padding:8px 10px;min-width:0}
+.sync-field label{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.08em;font-weight:800;color:var(--muted);margin-bottom:4px}
+.sync-input{width:100%;border:0;outline:0;background:transparent;color:var(--ink);font-size:12px;font-weight:700;min-width:0}
+.sync-btn{border:1px solid var(--line);background:#fff;border-radius:12px;padding:9px 11px;color:var(--ink);font-size:11px;font-weight:800;white-space:nowrap;transition:.18s}
+.sync-btn:hover{transform:translateY(-1px);border-color:#d8ddec}.sync-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}.sync-btn:disabled{opacity:.55;cursor:wait;transform:none}
+.sync-status{display:flex;align-items:center;gap:7px;margin-top:9px;color:var(--muted);font-size:10.5px;line-height:1.4}.sync-status.ok{color:var(--green)}.sync-status.error{color:var(--red)}.sync-status.warn{color:var(--amber)}
+.sync-status-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex:0 0 auto}
+.sync-status a{color:inherit;font-weight:800;text-decoration:none}.sync-status a:hover{text-decoration:underline}
 .footer{margin-top:20px;display:flex;justify-content:space-between;gap:20px;color:var(--muted);font-size:10.5px;line-height:1.55;padding:0 3px}.footer a{color:var(--ink-2);text-decoration:none}.footer a:hover{text-decoration:underline}
+@media(max-width:1120px){.sync-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.sync-btn{white-space:normal}}
 @media(max-width:980px){.input-grid{grid-template-columns:repeat(2,1fr)}.advanced{grid-template-columns:repeat(2,1fr)}.dashboard-grid{grid-template-columns:1fr}.topbar{flex-direction:column}.top-actions{justify-content:flex-start}.group-cards{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:620px){.shell{width:min(100% - 20px,1460px);padding-top:18px}.input-grid,.advanced,.kpis{grid-template-columns:1fr}.scenario-panel{padding:15px}.panel{border-radius:16px}.group-cards{grid-template-columns:1fr}.footer{flex-direction:column}.money-input{font-size:23px}}
+@media(max-width:620px){.shell{width:min(100% - 20px,1460px);padding-top:18px}.input-grid,.advanced,.kpis,.sync-grid{grid-template-columns:1fr}.scenario-panel{padding:15px}.panel{border-radius:16px}.group-cards{grid-template-columns:1fr}.footer{flex-direction:column}.money-input{font-size:23px}.sync-head{flex-direction:column}.table-header{grid-template-columns:1fr}.table-header::before{display:none}.table-header>div:first-child,.table-header>.mini-control{grid-column:1}.table-header>.mini-control{justify-self:center;margin-top:4px}.summary-right{position:static}}
 </style>
 </head>
 <body>
@@ -151,7 +166,7 @@ details summary::-webkit-details-marker{display:none}
   </header>
 
   <div id="errorBox" class="error-box"></div>
-  <div id="retirementNotice" class="notice">Completa <b>Edad en 2027</b> y, si quieres, una <b>pensión mensual estimada</b> para que la previsión continúe automáticamente con jubilación.</div>
+  <div id="retirementNotice" class="notice">La previsión ya llega a la jubilación, pero la <b>pensión mensual estimada está a 0 €</b>. Puedes completarla cuando quieras.</div>
 
   <section class="panel scenario-panel">
     <div class="section-head">
@@ -186,10 +201,10 @@ details summary::-webkit-details-marker{display:none}
     </div>
 
     <div class="advanced">
-      <div class="mini-copy">La primera versión trabaja por años completos: 24 meses de paro desde enero de 2027 y, si se activa la jubilación, una anualidad completa desde el año en que se alcanza la edad indicada.</div>
+      <div class="mini-copy">Trabaja por años completos: 24 meses de paro desde enero de 2027 y una anualidad completa de jubilación desde el año en que se alcanza la edad indicada. La edad actual parte automáticamente de <b>año actual − 1972</b>.</div>
       <div class="mini-control">
-        <label for="age2027">Edad en 2027</label>
-        <input id="age2027" class="mini-input" type="number" min="18" max="100" step="1" placeholder="—">
+        <label for="currentAge">Edad actual</label>
+        <input id="currentAge" class="mini-input" type="number" min="18" max="100" step="1" placeholder="—" title="Por defecto: año actual menos 1972">
       </div>
       <div class="mini-control">
         <label for="pension">Pensión mensual estimada</label>
@@ -199,6 +214,31 @@ details summary::-webkit-details-marker{display:none}
         <label for="retirementAge">Edad jubilación</label>
         <input id="retirementAge" class="mini-input" type="number" min="55" max="80" step="1" value="67">
       </div>
+    </div>
+
+    <div class="sync-panel">
+      <div class="sync-head">
+        <div>
+          <div class="sync-title">Guardar y recuperar el escenario</div>
+          <div class="sync-note">El navegador sigue guardando los campos localmente. Además puedes descargar/importar un JSON o sincronizar ese mismo JSON con un GitHub Gist. El token solo se usa para la petición a GitHub: no se guarda en el HTML, en localStorage ni dentro del JSON.</div>
+        </div>
+      </div>
+      <div class="sync-grid">
+        <div class="sync-field">
+          <label for="githubToken">Token GitHub</label>
+          <input id="githubToken" class="sync-input" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_… / ghp_…">
+        </div>
+        <div class="sync-field">
+          <label for="gistId">Gist ID</label>
+          <input id="gistId" class="sync-input" type="text" autocomplete="off" spellcheck="false" placeholder="Se crea al guardar por primera vez">
+        </div>
+        <button id="saveGistBtn" class="sync-btn primary" type="button">☁ Guardar en Gist</button>
+        <button id="loadGistBtn" class="sync-btn" type="button">↓ Cargar Gist</button>
+        <button id="downloadJsonBtn" class="sync-btn" type="button">↓ Descargar JSON</button>
+        <button id="importJsonBtn" class="sync-btn" type="button">↑ Importar JSON</button>
+        <input id="importJsonInput" type="file" accept="application/json,.json" hidden>
+      </div>
+      <div id="syncStatus" class="sync-status warn"><span class="sync-status-dot"></span><span>Los Gist secretos no aparecen en búsquedas, pero <b>no son privados</b>: cualquiera que conozca su URL puede verlos.</span></div>
     </div>
   </section>
 
@@ -287,7 +327,7 @@ details summary::-webkit-details-marker{display:none}
   </section>
 
   <footer class="footer">
-    <div>El dashboard no contiene importes del Excel: busca <b>finanzas-master.xlsx</b> en las ubicaciones habituales del proyecto y lee únicamente <b>DESPIDO</b>. Si no está disponible, permite cargar el archivo manualmente. <b>v1.2</b></div>
+    <div>El dashboard no contiene importes del Excel: prioriza <b>../excel/finanzas-master.xlsx</b> y lee únicamente <b>DESPIDO</b>. Si no está disponible, permite cargar el archivo manualmente. <b>v1.4</b></div>
     <div>Referencia de jubilación editable: desde 2027 la edad ordinaria general es 67 años, o 65 con al menos 38 años y 6 meses cotizados. <a href="https://www.seg-social.es/" target="_blank" rel="noreferrer">Seguridad Social</a></div>
   </footer>
 </div>
@@ -297,30 +337,40 @@ details summary::-webkit-details-marker{display:none}
   'use strict';
 
   const EXCEL_PATHS = [
-    'Excel/finanzas-master.xlsx',
-    '../Excel/finanzas-master.xlsx',
+    '../excel/finanzas-master.xlsx',
+    'excel/finanzas-master.xlsx',
     'finanzas-master.xlsx',
-    '../finanzas-master.xlsx'
+    '../finanzas-master.xlsx',
+    '../Excel/finanzas-master.xlsx',
+    'Excel/finanzas-master.xlsx'
   ];
   const SHEET_NAME = 'DESPIDO';
   const START_YEAR = 2027;
   const UNEMPLOYMENT_MONTHS = 24;
+  const BIRTH_YEAR = 1972;
+  const CURRENT_YEAR = new Date().getFullYear();
+  const DEFAULT_CURRENT_AGE = CURRENT_YEAR - BIRTH_YEAR;
   const STORAGE_KEY = 'prevision_independencia_v1';
+  const GIST_FILENAME = 'independencia-financiera.json';
+  const GITHUB_API_VERSION = '2026-03-10';
 
   let expenseRecords = [];
   let excelMeta = { loaded: false, lastModified: null };
+  let currentAgeAuto = true;
 
   const $ = id => document.getElementById(id);
   const els = {
     savings:$('savings'), severance:$('severance'), assets:$('assets'), unemployment:$('unemployment'),
-    age2027:$('age2027'), pension:$('pension'), retirementAge:$('retirementAge'), endYear:$('endYear'),
+    currentAge:$('currentAge'), pension:$('pension'), retirementAge:$('retirementAge'), endYear:$('endYear'),
     excelStatus:$('excelStatus'), errorBox:$('errorBox'), retirementNotice:$('retirementNotice'),
     forecastBody:$('forecastBody'), chart:$('chart'), chartMeta:$('chartMeta'), tableNote:$('tableNote'),
     expenseBody:$('expenseBody'), groupCards:$('groupCards'), expenseSummary:$('expenseSummary'),
     kpiInitial:$('kpiInitial'), kpiSpend:$('kpiSpend'), kpiSpendSub:$('kpiSpendSub'),
     kpiRunwayCard:$('kpiRunwayCard'), kpiRunway:$('kpiRunway'), kpiRunwaySub:$('kpiRunwaySub'),
     kpiEndCard:$('kpiEndCard'), kpiEnd:$('kpiEnd'), kpiEndSub:$('kpiEndSub'), reloadBtn:$('reloadBtn'),
-    manualExcelBtn:$('manualExcelBtn'), manualExcelInput:$('manualExcelInput')
+    manualExcelBtn:$('manualExcelBtn'), manualExcelInput:$('manualExcelInput'),
+    githubToken:$('githubToken'), gistId:$('gistId'), saveGistBtn:$('saveGistBtn'), loadGistBtn:$('loadGistBtn'),
+    downloadJsonBtn:$('downloadJsonBtn'), importJsonBtn:$('importJsonBtn'), importJsonInput:$('importJsonInput'), syncStatus:$('syncStatus')
   };
 
   const euro0 = new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR',maximumFractionDigits:0});
@@ -368,13 +418,20 @@ details summary::-webkit-details-marker{display:none}
     return recordsForYear(year).reduce((sum,r)=>sum+annualize(r),0);
   }
 
+  function normalizeGistId(value){
+    const text=clean(value).replace(/\/+$/,'');
+    if(!text) return '';
+    const tail=text.includes('/')?text.split('/').pop():text;
+    return tail.split('?')[0].split('#')[0];
+  }
+
   function getInputs(){
     return {
       savings:num(els.savings.value),
       severance:num(els.severance.value),
       assets:num(els.assets.value),
       unemployment:num(els.unemployment.value),
-      age2027: els.age2027.value === '' ? null : num(els.age2027.value),
+      currentAge: els.currentAge.value === '' ? null : num(els.currentAge.value),
       pension:num(els.pension.value),
       retirementAge: Math.max(55, num(els.retirementAge.value) || 67),
       endYear: Math.min(2120, Math.max(START_YEAR, Math.trunc(num(els.endYear.value) || 2075)))
@@ -383,19 +440,38 @@ details summary::-webkit-details-marker{display:none}
 
   function saveInputs(){
     const data = {};
-    ['savings','severance','assets','unemployment','age2027','pension','retirementAge','endYear'].forEach(k=>data[k]=els[k].value);
+    ['savings','severance','assets','unemployment','currentAge','pension','retirementAge','endYear'].forEach(k=>data[k]=els[k].value);
+    data.currentAgeAuto=currentAgeAuto;
+    data.gistId=normalizeGistId(els.gistId.value);
     try{ localStorage.setItem(STORAGE_KEY,JSON.stringify(data)); }catch(e){}
   }
 
   function loadInputs(){
-    try{
-      const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-      Object.entries(data).forEach(([k,v])=>{ if (els[k] && v !== null && v !== undefined) els[k].value = v; });
-    }catch(e){}
+    let data={};
+    try{ data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') || {}; }catch(e){}
+    ['savings','severance','assets','unemployment','pension','retirementAge','endYear'].forEach(k=>{
+      if (data[k] !== null && data[k] !== undefined && data[k] !== '') els[k].value=data[k];
+    });
+    if(data.currentAgeAuto === false && data.currentAge !== null && data.currentAge !== undefined && data.currentAge !== ''){
+      currentAgeAuto=false;
+      els.currentAge.value=data.currentAge;
+    }else if(data.age2027 !== null && data.age2027 !== undefined && data.age2027 !== ''){
+      // Migración suave desde v1.2, donde el campo representaba la edad en 2027.
+      currentAgeAuto=false;
+      els.currentAge.value=Math.max(18,num(data.age2027)-(START_YEAR-CURRENT_YEAR));
+    }else{
+      currentAgeAuto=true;
+      els.currentAge.value=DEFAULT_CURRENT_AGE;
+    }
+    if(data.gistId) els.gistId.value=normalizeGistId(data.gistId);
+  }
+
+  function ageForYear(year,input){
+    return input.currentAge === null ? null : input.currentAge + (year - CURRENT_YEAR);
   }
 
   function incomeFor(year, input){
-    const age = input.age2027 === null ? null : input.age2027 + (year - START_YEAR);
+    const age = ageForYear(year,input);
     if (age !== null && age >= input.retirementAge) return {type:'pension', label:'Jubilación', amount:input.pension*12};
     const unemploymentEndYear = START_YEAR + Math.ceil(UNEMPLOYMENT_MONTHS/12) - 1;
     if (year <= unemploymentEndYear) return {type:'paro', label:'Paro', amount:input.unemployment*12};
@@ -408,7 +484,7 @@ details summary::-webkit-details-marker{display:none}
     let opening = initial;
     const rows = [];
     for (let year=START_YEAR; year<=input.endYear; year++){
-      const age = input.age2027 === null ? null : input.age2027 + (year - START_YEAR);
+      const age = ageForYear(year,input);
       const income = incomeFor(year,input);
       const expenses = expensesForYear(year);
       const annualDelta = income.amount - expenses;
@@ -426,7 +502,8 @@ details summary::-webkit-details-marker{display:none}
     renderForecastTable(model);
     renderChart(model);
     renderExpenses(model.input);
-    els.retirementNotice.classList.toggle('show', model.input.age2027 === null);
+    const reachesRetirement=model.rows.some(r=>r.age!==null && r.age>=model.input.retirementAge);
+    els.retirementNotice.classList.toggle('show', reachesRetirement && model.input.pension===0);
     els.tableNote.textContent = `Desde ${START_YEAR} hasta ${model.input.endYear}. Gasto leído dinámicamente de ${SHEET_NAME}.`;
   }
 
@@ -534,6 +611,192 @@ details summary::-webkit-details-marker{display:none}
     </tr>`).join('') || '<tr><td colspan="6" class="empty-row">No hay gastos activos en DESPIDO.</td></tr>';
   }
 
+  function scenarioPayload(){
+    const input=getInputs();
+    return {
+      schema:'independencia-financiera',
+      version:1,
+      savedAt:new Date().toISOString(),
+      assumptions:{
+        projectionStartYear:START_YEAR,
+        unemploymentMonths:UNEMPLOYMENT_MONTHS,
+        defaultBirthYear:BIRTH_YEAR,
+        excelSheet:SHEET_NAME
+      },
+      scenario:{
+        savings:input.savings,
+        severance:input.severance,
+        assets:input.assets,
+        unemployment:input.unemployment,
+        currentAge:input.currentAge,
+        currentAgeAuto:currentAgeAuto,
+        birthYear:BIRTH_YEAR,
+        pension:input.pension,
+        retirementAge:input.retirementAge,
+        endYear:input.endYear
+      }
+    };
+  }
+
+  function applyScenarioPayload(payload){
+    if(!payload || typeof payload!=='object') throw new Error('El JSON no contiene un escenario válido.');
+    const s=payload.scenario && typeof payload.scenario==='object' ? payload.scenario : payload;
+    const keys=['savings','severance','assets','unemployment','pension','retirementAge','endYear'];
+    let applied=0;
+    keys.forEach(k=>{
+      if(Object.prototype.hasOwnProperty.call(s,k) && s[k]!==null && s[k]!==undefined){
+        els[k].value=s[k];
+        applied++;
+      }
+    });
+    if(s.currentAgeAuto===true){
+      currentAgeAuto=true;
+      els.currentAge.value=DEFAULT_CURRENT_AGE;
+      applied++;
+    }else if(Object.prototype.hasOwnProperty.call(s,'currentAge') && s.currentAge!==null && s.currentAge!==undefined){
+      currentAgeAuto=false;
+      els.currentAge.value=s.currentAge;
+      applied++;
+    }else if(Object.prototype.hasOwnProperty.call(s,'age2027')){
+      // Compatibilidad con JSON antiguos que pudieran guardar age2027.
+      currentAgeAuto=false;
+      els.currentAge.value=Math.max(18,num(s.age2027)-(START_YEAR-CURRENT_YEAR));
+      applied++;
+    }
+    if(!applied) throw new Error('No he encontrado campos reconocibles dentro del JSON.');
+    render();
+  }
+
+  function setSyncStatus(type,htmlText){
+    els.syncStatus.className=`sync-status ${type||''}`.trim();
+    els.syncStatus.innerHTML=`<span class="sync-status-dot"></span><span>${htmlText}</span>`;
+  }
+
+  function downloadJson(){
+    const content=JSON.stringify(scenarioPayload(),null,2);
+    const blob=new Blob([content],{type:'application/json;charset=utf-8'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download=GIST_FILENAME;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+    setSyncStatus('ok',`JSON descargado como <b>${GIST_FILENAME}</b>.`);
+  }
+
+  async function importJson(file){
+    if(!file) return;
+    try{
+      const payload=JSON.parse(await file.text());
+      applyScenarioPayload(payload);
+      setSyncStatus('ok',`Escenario importado desde <b>${esc(file.name)}</b>.`);
+    }catch(err){
+      console.error(err);
+      setSyncStatus('error',`No he podido importar el JSON: ${esc(err.message)}`);
+    }finally{
+      els.importJsonInput.value='';
+    }
+  }
+
+  function githubHeaders(includeAuth=true){
+    const headers={
+      'Accept':'application/vnd.github+json',
+      'X-GitHub-Api-Version':GITHUB_API_VERSION
+    };
+    const token=clean(els.githubToken.value);
+    if(includeAuth && token) headers.Authorization=`Bearer ${token}`;
+    return headers;
+  }
+
+  async function parseGitHubResponse(res){
+    const text=await res.text();
+    let body=null;
+    try{body=text?JSON.parse(text):null}catch(e){body=text}
+    if(!res.ok){
+      const detail=body && typeof body==='object' && body.message ? body.message : (text || `HTTP ${res.status}`);
+      throw new Error(`${detail} (HTTP ${res.status})`);
+    }
+    return body;
+  }
+
+  async function saveToGist(){
+    const token=clean(els.githubToken.value);
+    if(!token){
+      setSyncStatus('error','Introduce un <b>token de GitHub</b> con permiso de escritura en Gists. El token no se guardará.');
+      els.githubToken.focus();
+      return;
+    }
+    const gistId=normalizeGistId(els.gistId.value);
+    if(gistId) els.gistId.value=gistId;
+    const body={
+      description:'Escenario · Independencia financiera',
+      files:{[GIST_FILENAME]:{content:JSON.stringify(scenarioPayload(),null,2)}}
+    };
+    if(!gistId) body.public=false;
+    els.saveGistBtn.disabled=true;
+    els.loadGistBtn.disabled=true;
+    setSyncStatus('warn',gistId?'Actualizando Gist…':'Creando Gist secreto…');
+    try{
+      const res=await fetch(gistId?`https://api.github.com/gists/${encodeURIComponent(gistId)}`:'https://api.github.com/gists',{
+        method:gistId?'PATCH':'POST',
+        headers:{...githubHeaders(true),'Content-Type':'application/json'},
+        body:JSON.stringify(body)
+      });
+      const data=await parseGitHubResponse(res);
+      if(data?.id) els.gistId.value=data.id;
+      saveInputs();
+      const link=data?.html_url ? ` · <a href="${esc(data.html_url)}" target="_blank" rel="noreferrer">Abrir Gist</a>` : '';
+      setSyncStatus('ok',`${gistId?'Gist actualizado':'Gist creado y guardado'} correctamente${link}.`);
+    }catch(err){
+      console.error(err);
+      setSyncStatus('error',`No he podido guardar en GitHub: ${esc(err.message)}. Revisa el token y que tenga permiso <b>Gists: write</b>.`);
+    }finally{
+      els.saveGistBtn.disabled=false;
+      els.loadGistBtn.disabled=false;
+    }
+  }
+
+  async function loadFromGist(){
+    const gistId=normalizeGistId(els.gistId.value);
+    if(gistId) els.gistId.value=gistId;
+    if(!gistId){
+      setSyncStatus('error','Introduce el <b>Gist ID</b> que quieres cargar.');
+      els.gistId.focus();
+      return;
+    }
+    els.saveGistBtn.disabled=true;
+    els.loadGistBtn.disabled=true;
+    setSyncStatus('warn','Cargando Gist…');
+    try{
+      const res=await fetch(`https://api.github.com/gists/${encodeURIComponent(gistId)}`,{headers:githubHeaders(true)});
+      const data=await parseGitHubResponse(res);
+      let file=data?.files?.[GIST_FILENAME];
+      if(!file && data?.files){
+        file=Object.values(data.files).find(f=>String(f?.filename||'').toLowerCase().endsWith('.json'));
+      }
+      if(!file) throw new Error(`El Gist no contiene ${GIST_FILENAME} ni otro archivo JSON.`);
+      let content=file.content;
+      if(file.truncated && file.raw_url){
+        const rawRes=await fetch(file.raw_url,{cache:'no-store'});
+        if(!rawRes.ok) throw new Error(`No he podido leer el contenido completo del JSON (HTTP ${rawRes.status}).`);
+        content=await rawRes.text();
+      }
+      const payload=JSON.parse(content);
+      applyScenarioPayload(payload);
+      saveInputs();
+      const link=data?.html_url ? ` · <a href="${esc(data.html_url)}" target="_blank" rel="noreferrer">Abrir Gist</a>` : '';
+      setSyncStatus('ok',`Escenario cargado desde GitHub${link}.`);
+    }catch(err){
+      console.error(err);
+      setSyncStatus('error',`No he podido cargar el Gist: ${esc(err.message)}`);
+    }finally{
+      els.saveGistBtn.disabled=false;
+      els.loadGistBtn.disabled=false;
+    }
+  }
+
   function setStatus(type,text){
     els.excelStatus.className=`status-pill ${type||''}`.trim();
     els.excelStatus.querySelector('span:last-child').textContent=text;
@@ -591,7 +854,7 @@ details summary::-webkit-details-marker{display:none}
     setStatus('error','Excel no disponible · carga manual');
     els.manualExcelBtn.hidden=false;
     const attempted=EXCEL_PATHS.map(p=>`<code>${esc(p)}</code>`).join(' · ');
-    els.errorBox.innerHTML=`<b>No he podido leer el Excel automáticamente.</b><br><br>He probado estas rutas: ${attempted}.<br><br>Si estás abriendo el dashboard desde <b>C:</b>, esto es normal: muchos navegadores bloquean la lectura automática de otros archivos locales. Pulsa <b>↑ Cargar Excel manualmente</b> y selecciona finanzas-master.xlsx. En GitHub, en cuanto encuentre el archivo en una de esas rutas, lo cargará sin preguntarte.`;
+    els.errorBox.innerHTML=`<b>No he podido leer el Excel automáticamente.</b><br><br>He probado estas rutas: ${attempted}.<br><br>Si estás abriendo el dashboard desde <b>C:</b>, esto es normal: muchos navegadores bloquean la lectura automática de otros archivos locales. Pulsa <b>↑ Cargar Excel manualmente</b> y selecciona finanzas-master.xlsx. En GitHub prioriza <b>../excel/finanzas-master.xlsx</b> y, en cuanto encuentre el archivo, lo cargará sin preguntarte.`;
     els.errorBox.classList.add('show');
     console.warn('Rutas de Excel probadas:', attempts);
     render();
@@ -617,13 +880,22 @@ details summary::-webkit-details-marker{display:none}
   }
 
   loadInputs();
-  ['savings','severance','assets','unemployment','age2027','pension','retirementAge','endYear'].forEach(id=>{
+  ['savings','severance','assets','unemployment','pension','retirementAge','endYear'].forEach(id=>{
     els[id].addEventListener('input',render);
     els[id].addEventListener('change',render);
   });
+  els.currentAge.addEventListener('input',()=>{currentAgeAuto=false;render();});
+  els.currentAge.addEventListener('change',()=>{currentAgeAuto=false;render();});
+  els.gistId.addEventListener('change',()=>{els.gistId.value=normalizeGistId(els.gistId.value);saveInputs();});
   els.reloadBtn.addEventListener('click',loadExcel);
   els.manualExcelBtn.addEventListener('click',()=>els.manualExcelInput.click());
   els.manualExcelInput.addEventListener('change',()=>loadManualExcel(els.manualExcelInput.files?.[0]));
+  els.saveGistBtn.addEventListener('click',saveToGist);
+  els.loadGistBtn.addEventListener('click',loadFromGist);
+  els.downloadJsonBtn.addEventListener('click',downloadJson);
+  els.importJsonBtn.addEventListener('click',()=>els.importJsonInput.click());
+  els.importJsonInput.addEventListener('change',()=>importJson(els.importJsonInput.files?.[0]));
+  setSyncStatus('warn','Gist secreto = no indexado, pero <b>no privado</b>. El token nunca se guarda en el dashboard.');
   loadExcel();
 })();
 </script>
