@@ -1,11 +1,14 @@
-const CACHE_NAME = 'cuentas-mama-v2';
+const CACHE_NAME = 'cuentas-mama-v3';
 const APP_SHELL = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './icons/icon-mama-180.png',
-  './icons/icon-mama-192.png',
-  './icons/icon-mama-512.png'
+  './favicon.ico',
+  './icons/icon-mama-v3-180.png',
+  './icons/icon-mama-v3-192.png',
+  './icons/icon-mama-v3-512.png',
+  './icons/icon-mama-v3.svg',
+  './icons/favicon-mama-v3-32.png'
 ];
 
 self.addEventListener('install', event => {

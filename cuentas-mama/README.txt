@@ -14,7 +14,16 @@ Para GitHub Pages:
 - Sube esta carpeta completa como /cuentas-mama/
 - Deben ir juntos index.html, manifest.webmanifest, service-worker.js e icons/
 
-Cambio de icono:
-- Cuentas Mamá usa ahora el mismo icono rosa/corazón/€ que aparece en Javi Apps.
-- Se usan nombres de archivo nuevos para evitar que el navegador reutilice el icono anterior desde caché.
-- Service worker actualizado a caché v2.
+ICONO UNIFICADO · SAFARI + IPHONE/IPAD
+=====================================
+Problema encontrado:
+- Los archivos reales eran icon-mama-180.png / 192 / 512.
+- index.html, manifest.webmanifest y service-worker.js apuntaban a icon-180.png / 192 / 512, que no existían.
+- Safari podía terminar mostrando un favicon antiguo o un fallback almacenado en caché.
+
+Corrección:
+- Mismo icono corazón rosa + € para Apple touch icon, favicon, manifest y PWA.
+- Nombres nuevos v3 para forzar a Safari a descargar los iconos otra vez.
+- favicon.ico añadido en la raíz.
+- favicon PNG 32x32 añadido.
+- service worker actualizado a cuentas-mama-v3.
