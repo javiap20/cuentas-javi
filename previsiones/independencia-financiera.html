@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Previsión de Independencia Financiera</title>
 <meta name="theme-color" content="#f5f7fb">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Independencia">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
@@ -91,7 +97,13 @@ h1{font-family:"Manrope",sans-serif;font-size:clamp(26px,3vw,40px);line-height:1
 .mini-control label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:800;color:var(--muted);margin-bottom:5px}
 .mini-input{width:100%;border:0;background:transparent;outline:0;color:var(--ink);font-weight:800;font-size:15px;padding:0}
 .mini-copy{font-size:11px;color:var(--ink-2);line-height:1.45;padding:4px 3px}
-.dashboard-grid{display:grid;grid-template-columns:1.08fr .92fr;gap:18px;margin-bottom:18px}
+.summary-section{margin-bottom:18px;padding:20px}
+.summary-overview-head{display:flex;align-items:center;justify-content:center;gap:18px;text-align:center;padding:2px 4px 16px;margin-bottom:16px;border-bottom:1px solid var(--line)}
+.summary-overview-head>div{width:100%}
+.summary-overview-head .section-title{font-size:19px}
+.summary-overview-head .section-note{margin:4px auto 0;max-width:760px}
+.dashboard-grid{display:grid;grid-template-columns:1.08fr .92fr;gap:14px;margin-bottom:0}
+.summary-inner{border:1px solid var(--line);background:linear-gradient(180deg,#fff,#fbfcff);border-radius:16px;overflow:hidden}
 .kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:18px}
 .kpi{border:1px solid var(--line);background:linear-gradient(180deg,#fff,#fbfcff);border-radius:16px;padding:16px;min-height:112px;position:relative;overflow:hidden}
 .kpi::after{content:"";position:absolute;width:84px;height:84px;border-radius:50%;right:-34px;top:-34px;background:rgba(91,99,242,.055)}
@@ -166,6 +178,38 @@ details summary::-webkit-details-marker{display:none}
 .scenario-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:9px;min-height:20px}
 .scenario-chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:4px 8px;background:#f0f2f7;color:var(--ink-2);font-size:9.5px;font-weight:800}
 .scenario-chip.base{background:var(--accent-soft);color:var(--accent)}.scenario-chip.dirty{background:var(--amber-soft);color:var(--amber)}.scenario-chip.good{background:var(--green-soft);color:var(--green)}.scenario-chip.bad{background:var(--red-soft);color:var(--red)}
+.compare-scenarios-btn{align-self:flex-start;border:1px solid rgba(91,99,242,.22);background:var(--accent-soft);color:var(--accent);border-radius:12px;padding:8px 11px;font-size:10.5px;font-weight:800;white-space:nowrap;transition:.18s}
+.compare-scenarios-btn:hover:not(:disabled){transform:translateY(-1px);border-color:rgba(91,99,242,.42);box-shadow:0 6px 16px rgba(91,99,242,.08)}
+.compare-scenarios-btn:disabled{opacity:.42;cursor:not-allowed;transform:none;box-shadow:none}
+.compare-modal-backdrop{position:fixed;inset:0;z-index:1100;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(23,32,51,.32);backdrop-filter:blur(4px);opacity:0;visibility:hidden;pointer-events:none;transition:.18s}
+.compare-modal-backdrop.open{opacity:1;visibility:visible;pointer-events:auto}
+.compare-modal-card{width:min(1320px,calc(100vw - 40px));max-height:calc(100vh - 40px);display:flex;flex-direction:column;background:rgba(255,255,255,.99);border:1px solid var(--line);border-radius:20px;box-shadow:0 28px 90px rgba(23,32,51,.22);overflow:hidden;transform:translateY(8px) scale(.992);transition:.18s}
+.compare-modal-backdrop.open .compare-modal-card{transform:translateY(0) scale(1)}
+.compare-modal-head{position:relative;text-align:center;padding:20px 60px 16px;border-bottom:1px solid var(--line)}
+.compare-modal-title{font-family:"Manrope",sans-serif;font-size:20px;font-weight:800;letter-spacing:-.025em}
+.compare-modal-subtitle{font-size:11px;color:var(--muted);margin-top:4px}
+.compare-modal-head .sync-close-btn{position:absolute;right:18px;top:16px}
+.compare-modal-body{padding:16px 18px 18px;overflow:auto}
+.compare-final-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:16px}
+.compare-final-card{border:1px solid var(--line);border-radius:15px;background:linear-gradient(180deg,#fff,#fafbfe);padding:13px 12px;text-align:center;min-width:0}
+.compare-final-name{font-size:10.5px;color:var(--ink-2);font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.compare-final-label{font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:800;margin-top:7px}
+.compare-final-value{font-family:"Manrope",sans-serif;font-size:21px;font-weight:800;letter-spacing:-.03em;margin-top:3px}
+.compare-final-value.good{color:var(--green)}.compare-final-value.bad{color:var(--red)}
+.compare-final-year{font-size:9.5px;color:var(--muted);font-weight:700;margin-top:3px}
+.compare-dirty{display:inline-flex;margin-top:6px;padding:2px 6px;border-radius:999px;background:var(--amber-soft);color:var(--amber);font-size:8px;font-weight:800}
+.compare-table-wrap{overflow:auto;border:1px solid var(--line);border-radius:15px;max-height:58vh}
+.compare-table{width:100%;border-collapse:separate;border-spacing:0;min-width:760px}
+.compare-table th,.compare-table td{text-align:center!important;vertical-align:middle;padding:11px 13px;border-bottom:1px solid #edf0f5;font-variant-numeric:tabular-nums}
+.compare-table thead th{position:sticky;top:0;z-index:3;background:#f8f9fc;color:var(--muted);font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.065em}
+.compare-table tbody tr:last-child td{border-bottom:0}
+.compare-table tbody tr:hover td{background:#fbfcff}
+.compare-table .compare-year{font-family:"Manrope",sans-serif;font-weight:800;color:var(--ink)}
+.compare-table .compare-age{color:var(--ink-2);font-weight:700}
+.compare-table .compare-balance{font-weight:800;color:var(--ink-2)}
+.compare-table .compare-balance.negative{color:var(--red)}
+.compare-table .compare-active-head{color:var(--accent);background:#f3f4ff}
+.compare-empty{padding:30px;text-align:center;color:var(--muted);font-size:12px}
 .expense-table table{min-width:1120px}
 .expense-table tr.expense-modified td{background:#fafaff}.expense-table tr.expense-modified td:first-child{box-shadow:inset 3px 0 0 var(--accent)}.expense-table tr.expense-disabled td{color:#9ba4b5}
 .expense-toggle{width:16px;height:16px;accent-color:var(--accent);cursor:pointer}.expense-toggle:disabled{cursor:not-allowed}
@@ -188,8 +232,8 @@ details summary::-webkit-details-marker{display:none}
 .sync-status a{color:inherit;font-weight:800;text-decoration:none}.sync-status a:hover{text-decoration:underline}
 .footer{margin-top:20px;display:flex;justify-content:space-between;gap:20px;color:var(--muted);font-size:10.5px;line-height:1.55;padding:0 3px}.footer a{color:var(--ink-2);text-decoration:none}.footer a:hover{text-decoration:underline}
 @media(max-width:1120px){.sync-grid,.scenario-toolbar{grid-template-columns:repeat(2,minmax(0,1fr))}.sync-btn{white-space:normal}}
-@media(max-width:980px){.input-grid{grid-template-columns:repeat(2,1fr)}.advanced{grid-template-columns:repeat(2,1fr)}.dashboard-grid{grid-template-columns:1fr}.topbar{flex-direction:column}.top-actions{justify-content:flex-start}.group-cards{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:620px){.shell{width:min(100% - 20px,1460px);padding-top:18px}.input-grid,.advanced,.kpis,.sync-grid,.scenario-toolbar{grid-template-columns:1fr}.scenario-panel,.scenario-library-panel{padding:15px}.panel{border-radius:16px}.group-cards{grid-template-columns:1fr}.footer{flex-direction:column}.money-input{font-size:23px}.sync-head{flex-direction:column}.table-header{grid-template-columns:1fr}.table-header::before{display:none}.table-header>div:first-child,.table-header>.mini-control{grid-column:1}.table-header>.mini-control{justify-self:center;margin-top:4px}.summary-right{position:static}.sync-modal-backdrop{padding:10px;align-items:flex-start}.sync-modal-card{width:100%;max-height:calc(100vh - 20px);padding:15px;border-radius:16px}}
+@media(max-width:980px){.scenario-library-head{align-items:center}.input-grid{grid-template-columns:repeat(2,1fr)}.advanced{grid-template-columns:repeat(2,1fr)}.dashboard-grid{grid-template-columns:1fr}.topbar{flex-direction:column}.top-actions{justify-content:flex-start}.group-cards{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:620px){.shell{width:min(100% - 20px,1460px);padding-top:18px}.input-grid,.advanced,.kpis,.sync-grid,.scenario-toolbar{grid-template-columns:1fr}.scenario-panel,.scenario-library-panel{padding:15px}.summary-section{padding:15px}.summary-overview-head{padding:0 2px 13px;margin-bottom:13px}.panel{border-radius:16px}.group-cards{grid-template-columns:1fr}.footer{flex-direction:column}.money-input{font-size:23px}.sync-head{flex-direction:column}.table-header{grid-template-columns:1fr}.table-header::before{display:none}.table-header>div:first-child,.table-header>.mini-control{grid-column:1}.table-header>.mini-control{justify-self:center;margin-top:4px}.summary-right{position:static}.sync-modal-backdrop{padding:10px;align-items:flex-start}.sync-modal-card{width:100%;max-height:calc(100vh - 20px);padding:15px;border-radius:16px}.compare-modal-backdrop{padding:10px}.compare-modal-card{width:100%;max-height:calc(100vh - 20px);border-radius:16px}.compare-modal-head{padding:16px 48px 13px}.compare-modal-title{font-size:17px}.compare-modal-body{padding:12px}.compare-final-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 </head>
 <body>
@@ -219,6 +263,7 @@ details summary::-webkit-details-marker{display:none}
           <div class="scenario-library-title">Escenarios de previsión</div>
           <div class="scenario-library-note">El Excel sigue siendo la base y nunca se modifica. Crea un escenario para apagar partidas o cambiar sus importes; solo se guardan las diferencias respecto a <b>DESPIDO</b>.</div>
         </div>
+        <button id="compareScenarioBtn" class="compare-scenarios-btn" type="button" title="Comparar la evolución de todos los escenarios">↔ Comparar escenarios</button>
       </div>
       <div class="scenario-toolbar">
         <div class="scenario-field">
@@ -329,8 +374,30 @@ details summary::-webkit-details-marker{display:none}
     </div>
   </div>
 
-  <section class="dashboard-grid">
-    <div class="panel kpis">
+  <div id="comparisonModal" class="compare-modal-backdrop" aria-hidden="true">
+    <div class="compare-modal-card" role="dialog" aria-modal="true" aria-labelledby="comparisonModalTitle">
+      <div class="compare-modal-head">
+        <div id="comparisonModalTitle" class="compare-modal-title">Comparativa de escenarios</div>
+        <div class="compare-modal-subtitle">Saldo disponible al cierre de cada año · todos los importes ya incluyen ingresos y gastos de cada escenario.</div>
+        <button id="comparisonCloseBtn" class="sync-close-btn" type="button" aria-label="Cerrar comparativa">×</button>
+      </div>
+      <div class="compare-modal-body">
+        <div id="comparisonFinalGrid" class="compare-final-grid"></div>
+        <div id="comparisonTableWrap" class="compare-table-wrap"><div class="compare-empty">Cargando comparativa…</div></div>
+      </div>
+    </div>
+  </div>
+
+  <section class="panel summary-section">
+    <div class="summary-overview-head">
+      <div>
+        <h2 class="section-title">Resumen de viabilidad financiera</h2>
+        <div class="section-note">Capital, gasto, horizonte y saldo proyectado del escenario seleccionado.</div>
+      </div>
+    </div>
+
+    <div class="dashboard-grid">
+    <div class="summary-inner kpis">
       <div class="kpi">
         <div class="kpi-label">Capital inicial</div>
         <div id="kpiInitial" class="kpi-value">0 €</div>
@@ -353,7 +420,7 @@ details summary::-webkit-details-marker{display:none}
       </div>
     </div>
 
-    <div class="panel chart-panel">
+    <div class="summary-inner chart-panel">
       <div class="chart-head">
         <div>
           <div class="chart-title">Evolución del dinero disponible</div>
@@ -362,6 +429,7 @@ details summary::-webkit-details-marker{display:none}
         <div id="chartMeta" class="section-note"></div>
       </div>
       <div id="chart" class="chart-wrap"><div class="chart-empty">La gráfica aparecerá cuando cargue el Excel.</div></div>
+    </div>
     </div>
   </section>
 
@@ -414,7 +482,7 @@ details summary::-webkit-details-marker{display:none}
   </section>
 
   <footer class="footer">
-    <div>El dashboard no contiene importes del Excel: prioriza <b>../excel/finanzas-master.xlsx</b> y lee únicamente <b>DESPIDO</b>. Si no está disponible, permite cargar el archivo manualmente. <b>v1.12</b></div>
+    <div>El dashboard no contiene importes del Excel: prioriza <b>../excel/finanzas-master.xlsx</b> y lee únicamente <b>DESPIDO</b>. Si no está disponible, permite cargar el archivo manualmente. <b>v1.16</b></div>
     <div>Referencia de jubilación editable: desde 2027 la edad ordinaria general es 67 años, o 65 con al menos 38 años y 6 meses cotizados. <a href="https://www.seg-social.es/" target="_blank" rel="noreferrer">Seguridad Social</a></div>
   </footer>
 </div>
@@ -441,10 +509,7 @@ details summary::-webkit-details-marker{display:none}
   const GIST_FILENAME = 'independencia-financiera.json';
   const DEFAULT_GIST_ID = 'bcb12de9d4e6b476062a8d13a676532f';
   const GIST_OWNER = 'javiap20';
-  const GIST_RAW_URLS = [
-    `https://gist.githubusercontent.com/raw/${DEFAULT_GIST_ID}/${GIST_FILENAME}`,
-    `https://gist.githubusercontent.com/${GIST_OWNER}/${DEFAULT_GIST_ID}/raw/${GIST_FILENAME}`
-  ];
+  const GIST_RAW_URL = `https://gist.githubusercontent.com/${GIST_OWNER}/${DEFAULT_GIST_ID}/raw/${GIST_FILENAME}`;
   const GITHUB_API_VERSION = '2026-03-10';
 
   let expenseRecords = [];
@@ -472,7 +537,8 @@ details summary::-webkit-details-marker{display:none}
     downloadJsonBtn:$('downloadJsonBtn'), importJsonBtn:$('importJsonBtn'), importJsonInput:$('importJsonInput'), syncStatus:$('syncStatus'),
     syncOpenBtn:$('syncOpenBtn'), syncModal:$('syncModal'), syncCloseBtn:$('syncCloseBtn'),
     scenarioSelect:$('scenarioSelect'), scenarioName:$('scenarioName'), newScenarioBtn:$('newScenarioBtn'), saveScenarioBtn:$('saveScenarioBtn'),
-    resetScenarioBtn:$('resetScenarioBtn'), deleteScenarioBtn:$('deleteScenarioBtn'), scenarioMeta:$('scenarioMeta'), expenseDetails:$('expenseDetails')
+    resetScenarioBtn:$('resetScenarioBtn'), deleteScenarioBtn:$('deleteScenarioBtn'), compareScenarioBtn:$('compareScenarioBtn'), scenarioMeta:$('scenarioMeta'), expenseDetails:$('expenseDetails'),
+    comparisonModal:$('comparisonModal'), comparisonCloseBtn:$('comparisonCloseBtn'), comparisonFinalGrid:$('comparisonFinalGrid'), comparisonTableWrap:$('comparisonTableWrap')
   };
 
   // Formato numérico español forzado: punto para millares y coma para decimales.
@@ -754,6 +820,8 @@ details summary::-webkit-details-marker{display:none}
     els.saveScenarioBtn.disabled=isBase;
     els.resetScenarioBtn.disabled=isBase || scenarioOverrideCount()===0;
     els.deleteScenarioBtn.disabled=isBase;
+    els.compareScenarioBtn.disabled=!excelMeta.loaded || savedScenarios.length===0;
+    els.compareScenarioBtn.title=savedScenarios.length===0?'Crea al menos un escenario para comparar':'Comparar Base Excel y todos los escenarios guardados';
     const adjustments=scenarioOverrideCount();
     const chips=[];
     chips.push(`<span class="scenario-chip ${isBase?'base':''}">${isBase?'BASE · Excel intacto':`${adjustments} ajuste${adjustments===1?'':'s'} de gasto`}</span>`);
@@ -872,6 +940,126 @@ details summary::-webkit-details-marker{display:none}
     const unemploymentEndYear = START_YEAR + Math.ceil(UNEMPLOYMENT_MONTHS/12) - 1;
     if (year <= unemploymentEndYear) return {type:'paro', label:'Paro', amount:input.unemployment*12};
     return {type:'none', label:'Sin ingreso', amount:0};
+  }
+
+  function comparisonInput(assumptions){
+    const x={...defaultAssumptions(),...(assumptions||{})};
+    x.savings=num(x.savings);
+    x.severance=num(x.severance);
+    x.assets=num(x.assets);
+    x.unemployment=num(x.unemployment);
+    x.pension=num(x.pension);
+    x.currentAge=x.currentAgeAuto===false ? (x.currentAge===null?null:num(x.currentAge)) : DEFAULT_CURRENT_AGE;
+    x.longContribution=!!x.longContribution;
+    x.retirementAge=x.longContribution?65:67;
+    x.endYear=Math.min(2120,Math.max(START_YEAR,Math.trunc(num(x.endYear)||2075)));
+    return x;
+  }
+
+  function comparisonExpenseRecordsForYear(year,overrides){
+    const ovs=overrides||{};
+    return baseRecordsForYear(year).map(record=>{
+      const ov=ovs[record.__key]||{};
+      return {
+        ...record,
+        valor_base:Object.prototype.hasOwnProperty.call(ov,'value')?ov.value:record.valor_base,
+        activo:Object.prototype.hasOwnProperty.call(ov,'active')?ov.active:record.activo
+      };
+    }).filter(r=>isActive(r.activo));
+  }
+
+  function comparisonExpensesForYear(year,overrides){
+    return comparisonExpenseRecordsForYear(year,overrides).reduce((sum,r)=>sum+annualize(r),0);
+  }
+
+  function comparisonScenarioConfigs(){
+    const baseA=activeScenarioId==='base' ? assumptionsFromUI() : (baseAssumptions||defaultAssumptions());
+    const configs=[{id:'base',name:'Base Excel',assumptions:cloneJson(baseA),expenseOverrides:{},dirty:false}];
+    savedScenarios.forEach(sc=>{
+      const active=sc.id===activeScenarioId;
+      configs.push({
+        id:sc.id,
+        name:active?(clean(workingScenarioName)||sc.name):sc.name,
+        assumptions:cloneJson(active?assumptionsFromUI():(sc.assumptions||baseA)),
+        expenseOverrides:cloneJson(active?expenseOverrides:(sc.expenseOverrides||{}))||{},
+        dirty:active&&scenarioDirty
+      });
+    });
+    return configs;
+  }
+
+  function buildComparisonForecast(config){
+    const input=comparisonInput(config.assumptions);
+    const initial=input.savings+input.severance+input.assets;
+    let opening=initial;
+    const rows=[];
+    for(let year=START_YEAR;year<=input.endYear;year++){
+      const age=ageForYear(year,input);
+      const income=incomeFor(year,input);
+      const expenses=comparisonExpensesForYear(year,config.expenseOverrides);
+      const annualDelta=income.amount-expenses;
+      const closing=opening+annualDelta;
+      rows.push({year,age,opening,income,expenses,annualDelta,closing});
+      opening=closing;
+    }
+    return {...config,input,initial,rows};
+  }
+
+  function renderComparisonModal(){
+    if(!excelMeta.loaded){
+      els.comparisonFinalGrid.innerHTML='';
+      els.comparisonTableWrap.innerHTML='<div class="compare-empty">Necesito cargar el Excel antes de comparar los escenarios.</div>';
+      return;
+    }
+    const models=comparisonScenarioConfigs().map(buildComparisonForecast);
+    if(models.length<2){
+      els.comparisonFinalGrid.innerHTML='';
+      els.comparisonTableWrap.innerHTML='<div class="compare-empty">Crea al menos un escenario además de Base Excel para poder comparar.</div>';
+      return;
+    }
+    els.comparisonFinalGrid.innerHTML=models.map(m=>{
+      const last=m.rows.at(-1);
+      const value=last?.closing??0;
+      return `<div class="compare-final-card" title="${esc(m.name)}">
+        <div class="compare-final-name">${esc(m.name)}</div>
+        <div class="compare-final-label">Saldo final</div>
+        <div class="compare-final-value ${value>=0?'good':'bad'}">${euro0.format(value)}</div>
+        <div class="compare-final-year">al cierre de ${last?.year??'—'}</div>
+        ${m.dirty?'<span class="compare-dirty">Cambios sin guardar</span>':''}
+      </div>`;
+    }).join('');
+
+    const maxEnd=Math.max(...models.map(m=>m.input.endYear));
+    const rowMaps=models.map(m=>new Map(m.rows.map(r=>[r.year,r])));
+    const baseInput=models[0].input;
+    const minWidth=Math.max(760,180+models.length*190);
+    const head=`<thead><tr><th>Año</th><th>Edad</th>${models.map(m=>`<th class="${m.id===activeScenarioId?'compare-active-head':''}">${esc(m.name)}</th>`).join('')}</tr></thead>`;
+    const body=[];
+    for(let year=START_YEAR;year<=maxEnd;year++){
+      const age=ageForYear(year,baseInput);
+      const cells=models.map((m,i)=>{
+        const r=rowMaps[i].get(year);
+        if(!r) return '<td><span class="compare-balance">—</span></td>';
+        return `<td><span class="compare-balance ${r.closing<0?'negative':''}">${euro0.format(r.closing)}</span></td>`;
+      }).join('');
+      body.push(`<tr><td><span class="compare-year">${year}</span></td><td><span class="compare-age">${age===null?'—':Math.trunc(age)+' años'}</span></td>${cells}</tr>`);
+    }
+    els.comparisonTableWrap.innerHTML=`<table class="compare-table" style="min-width:${minWidth}px">${head}<tbody>${body.join('')}</tbody></table>`;
+  }
+
+  function openComparisonModal(){
+    if(els.compareScenarioBtn.disabled) return;
+    if(els.syncModal.classList.contains('open')) closeSyncModal();
+    renderComparisonModal();
+    els.comparisonModal.classList.add('open');
+    els.comparisonModal.setAttribute('aria-hidden','false');
+    document.body.style.overflow='hidden';
+  }
+
+  function closeComparisonModal(){
+    els.comparisonModal.classList.remove('open');
+    els.comparisonModal.setAttribute('aria-hidden','true');
+    document.body.style.overflow='';
   }
 
   function buildForecast(){
@@ -1187,18 +1375,15 @@ details summary::-webkit-details-marker{display:none}
     try{
       // Para la lectura usamos el fichero RAW del Gist. Así no hace falta exponer
       // ni guardar el token: conocer la URL/ID del Gist basta para leer el JSON.
+      const rawUrl=`${GIST_RAW_URL}?t=${Date.now()}`;
       let payload=null;
       let rawError=null;
-      for(const baseRawUrl of GIST_RAW_URLS){
-        try{
-          const rawUrl=`${baseRawUrl}${baseRawUrl.includes('?')?'&':'?'}t=${Date.now()}`;
-          const rawRes=await fetch(rawUrl,{cache:'no-store'});
-          if(!rawRes.ok) throw new Error(`RAW HTTP ${rawRes.status}`);
-          payload=JSON.parse(await rawRes.text());
-          break;
-        }catch(err){
-          rawError=err;
-        }
+      try{
+        const rawRes=await fetch(rawUrl,{cache:'no-store'});
+        if(!rawRes.ok) throw new Error(`RAW HTTP ${rawRes.status}`);
+        payload=JSON.parse(await rawRes.text());
+      }catch(err){
+        rawError=err;
       }
 
       // Fallback: si el RAW falla y el usuario ha introducido un token en esta sesión,
@@ -1359,6 +1544,9 @@ details summary::-webkit-details-marker{display:none}
   els.saveScenarioBtn.addEventListener('click',saveActiveScenario);
   els.resetScenarioBtn.addEventListener('click',resetScenarioExpenses);
   els.deleteScenarioBtn.addEventListener('click',deleteActiveScenario);
+  els.compareScenarioBtn.addEventListener('click',openComparisonModal);
+  els.comparisonCloseBtn.addEventListener('click',closeComparisonModal);
+  els.comparisonModal.addEventListener('click',e=>{if(e.target===els.comparisonModal) closeComparisonModal();});
 
   els.expenseBody.addEventListener('change',e=>{
     const key=e.target?.dataset?.key;
@@ -1381,7 +1569,11 @@ details summary::-webkit-details-marker{display:none}
   els.syncOpenBtn.addEventListener('click',openSyncModal);
   els.syncCloseBtn.addEventListener('click',closeSyncModal);
   els.syncModal.addEventListener('click',e=>{if(e.target===els.syncModal) closeSyncModal();});
-  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&els.syncModal.classList.contains('open')) closeSyncModal();});
+  document.addEventListener('keydown',e=>{
+    if(e.key!=='Escape') return;
+    if(els.comparisonModal.classList.contains('open')) closeComparisonModal();
+    else if(els.syncModal.classList.contains('open')) closeSyncModal();
+  });
   els.saveGistBtn.addEventListener('click',saveToGist);
   els.loadGistBtn.addEventListener('click',()=>loadFromGist());
   els.downloadJsonBtn.addEventListener('click',downloadJson);
@@ -1397,6 +1589,14 @@ details summary::-webkit-details-marker{display:none}
   }
   bootstrap();
 })();
+</script>
+
+<script>
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js', {scope:'./'}).catch(err => console.warn('Service worker:', err));
+  });
+}
 </script>
 </body>
 </html>
