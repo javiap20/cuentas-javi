@@ -113,10 +113,10 @@ tbody tr:hover td{background:#fbfcff}
 .badge.paro{background:var(--accent-soft);color:var(--accent)}
 .badge.pension{background:var(--green-soft);color:var(--green)}
 .badge.none{background:#f0f2f6;color:var(--muted)}
-.total-main{font-family:"Manrope",sans-serif;font-weight:800;font-size:14px;color:#7f899d}
-.total-main.negative{color:#7f899d}
+.total-main{font-family:"Manrope",sans-serif;font-weight:800;font-size:14px}
+.total-main.positive{color:var(--green)}
+.total-main.negative{color:var(--red)}
 .delta{font-size:10px;margin-top:2px;color:#a0a8b8;font-weight:700}
-.delta.negative{color:#a0a8b8}
 .retirement-row td{background:#fff8e8!important;border-bottom-color:#f0dfb4}
 .retirement-row td:first-child{box-shadow:inset 3px 0 0 #d89a27}
 .retirement-row:hover td{background:#fff4d8!important}
@@ -341,7 +341,7 @@ details summary::-webkit-details-marker{display:none}
   </section>
 
   <footer class="footer">
-    <div>El dashboard no contiene importes del Excel: prioriza <b>../excel/finanzas-master.xlsx</b> y lee únicamente <b>DESPIDO</b>. Si no está disponible, permite cargar el archivo manualmente. <b>v1.7</b></div>
+    <div>El dashboard no contiene importes del Excel: prioriza <b>../excel/finanzas-master.xlsx</b> y lee únicamente <b>DESPIDO</b>. Si no está disponible, permite cargar el archivo manualmente. <b>v1.8</b></div>
     <div>Referencia de jubilación editable: desde 2027 la edad ordinaria general es 67 años, o 65 con al menos 38 años y 6 meses cotizados. <a href="https://www.seg-social.es/" target="_blank" rel="noreferrer">Seguridad Social</a></div>
   </footer>
 </div>
@@ -637,7 +637,7 @@ details summary::-webkit-details-marker{display:none}
         <td><span class="amount muted">${euro0.format(r.opening)}</span></td>
         <td><div class="income-cell">${incomeBadge}${incomeAmount}</div></td>
         <td><span class="amount">${euro0.format(r.expenses)}</span></td>
-        <td><div class="total-main">${euro0.format(r.closing)}</div><div class="delta">${r.annualDelta>=0?'+':''}${euro0.format(r.annualDelta)} este año</div></td>
+        <td><div class="total-main ${r.closing>=0?'positive':'negative'}">${euro0.format(r.closing)}</div><div class="delta">${r.annualDelta>=0?'+':''}${euro0.format(r.annualDelta)} este año</div></td>
       </tr>`;
     }).join('');
   }
