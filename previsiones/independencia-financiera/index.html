@@ -482,7 +482,7 @@ details summary::-webkit-details-marker{display:none}
   </section>
 
   <footer class="footer">
-    <div>El dashboard no contiene importes del Excel: prioriza <b>../excel/finanzas-master.xlsx</b> y lee únicamente <b>DESPIDO</b>. Si no está disponible, permite cargar el archivo manualmente. <b>v1.16</b></div>
+    <div>El dashboard no contiene importes del Excel: prioriza <b>../../excel/finanzas-master.xlsx</b> y lee únicamente <b>DESPIDO</b>. Si no está disponible, permite cargar el archivo manualmente. <b>v1.17</b></div>
     <div>Referencia de jubilación editable: desde 2027 la edad ordinaria general es 67 años, o 65 con al menos 38 años y 6 meses cotizados. <a href="https://www.seg-social.es/" target="_blank" rel="noreferrer">Seguridad Social</a></div>
   </footer>
 </div>
@@ -492,6 +492,7 @@ details summary::-webkit-details-marker{display:none}
   'use strict';
 
   const EXCEL_PATHS = [
+    '../../excel/finanzas-master.xlsx',
     '../excel/finanzas-master.xlsx',
     'excel/finanzas-master.xlsx',
     'finanzas-master.xlsx',
@@ -1493,7 +1494,7 @@ details summary::-webkit-details-marker{display:none}
     setStatus('error','Excel no disponible · carga manual');
     els.manualExcelBtn.hidden=false;
     const attempted=EXCEL_PATHS.map(p=>`<code>${esc(p)}</code>`).join(' · ');
-    els.errorBox.innerHTML=`<b>No he podido leer el Excel automáticamente.</b><br><br>He probado estas rutas: ${attempted}.<br><br>Si estás abriendo el dashboard desde <b>C:</b>, esto es normal: muchos navegadores bloquean la lectura automática de otros archivos locales. Pulsa <b>↑ Cargar Excel</b> y selecciona finanzas-master.xlsx. En GitHub prioriza <b>../excel/finanzas-master.xlsx</b> y, en cuanto encuentre el archivo, lo cargará sin preguntarte.`;
+    els.errorBox.innerHTML=`<b>No he podido leer el Excel automáticamente.</b><br><br>He probado estas rutas: ${attempted}.<br><br>Si estás abriendo el dashboard desde <b>C:</b>, esto es normal: muchos navegadores bloquean la lectura automática de otros archivos locales. Pulsa <b>↑ Cargar Excel</b> y selecciona finanzas-master.xlsx. En GitHub prioriza <b>../../excel/finanzas-master.xlsx</b> y, en cuanto encuentre el archivo, lo cargará sin preguntarte.`;
     els.errorBox.classList.add('show');
     console.warn('Rutas de Excel probadas:', attempts);
     render();
