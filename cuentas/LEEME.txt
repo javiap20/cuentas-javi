@@ -38,3 +38,11 @@ FAVICON CUENTAS PERSONALES
 - Se corrigen las rutas del manifest y del service worker para apuntar a /icons/.
 - Cache del service worker actualizado a finanzas-javiap-pwa-v2.
 - No se ha modificado la lógica financiera ni los datos.
+
+CORRECCION NOMBRE DEL ARCHIVO PRINCIPAL
+=======================================
+- El HTML principal se llama index.html.
+- La carpeta se publica como /cuentas/.
+- El index general de Javi Apps puede seguir apuntando a ./cuentas/.
+- El service worker ya apunta a ./index.html.
+- Cache actualizada a finanzas-javiap-pwa-v3.

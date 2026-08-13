@@ -1,10 +1,10 @@
 {
-  "id": "./cuentas-personales.html",
+  "id": "./",
   "name": "Finanzas JaviAp",
   "short_name": "Finanzas",
   "description": "Dashboard personal de finanzas con sincronización mediante GitHub Gist.",
   "lang": "es",
-  "start_url": "./cuentas-personales.html",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
