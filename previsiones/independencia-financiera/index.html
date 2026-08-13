@@ -97,6 +97,8 @@ h1{font-family:"Manrope",sans-serif;font-size:clamp(26px,3vw,40px);line-height:1
 .mini-control label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:800;color:var(--muted);margin-bottom:5px}
 .mini-input{width:100%;border:0;background:transparent;outline:0;color:var(--ink);font-weight:800;font-size:15px;padding:0}
 .mini-copy{font-size:11px;color:var(--ink-2);line-height:1.45;padding:4px 3px}
+.gist-freshness{display:flex;align-items:center;justify-content:center;gap:7px;margin:-2px 0 14px;color:var(--accent-2);font-size:12px;font-weight:800;text-align:center;letter-spacing:.01em}
+.gist-freshness-dot{width:7px;height:7px;border-radius:50%;background:var(--accent-2);box-shadow:0 0 0 4px rgba(124,77,255,.09);flex:0 0 auto}
 .summary-section{margin-bottom:18px;padding:20px}
 .summary-overview-head{display:flex;align-items:center;justify-content:center;gap:18px;text-align:center;padding:2px 4px 16px;margin-bottom:16px;border-bottom:1px solid var(--line)}
 .summary-overview-head>div{width:100%}
@@ -388,6 +390,8 @@ details summary::-webkit-details-marker{display:none}
     </div>
   </div>
 
+  <div id="gistFreshness" class="gist-freshness" aria-live="polite"><span class="gist-freshness-dot"></span><span>&#9729; &Uacute;ltima actualizaci&oacute;n del Gist &middot; comprobando&hellip;</span></div>
+
   <section class="panel summary-section">
     <div class="summary-overview-head">
       <div>
@@ -482,7 +486,7 @@ details summary::-webkit-details-marker{display:none}
   </section>
 
   <footer class="footer">
-    <div>El dashboard no contiene importes del Excel: prioriza <b>../../excel/finanzas-master.xlsx</b> y lee únicamente <b>DESPIDO</b>. Si no está disponible, permite cargar el archivo manualmente. <b>v1.17</b></div>
+    <div>El dashboard no contiene importes del Excel: prioriza <b>../../excel/finanzas-master.xlsx</b> y lee únicamente <b>DESPIDO</b>. Si no está disponible, permite cargar el archivo manualmente. <b>v1.18</b></div>
     <div>Referencia de jubilación editable: desde 2027 la edad ordinaria general es 67 años, o 65 con al menos 38 años y 6 meses cotizados. <a href="https://www.seg-social.es/" target="_blank" rel="noreferrer">Seguridad Social</a></div>
   </footer>
 </div>
@@ -539,7 +543,8 @@ details summary::-webkit-details-marker{display:none}
     syncOpenBtn:$('syncOpenBtn'), syncModal:$('syncModal'), syncCloseBtn:$('syncCloseBtn'),
     scenarioSelect:$('scenarioSelect'), scenarioName:$('scenarioName'), newScenarioBtn:$('newScenarioBtn'), saveScenarioBtn:$('saveScenarioBtn'),
     resetScenarioBtn:$('resetScenarioBtn'), deleteScenarioBtn:$('deleteScenarioBtn'), compareScenarioBtn:$('compareScenarioBtn'), scenarioMeta:$('scenarioMeta'), expenseDetails:$('expenseDetails'),
-    comparisonModal:$('comparisonModal'), comparisonCloseBtn:$('comparisonCloseBtn'), comparisonFinalGrid:$('comparisonFinalGrid'), comparisonTableWrap:$('comparisonTableWrap')
+    comparisonModal:$('comparisonModal'), comparisonCloseBtn:$('comparisonCloseBtn'), comparisonFinalGrid:$('comparisonFinalGrid'), comparisonTableWrap:$('comparisonTableWrap'),
+    gistFreshness:$('gistFreshness')
   };
 
   // Formato numérico español forzado: punto para millares y coma para decimales.
@@ -1282,6 +1287,28 @@ details summary::-webkit-details-marker{display:none}
     els.syncStatus.innerHTML=`<span class="sync-status-dot"></span><span>${htmlText}</span>`;
   }
 
+  function updateGistFreshness(savedAt,status='ok'){
+    if(!els.gistFreshness) return;
+    const label=els.gistFreshness.querySelector('span:last-child');
+    if(!label) return;
+    if(status==='loading'){
+      label.textContent='\u2601 \u00daltima actualizaci\u00f3n del Gist \u00b7 comprobando\u2026';
+      return;
+    }
+    if(status==='error'){
+      label.textContent='\u2601 \u00daltima actualizaci\u00f3n del Gist \u00b7 no disponible';
+      return;
+    }
+    const d=new Date(savedAt||'');
+    if(!savedAt || Number.isNaN(d.getTime())){
+      label.textContent='\u2601 \u00daltima actualizaci\u00f3n del Gist \u00b7 fecha no disponible';
+      return;
+    }
+    const date=d.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'});
+    const time=d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+    label.textContent=`\u2601 \u00daltima actualizaci\u00f3n del Gist \u00b7 ${date} \u00b7 ${time}`;
+  }
+
   function downloadJson(){
     const content=JSON.stringify(scenarioPayload(),null,2);
     const blob=new Blob([content],{type:'application/json;charset=utf-8'});
@@ -1340,9 +1367,10 @@ details summary::-webkit-details-marker{display:none}
     }
     const gistId=DEFAULT_GIST_ID;
     els.gistId.value=gistId;
+    const payload=scenarioPayload();
     const body={
       description:'Escenarios · Independencia financiera',
-      files:{[GIST_FILENAME]:{content:JSON.stringify(scenarioPayload(),null,2)}}
+      files:{[GIST_FILENAME]:{content:JSON.stringify(payload,null,2)}}
     };
     els.saveGistBtn.disabled=true;
     els.loadGistBtn.disabled=true;
@@ -1358,6 +1386,7 @@ details summary::-webkit-details-marker{display:none}
       saveInputs();
       const link=data?.html_url ? ` · <a href="${esc(data.html_url)}" target="_blank" rel="noreferrer">Abrir Gist</a>` : '';
       setSyncStatus('ok',`Gist actualizado correctamente${link}.`);
+      updateGistFreshness(payload.savedAt);
     }catch(err){
       console.error(err);
       setSyncStatus('error',`No he podido guardar en GitHub: ${esc(err.message)}. Revisa el token y que tenga permiso <b>Gists: write</b>.`);
@@ -1373,6 +1402,7 @@ details summary::-webkit-details-marker{display:none}
     els.saveGistBtn.disabled=true;
     els.loadGistBtn.disabled=true;
     setSyncStatus('warn',auto?'Sincronizando Gist al iniciar…':'Cargando Gist…');
+    updateGistFreshness(null,'loading');
     try{
       // Para la lectura usamos el fichero RAW del Gist. Así no hace falta exponer
       // ni guardar el token: conocer la URL/ID del Gist basta para leer el JSON.
@@ -1411,12 +1441,14 @@ details summary::-webkit-details-marker{display:none}
       }
 
       applyScenarioPayload(payload);
+      updateGistFreshness(payload?.savedAt);
       saveInputs();
       setSyncStatus('ok',`${auto?'Gist cargado automáticamente':'Escenarios cargados desde GitHub'} · <b>${esc(gistId)}</b>.`);
       return true;
     }catch(err){
       console.error(err);
       setSyncStatus('error',`${auto?'No he podido cargar automáticamente el Gist':'No he podido cargar el Gist'}: ${esc(err.message)}`);
+      updateGistFreshness(null,'error');
       return false;
     }finally{
       els.saveGistBtn.disabled=false;
