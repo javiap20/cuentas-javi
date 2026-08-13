@@ -1,0 +1,12 @@
+<svg viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="mamaBg" x1="0" x2="1" y1="0" y2="1">
+      <stop stop-color="#3f1d3d"/>
+      <stop offset="1" stop-color="#831843"/>
+    </linearGradient>
+  </defs>
+  <rect width="192" height="192" rx="43" fill="url(#mamaBg)"/>
+  <path d="M96 145S45 117 45 78c0-19 14-32 31-32 10 0 18 5 24 14 6-9 14-14 24-14 17 0 31 13 31 32 0 39-59 67-59 67Z" fill="#f9a8d4" opacity=".95"/>
+  <circle cx="96" cy="91" r="29" fill="#fff" opacity=".96"/>
+  <text x="96" y="104" text-anchor="middle" font-family="Arial,sans-serif" font-size="44" font-weight="800" fill="#9d174d">€</text>
+</svg>
