@@ -25,6 +25,16 @@ GITHUB PAGES:
 NOTA DE CACHE:
 El service worker guarda la carcasa de la app para que abra mejor, pero NO cachea finanzas-master.xlsx: ese Excel se sigue leyendo del servidor para no trabajar con una planificación antigua.
 
-JAVI APPS - IMPORTANTE
----------------------
-Al mover esta app al nuevo repositorio, copia tambien tu `finanzas-master.xlsx` actual a esta misma carpeta (`cuentas/`). Ese Excel no estaba adjunto al chat y no se incluye en el ZIP.
+FAVICON CUENTAS PERSONALES
+==========================
+- Safari usa ahora un favicon creado a partir del MISMO icono de la app:
+  círculo violeta + € + flecha verde.
+- Se añaden:
+  favicon-cuentas-v2-32.png
+  favicon-cuentas-v2-48.png
+  favicon-cuentas-v2-192.png
+  favicon.ico
+- El apple-touch-icon sigue usando icons/apple-touch-icon.png.
+- Se corrigen las rutas del manifest y del service worker para apuntar a /icons/.
+- Cache del service worker actualizado a finanzas-javiap-pwa-v2.
+- No se ha modificado la lógica financiera ni los datos.

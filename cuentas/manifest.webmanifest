@@ -1,10 +1,10 @@
 {
-  "id": "./",
+  "id": "./cuentas-personales.html",
   "name": "Finanzas JaviAp",
   "short_name": "Finanzas",
   "description": "Dashboard personal de finanzas con sincronización mediante GitHub Gist.",
   "lang": "es",
-  "start_url": "./",
+  "start_url": "./cuentas-personales.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
@@ -12,13 +12,13 @@
   "theme_color": "#0f172a",
   "icons": [
     {
-      "src": "./icon-192.png",
+      "src": "./icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "./icon-512.png",
+      "src": "./icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
