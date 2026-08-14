@@ -82,7 +82,7 @@ h1{font-family:"Manrope",sans-serif;font-size:clamp(26px,3vw,40px);line-height:1
 .section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:16px}
 .section-title{font-family:"Manrope",sans-serif;font-weight:800;font-size:17px;letter-spacing:-.02em;margin:0}
 .section-note{font-size:12px;color:var(--muted)}
-.input-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.input-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
 .input-card{position:relative;background:linear-gradient(180deg,#fff,var(--surface-2));border:1px solid var(--line);border-radius:16px;padding:15px 16px 13px;transition:.18s}
 .input-card:focus-within{border-color:rgba(91,99,242,.45);box-shadow:0 0 0 4px rgba(91,99,242,.08);transform:translateY(-1px)}
 .input-label{display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--ink-2);font-size:12px;font-weight:700;margin-bottom:8px}
@@ -92,7 +92,20 @@ h1{font-family:"Manrope",sans-serif;font-size:clamp(26px,3vw,40px);line-height:1
 .money-input{width:100%;border:0;outline:0;background:transparent;color:var(--ink);font-family:"Manrope",sans-serif;font-size:26px;font-weight:800;letter-spacing:-.035em;padding:0;min-width:0}
 .money-input::placeholder,.mini-input::placeholder{color:#c1c7d4}
 .input-help{font-size:11px;color:var(--muted);margin-top:6px;min-height:16px}
-.advanced{margin-top:13px;padding-top:13px;border-top:1px solid var(--line);display:grid;grid-template-columns:1.25fr repeat(3,1fr);gap:10px}
+.advanced{margin-top:13px;padding-top:13px;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;max-width:1050px;margin-left:auto;margin-right:auto}
+.advanced>.mini-copy{grid-column:1/-1;text-align:center;max-width:940px;margin:0 auto 2px;line-height:1.55}
+.advanced .mini-control{text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:92px}
+.advanced .mini-control>label:first-child{width:100%;text-align:center}
+.advanced .mini-input,.advanced .mini-select{text-align:center;text-align-last:center}
+.advanced .benefit-check,.advanced .retirement-check-row{justify-content:center}
+.section-date-control{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;background:#fafbfe;border:1px solid var(--line);border-radius:13px;padding:8px 10px;min-width:310px}
+.section-date-control label{font-size:9px;text-transform:uppercase;letter-spacing:.08em;font-weight:800;color:var(--muted)}
+.section-date-control input[type="date"]{border:0;outline:0;background:transparent;color:var(--ink);font-weight:800;font-size:12px;text-align:center;min-width:128px}
+.date-auto-btn{border:1px solid var(--line);background:#fff;border-radius:9px;padding:5px 8px;color:var(--accent);font-size:9px;font-weight:800;white-space:nowrap}
+.date-auto-btn:hover{border-color:#cfd5e5;transform:translateY(-1px)}
+.date-auto-btn.active{background:var(--accent-soft);border-color:#dcdfff}
+.dismissal-help{width:100%;text-align:center;font-size:9px;color:var(--muted);font-weight:700;line-height:1.3}
+.pension-auto-help{font-size:9px;color:var(--muted);font-weight:700;line-height:1.3;margin-top:5px;text-align:center}
 .mini-control{background:#fafbfe;border:1px solid var(--line);border-radius:13px;padding:10px 12px}
 .mini-control label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:800;color:var(--muted);margin-bottom:5px}
 .mini-input{width:100%;border:0;background:transparent;outline:0;color:var(--ink);font-weight:800;font-size:15px;padding:0}
@@ -137,6 +150,7 @@ tbody tr:hover td{background:#fbfcff}
 .income-cell{display:flex;justify-content:center;align-items:center;gap:8px;white-space:nowrap}
 .badge{display:inline-flex;align-items:center;border-radius:999px;padding:4px 8px;font-size:10px;font-weight:800;letter-spacing:.02em}
 .badge.paro{background:var(--accent-soft);color:var(--accent)}
+.badge.subsidy{background:#f4edff;color:#7c4dff}
 .badge.pension{background:var(--green-soft);color:var(--green)}
 .badge.none{background:#f0f2f6;color:var(--muted)}
 .total-main{font-family:"Manrope",sans-serif;font-weight:800;font-size:14px}
@@ -164,6 +178,19 @@ details summary::-webkit-details-marker{display:none}
 .group-card{border:1px solid var(--line);border-radius:13px;padding:12px;background:#fbfcfe;text-align:center}
 .group-card .gname{font-size:11px;color:var(--muted);font-weight:700;margin-bottom:5px}.group-card .gval{font-family:"Manrope",sans-serif;font-size:17px;font-weight:800}
 .expense-table{max-height:340px;overflow:auto;border:1px solid var(--line);border-radius:13px}.expense-table table{min-width:760px}.expense-table thead th{top:0}.expense-table td,.expense-table th{padding:10px 12px;text-align:center!important}
+
+.benefit-status{margin-top:13px;border:1px solid #ded7ff;background:linear-gradient(135deg,#faf8ff,#f5f7ff);border-radius:14px;padding:10px 13px;display:flex;align-items:center;justify-content:center;gap:8px;text-align:center;color:#6750c9;font-size:11px;font-weight:800;line-height:1.45}
+.benefit-status.warn{border-color:#f0d9a7;background:#fff9eb;color:#8b651b}
+.benefit-status .dot{width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 0 4px rgba(124,77,255,.08);flex:0 0 auto}
+.input-card.auto-source{background:linear-gradient(180deg,#fcfbff,#f7f5ff);border-color:#e2dcff}
+.input-card.auto-source .money-input{color:var(--accent-2)}
+.input-card.manual-source{border-color:#f0d9a7}
+.mini-select{width:100%;border:0;background:transparent;outline:0;color:var(--ink);font-weight:800;font-size:13px;padding:0;cursor:pointer}
+.benefit-check{display:flex!important;align-items:center;gap:8px;cursor:pointer;text-transform:none!important;letter-spacing:0!important;color:var(--ink)!important;margin:0!important}
+.benefit-check input{width:16px;height:16px;accent-color:var(--accent);flex:0 0 auto}
+.benefit-check span{font-size:11px;font-weight:800;line-height:1.25}
+.manual-retirement.hidden{display:none}
+
 .notice{display:none;margin-bottom:18px;padding:13px 15px;border-radius:14px;border:1px solid #f0d9a7;background:#fff8e8;color:#7c5b18;font-size:12px;line-height:1.5}.notice.show{display:block}
 .error-box{display:none;margin-bottom:18px;padding:14px 16px;border-radius:14px;border:1px solid #f0c4ca;background:var(--red-soft);color:#953646;font-size:12px;line-height:1.55}.error-box.show{display:block}
 .forecast-scenarios{margin-top:15px;padding-top:15px;border-top:1px solid var(--line)}
@@ -234,9 +261,10 @@ details summary::-webkit-details-marker{display:none}
 .sync-status a{color:inherit;font-weight:800;text-decoration:none}.sync-status a:hover{text-decoration:underline}
 .footer{margin-top:20px;display:flex;justify-content:space-between;gap:20px;color:var(--muted);font-size:10.5px;line-height:1.55;padding:0 3px}.footer a{color:var(--ink-2);text-decoration:none}.footer a:hover{text-decoration:underline}
 @media(max-width:1120px){.sync-grid,.scenario-toolbar{grid-template-columns:repeat(2,minmax(0,1fr))}.sync-btn{white-space:normal}}
-@media(max-width:980px){.scenario-library-head{align-items:center}.input-grid{grid-template-columns:repeat(2,1fr)}.advanced{grid-template-columns:repeat(2,1fr)}.dashboard-grid{grid-template-columns:1fr}.topbar{flex-direction:column}.top-actions{justify-content:flex-start}.group-cards{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:980px){.scenario-library-head{align-items:center}.input-grid{grid-template-columns:repeat(2,1fr)}.advanced{grid-template-columns:repeat(2,1fr);max-width:none}.advanced>.mini-copy{grid-column:1/-1}.section-head{align-items:flex-start}.section-date-control{min-width:280px}.dashboard-grid{grid-template-columns:1fr}.topbar{flex-direction:column}.top-actions{justify-content:flex-start}.group-cards{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:620px){.shell{width:min(100% - 20px,1460px);padding-top:18px}.input-grid,.advanced,.kpis,.sync-grid,.scenario-toolbar{grid-template-columns:1fr}.scenario-panel,.scenario-library-panel{padding:15px}.summary-section{padding:15px}.summary-overview-head{padding:0 2px 13px;margin-bottom:13px}.panel{border-radius:16px}.group-cards{grid-template-columns:1fr}.footer{flex-direction:column}.money-input{font-size:23px}.sync-head{flex-direction:column}.table-header{grid-template-columns:1fr}.table-header::before{display:none}.table-header>div:first-child,.table-header>.mini-control{grid-column:1}.table-header>.mini-control{justify-self:center;margin-top:4px}.summary-right{position:static}.sync-modal-backdrop{padding:10px;align-items:flex-start}.sync-modal-card{width:100%;max-height:calc(100vh - 20px);padding:15px;border-radius:16px}.compare-modal-backdrop{padding:10px}.compare-modal-card{width:100%;max-height:calc(100vh - 20px);border-radius:16px}.compare-modal-head{padding:16px 48px 13px}.compare-modal-title{font-size:17px}.compare-modal-body{padding:12px}.compare-final-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
+  <script src="../../shared/finanzas-engine.js?v=1.0.0"></script>
 </head>
 <body>
 <div class="shell">
@@ -244,7 +272,7 @@ details summary::-webkit-details-marker{display:none}
     <div>
       <div class="brand-kicker"><span class="brand-dot"></span>Escenario personal</div>
       <h1>Independencia Financiera</h1>
-      <p class="subtitle">Una vista sencilla de cuánto tiempo aguanta el capital disponible si desaparece la nómina: paro, gastos reales del escenario <b>DESPIDO</b> y, cuando corresponda, jubilación.</p>
+      <p class="subtitle">Una vista sencilla de cuánto tiempo aguanta el capital disponible si desaparece la nómina: paro, subsidio +52, gastos reales del escenario <b>DESPIDO</b> y, cuando corresponda, jubilación.</p>
     </div>
     <div class="top-actions">
       <div id="excelStatus" class="status-pill"><span class="status-dot"></span><span>Cargando finanzas-master.xlsx…</span></div>
@@ -289,9 +317,14 @@ details summary::-webkit-details-marker{display:none}
     <div class="section-head">
       <div>
         <h2 class="section-title">Punto de partida</h2>
-        <div class="section-note">Estos importes se guardan únicamente en este navegador.</div>
+        <div class="section-note">Estos supuestos se guardan por escenario y pueden sincronizarse con el Gist.</div>
       </div>
-      <div class="section-note">Escenario desde enero de 2027</div>
+      <div class="section-date-control">
+        <label for="dismissalDate">Fecha de despido</label>
+        <input id="dismissalDate" type="date" min="2027-01-01">
+        <button id="dismissalAutoBtn" class="date-auto-btn active" type="button" title="Volver a la fecha automática">↺ Automática</button>
+        <div id="dismissalDateHelp" class="dismissal-help">Por defecto: 01/01/2027; desde 2027 sigue el mes actual.</div>
+      </div>
     </div>
 
     <div class="input-grid">
@@ -310,32 +343,55 @@ details summary::-webkit-details-marker{display:none}
         <div class="money-wrap"><span class="currency">€</span><input id="assets" class="money-input" type="text" inputmode="numeric" autocomplete="off" placeholder="0"></div>
         <div class="input-help">Parte del patrimonio que quieras contar en el escenario.</div>
       </div>
-      <div class="input-card">
-        <div class="input-label"><span>Paro mensual</span><span>24 meses</span></div>
+      <div id="unemploymentCard" class="input-card">
+        <div class="input-label"><span>Paro mensual</span><span id="unemploymentChip">24 meses</span></div>
         <div class="money-wrap"><span class="currency">€</span><input id="unemployment" class="money-input" type="text" inputmode="numeric" autocomplete="off" placeholder="0"></div>
-        <div class="input-help">Cantidad mensual estimada para 2027 y 2028.</div>
+        <div id="unemploymentHelp" class="input-help">Se calculará con Javi Real cuando esté disponible.</div>
+      </div>
+      <div id="subsidyCard" class="input-card">
+        <div class="input-label"><span>Subsidio +52</span><span id="subsidyChip">Después del paro</span></div>
+        <div class="money-wrap"><span class="currency">€</span><input id="subsidy" class="money-input" type="text" inputmode="numeric" autocomplete="off" placeholder="0"></div>
+        <div id="subsidyHelp" class="input-help">Se aplica solo si activas el supuesto y cumples requisitos.</div>
       </div>
     </div>
 
     <div class="advanced">
-      <div class="mini-copy">Trabaja por años completos: 24 meses de paro desde enero de 2027 y una anualidad completa de jubilación desde el año en que se alcanza la edad indicada. La edad actual parte automáticamente de <b>año actual − 1972</b>.</div>
+      <div class="mini-copy">La <b>fecha de despido</b> marca el inicio real de toda la previsión. En automático usa <b>Javi Real</b> y el motor compartido para calcular paro, subsidio +52, cotización acumulada, edad ordinaria y pensión estimada. La tabla sigue siendo anual, pero los cálculos se hacen mes a mes.</div>
+      <div class="mini-control">
+        <label>Prestaciones</label>
+        <label class="benefit-check" for="autoBenefits"><input id="autoBenefits" type="checkbox" checked><span>Calcular con Javi Real</span></label>
+        <div id="benefitSourceMini" class="retirement-age-result">Buscando datos compartidos…</div>
+      </div>
+      <div class="mini-control">
+        <label for="children">Hijos a cargo · topes paro</label>
+        <select id="children" class="mini-select"><option value="0">Sin hijos</option><option value="1">1 hijo</option><option value="2">2 o más</option></select>
+      </div>
+      <div class="mini-control">
+        <label>Subsidio +52</label>
+        <label class="benefit-check" for="includeSubsidy52"><input id="includeSubsidy52" type="checkbox" checked><span>Contarlo si cumplo requisitos</span></label>
+      </div>
       <div class="mini-control">
         <label for="currentAge">Edad actual</label>
         <input id="currentAge" class="mini-input" type="number" min="18" max="100" step="1" placeholder="—" title="Por defecto: año actual menos 1972">
       </div>
       <div class="mini-control">
-        <label for="pension">Pensión mensual estimada</label>
+        <label for="pension">Pensión estimada al jubilarte</label>
         <input id="pension" class="mini-input money-value-input" type="text" inputmode="numeric" autocomplete="off" placeholder="0">
+        <div id="pensionHelp" class="pension-auto-help">Por paga · 14 pagas.</div>
       </div>
       <div class="mini-control">
         <label>Jubilación ordinaria</label>
-        <label class="retirement-check-row" for="longContribution">
-          <input id="longContribution" type="checkbox">
-          <span class="retirement-check-copy"><strong>38 años y 6 meses cotizados</strong><span>Marca si ya cumples este requisito</span></span>
-        </label>
-        <div class="retirement-age-result">Edad prevista: <b id="retirementAgeDisplay">67 años</b></div>
+        <div class="retirement-age-result" style="margin-top:0">Edad prevista: <b id="retirementAgeDisplay">67 años</b></div>
+        <div id="retirementAutoNote" class="retirement-check-copy" style="margin-top:5px"><span>Se calculará con la cotización acumulada.</span></div>
+        <div id="manualRetirementControl" class="manual-retirement">
+          <label class="retirement-check-row" for="longContribution" style="margin-top:7px!important">
+            <input id="longContribution" type="checkbox">
+            <span class="retirement-check-copy"><strong>38 años y 6 meses cotizados</strong><span>Respaldo manual si Javi Real no está disponible</span></span>
+          </label>
+        </div>
       </div>
     </div>
+    <div id="benefitStatus" class="benefit-status"><span class="dot"></span><span>Buscando Javi Real para calcular las prestaciones automáticamente…</span></div>
 
   </section>
 
@@ -352,7 +408,7 @@ details summary::-webkit-details-marker{display:none}
       <div class="sync-head">
         <div>
           <div class="sync-title">Guardar y recuperar los escenarios</div>
-          <div class="sync-note">Al abrir el dashboard se carga automáticamente el Gist vinculado y después el Excel. El JSON y el Gist incluyen el ahorro, el resto de supuestos y todos los escenarios guardados con sus ajustes de gasto. La lectura automática usa el JSON raw del Gist. El token solo hace falta para guardar cambios en GitHub: no se guarda en el HTML, en localStorage ni dentro del JSON.</div>
+          <div class="sync-note">Al abrir el dashboard se carga automáticamente el Gist vinculado y después el Excel. El JSON y el Gist incluyen el ahorro, el resto de supuestos y todos los escenarios guardados con sus ajustes de gasto. También recuerdan el vínculo al Gist del Dashboard cuando se detecta, pero no copian tus bases de cotización dentro de este HTML. La lectura automática usa el JSON raw del Gist. El token solo hace falta para guardar cambios en GitHub: no se guarda en el HTML, en localStorage ni dentro del JSON.</div>
         </div>
       </div>
       <div class="sync-grid">
@@ -408,7 +464,7 @@ details summary::-webkit-details-marker{display:none}
         <div class="kpi-sub">Ahorro + finiquito + patrimonio.</div>
       </div>
       <div class="kpi">
-        <div class="kpi-label">Gasto anual 2027</div>
+        <div id="kpiSpendLabel" class="kpi-label">Gasto primer año</div>
         <div id="kpiSpend" class="kpi-value">—</div>
         <div id="kpiSpendSub" class="kpi-sub">Esperando datos de DESPIDO.</div>
       </div>
@@ -486,14 +542,17 @@ details summary::-webkit-details-marker{display:none}
   </section>
 
   <footer class="footer">
-    <div>El dashboard no contiene importes del Excel: prioriza <b>../../excel/finanzas-master.xlsx</b> y lee únicamente <b>DESPIDO</b>. Si no está disponible, permite cargar el archivo manualmente. <b>v1.19</b></div>
-    <div>Referencia de jubilación editable: desde 2027 la edad ordinaria general es 67 años, o 65 con al menos 38 años y 6 meses cotizados. <a href="https://www.seg-social.es/" target="_blank" rel="noreferrer">Seguridad Social</a></div>
+    <div>El dashboard no contiene importes del Excel: prioriza <b>../../excel/finanzas-master.xlsx</b> y lee únicamente <b>DESPIDO</b>. Si no está disponible, permite cargar el archivo manualmente. <b>v1.21</b></div>
+    <div>Prestaciones automáticas orientativas con reglas 2026. Desde 2027 la edad ordinaria general es 67 años, o 65 con al menos 38 años y 6 meses cotizados. <a href="https://www.seg-social.es/" target="_blank" rel="noreferrer">Seguridad Social</a></div>
   </footer>
 </div>
 
 <script>
 (() => {
   'use strict';
+
+  const FIN=window.JaviFinanceEngine;
+  if(!FIN) throw new Error('No se ha cargado ../../shared/finanzas-engine.js');
 
   const EXCEL_PATHS = [
     '../../excel/finanzas-master.xlsx',
@@ -506,8 +565,14 @@ details summary::-webkit-details-marker{display:none}
   ];
   const SHEET_NAME = 'DESPIDO';
   const START_YEAR = 2027;
-  const UNEMPLOYMENT_MONTHS = 24;
+  const UNEMPLOYMENT_MONTHS = FIN.rules.unemploymentMonths;
   const BIRTH_YEAR = 1972;
+  const SUBSIDY52_2026 = FIN.rules.subsidy52Monthly2026;
+  const UNEMPLOYMENT_MAX_2026 = FIN.rules.unemploymentMax2026;
+  const UNEMPLOYMENT_MIN_2026 = FIN.rules.unemploymentMin2026;
+  const DASHBOARD_GIST_FILE = 'dashboard-financiero-casos.json';
+  const DASHBOARD_GIST_STORAGE_KEY = 'dashboard_financiero_gist_id_v1';
+  const DASHBOARD_PENSION_CASES_STORAGE_KEY = 'dashboard_financiero_pension_cases_v1';
   const CURRENT_YEAR = new Date().getFullYear();
   const DEFAULT_CURRENT_AGE = CURRENT_YEAR - BIRTH_YEAR;
   const STORAGE_KEY = 'prevision_independencia_v1';
@@ -526,15 +591,21 @@ details summary::-webkit-details-marker{display:none}
   let baseAssumptions = null;
   let scenarioDirty = false;
   let workingScenarioName = 'Base Excel';
+  let javiRealState = null;
+  let javiRealSource = '';
+  let javiRealLoadError = '';
+  let linkedDashboardGistId = '';
 
   const $ = id => document.getElementById(id);
   const els = {
-    savings:$('savings'), severance:$('severance'), assets:$('assets'), unemployment:$('unemployment'),
-    currentAge:$('currentAge'), pension:$('pension'), longContribution:$('longContribution'), retirementAgeDisplay:$('retirementAgeDisplay'), endYear:$('endYear'),
+    savings:$('savings'), severance:$('severance'), assets:$('assets'), unemployment:$('unemployment'), subsidy:$('subsidy'), dismissalDate:$('dismissalDate'), dismissalAutoBtn:$('dismissalAutoBtn'), dismissalDateHelp:$('dismissalDateHelp'),
+    autoBenefits:$('autoBenefits'), children:$('children'), includeSubsidy52:$('includeSubsidy52'), benefitStatus:$('benefitStatus'), benefitSourceMini:$('benefitSourceMini'),
+    unemploymentCard:$('unemploymentCard'), subsidyCard:$('subsidyCard'), unemploymentChip:$('unemploymentChip'), subsidyChip:$('subsidyChip'), unemploymentHelp:$('unemploymentHelp'), subsidyHelp:$('subsidyHelp'),
+    currentAge:$('currentAge'), pension:$('pension'), pensionHelp:$('pensionHelp'), longContribution:$('longContribution'), retirementAgeDisplay:$('retirementAgeDisplay'), retirementAutoNote:$('retirementAutoNote'), manualRetirementControl:$('manualRetirementControl'), endYear:$('endYear'),
     excelStatus:$('excelStatus'), errorBox:$('errorBox'), retirementNotice:$('retirementNotice'),
     forecastBody:$('forecastBody'), chart:$('chart'), chartMeta:$('chartMeta'), tableNote:$('tableNote'),
     expenseBody:$('expenseBody'), groupCards:$('groupCards'), expenseSummary:$('expenseSummary'),
-    kpiInitial:$('kpiInitial'), kpiSpend:$('kpiSpend'), kpiSpendSub:$('kpiSpendSub'),
+    kpiInitial:$('kpiInitial'), kpiSpend:$('kpiSpend'), kpiSpendLabel:$('kpiSpendLabel'), kpiSpendSub:$('kpiSpendSub'),
     kpiRunwayCard:$('kpiRunwayCard'), kpiRunway:$('kpiRunway'), kpiRunwaySub:$('kpiRunwaySub'),
     kpiEndCard:$('kpiEndCard'), kpiEnd:$('kpiEnd'), kpiEndSub:$('kpiEndSub'), reloadBtn:$('reloadBtn'),
     manualExcelBtn:$('manualExcelBtn'), manualExcelInput:$('manualExcelInput'),
@@ -592,7 +663,7 @@ details summary::-webkit-details-marker{display:none}
   const euro0 = {format:value=>`${formatNumberES(value,0)} €`};
   const euro2 = {format:value=>`${formatNumberES(value,2)} €`};
   const num = v => parseNumberES(v);
-  const MONEY_INPUT_IDS=['savings','severance','assets','unemployment','pension'];
+  const MONEY_INPUT_IDS=['savings','severance','assets','unemployment','subsidy','pension'];
 
   function formatMoneyInput(el){
     if(!el || el.value==='') return;
@@ -677,18 +748,148 @@ details summary::-webkit-details-marker{display:none}
     return tail.split('?')[0].split('#')[0];
   }
 
+  function monthStart(date){return FIN.monthStart(date)}
+  function monthKey(date){return FIN.monthKey(date)}
+  function addMonths(date,n){return FIN.addMonths(date,n)}
+  function monthDiff(a,b){return FIN.monthDiff(a,b)}
+  function parseIsoDate(value){return FIN.parseDate(value)}
+  function automaticDismissalDate(){return FIN.defaultDismissalDate(new Date(),`${START_YEAR}-01-01`)}
+  function normalizedDismissalDate(value){
+    const min=FIN.parseDate(`${START_YEAR}-01-01`),d=FIN.parseDate(value)||automaticDismissalDate();
+    const m=FIN.monthStart(d);return m<min?min:m;
+  }
+  function dismissalDateValue(value){return FIN.dateKey(normalizedDismissalDate(value))}
+
+  function sharedPensionCaseFromPayload(payload){
+    const cases=Array.isArray(payload?.pensionCases)?payload.pensionCases:[];
+    const item=cases.find(c=>clean(c?.name).toLocaleLowerCase('es-ES')==='javi real') || cases[0] || null;
+    return item?.state && typeof item.state==='object' ? item.state : null;
+  }
+  function normalizeSharedPensionState(raw){return raw&&typeof raw==='object'?FIN.normalizePensionState(raw):null}
+
+  function readJaviRealFromLocalStorage(){
+    try{
+      const raw=localStorage.getItem(DASHBOARD_PENSION_CASES_STORAGE_KEY); if(!raw) return null;
+      const parsed=JSON.parse(raw); const arr=Array.isArray(parsed)?parsed:(Array.isArray(parsed?.cases)?parsed.cases:[]);
+      const item=arr.find(c=>clean(c?.name).toLocaleLowerCase('es-ES')==='javi real') || arr[0];
+      return normalizeSharedPensionState(item?.state);
+    }catch(e){ return null; }
+  }
+  async function loadJaviRealData(){
+    javiRealLoadError='';
+    const storedId=(()=>{try{return normalizeGistId(localStorage.getItem(DASHBOARD_GIST_STORAGE_KEY)||'')}catch(e){return ''}})();
+    const candidates=[linkedDashboardGistId,storedId,DEFAULT_GIST_ID].map(normalizeGistId).filter((v,i,a)=>v&&a.indexOf(v)===i);
+    for(const id of candidates){
+      try{
+        const url=`https://gist.githubusercontent.com/${GIST_OWNER}/${id}/raw/${DASHBOARD_GIST_FILE}?t=${Date.now()}`;
+        const res=await fetch(url,{cache:'no-store'}); if(!res.ok) throw new Error(`HTTP ${res.status}`);
+        const payload=JSON.parse(await res.text()); const state=normalizeSharedPensionState(sharedPensionCaseFromPayload(payload));
+        if(!state) throw new Error('sin escenario Javi Real');
+        javiRealState=state;javiRealSource='Gist del Dashboard';linkedDashboardGistId=id;
+        try{localStorage.setItem(DASHBOARD_GIST_STORAGE_KEY,id)}catch(e){}
+        render(); return true;
+      }catch(err){ javiRealLoadError=err?.message||String(err); }
+    }
+    const localState=readJaviRealFromLocalStorage();
+    if(localState){javiRealState=localState;javiRealSource='Dashboard local';render();return true;}
+    javiRealState=null;javiRealSource='';render();return false;
+  }
+  function monthlyBasesForYear(p,year){return FIN.monthlyBasesForYear(p,year)}
+  function annualAverageFromMonthly(p,year){return FIN.annualAverageFromMonthly(p,year)}
+  function projectedWorkBaseForMonth(p,date){return FIN.projectedWorkBaseForMonth(p,date,new Date())}
+  function unemploymentBaseFromJaviReal(p,dismissalDate){return FIN.unemploymentBase(p,dismissalDate,new Date())}
+  function unemploymentGrossForMonth(baseReg,index,children){return FIN.unemploymentGrossForMonth(baseReg,index,children)}
+  function sharedContributionAnchor(p){
+    const report=FIN.parseDate(p?.lifeSummary?.asOf),hasCurrent=(p?.lifeHistory||[]).some(x=>!x?.end);return report&&hasCurrent?FIN.monthStart(report):FIN.monthStart(new Date());
+  }
+  function contributionMonthsAtDismissal(p,dismissalDate){return FIN.contributionMonthsAtSimulationDate(p,dismissalDate,new Date())}
+  function retirementDateForAge(p,age){return FIN.retirementDate(p,age)}
+  function contributionMonthsAtDateAfterLayoff(p,dismissalDate,date,includeSubsidy){return FIN.layoffContributionMonthsAt(p,dismissalDate,date,includeSubsidy,new Date())}
+  function automaticRetirementAge(p,dismissalDate,includeSubsidy){return FIN.ordinaryAgeAfterLayoff(p,dismissalDate,includeSubsidy,new Date())}
+
+  function benefitsPlan(input){
+    const dismissalDate=normalizedDismissalDate(input.dismissalDate);
+    const auto=!!input.autoBenefits&&!!javiRealState;
+    if(!auto){
+      const retirementAge=input.longContribution?65:67;
+      const retirementDate=new Date(BIRTH_YEAR+retirementAge,0,1);
+      const pensionMonthly14=Math.max(0,num(input.pension));
+      return {auto:false,dismissalDate,retirementAge,retirementDate,unemploymentBase:null,unemploymentFirst6:input.unemployment,unemploymentRest:input.unemployment,unemploymentAverage:input.unemployment,unemploymentEnd:addMonths(dismissalDate,UNEMPLOYMENT_MONTHS),subsidyStart:addMonths(dismissalDate,UNEMPLOYMENT_MONTHS),subsidyMonthly:input.subsidy,pensionMonthly14,pensionEquivalent12:pensionMonthly14*14/12,pension:null};
+    }
+    const shared=FIN.calculateLayoffPlan(javiRealState,dismissalDate,{children:input.children,includeSubsidy52:input.includeSubsidy52},new Date());
+    if(shared?.error)return {auto:false,error:shared.error,dismissalDate,retirementAge:input.longContribution?65:67,retirementDate:new Date(BIRTH_YEAR+(input.longContribution?65:67),0,1),unemploymentBase:null,unemploymentFirst6:input.unemployment,unemploymentRest:input.unemployment,unemploymentAverage:input.unemployment,unemploymentEnd:addMonths(dismissalDate,UNEMPLOYMENT_MONTHS),subsidyStart:addMonths(dismissalDate,UNEMPLOYMENT_MONTHS),subsidyMonthly:input.subsidy,pensionMonthly14:input.pension,pensionEquivalent12:input.pension*14/12,pension:null};
+    return {...shared,auto:true,subsidyMonthly:shared.subsidyAtStart,pensionMonthly14:shared.pension.monthly,pensionEquivalent12:shared.pension.equivalent12};
+  }
+
+  function benefitIncomeForYear(year,input){
+    const plan=benefitsPlan(input),types=new Map();let amount=0;
+    for(let m=0;m<12;m++){
+      const date=new Date(year,m,1);let part={type:'none',label:'Sin ingreso',amount:0};
+      if(date<plan.dismissalDate)continue;
+      if(plan.auto){part=FIN.incomeForMonth(plan,date);}
+      else if(date>=plan.retirementDate){part={type:'pension',label:'Jubilación',amount:plan.pensionEquivalent12};}
+      else{
+        const idx=monthDiff(plan.dismissalDate,date);
+        if(idx>=0&&idx<UNEMPLOYMENT_MONTHS)part={type:'paro',label:'Paro',amount:input.unemployment};
+        else if(idx>=UNEMPLOYMENT_MONTHS&&input.includeSubsidy52)part={type:'subsidy',label:'Subsidio +52',amount:input.subsidy};
+      }
+      if(part.amount>0){amount+=part.amount;types.set(part.type,{type:part.type,label:part.label,amount:(types.get(part.type)?.amount||0)+part.amount});}
+    }
+    if(!types.size)return {type:'none',label:'Sin ingreso',amount:0,parts:[]};
+    const parts=[...types.values()],priority=['paro','subsidy','pension'];parts.sort((a,b)=>priority.indexOf(a.type)-priority.indexOf(b.type));
+    return {type:parts.length===1?parts[0].type:'mixed',label:parts.map(x=>x.label).join(' + '),amount,parts};
+  }
+
+  function renderBenefitsUi(input){
+    const plan=benefitsPlan(input),auto=plan.auto;
+    els.unemployment.readOnly=auto;els.subsidy.readOnly=auto;els.pension.readOnly=auto;
+    els.unemploymentCard.classList.toggle('auto-source',auto);els.subsidyCard.classList.toggle('auto-source',auto);
+    els.unemploymentCard.classList.toggle('manual-source',!!input.autoBenefits&&!auto);els.subsidyCard.classList.toggle('manual-source',!!input.autoBenefits&&!auto);
+    els.dismissalAutoBtn.classList.toggle('active',input.dismissalDateAuto!==false);
+    const dismissalText=plan.dismissalDate.toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'});
+    els.dismissalDateHelp.textContent=`Cálculo mensual desde ${dismissalText}${input.dismissalDateAuto!==false?' · fecha automática':' · fecha fijada en este escenario'}.`;
+    if(auto){
+      els.unemployment.value=groupedIntegerES(plan.unemploymentAverage);els.subsidy.value=groupedIntegerES(plan.subsidyMonthly);els.pension.value=groupedIntegerES(plan.pensionMonthly14);
+    }
+    els.unemploymentChip.textContent=auto?'Auto · 24 meses':'Manual · 24 meses';
+    els.subsidyChip.textContent=auto?'Auto · +52':'Manual';
+    if(auto){
+      const max=UNEMPLOYMENT_MAX_2026[String(input.children)]??UNEMPLOYMENT_MAX_2026[0];
+      els.unemploymentHelp.textContent=`1-6: ${euro0.format(plan.unemploymentFirst6)}/mes · 7-24: ${euro0.format(plan.unemploymentRest)}/mes · tope ${euro0.format(max)}`;
+      els.subsidyHelp.textContent=input.includeSubsidy52?`${euro0.format(plan.subsidyMonthly)}/mes aprox. desde ${plan.subsidyStart.toLocaleDateString('es-ES',{month:'long',year:'numeric'})} · proyectado con IPC del escenario`:'No contado en este escenario.';
+      els.pensionHelp.textContent=`Por paga · 14 pagas · equiv. ${euro0.format(plan.pensionEquivalent12)}/mes en 12 · ${plan.retirementDate.toLocaleDateString('es-ES',{month:'long',year:'numeric'})}`;
+      els.benefitSourceMini.innerHTML=`<b>Javi Real</b> · ${esc(javiRealSource)} · motor ${esc(FIN.version)}`;
+      els.benefitStatus.classList.remove('warn');
+      els.benefitStatus.querySelector('span:last-child').textContent=`Automático · despido ${dismissalText} · paro con base ${euro0.format(plan.unemploymentBase)}/mes · pensión estimada ${euro0.format(plan.pensionMonthly14)}/paga · jubilación ${plan.retirementDate.toLocaleDateString('es-ES',{month:'long',year:'numeric'})} (${plan.retirementAge} años).`;
+      els.retirementAutoNote.innerHTML=`<span>Automática con cotización real + paro${input.includeSubsidy52?' + subsidio +52':''}.</span>`;
+      els.manualRetirementControl.classList.add('hidden');
+    }else{
+      els.unemploymentHelp.textContent=input.autoBenefits?'No he encontrado Javi Real: usa el importe manual guardado como respaldo.':'Importe manual para los primeros 24 meses.';
+      els.subsidyHelp.textContent=input.includeSubsidy52?'Importe manual desde el final del paro hasta la jubilación.':'No contado en este escenario.';
+      els.pensionHelp.textContent='Importe manual por paga · la previsión supone 14 pagas.';
+      els.benefitSourceMini.textContent=input.autoBenefits?'Javi Real no disponible':'Modo manual';
+      els.benefitStatus.classList.add('warn');
+      els.benefitStatus.querySelector('span:last-child').textContent=input.autoBenefits?'No he podido enlazar Javi Real automáticamente. La previsión sigue funcionando con importes manuales.':'Modo manual: tú controlas paro, subsidio, pensión y el requisito de jubilación.';
+      els.retirementAutoNote.innerHTML='<span>Respaldo manual: marca el requisito de 38 años y 6 meses.</span>';
+      els.manualRetirementControl.classList.remove('hidden');
+    }
+    els.retirementAgeDisplay.textContent=`${plan.retirementAge} años`;
+    els.longContribution.checked=plan.retirementAge===65;
+  }
+
   function getInputs(){
-    return {
-      savings:num(els.savings.value),
-      severance:num(els.severance.value),
-      assets:num(els.assets.value),
-      unemployment:num(els.unemployment.value),
-      currentAge: els.currentAge.value === '' ? null : num(els.currentAge.value),
-      pension:num(els.pension.value),
-      longContribution: !!els.longContribution.checked,
-      retirementAge: els.longContribution.checked ? 65 : 67,
-      endYear: Math.min(2120, Math.max(START_YEAR, Math.trunc(num(els.endYear.value) || 2075)))
+    const dismissalAuto=els.dismissalAutoBtn.classList.contains('active');
+    const dismissalDate=dismissalAuto?FIN.dateKey(automaticDismissalDate()):dismissalDateValue(els.dismissalDate.value);
+    const input={
+      savings:num(els.savings.value),severance:num(els.severance.value),assets:num(els.assets.value),unemployment:num(els.unemployment.value),subsidy:num(els.subsidy.value),
+      dismissalDate,dismissalDateAuto:dismissalAuto,autoBenefits:!!els.autoBenefits.checked,children:String(els.children.value||'0'),includeSubsidy52:!!els.includeSubsidy52.checked,
+      currentAge:els.currentAge.value===''?null:num(els.currentAge.value),pension:num(els.pension.value),longContribution:!!els.longContribution.checked,retirementAge:els.longContribution.checked?65:67,
+      endYear:Math.min(2120,Math.max(normalizedDismissalDate(dismissalDate).getFullYear(),Math.trunc(num(els.endYear.value)||2075)))
     };
+    const plan=benefitsPlan(input);input.retirementAge=plan.retirementAge;input.longContribution=plan.retirementAge===65;
+    if(plan.auto){input.unemployment=plan.unemploymentAverage;input.subsidy=plan.subsidyMonthly;input.pension=plan.pensionMonthly14;}
+    input.pensionEquivalent12=plan.pensionEquivalent12;
+    return input;
   }
 
   function cloneJson(value){
@@ -696,7 +897,7 @@ details summary::-webkit-details-marker{display:none}
   }
 
   function defaultAssumptions(){
-    return {savings:0,severance:0,assets:0,unemployment:0,currentAge:DEFAULT_CURRENT_AGE,currentAgeAuto:true,pension:0,longContribution:false,retirementAge:67,endYear:2075};
+    return {savings:0,severance:0,assets:0,unemployment:0,subsidy:SUBSIDY52_2026,dismissalDate:FIN.dateKey(automaticDismissalDate()),dismissalDateAuto:true,autoBenefits:true,children:'0',includeSubsidy52:true,currentAge:DEFAULT_CURRENT_AGE,currentAgeAuto:true,pension:0,longContribution:false,retirementAge:67,endYear:2075};
   }
 
   function assumptionsFromUI(){
@@ -709,6 +910,11 @@ details summary::-webkit-details-marker{display:none}
     els.severance.value=x.severance ?? 0;
     els.assets.value=x.assets ?? 0;
     els.unemployment.value=x.unemployment ?? 0;
+    els.subsidy.value=x.subsidy ?? SUBSIDY52_2026;
+    const autoDate=x.dismissalDateAuto!==false;els.dismissalAutoBtn.classList.toggle('active',autoDate);els.dismissalDate.value=autoDate?FIN.dateKey(automaticDismissalDate()):dismissalDateValue(x.dismissalDate);
+    els.autoBenefits.checked=x.autoBenefits!==false;
+    els.children.value=['0','1','2'].includes(String(x.children))?String(x.children):'0';
+    els.includeSubsidy52.checked=x.includeSubsidy52!==false;
     els.pension.value=x.pension ?? 0;
     els.endYear.value=x.endYear ?? 2075;
     if(Object.prototype.hasOwnProperty.call(x,'longContribution')) els.longContribution.checked=!!x.longContribution;
@@ -729,8 +935,9 @@ details summary::-webkit-details-marker{display:none}
   function persistState(){
     try{
       localStorage.setItem(STORAGE_KEY,JSON.stringify({
-        stateVersion:3,
+        stateVersion:5,
         gistId:normalizeGistId(els.gistId.value),
+        linkedDashboardGistId:normalizeGistId(linkedDashboardGistId),
         baseAssumptions:cloneJson(baseAssumptions || assumptionsFromUI()),
         scenarios:cloneJson(savedScenarios),
         activeScenarioId,
@@ -752,7 +959,8 @@ details summary::-webkit-details-marker{display:none}
 
   function legacyAssumptions(data){
     const a=defaultAssumptions();
-    ['savings','severance','assets','unemployment','pension','endYear'].forEach(k=>{
+    if(data.dismissalDate){a.dismissalDate=dismissalDateValue(data.dismissalDate);a.dismissalDateAuto=data.dismissalDateAuto!==false;}
+    ['savings','severance','assets','unemployment','subsidy','pension','endYear'].forEach(k=>{
       if(data[k]!==null && data[k]!==undefined && data[k]!=='') a[k]=num(data[k]);
     });
     if(Object.prototype.hasOwnProperty.call(data,'longContribution')) a.longContribution=!!data.longContribution;
@@ -772,6 +980,7 @@ details summary::-webkit-details-marker{display:none}
     let data={};
     try{ data=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}')||{}; }catch(e){}
     els.gistId.value=DEFAULT_GIST_ID;
+    linkedDashboardGistId=normalizeGistId(data.linkedDashboardGistId||linkedDashboardGistId);
 
     if(num(data.stateVersion)>=3){
       baseAssumptions={...defaultAssumptions(),...(data.baseAssumptions||{})};
@@ -833,7 +1042,7 @@ details summary::-webkit-details-marker{display:none}
     chips.push(`<span class="scenario-chip ${isBase?'base':''}">${isBase?'BASE · Excel intacto':`${adjustments} ajuste${adjustments===1?'':'s'} de gasto`}</span>`);
     if(!isBase && scenarioDirty) chips.push('<span class="scenario-chip dirty">Cambios sin guardar</span>');
     if(excelMeta.loaded){
-      const base=baseExpensesForYear(START_YEAR), current=expensesForYear(START_YEAR), saving=base-current;
+      const ey=projectionStartYear(getInputs()),base=baseExpensesForYear(ey), current=expensesForYear(ey), saving=base-current;
       if(!isBase && Math.abs(saving)>=.5){
         chips.push(`<span class="scenario-chip ${saving>0?'good':'bad'}">${saving>0?'Ahorro':'Sobrecoste'} ${euro0.format(Math.abs(saving))}/año vs Excel</span>`);
       }else if(!isBase){
@@ -917,7 +1126,7 @@ details summary::-webkit-details-marker{display:none}
 
   function updateExpenseOverride(key,patch){
     if(activeScenarioId==='base') return;
-    const base=baseRecordsForYear(START_YEAR).find(r=>r.__key===key);
+    const base=baseRecordsForYear(projectionStartYear(getInputs())).find(r=>r.__key===key);
     if(!base) return;
     const next={...(expenseOverrides[key]||{})};
     Object.assign(next,patch);
@@ -940,26 +1149,23 @@ details summary::-webkit-details-marker{display:none}
     return input.currentAge === null ? null : input.currentAge + (year - CURRENT_YEAR);
   }
 
-  function incomeFor(year, input){
-    const age = ageForYear(year,input);
-    if (age !== null && age >= input.retirementAge) return {type:'pension', label:'Jubilación', amount:input.pension*12};
-    const unemploymentEndYear = START_YEAR + Math.ceil(UNEMPLOYMENT_MONTHS/12) - 1;
-    if (year <= unemploymentEndYear) return {type:'paro', label:'Paro', amount:input.unemployment*12};
-    return {type:'none', label:'Sin ingreso', amount:0};
+  function projectionStartDate(input){return normalizedDismissalDate(input.dismissalDate)}
+  function projectionStartYear(input){return projectionStartDate(input).getFullYear()}
+  function activeMonthsForYear(year,input){
+    const start=projectionStartDate(input);if(year<start.getFullYear())return 0;if(year>start.getFullYear())return 12;return 12-start.getMonth();
   }
+  function proratedExpense(fullAnnual,year,input){return fullAnnual*(activeMonthsForYear(year,input)/12)}
+
+  function incomeFor(year,input){ return benefitIncomeForYear(year,input); }
 
   function comparisonInput(assumptions){
     const x={...defaultAssumptions(),...(assumptions||{})};
-    x.savings=num(x.savings);
-    x.severance=num(x.severance);
-    x.assets=num(x.assets);
-    x.unemployment=num(x.unemployment);
-    x.pension=num(x.pension);
-    x.currentAge=x.currentAgeAuto===false ? (x.currentAge===null?null:num(x.currentAge)) : DEFAULT_CURRENT_AGE;
-    x.longContribution=!!x.longContribution;
-    x.retirementAge=x.longContribution?65:67;
-    x.endYear=Math.min(2120,Math.max(START_YEAR,Math.trunc(num(x.endYear)||2075)));
-    return x;
+    x.savings=num(x.savings);x.severance=num(x.severance);x.assets=num(x.assets);x.unemployment=num(x.unemployment);x.subsidy=num(x.subsidy);x.pension=num(x.pension);
+    x.dismissalDateAuto=x.dismissalDateAuto!==false;x.dismissalDate=x.dismissalDateAuto?FIN.dateKey(automaticDismissalDate()):dismissalDateValue(x.dismissalDate);
+    x.autoBenefits=x.autoBenefits!==false;x.children=['0','1','2'].includes(String(x.children))?String(x.children):'0';x.includeSubsidy52=x.includeSubsidy52!==false;
+    x.currentAge=x.currentAgeAuto===false?(x.currentAge===null?null:num(x.currentAge)):DEFAULT_CURRENT_AGE;x.longContribution=!!x.longContribution;x.retirementAge=x.longContribution?65:67;
+    const plan=benefitsPlan(x);x.retirementAge=plan.retirementAge;x.longContribution=plan.retirementAge===65;if(plan.auto){x.unemployment=plan.unemploymentAverage;x.subsidy=plan.subsidyMonthly;x.pension=plan.pensionMonthly14;}x.pensionEquivalent12=plan.pensionEquivalent12;
+    x.endYear=Math.min(2120,Math.max(projectionStartYear(x),Math.trunc(num(x.endYear)||2075)));return x;
   }
 
   function comparisonExpenseRecordsForYear(year,overrides){
@@ -995,20 +1201,12 @@ details summary::-webkit-details-marker{display:none}
   }
 
   function buildComparisonForecast(config){
-    const input=comparisonInput(config.assumptions);
-    const initial=input.savings+input.severance+input.assets;
-    let opening=initial;
-    const rows=[];
-    for(let year=START_YEAR;year<=input.endYear;year++){
-      const age=ageForYear(year,input);
-      const income=incomeFor(year,input);
-      const expenses=comparisonExpensesForYear(year,config.expenseOverrides);
-      const annualDelta=income.amount-expenses;
-      const closing=opening+annualDelta;
-      rows.push({year,age,opening,income,expenses,annualDelta,closing});
-      opening=closing;
+    const input=comparisonInput(config.assumptions),initial=input.savings+input.severance+input.assets;let opening=initial;const rows=[],startYear=projectionStartYear(input);
+    for(let year=startYear;year<=input.endYear;year++){
+      const age=ageForYear(year,input),income=incomeFor(year,input),expenses=proratedExpense(comparisonExpensesForYear(year,config.expenseOverrides),year,input),annualDelta=income.amount-expenses,closing=opening+annualDelta;
+      rows.push({year,age,opening,income,expenses,annualDelta,closing});opening=closing;
     }
-    return {...config,input,initial,rows};
+    return {...config,input,initial,rows,startYear};
   }
 
   function renderComparisonModal(){
@@ -1036,12 +1234,13 @@ details summary::-webkit-details-marker{display:none}
     }).join('');
 
     const maxEnd=Math.max(...models.map(m=>m.input.endYear));
+    const minStart=Math.min(...models.map(m=>m.startYear));
     const rowMaps=models.map(m=>new Map(m.rows.map(r=>[r.year,r])));
     const baseInput=models[0].input;
     const minWidth=Math.max(760,180+models.length*190);
     const head=`<thead><tr><th>Año</th><th>Edad</th>${models.map(m=>`<th class="${m.id===activeScenarioId?'compare-active-head':''}">${esc(m.name)}</th>`).join('')}</tr></thead>`;
     const body=[];
-    for(let year=START_YEAR;year<=maxEnd;year++){
+    for(let year=minStart;year<=maxEnd;year++){
       const age=ageForYear(year,baseInput);
       const cells=models.map((m,i)=>{
         const r=rowMaps[i].get(year);
@@ -1069,41 +1268,36 @@ details summary::-webkit-details-marker{display:none}
   }
 
   function buildForecast(){
-    const input = getInputs();
-    const initial = input.savings + input.severance + input.assets;
-    let opening = initial;
-    const rows = [];
-    for (let year=START_YEAR; year<=input.endYear; year++){
-      const age = ageForYear(year,input);
-      const income = incomeFor(year,input);
-      const expenses = expensesForYear(year);
-      const annualDelta = income.amount - expenses;
-      const closing = opening + annualDelta;
-      rows.push({year,age,opening,income,expenses,annualDelta,closing});
-      opening = closing;
+    const input=getInputs(),initial=input.savings+input.severance+input.assets;let opening=initial;const rows=[],startYear=projectionStartYear(input);
+    for(let year=startYear;year<=input.endYear;year++){
+      const age=ageForYear(year,input),income=incomeFor(year,input),expenses=proratedExpense(expensesForYear(year),year,input),annualDelta=income.amount-expenses,closing=opening+annualDelta;
+      rows.push({year,age,opening,income,expenses,annualDelta,closing});opening=closing;
     }
-    return {input,initial,rows};
+    return {input,initial,rows,startYear};
   }
 
   function render(){
     saveInputs();
     const model = buildForecast();
-    els.retirementAgeDisplay.textContent=`${model.input.retirementAge} años`;
+    renderBenefitsUi(model.input);
     renderKpis(model);
     renderForecastTable(model);
     renderChart(model);
     renderExpenses(model.input);
     renderScenarioControls();
-    const reachesRetirement=model.rows.some(r=>r.age!==null && r.age>=model.input.retirementAge);
+    const retirementPlan=benefitsPlan(model.input);
+    const reachesRetirement=model.rows.some(r=>r.year>=retirementPlan.retirementDate.getFullYear());
     els.retirementNotice.classList.toggle('show', reachesRetirement && model.input.pension===0);
-    els.tableNote.textContent = `Desde ${START_YEAR} hasta ${model.input.endYear}. Jubilación prevista a los ${model.input.retirementAge} años · año clave resaltado.`;
+    const start=projectionStartDate(model.input);els.tableNote.textContent=`Desde ${start.toLocaleDateString('es-ES',{month:'long',year:'numeric'})} hasta ${model.input.endYear}. Cálculo mensual agrupado por año · jubilación resaltada.`;
   }
 
   function renderKpis(model){
     els.kpiInitial.textContent = euro0.format(model.initial);
-    const spend = excelMeta.loaded ? expensesForYear(START_YEAR) : null;
-    els.kpiSpend.textContent = spend === null ? '—' : euro0.format(spend);
-    els.kpiSpendSub.textContent = spend === null ? 'Esperando datos de DESPIDO.' : `${euro0.format(spend/12)} al mes de media · ${recordsForYear(START_YEAR).length} partidas activas.`;
+    const startYear=projectionStartYear(model.input),months=activeMonthsForYear(startYear,model.input);
+    const fullSpend=excelMeta.loaded?expensesForYear(startYear):null,spend=fullSpend===null?null:proratedExpense(fullSpend,startYear,model.input);
+    els.kpiSpendLabel.textContent=`Gasto ${startYear} · ${months} mes${months===1?'':'es'}`;
+    els.kpiSpend.textContent=spend===null?'—':euro0.format(spend);
+    els.kpiSpendSub.textContent=spend===null?'Esperando datos de DESPIDO.':`${euro0.format(fullSpend/12)} al mes de media · ${recordsForYear(startYear).length} partidas activas.`;
 
     const firstNegative = model.rows.find(r=>r.closing < 0);
     // Este KPI es informativo y permanece neutro: el único semáforo global es "Saldo al final".
@@ -1130,9 +1324,11 @@ details summary::-webkit-details-marker{display:none}
       els.forecastBody.innerHTML='<tr><td colspan="6" class="empty-row">Cargando finanzas-master.xlsx…</td></tr>';
       return;
     }
-    const retirementIndex=model.rows.findIndex(r=>r.age!==null && r.age>=model.input.retirementAge);
+    const retirementYear=benefitsPlan(model.input).retirementDate.getFullYear();
+    const retirementIndex=model.rows.findIndex(r=>r.year===retirementYear);
     els.forecastBody.innerHTML=model.rows.map((r,index)=>{
-      const incomeBadge=`<span class="badge ${r.income.type}">${r.income.label}</span>`;
+      const parts=Array.isArray(r.income.parts)&&r.income.parts.length?r.income.parts:[r.income];
+      const incomeBadge=parts.map(p=>`<span class="badge ${p.type}">${p.label}</span>`).join('');
       const incomeAmount=r.income.amount?`<span class="amount">${euro0.format(r.income.amount)}</span>`:'<span class="amount muted">—</span>';
       const retirementClass=index===retirementIndex?'retirement-row':'';
       const retirementTitle=index===retirementIndex?' title="Año de jubilación ordinaria previsto"':'';
@@ -1187,12 +1383,12 @@ details summary::-webkit-details-marker{display:none}
 
   function renderExpenses(input){
     if(!excelMeta.loaded){return}
-    const bases=baseRecordsForYear(START_YEAR);
-    const effective=recordsForYear(START_YEAR);
+    const expenseYear=projectionStartYear(input);const bases=baseRecordsForYear(expenseYear);
+    const effective=recordsForYear(expenseYear);
     const byGroup=new Map();
     effective.forEach(r=>{const g=groupLabel(r.grupo);byGroup.set(g,(byGroup.get(g)||0)+annualize(r));});
-    const baseTotal=baseExpensesForYear(START_YEAR);
-    const currentTotal=expensesForYear(START_YEAR);
+    const baseTotal=baseExpensesForYear(expenseYear);
+    const currentTotal=expensesForYear(expenseYear);
     els.groupCards.innerHTML=[...byGroup.entries()].sort((a,b)=>b[1]-a[1]).map(([g,v])=>`<div class="group-card"><div class="gname">${esc(g)}</div><div class="gval">${euro0.format(v)}</div></div>`).join('');
     const diff=currentTotal-baseTotal;
     els.expenseSummary.textContent=`${effective.length} partidas · ${euro0.format(currentTotal)}/año${activeScenarioId!=='base'&&Math.abs(diff)>=.5?` · ${diff>0?'+':''}${euro0.format(diff)} vs Excel`:''}`;
@@ -1236,9 +1432,11 @@ details summary::-webkit-details-marker{display:none}
     const input=assumptionsFromUI();
     return {
       schema:'independencia-financiera',
-      version:3,
+      version:4,
+      engineVersion:FIN.version,
       savedAt:new Date().toISOString(),
-      assumptions:{projectionStartYear:START_YEAR,unemploymentMonths:UNEMPLOYMENT_MONTHS,defaultBirthYear:BIRTH_YEAR,excelSheet:SHEET_NAME},
+      linkedDashboardGistId:normalizeGistId(linkedDashboardGistId),
+      assumptions:{earliestProjectionYear:START_YEAR,unemploymentMonths:UNEMPLOYMENT_MONTHS,defaultBirthYear:BIRTH_YEAR,excelSheet:SHEET_NAME,publicRulesReferenceYear:FIN.rules.referenceYear,sharedEngine:'../../shared/finanzas-engine.js'},
       baseAssumptions:cloneJson(baseAssumptions||input),
       activeScenarioId,
       scenarios:scenariosForExport(),
@@ -1248,6 +1446,7 @@ details summary::-webkit-details-marker{display:none}
 
   function applyScenarioPayload(payload){
     if(!payload || typeof payload!=='object') throw new Error('El JSON no contiene un escenario válido.');
+    linkedDashboardGistId=normalizeGistId(payload.linkedDashboardGistId||linkedDashboardGistId);
 
     if(Array.isArray(payload.scenarios)){
       savedScenarios=payload.scenarios.filter(x=>x&&x.id&&x.name).map(x=>({...x,expenseOverrides:x.expenseOverrides||{}}));
@@ -1268,7 +1467,7 @@ details summary::-webkit-details-marker{display:none}
     const s0=payload.scenario && typeof payload.scenario==='object' ? payload.scenario : payload;
     const a=defaultAssumptions();
     let applied=0;
-    ['savings','severance','assets','unemployment','pension','endYear'].forEach(k=>{
+    ['savings','severance','assets','unemployment','subsidy','pension','endYear'].forEach(k=>{
       if(Object.prototype.hasOwnProperty.call(s0,k)&&s0[k]!==null&&s0[k]!==undefined){a[k]=num(s0[k]);applied++;}
     });
     if(Object.prototype.hasOwnProperty.call(s0,'longContribution')){a.longContribution=!!s0.longContribution;applied++;}
@@ -1562,8 +1761,12 @@ details summary::-webkit-details-marker{display:none}
     els[id].addEventListener('change',()=>{markScenarioDirty();render();});
   });
   els.longContribution.addEventListener('change',()=>{markScenarioDirty();render();});
+  [els.autoBenefits,els.children,els.includeSubsidy52].forEach(el=>el.addEventListener('change',()=>{markScenarioDirty();render();}));
   els.currentAge.addEventListener('input',()=>{currentAgeAuto=false;markScenarioDirty();render();});
   els.currentAge.addEventListener('change',()=>{currentAgeAuto=false;markScenarioDirty();render();});
+
+  els.dismissalDate.addEventListener('change',()=>{els.dismissalAutoBtn.classList.remove('active');els.dismissalDate.value=dismissalDateValue(els.dismissalDate.value);markScenarioDirty();render();});
+  els.dismissalAutoBtn.addEventListener('click',()=>{els.dismissalAutoBtn.classList.add('active');els.dismissalDate.value=FIN.dateKey(automaticDismissalDate());markScenarioDirty();render();});
 
   els.scenarioSelect.addEventListener('change',()=>{
     const next=els.scenarioSelect.value;
@@ -1596,7 +1799,7 @@ details summary::-webkit-details-marker{display:none}
     if(btn?.dataset?.key) resetExpenseOverride(btn.dataset.key);
   });
 
-  els.reloadBtn.addEventListener('click',loadExcel);
+  els.reloadBtn.addEventListener('click',async()=>{await loadJaviRealData();await loadExcel();});
   els.manualExcelBtn.addEventListener('click',()=>els.manualExcelInput.click());
   els.manualExcelInput.addEventListener('change',()=>loadManualExcel(els.manualExcelInput.files?.[0]));
   els.syncOpenBtn.addEventListener('click',openSyncModal);
@@ -1618,6 +1821,7 @@ details summary::-webkit-details-marker{display:none}
     // El Gist es la fuente de verdad de ahorro, supuestos y escenarios.
     // Solo después cargamos DESPIDO para aplicar los gastos base y recalcular.
     await loadFromGist({auto:true});
+    await loadJaviRealData();
     await loadExcel();
   }
   bootstrap();
@@ -1627,7 +1831,7 @@ details summary::-webkit-details-marker{display:none}
 <script>
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js', {scope:'./'}).catch(err => console.warn('Service worker:', err));
+    navigator.serviceWorker.register('./sw.js?v=1.21', {scope:'./'}).catch(err => console.warn('Service worker:', err));
   });
 }
 </script>
