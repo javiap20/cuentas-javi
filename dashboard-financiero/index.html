@@ -2156,7 +2156,7 @@
       </div>
       <button id="gistModalClose" class="gist-modal-close" type="button" aria-label="Cerrar">×</button>
     </div>
-    <p class="gist-modal-copy">Un único Gist guarda todo el dashboard. Al abrir la app se lee primero el servidor aunque no haya token; después se compara con este dispositivo y siempre gana la copia más reciente.</p>
+    <p class="gist-modal-copy">Un único Gist guarda todo el dashboard: datos de entrada, escenarios y la última foto completa de los cálculos de Pensión y Despido. Al abrir la app se lee primero el servidor aunque no haya token; después se compara con este dispositivo y siempre gana la copia más reciente.</p>
     <div class="field">
       <label for="gistToken">Token de GitHub</label>
       <input id="gistToken" type="password" autocomplete="off" placeholder="github_pat_…">
@@ -2175,33 +2175,21 @@
 
 <script>
 (async () => {
-  let FIN=window.JaviFinanceEngine;
-  if(!FIN){
-    // Reintento con cache-busting por si el navegador/PWA conservó un 404 o una copia antigua.
-    try{
-      await new Promise((resolve,reject)=>{
-        const script=document.createElement('script');
-        script.src='../shared/finanzas-engine.js?v=1.0.1&t='+Date.now();
-        script.onload=resolve;
-        script.onerror=()=>reject(new Error('No se ha podido cargar el motor financiero compartido.'));
-        document.head.appendChild(script);
-      });
-      FIN=window.JaviFinanceEngine;
-    }catch(err){console.error('Motor financiero compartido:',err);}
-  }
-  if(!FIN){
-    const wrap=document.querySelector('#globalGistFreshness');
-    const label=document.querySelector('#globalGistFreshnessText');
-    if(wrap) wrap.classList.add('error');
-    if(label) label.textContent='⚠ Motor financiero no cargado · revisa /shared/finanzas-engine.js';
-    const btn=document.querySelector('#globalGistBtn');
-    const modal=document.querySelector('#gistModal');
-    const close=document.querySelector('#gistModalClose');
-    if(btn&&modal) btn.addEventListener('click',()=>{modal.classList.add('open');modal.setAttribute('aria-hidden','false');});
-    if(close&&modal) close.addEventListener('click',()=>{modal.classList.remove('open');modal.setAttribute('aria-hidden','true');});
-    document.querySelectorAll('[data-close-gist]').forEach(el=>el.addEventListener('click',()=>{if(modal){modal.classList.remove('open');modal.setAttribute('aria-hidden','true');}}));
-    return;
-  }
+  // El motor compartido mejora y recalcula Pension/Despido, pero NUNCA bloquea el arranque.
+  // Si el HTML se abre suelto desde C:\\ (file://) y no existe ../shared/finanzas-engine.js,
+  // el dashboard sigue arrancando, lee el Gist y queda en modo lectura para esas dos calculadoras.
+  const FIN_REAL=window.JaviFinanceEngine || null;
+  const FIN_AVAILABLE=!!FIN_REAL;
+  const FIN=FIN_REAL || {
+    version:'solo-lectura',
+    rules:{
+      ipremMonthly2026:0, subsidy52Monthly2026:0,
+      unemploymentMax2026:{0:0,1:0,2:0}, unemploymentMin2026:{0:0,1:0,2:0},
+      unemploymentMonths:24, unemploymentFirstPeriodMonths:6,
+      minimumContributionBase2026:0, pensionMaxMonthly2026:0, pensionMaxExtraPct:0
+    },
+    reductions:{voluntary:[],involuntary:[]}
+  };
   const $ = s => document.querySelector(s);
   const $$ = s => [...document.querySelectorAll(s)];
   function formatEsNumber(value, decimals=2){
@@ -2486,6 +2474,7 @@
   const GIST_LAST_SYNC_STORAGE_KEY = 'dashboard_financiero_gist_last_sync_v1';
   const GIST_DIRTY_STORAGE_KEY = 'dashboard_financiero_gist_dirty_v1';
   const DASHBOARD_LOCAL_UPDATED_AT_STORAGE_KEY = 'dashboard_financiero_local_updated_at_v1';
+  const RESULT_SNAPSHOTS_STORAGE_KEY = 'dashboard_financiero_result_snapshots_v1';
   const GIST_FILE_NAME = 'dashboard-financiero-casos.json';
   const DEFAULT_GIST_ID = 'bcb12de9d4e6b476062a8d13a676532f';
   const GIST_OWNER = 'javiap20';
@@ -2503,6 +2492,7 @@
   let isLoadingCalculator=false;
   let isSyncingGist=false;
   let gistSyncPending=false;
+  let resultSnapshots={schemaVersion:1,updatedAt:'',financeEngineVersion:'',activePensionCaseId:null,pension:{current:null,cases:{},principalCaseId:null},layoffCash:null};
   let projectionSettings={
     mortgage:{
       initialSavings:null,startMonth:null,monthlyHistory:[],
@@ -2699,7 +2689,22 @@
 
   function layoffCashRecalc(){
     layoffCashSettings=layoffCashReadUI();persistLayoffCashSettingsLocal();
-    const calc=layoffCashCalc(layoffCashSettings),status=$('#layoffCashStatus');
+    const status=$('#layoffCashStatus');
+    if(!FIN_AVAILABLE){
+      renderFinanceEngineReadOnlyState();
+      if(renderLayoffCashResultSnapshot())return;
+      const c=layoffCashSettings;
+      if($('#layoffCashSource'))$('#layoffCashSource').textContent=`Derivado de ${layoffCashSourceName()}`;
+      if(status)status.innerHTML='<strong>Datos del Gist cargados · todavía sin foto calculada</strong><span>Ábrelo una vez en la web con finanzas-engine.js y guarda en el Gist para conservar también todos los resultados.</span>';
+      const set=(id,text)=>{const el=$(id);if(el)el.textContent=text};
+      set('#layoffCashSavingsKpi',eur0.format(c.savings));set('#layoffCashSeveranceKpi',eur0.format(c.severance));set('#layoffCashPatrimonyKpi',eur0.format(c.patrimony));set('#layoffCashNeedKpi',`${eur0.format(c.monthlyNeed)}/mes`);
+      set('#layoffCashExtraKpi','--');set('#layoffCashTotalKpi','--');set('#layoffCashHorizonKpi','Solo lectura');
+      set('#layoffCashHorizonMeta','No hay todavía una foto de resultados guardada en el Gist.');
+      const tbody=$('#layoffCashStageRows');if(tbody)tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:#667085">Sin foto calculada todavía.</td></tr>';
+      const yearTbody=$('#layoffCashYearRows');if(yearTbody)yearTbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:#667085">Sin foto calculada todavía.</td></tr>';
+      return;
+    }
+    const calc=layoffCashCalc(layoffCashSettings);
     if($('#layoffCashSource'))$('#layoffCashSource').textContent=`Derivado de ${layoffCashSourceName()}`;
     if(calc.error){if(status)status.innerHTML=`<strong>No se puede calcular todavia</strong><span>${calc.error}</span>`;return}
     const c=calc.settings;
@@ -3532,6 +3537,14 @@
   }
   function renderPensionLayoffScenario(){
     const container=$('#pensionLayoffRows'),history=$('#pensionLayoffHistory'),historyRows=$('#pensionLayoffHistoryRows');if(!container)return;
+    if(!FIN_AVAILABLE){
+      updatePensionViewLabels();
+      if(renderPensionLayoffSnapshot())return;
+      container.innerHTML='<section class="panel pension-layoff-head"><p><strong>Datos del Gist cargados.</strong> Todavía no hay una foto calculada de este bloque en el Gist. Ábrelo una vez en la web con el motor y guárdalo.</p></section>';
+      if(history)history.hidden=true;
+      if(historyRows)historyRows.innerHTML='';
+      return;
+    }
     const p=pensionPrincipalState(),subsidy52=!!pensionLayoffSettings.subsidy52;updatePensionViewLabels();
     if($('#pensionLayoffSubsidy52'))$('#pensionLayoffSubsidy52').checked=subsidy52;
     const currentYear=todayLocal().getFullYear();
@@ -3849,8 +3862,243 @@
     $('#pensionCaseName').value=name;setPensionCaseStatus('Escenario duplicado · cambia solo lo que quieras','ok');scheduleGistAutoSync();
   }
 
+  function normalizeResultSnapshots(raw){
+    const base={schemaVersion:1,updatedAt:'',financeEngineVersion:'',activePensionCaseId:null,pension:{current:null,cases:{},principalCaseId:null},layoffCash:null};
+    if(!raw || typeof raw!=='object' || Array.isArray(raw))return base;
+    const pensionRaw=(raw.pension && typeof raw.pension==='object')?raw.pension:{};
+    return {
+      schemaVersion:1,
+      updatedAt:String(raw.updatedAt||''),
+      financeEngineVersion:String(raw.financeEngineVersion||''),
+      activePensionCaseId:raw.activePensionCaseId?String(raw.activePensionCaseId):null,
+      pension:{
+        current:(pensionRaw.current && typeof pensionRaw.current==='object')?pensionRaw.current:null,
+        cases:(pensionRaw.cases && typeof pensionRaw.cases==='object' && !Array.isArray(pensionRaw.cases))?pensionRaw.cases:{},
+        principalCaseId:pensionRaw.principalCaseId?String(pensionRaw.principalCaseId):null
+      },
+      layoffCash:(raw.layoffCash && typeof raw.layoffCash==='object')?raw.layoffCash:null
+    };
+  }
+
+  function loadResultSnapshotsLocal(){
+    try{
+      const raw=safeStorageGet(localStorage,RESULT_SNAPSHOTS_STORAGE_KEY);
+      resultSnapshots=normalizeResultSnapshots(raw?JSON.parse(raw):null);
+    }catch(e){resultSnapshots=normalizeResultSnapshots(null)}
+  }
+
+  function persistResultSnapshotsLocal(){
+    safeStorageSet(localStorage,RESULT_SNAPSHOTS_STORAGE_KEY,JSON.stringify(resultSnapshots));
+  }
+
+  function pensionSnapshotStatus(calc,p){
+    if(calc.contributionMonths<180){
+      return {kind:'error',title:'Faltan cotizaciones para el mínimo contributivo',text:'Con los datos introducidos no se alcanzan 15 años cotizados en la fecha simulada.'};
+    }
+    if(Number(p.targetAge)===65 && calc.ordinaryAge!==65){
+      return {kind:'warn',title:'A los 65 no sería la edad ordinaria con este escenario',text:'Con la regla vigente desde 2027 se necesitan 38 años y 6 meses cotizados para que la edad ordinaria sea 65.'};
+    }
+    return {
+      kind:'',
+      title:`Escenario a ${p.targetAge} años · ${pensionYearsText(calc.contributionMonths)} cotizados`,
+      text:calc.baseReg>0
+        ? (calc.capApplied
+          ? `Estimación bruta antes de IRPF · el cálculo teórico (${eur0.format(calc.theoreticalMonthly14)}) supera el tope máximo proyectado y se limita a ${eur0.format(calc.maxMonthly14)} por paga.`
+          : 'Estimación bruta antes de IRPF. Puedes guardar este escenario y crear otro para comparar supuestos.')
+        : 'Introduce al menos una base de cotización para obtener una cuantía.'
+    };
+  }
+
+  function buildPensionEarlySnapshot(calc,p){
+    const out={};
+    const ordinaryDate=pensionRetirementMonth(p,calc.ordinaryAge);
+    const ordinaryCalc=Number(p.targetAge)===calc.ordinaryAge?calc:pensionCalculate({...p,targetAge:calc.ordinaryAge});
+    [24,18,12,6].forEach(offset=>{
+      const earlyDate=new Date(ordinaryDate.getFullYear(),ordinaryDate.getMonth()-offset,1);
+      const contributionMonths=pensionProjectedContributionMonthsAtDate(p,earlyDate);
+      const reduction=pensionVoluntaryEarlyReduction(contributionMonths,offset);
+      const qualifies=contributionMonths>=420 && ordinaryCalc.baseReg>0 && reduction!=null;
+      if(!qualifies){
+        out[offset]={available:false,amount:'--',meta:contributionMonths<420?'No alcanza 35 años cotizados':'Faltan datos para estimar'};
+        return;
+      }
+      const earlyPercent=pensionPercentage(contributionMonths);
+      const beforeReduction=ordinaryCalc.baseReg*earlyPercent/100;
+      const earlyMax=pensionProjectedMaxMonthly(earlyDate.getFullYear(),p.baseCpi);
+      const amount=Math.min(beforeReduction,earlyMax)*(1-reduction/100);
+      out[offset]={available:true,amount:eur0.format(amount),year:earlyDate.getFullYear(),month:pensionRetirementMonthName(earlyDate),reduction};
+    });
+    return out;
+  }
+
+  function buildPensionLayoffSnapshotForState(p){
+    const subsidy52=!!pensionLayoffSettings.subsidy52;
+    const currentYear=todayLocal().getFullYear();
+    const startYear=Math.max(2028,currentYear+1),endYear=(Number(p.birthYear)||1972)+65-2;
+    const activeHtml=[],historicHtml=[],breakdowns={};
+    const allYears=[];
+    for(let year=startYear;year<=endYear;year++){activeHtml.push(pensionLayoffScenarioRowHtml(p,subsidy52,year,false));allYears.push(year)}
+    const historicEnd=Math.min(currentYear,endYear);
+    for(let year=historicEnd;year>=2028;year--){historicHtml.push(pensionLayoffScenarioRowHtml(p,subsidy52,year,true));allYears.push(year)}
+    [...new Set(allYears)].forEach(year=>{
+      const dismissalDate=new Date(year,0,1);
+      const ordinaryAge=pensionLayoffActualOrdinaryAge(p,dismissalDate,subsidy52);
+      const ordinaryDate=pensionRetirementMonth(p,ordinaryAge);
+      const rows=pensionLayoffBreakdown(p,year,ordinaryDate,subsidy52).map(r=>({year:r.year,age:r.age,stage:r.stage,avg:r.avg,contrib:r.contrib}));
+      breakdowns[String(year)]={
+        title:`Si te despiden en ${year}`,
+        intro:`Supuesto: despido el 1 de enero · hasta 24 meses de paro cotizando con la media aproximada de los 6 meses previos (${eur0.format(pensionLayoffUnemploymentBase(p,dismissalDate))}/mes) · después ${subsidy52?'subsidio +52 al 125 % de la base mínima proyectada':'integración de lagunas para el cálculo de la base reguladora'}.`,
+        rows
+      };
+    });
+    return {capturedAt:new Date().toISOString(),subsidy52,activeHtml,historicHtml,breakdowns};
+  }
+
+  function buildPensionResultSnapshot(state,{includeLayoff=false}={}){
+    if(!FIN_AVAILABLE)return null;
+    const p=normalizePensionSettings(state),calc=pensionCalculate(p),status=pensionSnapshotStatus(calc,p);
+    return {
+      capturedAt:new Date().toISOString(),engineVersion:FIN.version,
+      status,
+      monthly:calc.baseReg>0?eur0.format(calc.monthly14):'--',
+      monthlyMeta:calc.baseReg>0?(calc.capApplied?`14 pagas · tope proyectado ${eur0.format(calc.maxMonthly14)}`:'14 pagas · sin alcanzar el tope'):'14 pagas',
+      annual:calc.baseReg>0?eur0.format(calc.annual):'--',
+      todayMoney:calc.baseReg>0?eur0.format(calc.todayMoneyMonthly14):'--',
+      todayMoneyMeta:calc.baseReg>0?`por paga · euros de ${todayLocal().getFullYear()} · IPC ${formatSmartNumber(p.baseCpi,1)} %${calc.todayMoneyCapApplied?' · tope actual aplicado':''}`:'equivalente en euros actuales',
+      percent:calc.percent>0?`${formatSmartNumber(calc.percent,2)} %`:'--',
+      yearsProjected:pensionYearsText(calc.contributionMonths),ordinaryAge:`${calc.ordinaryAge} años`,
+      methodA:calc.methodA>0?eur0.format(calc.methodA):'--',methodB:calc.methodB>0?eur0.format(calc.methodB):'--',
+      methodFinal:calc.baseReg>0?eur0.format(calc.monthly14):'--',dataCoverage:`${calc.explicitCount} / 29`,
+      methodChip:calc.baseReg>0?`Método ${calc.method} más favorable`:'Esperando bases',retirementChip:`Jubilación ${calc.retirementYear}`,
+      dataStatus:calc.missingCount?`${calc.missingCount} año${calc.missingCount===1?'':'s'} sin base: se computan como 0 en esta aproximación. Completa la tabla o usa una base histórica media.`:'Serie completa para la aproximación anual.',
+      early:buildPensionEarlySnapshot(calc,p),
+      bases:[...calc.rows].reverse().map(row=>({year:row.year,age:row.age,base:row.base,updated:row.updated,source:row.source,kind:row.kind,current:row.year===calc.currentYear})),
+      layoff:includeLayoff?buildPensionLayoffSnapshotForState(p):null
+    };
+  }
+
+  function currentPensionSnapshot(){
+    const cases=resultSnapshots?.pension?.cases||{};
+    if(activePensionCaseId && cases[activePensionCaseId])return cases[activePensionCaseId];
+    return resultSnapshots?.pension?.current||null;
+  }
+
+  function principalPensionSnapshot(){
+    const p=resultSnapshots?.pension||{};
+    const id=p.principalCaseId;
+    return (id && p.cases?.[id])?p.cases[id]:(p.current||null);
+  }
+
+  function renderPensionResultSnapshot(snapshot=currentPensionSnapshot()){
+    if(!snapshot)return false;
+    const set=(id,value)=>{const el=$(id);if(el)el.textContent=value??'--'};
+    const status=$('#pensionStatusCard');status?.classList.remove('warn','error');if(snapshot.status?.kind)status?.classList.add(snapshot.status.kind);
+    set('#pensionEligibilityTitle',snapshot.status?.title||'Último cálculo guardado');
+    const stamp=gistFreshnessStamp(snapshot.capturedAt);
+    set('#pensionEligibilityText',`${snapshot.status?.text||''}${stamp?` · Último cálculo guardado ${stamp}`:''}`.trim());
+    set('#pensionMonthly',snapshot.monthly);set('#pensionMonthlyMeta',snapshot.monthlyMeta);set('#pensionAnnual',snapshot.annual);
+    set('#pensionTodayMoney',snapshot.todayMoney);set('#pensionTodayMoneyMeta',snapshot.todayMoneyMeta);set('#pensionPercent',snapshot.percent);
+    set('#pensionYearsProjected',snapshot.yearsProjected);set('#pensionOrdinaryAge',snapshot.ordinaryAge);set('#pensionMethodA',snapshot.methodA);
+    set('#pensionMethodB',snapshot.methodB);set('#pensionMethodFinal',snapshot.methodFinal);set('#pensionDataCoverage',snapshot.dataCoverage);
+    set('#pensionMethodChip',snapshot.methodChip);set('#pensionRetirementYearChip',snapshot.retirementChip);
+    set('#pensionDataStatus',`${snapshot.dataStatus||''}${stamp?` · Foto del Gist: ${stamp}`:''}`);
+    [24,18,12,6].forEach(offset=>{
+      const x=snapshot.early?.[offset]||snapshot.early?.[String(offset)];
+      const amount=$(`#pensionEarly${offset}`),meta=$(`#pensionEarly${offset}Meta`),card=amount?.closest('.pension-early-card');
+      if(!amount||!meta)return;
+      if(!x){amount.textContent='--';meta.textContent='Sin foto guardada';card?.classList.add('unavailable');return}
+      amount.textContent=x.amount||'--';card?.classList.toggle('unavailable',!x.available);
+      if(x.available)meta.innerHTML=`<span class="pension-early-meta"><b class="pension-early-year">${x.year}</b><span class="pension-early-meta-text">· ${x.month} · -${formatSmartNumber(x.reduction,2)} %</span></span>`;
+      else meta.textContent=x.meta||'--';
+    });
+    const tbody=$('#pensionBasesRows');
+    if(tbody){
+      tbody.innerHTML=(snapshot.bases||[]).map(row=>{
+        const cls=[row.current?'pension-current':'',row.kind==='missing'?'pension-zero':(row.kind==='projected'?'pension-future':'')].filter(Boolean).join(' ');
+        const sourceClass=row.kind==='real'?'real':row.kind==='projected'?'projected':'missing';
+        return `<tr class="${cls}"><td><strong>${row.year}</strong></td><td>${row.age}</td><td><input class="pension-base-input" type="text" value="${formatEditableAmount(row.base)}" disabled aria-label="Base de cotización ${row.year}"></td><td><strong>${eur0.format(row.updated)}</strong></td><td><span class="pension-source ${sourceClass}">${row.source||'--'}</span></td></tr>`;
+      }).join('');
+    }
+    return true;
+  }
+
+  function openPensionLayoffModalFromSnapshot(year,snapshot){
+    const detail=snapshot?.breakdowns?.[String(year)],tbody=$('#pensionLayoffModalRows');if(!detail||!tbody)return;
+    $('#pensionLayoffModalTitle').textContent=detail.title||`Si te despiden en ${year}`;
+    $('#pensionLayoffModalIntro').textContent=detail.intro||'Último desglose guardado en el Gist.';
+    tbody.innerHTML=(detail.rows||[]).map(r=>`<tr><td><strong>${r.year}</strong></td><td>${r.age}</td><td><span class="pension-stage ${pensionLayoffStageClass(r.stage)}">${pensionLayoffStageLabel(r.stage)}</span></td><td>${r.avg>0?eur0.format(r.avg):'--'}</td><td>${pensionYearsText(r.contrib)}</td></tr>`).join('');
+    const modal=$('#pensionLayoffModal');modal.classList.add('open');modal.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';
+  }
+
+  function renderPensionLayoffSnapshot(snapshot=principalPensionSnapshot()?.layoff){
+    const container=$('#pensionLayoffRows'),history=$('#pensionLayoffHistory'),historyRows=$('#pensionLayoffHistoryRows');if(!container||!snapshot)return false;
+    if($('#pensionLayoffSubsidy52'))$('#pensionLayoffSubsidy52').checked=!!snapshot.subsidy52;
+    container.innerHTML=(snapshot.activeHtml||[]).join('')||'<section class="panel pension-layoff-head"><p>No quedan años futuros completos en la última foto guardada.</p></section>';
+    const historic=(snapshot.historicHtml||[]);if(history&&historyRows){history.hidden=!historic.length;historyRows.innerHTML=historic.join('')}
+    [container,historyRows].forEach(scope=>scope?.querySelectorAll('[data-layoff-info-year]').forEach(btn=>btn.addEventListener('click',()=>openPensionLayoffModalFromSnapshot(Number(btn.dataset.layoffInfoYear),snapshot))));
+    return true;
+  }
+
+  function buildLayoffCashResultSnapshot(){
+    if(!FIN_AVAILABLE)return resultSnapshots?.layoffCash||null;
+    const calc=layoffCashCalc(layoffCashSettings);
+    if(calc?.error)return {capturedAt:new Date().toISOString(),engineVersion:FIN.version,error:calc.error};
+    const c=calc.settings,first6Avg=layoffCashAverage(calc.first6.map(x=>x.amount)),first6Total=calc.first6.reduce((a,x)=>a+x.amount,0),restAvg=layoffCashAverage(calc.rest.map(x=>x.amount)),restTotal=calc.rest.reduce((a,x)=>a+x.amount,0),subsidyAvg=layoffCashAverage(calc.subsidy.map(x=>x.amount));
+    return {
+      capturedAt:new Date().toISOString(),engineVersion:FIN.version,sourceName:layoffCashSourceName(),
+      dismissal:dateKey(calc.dismissal),retirementDate:dateKey(calc.retirementDate),ordinaryAge:calc.ordinaryAge,baseReg:calc.baseReg,unemploymentMax:calc.unemploymentMax,
+      savings:c.savings,severance:c.severance,patrimony:c.patrimony,monthlyNeed:c.monthlyNeed,includeSubsidy52:!!c.includeSubsidy52,
+      extraTotal:calc.extraTotal,potentialTotal:calc.potentialTotal,remainingAtRetirement:calc.remainingAtRetirement,exhaustDate:calc.exhaustDate?dateKey(calc.exhaustDate):null,
+      first6:{months:calc.first6.length,average:first6Avg,total:first6Total},rest:{months:calc.rest.length,average:restAvg,total:restTotal},
+      subsidy:{months:calc.subsidy.length,average:subsidyAvg,total:calc.subsidyTotal},
+      stages:calc.stages.map(st=>({kind:st.kind,label:st.label,from:dateKey(st.from),to:dateKey(st.to),average:st.average,total:st.total,potentialTotal:st.potentialTotal||0})),
+      yearRows:calc.yearRows.map(r=>({...r}))
+    };
+  }
+
+  function renderLayoffCashResultSnapshot(snapshot=resultSnapshots?.layoffCash){
+    if(!snapshot || snapshot.error)return false;
+    const d=v=>parseExactDate(v),set=(id,text)=>{const el=$(id);if(el)el.textContent=text};
+    if($('#layoffCashSource'))$('#layoffCashSource').textContent=`Derivado de ${snapshot.sourceName||'Javi Real'}`;
+    const status=$('#layoffCashStatus'),dismissal=d(snapshot.dismissal),retirement=d(snapshot.retirementDate),stamp=gistFreshnessStamp(snapshot.capturedAt);
+    if(status)status.innerHTML=`<strong>Despido en ${dismissal?monthFmtLong.format(dismissal):'--'} · último cálculo guardado</strong><span>Base reguladora aproximada del paro: ${eur0.format(snapshot.baseReg)}/mes · tope SEPE aplicado: ${eur0.format(snapshot.unemploymentMax)}/mes · jubilación ordinaria estimada: ${retirement?monthFmtLong.format(retirement):'--'} · ${snapshot.ordinaryAge} años${stamp?` · foto ${stamp}`:''}.</span>`;
+    set('#layoffCashSavingsKpi',eur0.format(snapshot.savings));set('#layoffCashSeveranceKpi',eur0.format(snapshot.severance));set('#layoffCashPatrimonyKpi',eur0.format(snapshot.patrimony));
+    set('#layoffCashExtraKpi',eur0.format(snapshot.extraTotal));set('#layoffCashTotalKpi',eur0.format(snapshot.potentialTotal));set('#layoffCashNeedKpi',`${eur0.format(snapshot.monthlyNeed)}/mes`);
+    set('#layoffCashExtraMeta',snapshot.includeSubsidy52?'paro + subsidio +52':'solo paro contributivo');
+    const hCard=$('#layoffCashHorizonCard');
+    if(snapshot.exhaustDate){const ex=d(snapshot.exhaustDate),monthsLeft=ex&&retirement?Math.max(0,monthDiff(ex,retirement)):0;set('#layoffCashHorizonKpi',ex?monthFmtLong.format(ex):'--');set('#layoffCashHorizonMeta',`El capital se agota antes de la jubilación ordinaria · faltan ${monthsLeft} meses para ${retirement?monthFmtLong.format(retirement):'--'} (${snapshot.ordinaryAge} años).`);hCard?.classList.remove('good');hCard?.classList.add('warn')}
+    else{set('#layoffCashHorizonKpi','Llega a jubilación');set('#layoffCashHorizonMeta',`Sobraría aproximadamente ${eur0.format(snapshot.remainingAtRetirement)} al llegar a ${retirement?monthFmtLong.format(retirement):'--'} (${snapshot.ordinaryAge} años).`);hCard?.classList.remove('warn');hCard?.classList.add('good')}
+    set('#layoffCashParo1',snapshot.first6?.months?`${eur0.format(snapshot.first6.average)}/mes`:'--');set('#layoffCashParo1Meta',snapshot.first6?.months?`${snapshot.first6.months} meses · total ${eur0.format(snapshot.first6.total)} · tope ${eur0.format(snapshot.unemploymentMax)}/mes`:'Sin periodo');
+    set('#layoffCashParo2',snapshot.rest?.months?`${eur0.format(snapshot.rest.average)}/mes`:'--');set('#layoffCashParo2Meta',snapshot.rest?.months?`${snapshot.rest.months} meses · total ${eur0.format(snapshot.rest.total)} · tope ${eur0.format(snapshot.unemploymentMax)}/mes`:'Sin periodo');
+    set('#layoffCashSubsidy',snapshot.subsidy?.months?`${eur0.format(snapshot.subsidy.average)}/mes`:'--');set('#layoffCashSubsidyMeta',snapshot.subsidy?.months?`${snapshot.subsidy.months} meses · potencial ${eur0.format(snapshot.subsidy.total)}${snapshot.includeSubsidy52?' · incluido':' · no incluido'}`:'No queda periodo hasta la jubilación');
+    set('#layoffCashBenefitsTotal',eur0.format(snapshot.extraTotal));set('#layoffCashBenefitsTotalMeta',snapshot.includeSubsidy52?'paro + subsidio incluido':'solo paro; subsidio no contado');
+    const tbody=$('#layoffCashStageRows');if(tbody)tbody.innerHTML=(snapshot.stages||[]).map(st=>`<tr><td><span class="layoff-stage-badge ${st.kind}">${st.label}</span></td><td>${monthFmtLong.format(d(st.from))}</td><td>${monthFmtLong.format(d(st.to))}</td><td>${st.kind==='none'?eur0.format(st.average)+' potencial':eur0.format(st.average)}</td><td>${st.kind==='none'?eur0.format(st.potentialTotal||0)+' no incluido':eur0.format(st.total)}</td></tr>`).join('');
+    const yearTbody=$('#layoffCashYearRows');if(yearTbody)yearTbody.innerHTML=(snapshot.yearRows||[]).map(row=>{const endClass=row.endBalance<0?'negative':'positive',partial=row.months<12?` <small style="color:#98a2b3">(${row.months} meses)</small>`:'';return `<tr class="${row.firstNegative?'first-negative':''}"><td class="year">${row.year}${partial}</td><td>${row.age}</td><td>${eur0.format(row.startBalance)}</td><td>${eur0.format(row.income)}</td><td>${eur0.format(row.expense)}</td><td class="balance ${endClass}">${eur0.format(row.endBalance)}</td></tr>`}).join('');
+    return true;
+  }
+
+  function buildResultSnapshotsForGist(){
+    if(!FIN_AVAILABLE)return normalizeResultSnapshots(resultSnapshots);
+    const caseSnapshots={};
+    const principal=pensionPrincipalCase();
+    pensionCases.forEach(c=>{try{caseSnapshots[c.id]=buildPensionResultSnapshot(c.state,{includeLayoff:!!principal && c.id===principal.id})}catch(e){}});
+    let current=null;try{current=buildPensionResultSnapshot(pensionSettings,{includeLayoff:!principal})}catch(e){}
+    const next={schemaVersion:1,updatedAt:new Date().toISOString(),financeEngineVersion:FIN.version,activePensionCaseId:activePensionCaseId||null,pension:{current,cases:caseSnapshots,principalCaseId:principal?.id||null},layoffCash:buildLayoffCashResultSnapshot()};
+    resultSnapshots=normalizeResultSnapshots(next);persistResultSnapshotsLocal();return resultSnapshots;
+  }
+
   function pensionRecalc(){
     if(!$('#pensionBirthYear'))return;
+    if(!FIN_AVAILABLE){
+      // Sin motor no recalculamos: mostramos la última foto de resultados guardada en el Gist.
+      pensionSettings=pensionReadUI();
+      persistPensionSettingsLocal();
+      renderPensionHistory();
+      updatePensionViewLabels();
+      renderFinanceEngineReadOnlyState();
+      renderPensionResultSnapshot();
+      return;
+    }
     pensionSettings=pensionReadUI();
     const calc=pensionCalculate(pensionSettings);
     $('#pensionMonthly').textContent=calc.baseReg>0?eur0.format(calc.monthly14):'--';
@@ -3985,6 +4233,19 @@
     text.textContent=label;
   }
 
+  function renderFinanceEngineReadOnlyState(){
+    if(FIN_AVAILABLE)return;
+    const title=$('#pensionEligibilityTitle'),text=$('#pensionEligibilityText');
+    if(title)title.textContent='Datos del Gist cargados · modo lectura local';
+    if(text)text.textContent='Puedes consultar escenarios, histórico y la última foto de cálculos guardada en el Gist. Pensión y Despido no se recalculan hasta que esté disponible finanzas-engine.js.';
+    const dataStatus=$('#pensionDataStatus');
+    if(dataStatus)dataStatus.textContent='Modo lectura: se muestra la última foto calculada del Gist; no se modifica sin el motor.';
+    const push=$('#gistPushBtn');
+    if(push){push.disabled=true;push.textContent='Solo lectura · sin motor';push.title='Puedes traer datos del Gist, pero no guardarlos sin el motor financiero compartido.';}
+    const gbtn=$('#globalGistBtn'),glabel=$('#globalGistBtnText');
+    if(gbtn&&glabel){gbtn.classList.remove('error','syncing');gbtn.classList.add('connected');glabel.textContent='Gist · lectura';}
+  }
+
   function latestIso(values){
     const valid=(values||[]).filter(Boolean).map(String).filter(x=>!Number.isNaN(new Date(x).getTime()));
     if(!valid.length)return '';
@@ -4093,6 +4354,12 @@
 
   function scheduleGistAutoSync(){
     markGistPending();
+    // Sin motor financiero compartido permitimos trabajar/consultar localmente,
+    // pero no escribimos en el Gist para evitar guardar resultados sin recalcular.
+    if(!FIN_AVAILABLE){
+      setGlobalGistFreshness('pending',safeStorageGet(localStorage,GIST_LAST_SYNC_STORAGE_KEY),'cambios locales · solo lectura sin motor');
+      return;
+    }
     const token=$('#gistToken')?.value.trim();
     if(!token)return;
     clearTimeout(gistAutoSyncTimer);
@@ -4360,11 +4627,14 @@ No se borrará hasta que confirmes este mensaje.`))return;
   }
 
   function gistDocument(){
+    const snapshots=FIN_AVAILABLE?buildResultSnapshotsForGist():normalizeResultSnapshots(resultSnapshots);
     return {
-      schemaVersion:5,
-      financeEngineVersion:FIN.version,
+      schemaVersion:6,
+      financeEngineVersion:FIN_AVAILABLE?FIN.version:(snapshots.financeEngineVersion||'solo-lectura'),
       app:'Dashboard financiero',
       updatedAt:new Date().toISOString(),
+      activePensionCaseId:activePensionCaseId||null,
+      resultSnapshots:snapshots,
       calculatorStates:{
         mortgage:normalizeCaseState(calculatorStates.mortgage,'mortgage'),
         personal:normalizeCaseState(calculatorStates.personal,'personal')
@@ -4436,6 +4706,10 @@ No se borrará hasta que confirmes este mensaje.`))return;
   }
 
   async function syncCasesToGist(silent=false){
+    if(!FIN_AVAILABLE){
+      setGistStatus('Modo lectura: puedes ver también la última foto calculada del Gist; para guardar/recalcular abre la versión web con el motor financiero','error');
+      throw new Error('Motor financiero no disponible para guardar');
+    }
     const token=$('#gistToken').value.trim();
     if(!token){
       setGistStatus('Falta el token de GitHub','error');
@@ -4614,8 +4888,17 @@ No se borrará hasta que confirmes este mensaje.`))return;
     }
     if(parsed && !Array.isArray(parsed) && Array.isArray(parsed.pensionCases)){
       pensionCases=parsed.pensionCases.map(normalizePensionCase).filter(Boolean);
-      activePensionCaseId=null;
+      const requestedActive=parsed.activePensionCaseId?String(parsed.activePensionCaseId):null;
+      activePensionCaseId=requestedActive && pensionCases.some(c=>c.id===requestedActive)?requestedActive:null;
+      if(activePensionCaseId){const activeCase=pensionCases.find(c=>c.id===activePensionCaseId);if(activeCase)pensionSettings=normalizePensionSettings(activeCase.state)}
       persistPensionCasesLocal();
+    }
+    if(parsed && !Array.isArray(parsed) && parsed.resultSnapshots){
+      resultSnapshots=normalizeResultSnapshots(parsed.resultSnapshots);
+      if(!activePensionCaseId && resultSnapshots.activePensionCaseId && pensionCases.some(c=>c.id===resultSnapshots.activePensionCaseId)){
+        activePensionCaseId=resultSnapshots.activePensionCaseId;const activeCase=pensionCases.find(c=>c.id===activePensionCaseId);if(activeCase)pensionSettings=normalizePensionSettings(activeCase.state);
+      }
+      persistResultSnapshotsLocal();
     }
     if(parsed && !Array.isArray(parsed) && parsed.pensionLayoffSettings){
       pensionLayoffSettings={subsidy52:!!parsed.pensionLayoffSettings.subsidy52};
@@ -4634,8 +4917,11 @@ No se borrará hasta que confirmes este mensaje.`))return;
 
     if(renderNow){
       payrollApplyUI();payrollRecalc();renderPayrollCases();
-      pensionApplyUI();pensionRecalc();renderPensionCases();
-      layoffCashApplyUI();layoffCashRecalc();
+      pensionApplyUI();
+      pensionRecalc();
+      renderPensionCases();
+      layoffCashApplyUI();
+      layoffCashRecalc();
       if(activeCalculatorId!=='payroll' && activeCalculatorId!=='pension' && activeCalculatorId!=='layoff')loadCalculatorState(activeCalculatorId);
       renderSavedCases();
     }
@@ -4690,10 +4976,26 @@ No se borrará hasta que confirmes este mensaje.`))return;
       return {source:'local',pushed:false};
     }
 
+    const snapshotDoc=remote.parsed?.resultSnapshots;
+    const pensionSnapshotCases=snapshotDoc?.pension?.cases||{};
+    const missingCaseSnapshot=pensionCases.some(c=>!pensionSnapshotCases?.[c.id]);
+    const needsSnapshotRefresh=FIN_AVAILABLE && (!snapshotDoc || !snapshotDoc.layoffCash || missingCaseSnapshot || String(snapshotDoc.financeEngineVersion||'')!==String(FIN.version||''));
+
     applyDashboardGistDocument(remote.parsed,{renderNow:false});
     if(remote.gistId)safeStorageSet(localStorage,GIST_ID_STORAGE_KEY,remote.gistId);
     rememberGistSync(remoteUpdated || new Date().toISOString());
     setGistStatus('Datos cargados desde el Gist','ok');
+    if(!FIN_AVAILABLE){
+      const hasSnapshot=!!remote.parsed?.resultSnapshots;
+      setGlobalGistFreshness('ok',remoteUpdated || new Date().toISOString(),hasSnapshot?'datos + último cálculo cargados · modo lectura local':'datos cargados · todavía sin foto de cálculos');
+      renderFinanceEngineReadOnlyState();
+    }else if(needsSnapshotRefresh){
+      markGistPending();
+      setGlobalGistFreshness('pending',remoteUpdated || new Date().toISOString(),'falta guardar la foto completa de cálculos');
+      if(token){
+        try{await syncCasesToGist(true);return {source:'gist',snapshotRefreshed:true}}catch(e){setGistStatus(e.message || 'No se pudo guardar la foto completa','error')}
+      }
+    }
     return {source:'gist'};
   }
 
@@ -4710,9 +5012,14 @@ No se borrará hasta que confirmes este mensaje.`))return;
       }
       applyDashboardGistDocument(remote.parsed,{renderNow:true});
       if(remote.gistId)safeStorageSet(localStorage,GIST_ID_STORAGE_KEY,remote.gistId);
-      rememberGistSync(remote.serverUpdatedAt || remote.parsed?.updatedAt || new Date().toISOString());
+      const pulledAt=remote.serverUpdatedAt || remote.parsed?.updatedAt || new Date().toISOString();
+      rememberGistSync(pulledAt);
       const loadedTotal=savedCases.length+payrollCases.length+pensionCases.length;
       setGistStatus(`Cargados ${loadedTotal} escenario${loadedTotal===1?'':'s'} desde Gist`,'ok');
+      if(!FIN_AVAILABLE){
+        setGlobalGistFreshness('ok',pulledAt,'datos cargados · modo lectura local');
+        renderFinanceEngineReadOnlyState();
+      }
     }catch(e){
       setGistStatus(e.message || 'No se pudo cargar el Gist','error');
     }
@@ -6560,6 +6867,7 @@ No se borrará hasta que confirmes este mensaje.`))return;
     loadPensionCasesLocal();
     loadPensionLayoffSettingsLocal();
     loadLayoffCashSettingsLocal();
+    loadResultSnapshotsLocal();
 
     $('#gistToken').value=safeStorageGet(sessionStorage,GIST_TOKEN_SESSION_KEY)||'';
     safeStorageSet(localStorage,GIST_ID_STORAGE_KEY,safeStorageGet(localStorage,GIST_ID_STORAGE_KEY)||DEFAULT_GIST_ID);
@@ -6604,7 +6912,8 @@ No se borrará hasta que confirmes este mensaje.`))return;
     console.error('Arranque del dashboard:',err);
     setGlobalGistFreshness('error',safeStorageGet(localStorage,GIST_LAST_SYNC_STORAGE_KEY),'error al iniciar · usando local');
     payrollApplyUI();payrollRecalc();renderPayrollCases();
-    pensionApplyUI();pensionRecalc();renderPensionCases();setPensionView('main');
+    pensionApplyUI();pensionRecalc();
+    renderPensionCases();setPensionView('main');
     layoffCashApplyUI();layoffCashRecalc();renderSavedCases();
     const activeTab=document.querySelector('.tab-btn.active');
     if(activeTab){activeCalculatorId=activeTab.dataset.calculatorId||'mortgage';if(!['payroll','pension','layoff'].includes(activeCalculatorId))loadCalculatorState(activeCalculatorId)}
@@ -6614,7 +6923,7 @@ No se borrará hasta que confirmes este mensaje.`))return;
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {
-      navigator.serviceWorker.register('./service-worker.js?v=1.21').catch(function () {});
+      navigator.serviceWorker.register('./service-worker.js?v=1.23').catch(function () {});
     });
   }
 </script>
