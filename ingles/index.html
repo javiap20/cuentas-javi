@@ -1150,6 +1150,7 @@ body.dark .stat-card.favorite > span { background:#422532; color:#ff8fad; }
               <p class="muted">La primera vez, pega un token con permiso de usuario <b>Gists: write</b>. Se conserva solo en este navegador y nunca se mete dentro del JSON, del Gist ni del ZIP.</p>
               <div class="sync-connect-form">
                 <label for="githubTokenInput">Token</label>
+                <input id="githubCredentialUser" type="text" value="English Daily" autocomplete="username" aria-label="Identificador de credencial" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;" tabindex="-1" />
                 <div class="sync-token-row">
                   <input id="githubTokenInput" type="password" autocomplete="current-password" autocapitalize="off" spellcheck="false" placeholder="github_pat_…" />
                   <button class="primary-btn" id="githubConnectBtn">Conectar GitHub</button>
