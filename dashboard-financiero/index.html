@@ -1258,6 +1258,7 @@
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="./icons/icon-512.png">
 
+  <script src="../shared/finanzas-engine.js?v=1.0.0"></script>
 </head>
 <body>
 <div class="app">
@@ -1844,7 +1845,7 @@
 
             <section class="panel payroll-note">
               <strong>Estimaci&oacute;n orientativa, no c&aacute;lculo oficial.</strong>
-              El JSON conserva las bases mensuales reales del informe. Para esta estimaci&oacute;n orientativa se calcula la media mensual real de cada a&ntilde;o y se repite durante 12 meses. Se comparan los dos m&eacute;todos previstos para 2037 y se aplica el porcentaje por meses cotizados vigente desde 2027. La card &ldquo;Pensi&oacute;n en &euro; de hoy&rdquo; descuenta la inflaci&oacute;n estimada desde la fecha actual hasta la jubilaci&oacute;n para expresar el poder adquisitivo equivalente actual. La actualizaci&oacute;n por IPC es una aproximaci&oacute;n. El tope m&aacute;ximo futuro se proyecta desde el m&aacute;ximo vigente en 2026 con la revalorizaci&oacute;n supuesta y el incremento adicional legal previsto. No se modelan de forma completa pensiones m&iacute;nimas futuras, jubilaci&oacute;n demorada, complementos ni IRPF de la pensi&oacute;n. La referencia final debe ser el simulador oficial de la Seguridad Social.
+              El JSON conserva las bases mensuales reales del informe. Para esta estimaci&oacute;n orientativa se calcula la media mensual real de cada a&ntilde;o y se repite durante 12 meses. Se comparan los dos m&eacute;todos previstos para 2037 y se aplica el porcentaje por meses cotizados vigente desde 2027. La card &ldquo;Pensi&oacute;n en &euro; de hoy&rdquo; descuenta la inflaci&oacute;n estimada desde la fecha actual hasta la jubilaci&oacute;n para expresar el poder adquisitivo equivalente actual. La actualizaci&oacute;n por IPC es una aproximaci&oacute;n. El tope m&aacute;ximo futuro se proyecta desde el m&aacute;ximo vigente en 2026 con la revalorizaci&oacute;n supuesta y el incremento adicional legal previsto. No se modelan de forma completa pensiones m&iacute;nimas futuras, jubilaci&oacute;n demorada, complementos ni IRPF de la pensi&oacute;n. La referencia final debe ser el simulador oficial de la Seguridad Social. Motor compartido: <b>finanzas-engine.js</b>.
             </section>
             </div>
 
@@ -2164,6 +2165,8 @@
 
 <script>
 (() => {
+  const FIN=window.JaviFinanceEngine;
+  if(!FIN) throw new Error('No se ha cargado ../shared/finanzas-engine.js');
   const $ = s => document.querySelector(s);
   const $$ = s => [...document.querySelectorAll(s)];
   function formatEsNumber(value, decimals=2){
@@ -2501,10 +2504,10 @@
 
   const LAYOFF_CASH_STORAGE_KEY='dashboard_financiero_layoff_cash_v1';
   const LAYOFF_CASH_DEFAULTS={dismissalMonth:'',dismissalDate:'',savings:0,severance:0,patrimony:0,monthlyNeed:2000,children:'0',includeSubsidy52:true};
-  const LAYOFF_IPREM_2026=600;
-  const LAYOFF_SUBSIDY52_2026=480;
-  const LAYOFF_UNEMPLOYMENT_MAX_2026={0:1225,1:1400,2:1575};
-  const LAYOFF_UNEMPLOYMENT_MIN_2026={0:560,1:749,2:749};
+  const LAYOFF_IPREM_2026=FIN.rules.ipremMonthly2026;
+  const LAYOFF_SUBSIDY52_2026=FIN.rules.subsidy52Monthly2026;
+  const LAYOFF_UNEMPLOYMENT_MAX_2026=FIN.rules.unemploymentMax2026;
+  const LAYOFF_UNEMPLOYMENT_MIN_2026=FIN.rules.unemploymentMin2026;
   let layoffCashSettings={...LAYOFF_CASH_DEFAULTS};
 
   const PENSION_STORAGE_KEY='dashboard_financiero_pension_v1';
@@ -2578,15 +2581,11 @@
     return Math.max(0,Number(value)||0)*Math.pow(1+(Number(p?.baseCpi)||0)/100,Math.max(0,year-2026));
   }
   function layoffCashUnemploymentGrossForMonth(baseReg,index,date,p,children){
-    const pct=index<6?.70:.60;
-    const key=String(children||'0');
-    // Topes oficiales SEPE vigentes en 2026. Para fechas futuras se mantienen
-    // congelados hasta que exista un dato oficial futuro: no dependen directamente del IPC.
-    const min=LAYOFF_UNEMPLOYMENT_MIN_2026[key]??LAYOFF_UNEMPLOYMENT_MIN_2026[0];
-    const max=LAYOFF_UNEMPLOYMENT_MAX_2026[key]??LAYOFF_UNEMPLOYMENT_MAX_2026[0];
-    return Math.min(max,Math.max(min,Math.max(0,baseReg)*pct));
+    return FIN.unemploymentGrossForMonth(baseReg,index,children);
   }
-  function layoffCashSubsidyForMonth(date,p){return layoffCashProjectedValue(LAYOFF_SUBSIDY52_2026,date,p)}
+
+  function layoffCashSubsidyForMonth(date,p){return FIN.projectedSubsidy52(date,p)}
+
   function layoffCashMonthRangeText(a,b){
     if(!(a instanceof Date)||!(b instanceof Date))return '--';
     return `${monthFmtLong.format(a)} - ${monthFmtLong.format(b)}`;
@@ -2594,58 +2593,70 @@
   function layoffCashAverage(values){return values.length?values.reduce((a,b)=>a+b,0)/values.length:0}
   function layoffCashCalc(settings=layoffCashSettings){
     const c=normalizeLayoffCashSettings(settings),p=pensionPrincipalState();
-    const dismissal=parseMonth(c.dismissalMonth);
-    if(!(dismissal instanceof Date)||Number.isNaN(dismissal.getTime()))return {error:'Selecciona un mes de despido valido.'};
-    const ordinaryAgeWithSubsidy=pensionLayoffActualOrdinaryAge(p,dismissal,true);
-    const retirementDateWithSubsidy=pensionRetirementMonth(p,ordinaryAgeWithSubsidy);
-    const ordinaryAge=pensionLayoffActualOrdinaryAge(p,dismissal,!!c.includeSubsidy52);
-    const retirementDate=pensionRetirementMonth(p,ordinaryAge);
-    if(dismissal>=retirementDate)return {error:'El mes de despido debe ser anterior a la jubilacion ordinaria estimada.'};
-    const baseReg=pensionLayoffUnemploymentBase(p,dismissal);
+    const dismissal=FIN.monthStart(c.dismissalDate||c.dismissalMonth);
+    if(!(dismissal instanceof Date)||Number.isNaN(dismissal.getTime()))return {error:'Selecciona una fecha de despido válida.'};
+
+    // Todas las reglas de prestaciones, cotización y jubilación salen del motor compartido.
+    const plan=FIN.calculateLayoffPlan(p,dismissal,{children:c.children,includeSubsidy52:!!c.includeSubsidy52},todayLocal());
+    if(plan?.error)return {error:plan.error};
+    const planWithSubsidy=c.includeSubsidy52?plan:FIN.calculateLayoffPlan(p,dismissal,{children:c.children,includeSubsidy52:true},todayLocal());
+    if(planWithSubsidy?.error)return {error:planWithSubsidy.error};
+
+    const ordinaryAge=plan.ordinaryAge,retirementDate=plan.retirementDate;
+    const ordinaryAgeWithSubsidy=planWithSubsidy.ordinaryAge,retirementDateWithSubsidy=planWithSubsidy.retirementDate;
+    if(dismissal>=retirementDate)return {error:'La fecha de despido debe ser anterior a la jubilación ordinaria estimada.'};
+
+    const baseReg=plan.unemploymentBase;
     const unemployment=[];
-    for(let i=0;i<24;i++){
-      const date=new Date(dismissal.getFullYear(),dismissal.getMonth()+i,1);
-      if(date>=retirementDate)break;
-      unemployment.push({date,amount:layoffCashUnemploymentGrossForMonth(baseReg,i,date,p,c.children)});
+    for(let i=0;i<FIN.rules.unemploymentMonths;i++){
+      const date=FIN.addMonths(dismissal,i);if(date>=retirementDate)break;
+      const part=FIN.incomeForMonth(plan,date);
+      if(part.type==='paro')unemployment.push({date,amount:part.amount});
     }
-    const unemploymentEnd=new Date(dismissal.getFullYear(),dismissal.getMonth()+unemployment.length,1);
-    const age52=new Date((Number(p.birthYear)||1972)+52,(Number(p.birthMonth)||1)-1,1);
-    const subsidyStart=unemploymentEnd>age52?unemploymentEnd:age52;
+    const unemploymentEnd=plan.unemploymentEnd;
+
+    // Aun cuando el usuario no lo incluya, calculamos el subsidio potencial para mostrarlo como información.
     const subsidy=[];
-    for(let d=new Date(subsidyStart);d<retirementDateWithSubsidy;d=new Date(d.getFullYear(),d.getMonth()+1,1))subsidy.push({date:new Date(d),amount:layoffCashSubsidyForMonth(d,p)});
+    for(let d=new Date(planWithSubsidy.subsidyStart);d<retirementDateWithSubsidy;d=FIN.addMonths(d,1)){
+      const part=FIN.incomeForMonth(planWithSubsidy,d);
+      if(part.type==='subsidy')subsidy.push({date:new Date(d),amount:part.amount});
+    }
+
     const unemploymentTotal=unemployment.reduce((sum,x)=>sum+x.amount,0);
     const subsidyTotal=subsidy.reduce((sum,x)=>sum+x.amount,0);
     const includedSubsidy=c.includeSubsidy52?subsidyTotal:0;
     const extraTotal=unemploymentTotal+includedSubsidy;
     const initialCapital=c.savings+c.severance+c.patrimony;
     const potentialTotal=initialCapital+extraTotal;
+
     let balance=initialCapital,exhaustDate=null;
-    const incomeByMonth=new Map();
-    unemployment.forEach(x=>incomeByMonth.set(monthKey(x.date),(incomeByMonth.get(monthKey(x.date))||0)+x.amount));
-    if(c.includeSubsidy52)subsidy.forEach(x=>incomeByMonth.set(monthKey(x.date),(incomeByMonth.get(monthKey(x.date))||0)+x.amount));
     const yearRows=[],yearMap=new Map();
-    for(let d=new Date(dismissal);d<retirementDate;d=new Date(d.getFullYear(),d.getMonth()+1,1)){
+    for(let d=new Date(dismissal);d<retirementDate;d=FIN.addMonths(d,1)){
       const year=d.getFullYear();
       if(!yearMap.has(year)){
         const row={year,age:year-(Number(p.birthYear)||1972),startBalance:balance,income:0,expense:0,endBalance:balance,months:0,firstNegative:false};
         yearMap.set(year,row);yearRows.push(row);
       }
-      const row=yearMap.get(year),income=incomeByMonth.get(monthKey(d))||0;
+      const row=yearMap.get(year),part=FIN.incomeForMonth(plan,d),income=part.amount||0;
       row.income+=income;row.expense+=c.monthlyNeed;row.months+=1;
       balance+=income-c.monthlyNeed;row.endBalance=balance;
-      if(balance<0 && !exhaustDate){exhaustDate=new Date(d);row.firstNegative=true}
+      if(balance<0&&!exhaustDate){exhaustDate=new Date(d);row.firstNegative=true}
     }
     const remainingAtRetirement=exhaustDate?0:balance;
-    const first6=unemployment.slice(0,6),rest=unemployment.slice(6);
+
+    const firstCount=FIN.rules.unemploymentFirstPeriodMonths;
+    const first6=unemployment.slice(0,firstCount),rest=unemployment.slice(firstCount);
     const stages=[];
-    if(first6.length)stages.push({kind:'paro',label:'Paro - primeros 180 dias',from:first6[0].date,to:first6[first6.length-1].date,average:layoffCashAverage(first6.map(x=>x.amount)),total:first6.reduce((a,x)=>a+x.amount,0)});
+    if(first6.length)stages.push({kind:'paro',label:'Paro - primeros 180 días',from:first6[0].date,to:first6[first6.length-1].date,average:layoffCashAverage(first6.map(x=>x.amount)),total:first6.reduce((a,x)=>a+x.amount,0)});
     if(rest.length)stages.push({kind:'paro',label:'Paro - resto',from:rest[0].date,to:rest[rest.length-1].date,average:layoffCashAverage(rest.map(x=>x.amount)),total:rest.reduce((a,x)=>a+x.amount,0)});
     if(subsidy.length)stages.push({kind:c.includeSubsidy52?'subsidy':'none',label:c.includeSubsidy52?'Subsidio +52':'Subsidio +52 no incluido',from:subsidy[0].date,to:subsidy[subsidy.length-1].date,average:layoffCashAverage(subsidy.map(x=>x.amount)),total:c.includeSubsidy52?subsidyTotal:0,potentialTotal:subsidyTotal});
-    if(!c.includeSubsidy52 && unemploymentEnd<retirementDate)stages.push({kind:'none',label:'Sin prestacion',from:unemploymentEnd,to:new Date(retirementDate.getFullYear(),retirementDate.getMonth()-1,1),average:0,total:0});
-    const unemploymentMax=LAYOFF_UNEMPLOYMENT_MAX_2026[String(c.children)]??LAYOFF_UNEMPLOYMENT_MAX_2026[0];
-    const unemploymentMin=LAYOFF_UNEMPLOYMENT_MIN_2026[String(c.children)]??LAYOFF_UNEMPLOYMENT_MIN_2026[0];
-    return {settings:c,p,dismissal,retirementDate,retirementDateWithSubsidy,ordinaryAge,ordinaryAgeWithSubsidy,baseReg,unemployment,subsidy,unemploymentTotal,subsidyTotal,extraTotal,initialCapital,potentialTotal,exhaustDate,remainingAtRetirement,first6,rest,stages,yearRows,unemploymentMax,unemploymentMin};
+    if(!c.includeSubsidy52&&unemploymentEnd<retirementDate)stages.push({kind:'none',label:'Sin prestación',from:unemploymentEnd,to:FIN.addMonths(retirementDate,-1),average:0,total:0});
+
+    const unemploymentMax=FIN.rules.unemploymentMax2026[String(c.children)]??FIN.rules.unemploymentMax2026[0];
+    const unemploymentMin=FIN.rules.unemploymentMin2026[String(c.children)]??FIN.rules.unemploymentMin2026[0];
+    return {settings:c,p,dismissal,retirementDate,retirementDateWithSubsidy,ordinaryAge,ordinaryAgeWithSubsidy,baseReg,unemployment,subsidy,unemploymentTotal,subsidyTotal,extraTotal,initialCapital,potentialTotal,exhaustDate,remainingAtRetirement,first6,rest,stages,yearRows,unemploymentMax,unemploymentMin,plan};
   }
+
   function layoffCashRecalc(){
     layoffCashSettings=layoffCashReadUI();persistLayoffCashSettingsLocal();
     const calc=layoffCashCalc(layoffCashSettings),status=$('#layoffCashStatus');
@@ -3325,82 +3336,30 @@
   }
 
   function pensionProjectedContributionMonthsAtDate(p,retirement){
-    let currentTotal=Math.max(0,(Number(p.yearsNow)||0)*12+(Number(p.monthsNow)||0));
-    const start=monthStart(todayLocal());
-    const lifeSummary=normalizePensionLifeSummary(p?.lifeSummary);
-    const lifeHistory=normalizePensionLifeHistory(p?.lifeHistory);
-    if(lifeSummary?.asOf && lifeHistory.some(item=>!item.end)){
-      const reportDate=parseExactDate(lifeSummary.asOf);
-      if(reportDate instanceof Date && !Number.isNaN(reportDate.getTime()) && reportDate<todayLocal()){
-        currentTotal+=Math.max(0,monthDiff(monthStart(reportDate),start));
-      }
-    }
-    let end=/^\d{4}-\d{2}$/.test(String(p.contributionEnd||''))?parseMonth(p.contributionEnd):retirement;
-    if(end>retirement)end=retirement;
-    const future=end>start?monthDiff(start,end):0;
-    return currentTotal+Math.max(0,future);
+    return FIN.projectedContributionMonthsAtDate(p,retirement,todayLocal());
   }
 
   function pensionProjectedContributionMonths(p,age=Number(p.targetAge)||65){
     return pensionProjectedContributionMonthsAtDate(p,pensionRetirementMonth(p,age));
   }
 
-  function pensionPercentage(months){
-    const m=Math.max(0,Math.floor(Number(months)||0));
-    if(m<180)return 0;
-    const extra=m-180;
-    const first=Math.min(extra,248);
-    const rest=Math.max(0,extra-248);
-    return Math.min(100,50+first*0.19+rest*0.18);
-  }
+  function pensionPercentage(months){return FIN.pensionPercentage(months)}
 
   function pensionVoluntaryEarlyReduction(contributionMonths,monthsEarly){
-    const m=Math.max(0,Math.floor(Number(contributionMonths)||0));
-    const offset=Math.max(0,Math.floor(Number(monthsEarly)||0));
-    const tables={
-      24:[21.00,19.00,17.00,13.00],
-      18:[8.80,8.40,8.00,7.60],
-      12:[5.50,5.25,5.00,4.75],
-      6:[4.00,3.82,3.64,3.45]
-    };
-    const row=tables[offset];
-    if(!row)return null;
-    const band=m<462?0:m<498?1:m<534?2:3;
-    return row[band];
+    return FIN.earlyReduction('voluntary',contributionMonths,monthsEarly);
   }
 
-  const PENSION_MIN_2026_MONTHLY=1424.40;
-  const PENSION_VOLUNTARY_REDUCTIONS={
-    24:[21.00,19.00,17.00,13.00],23:[17.60,16.50,15.00,12.00],22:[14.65,14.00,13.33,11.00],21:[12.57,12.00,11.43,10.00],
-    20:[11.00,10.50,10.00,9.20],19:[9.78,9.33,8.89,8.40],18:[8.80,8.40,8.00,7.60],17:[8.00,7.64,7.27,6.91],
-    16:[7.33,7.00,6.67,6.33],15:[6.77,6.46,6.15,5.85],14:[6.29,6.00,5.71,5.43],13:[5.87,5.60,5.33,5.07],
-    12:[5.50,5.25,5.00,4.75],11:[5.18,4.94,4.71,4.47],10:[4.89,4.67,4.44,4.22],9:[4.63,4.42,4.21,4.00],
-    8:[4.40,4.20,4.00,3.80],7:[4.19,4.00,3.81,3.62],6:[4.00,3.82,3.64,3.45],5:[3.83,3.65,3.48,3.30],
-    4:[3.67,3.50,3.33,3.17],3:[3.52,3.36,3.20,3.04],2:[3.38,3.23,3.08,2.92],1:[3.26,3.11,2.96,2.81]
-  };
-  const PENSION_INVOLUNTARY_REDUCTIONS={
-    48:[30.00,28.00,26.00,24.00],47:[29.38,27.42,25.46,23.50],46:[28.75,26.83,24.92,23.00],45:[28.13,26.25,24.38,22.50],
-    44:[27.50,25.67,23.83,22.00],43:[26.88,25.08,23.29,21.50],42:[26.25,24.50,22.75,21.00],41:[25.63,23.92,22.21,20.50],
-    40:[25.00,23.33,21.67,20.00],39:[24.38,22.75,21.13,19.50],38:[23.75,22.17,20.58,19.00],37:[23.13,21.58,20.04,18.50],
-    36:[22.50,21.00,19.50,18.00],35:[21.88,20.42,18.96,17.50],34:[21.25,19.83,18.42,17.00],33:[20.63,19.25,17.88,16.50],
-    32:[20.00,18.67,17.33,16.00],31:[19.38,18.08,16.79,15.50],30:[18.75,17.50,16.25,15.00],29:[18.13,16.92,15.71,14.50],
-    28:[17.50,16.33,15.17,14.00],27:[16.88,15.75,14.63,13.50],26:[16.25,15.17,14.08,13.00],25:[15.63,14.58,13.54,12.50],
-    24:[15.00,14.00,13.00,12.00],23:[14.38,13.42,12.46,11.50],22:[13.75,12.83,11.92,11.00],21:[12.57,12.00,11.38,10.00],
-    20:[11.00,10.50,10.00,9.20],19:[9.78,9.33,8.89,8.40],18:[8.80,8.40,8.00,7.60],17:[8.00,7.64,7.27,6.91],
-    16:[7.33,7.00,6.67,6.33],15:[6.77,6.46,6.15,5.85],14:[6.29,6.00,5.71,5.43],13:[5.87,5.60,5.33,5.07],
-    12:[5.50,5.25,5.00,4.75],11:[5.18,4.94,4.71,4.47],10:[4.89,4.67,4.44,4.22],9:[4.63,4.42,4.21,4.00],
-    8:[4.40,4.20,4.00,3.80],7:[4.19,4.00,3.81,3.62],6:[3.75,3.50,3.25,3.00],5:[3.13,2.92,2.71,2.50],
-    4:[2.50,2.33,2.17,2.00],3:[1.88,1.75,1.63,1.50],2:[1.25,1.17,1.08,1.00],1:[0.63,0.58,0.54,0.50]
-  };
+  const PENSION_MIN_2026_MONTHLY=FIN.rules.minimumContributionBase2026;
+  const PENSION_VOLUNTARY_REDUCTIONS=FIN.reductions.voluntary;
+  const PENSION_INVOLUNTARY_REDUCTIONS=FIN.reductions.involuntary;
 
-  function pensionReductionBand(contributionMonths){
-    const m=Math.max(0,Math.floor(Number(contributionMonths)||0));
-    return m<462?0:m<498?1:m<534?2:3;
-  }
+  function pensionReductionBand(contributionMonths){return FIN.reductionBand(contributionMonths)}
+
   function pensionEarlyReduction(table,contributionMonths,monthsEarly){
-    const row=table[Math.max(1,Math.min(48,Math.round(Number(monthsEarly)||0)))];
-    return row?row[pensionReductionBand(contributionMonths)]:null;
+    const type=table===PENSION_INVOLUNTARY_REDUCTIONS?'involuntary':'voluntary';
+    return FIN.earlyReduction(type,contributionMonths,monthsEarly);
   }
+
   function loadPensionLayoffSettingsLocal(){
     try{const raw=safeStorageGet(localStorage,PENSION_LAYOFF_STORAGE_KEY);if(raw){const v=JSON.parse(raw);pensionLayoffSettings={subsidy52:!!v?.subsidy52}}}catch(e){pensionLayoffSettings={subsidy52:false}}
   }
@@ -3424,151 +3383,47 @@
     updatePensionViewLabels();
     if(pensionViewMode==='layoff')renderPensionLayoffScenario();
   }
-  function pensionProjectedMinimumBase(p,date){
-    const year=date instanceof Date?date.getFullYear():Number(date)||2026;
-    return PENSION_MIN_2026_MONTHLY*Math.pow(1+(Number(p.baseCpi)||0)/100,Math.max(0,year-2026));
-  }
-  function pensionProjectedWorkBaseForMonth(p,date){
-    const key=pensionMonthKey(date),year=date.getFullYear(),currentYear=todayLocal().getFullYear();
-    const exact=Number(p.monthlyBases?.[key]);if(exact>0)return exact;
-    if(Object.prototype.hasOwnProperty.call(p.annualBases||{},String(year)))return Math.max(0,Number(p.annualBases[String(year)])||0);
-    const annualReal=pensionAnnualAverageFromMonthly(p,year);if(annualReal>0 && year<currentYear)return annualReal;
-    if(year<currentYear)return Math.max(0,Number(p.historicalBase)||0);
-    if(Number(p.currentBase)<=0)return Math.max(0,Number(p.historicalBase)||0);
-    return Number(p.currentBase)*Math.pow(1+(Number(p.futureGrowth)||0)/100,Math.max(0,year-currentYear));
-  }
-  function pensionLayoffUnemploymentBase(p,dismissalDate){
-    const values=[];for(let i=1;i<=6;i++){const d=new Date(dismissalDate.getFullYear(),dismissalDate.getMonth()-i,1);const v=pensionProjectedWorkBaseForMonth(p,d);if(v>0)values.push(v)}
-    return values.length?values.reduce((a,b)=>a+b,0)/values.length:Math.max(0,Number(p.currentBase)||0);
-  }
-  function pensionContributionMonthsAtSimulationDate(p,date){
-    let total=Math.max(0,(Number(p.yearsNow)||0)*12+(Number(p.monthsNow)||0));
-    const lifeSummary=normalizePensionLifeSummary(p?.lifeSummary),lifeHistory=normalizePensionLifeHistory(p?.lifeHistory);
-    let anchor=monthStart(todayLocal());
-    if(lifeSummary?.asOf && lifeHistory.some(item=>!item.end)){
-      const reportDate=parseExactDate(lifeSummary.asOf);
-      if(reportDate instanceof Date && !Number.isNaN(reportDate.getTime()))anchor=monthStart(reportDate);
-    }
-    const target=monthStart(date);
-    const delta=monthDiff(anchor,target);
-    return Math.max(0,total+delta);
-  }
+  function pensionProjectedMinimumBase(p,date){return FIN.projectedMinimumBase(p,date)}
+
+  function pensionProjectedWorkBaseForMonth(p,date){return FIN.projectedWorkBaseForMonth(p,date,todayLocal())}
+
+  function pensionLayoffUnemploymentBase(p,dismissalDate){return FIN.unemploymentBase(p,dismissalDate,todayLocal())}
+
+  function pensionContributionMonthsAtSimulationDate(p,date){return FIN.contributionMonthsAtSimulationDate(p,date,todayLocal())}
+
   function pensionLayoffContributionMonthsAt(p,dismissalDate,date,subsidy52){
-    if(date<=dismissalDate)return pensionContributionMonthsAtSimulationDate(p,date);
-    let current=pensionContributionMonthsAtSimulationDate(p,dismissalDate);
-    const unemploymentEnd=new Date(dismissalDate.getFullYear(),dismissalDate.getMonth()+24,1);
-    const paroEnd=date<unemploymentEnd?date:unemploymentEnd;
-    if(paroEnd>dismissalDate)current+=Math.max(0,monthDiff(dismissalDate,paroEnd));
-    if(subsidy52 && date>unemploymentEnd)current+=Math.max(0,monthDiff(unemploymentEnd,date));
-    return current;
+    return FIN.layoffContributionMonthsAt(p,dismissalDate,date,subsidy52,todayLocal());
   }
-  function pensionLayoffStage(p,dismissalDate,date,subsidy52){
-    if(date<dismissalDate)return 'work';
-    const unemploymentEnd=new Date(dismissalDate.getFullYear(),dismissalDate.getMonth()+24,1);
-    if(date<unemploymentEnd)return 'unemployment';
-    return subsidy52?'subsidy':'gap';
-  }
-  function pensionLayoffGapBase(p,dismissalDate,date){
-    const unemploymentEnd=new Date(dismissalDate.getFullYear(),dismissalDate.getMonth()+24,1);
-    const gapIndex=Math.max(1,monthDiff(unemploymentEnd,date)+1);
-    const min=pensionProjectedMinimumBase(p,date);
-    if(gapIndex<=60)return min;
-    if(gapIndex<=84)return min*.80;
-    return min*.50;
-  }
+
+  function pensionLayoffStage(p,dismissalDate,date,subsidy52){return FIN.layoffStage(p,dismissalDate,date,subsidy52)}
+
+  function pensionLayoffGapBase(p,dismissalDate,date){return FIN.layoffGapBase(p,dismissalDate,date)}
+
   function pensionLayoffRawBase(p,dismissalDate,date,subsidy52,unemploymentBase){
-    const stage=pensionLayoffStage(p,dismissalDate,date,subsidy52);
-    if(stage==='work')return pensionProjectedWorkBaseForMonth(p,date);
-    if(stage==='unemployment')return unemploymentBase;
-    if(stage==='subsidy')return pensionProjectedMinimumBase(p,date)*1.25;
-    return pensionLayoffGapBase(p,dismissalDate,date);
+    return FIN.layoffRawBase(p,dismissalDate,date,subsidy52,unemploymentBase,todayLocal());
   }
-  function pensionUpdatedMonthlyBase(value,date,retirementDate,cpiPct){
-    const monthsBefore=Math.max(0,monthDiff(date,retirementDate));
-    if(monthsBefore<=25)return Math.max(0,Number(value)||0);
-    const years=(monthsBefore-25)/12;
-    return Math.max(0,Number(value)||0)*Math.pow(1+(Number(cpiPct)||0)/100,Math.max(0,years));
-  }
-  function pensionMethodBRule(year){
-    const rules={2026:[302,304,352.33],2027:[304,308,354.67],2028:[306,312,357],2029:[308,316,359.33],2030:[310,320,361.67],2031:[312,324,364],2032:[314,328,366.33],2033:[316,332,368.67],2034:[318,336,371],2035:[320,340,373.33],2036:[322,344,375.67]};
-    return rules[year]||[324,348,378];
-  }
+
+  function pensionUpdatedMonthlyBase(value,date,retirementDate,cpiPct){return FIN.updatedMonthlyBase(value,date,retirementDate,cpiPct)}
+
+  function pensionMethodBRule(year){return FIN.methodBRule(year)}
+
   function pensionLayoffCalcAtDate(p,dismissalDate,retirementDate,subsidy52){
-    const unemploymentBase=pensionLayoffUnemploymentBase(p,dismissalDate);
-    const [keep,window,divisor]=pensionMethodBRule(retirementDate.getFullYear());
-    const latest=new Date(retirementDate.getFullYear(),retirementDate.getMonth()-2,1);
-    const series=[];
-    for(let i=window-1;i>=0;i--){
-      const date=new Date(latest.getFullYear(),latest.getMonth()-i,1);
-      const raw=pensionLayoffRawBase(p,dismissalDate,date,subsidy52,unemploymentBase);
-      series.push({date,raw,updated:pensionUpdatedMonthlyBase(raw,date,retirementDate,p.baseCpi)});
-    }
-    const last300=series.slice(-300);
-    const methodA=last300.reduce((sum,x)=>sum+x.updated,0)/350;
-    const methodB=[...series].sort((a,b)=>b.updated-a.updated).slice(0,keep).reduce((sum,x)=>sum+x.updated,0)/divisor;
-    const baseReg=Math.max(methodA,methodB),method=methodB>methodA?'B':'A';
-    const contributionMonths=pensionLayoffContributionMonthsAt(p,dismissalDate,retirementDate,subsidy52);
-    const percent=pensionPercentage(contributionMonths);
-    const theoretical=baseReg*percent/100;
-    const max=pensionProjectedMaxMonthly(retirementDate.getFullYear(),p.baseCpi);
-    const monthly=Math.min(theoretical,max);
-    const monthsFromToday=Math.max(0,monthDiff(monthStart(todayLocal()),retirementDate));
-    const todayFactor=Math.pow(1+(Number(p.baseCpi)||0)/100,monthsFromToday/12);
-    const todayMoney=Math.min(todayFactor>0?monthly/todayFactor:monthly,PENSION_MAX_2026_MONTHLY);
-    return {baseReg,methodA,methodB,method,contributionMonths,percent,theoretical,max,monthly,todayMoney,unemploymentBase,retirementDate};
+    return FIN.layoffPensionAtDate(p,dismissalDate,retirementDate,subsidy52,todayLocal());
   }
-  function pensionHypotheticalLegalAge(p){
-    const at65=pensionRetirementMonth(p,65);
-    const months=pensionProjectedContributionMonthsAtDate({...p,contributionEnd:pensionMonthKey(at65)},at65);
-    return months>=462?65:67;
-  }
-  function pensionLayoffActualOrdinaryAge(p,dismissalDate,subsidy52){
-    const at65=pensionRetirementMonth(p,65);
-    return pensionLayoffContributionMonthsAt(p,dismissalDate,at65,subsidy52)>=462?65:67;
-  }
+
+  function pensionHypotheticalLegalAge(p){return FIN.ordinaryAgeForContinuedWork(p,todayLocal())}
+
+  function pensionLayoffActualOrdinaryAge(p,dismissalDate,subsidy52){return FIN.ordinaryAgeAfterLayoff(p,dismissalDate,subsidy52,todayLocal())}
+
   function pensionDateMax(a,b){return a>b?a:b}
   function pensionFindFirstEarlyDate(p,dismissalDate,subsidy52,type){
-    const legalAge=pensionHypotheticalLegalAge(p),legalDate=pensionRetirementMonth(p,legalAge);
-    const maxEarly=type==='involuntary'?48:24,minMonths=type==='involuntary'?396:420;
-    const afterParo=new Date(dismissalDate.getFullYear(),dismissalDate.getMonth()+24,1);
-    let date=pensionDateMax(new Date(legalDate.getFullYear(),legalDate.getMonth()-maxEarly,1),afterParo);
-    while(date<legalDate){
-      const contrib=pensionLayoffContributionMonthsAt(p,dismissalDate,date,subsidy52);
-      if(contrib>=minMonths){
-        const monthsEarly=Math.max(1,monthDiff(date,legalDate));
-        if(monthsEarly<=maxEarly)return {date,legalAge,legalDate,monthsEarly,contributionMonths:contrib};
-      }
-      date=new Date(date.getFullYear(),date.getMonth()+1,1);
-    }
-    return null;
+    return FIN.findFirstEarlyDate(p,dismissalDate,subsidy52,type,todayLocal());
   }
+
   function pensionLayoffEarlyAmount(p,dismissalDate,subsidy52,info,type){
-    if(!info)return null;
-    const calc=pensionLayoffCalcAtDate(p,dismissalDate,info.date,subsidy52);
-    const table=type==='involuntary'?PENSION_INVOLUNTARY_REDUCTIONS:PENSION_VOLUNTARY_REDUCTIONS;
-    const reduction=pensionEarlyReduction(table,info.contributionMonths,info.monthsEarly);
-    if(reduction==null)return null;
-    let amount=0,cap=calc.max,capApplied=false;
-    if(type==='involuntary'){
-      // Art. 210.4 LGSS: primero se reduce la pensión teórica y después se aplica
-      // el límite específico de la anticipada involuntaria: -0,50 % por trimestre o fracción.
-      const reducedTheoretical=calc.theoretical*(1-reduction/100);
-      cap=calc.max*(1-Math.ceil(info.monthsEarly/3)*.005);
-      amount=Math.min(reducedTheoretical,cap);
-      capApplied=reducedTheoretical>cap;
-    }else{
-      // Art. 210.3 LGSS: si la pensión teórica supera el máximo, el coeficiente
-      // reductor de la voluntaria se aplica sobre el propio límite máximo.
-      const baseForReduction=Math.min(calc.theoretical,calc.max);
-      amount=baseForReduction*(1-reduction/100);
-      cap=baseForReduction;
-      capApplied=calc.theoretical>calc.max;
-    }
-    const monthsFromToday=Math.max(0,monthDiff(monthStart(todayLocal()),info.date));
-    const todayFactor=Math.pow(1+(Number(p.baseCpi)||0)/100,monthsFromToday/12);
-    const todayMoney=todayFactor>0?amount/todayFactor:amount;
-    return {...info,...calc,reduction,amount,todayMoney,type,earlyCap:cap,earlyCapApplied:capApplied};
+    return FIN.layoffEarlyAmount(p,dismissalDate,subsidy52,info,type,todayLocal());
   }
+
   function pensionAgeAtDateText(p,date){
     const born=new Date(Number(p.birthYear)||1972,(Number(p.birthMonth)||1)-1,1);
     const months=Math.max(0,monthDiff(born,date));
@@ -3726,59 +3581,13 @@
   // Tope inicial de pensión pública vigente en 2026: 3.359,60 €/mes en 14 pagas.
   // Desde 2025 la ley prevé que el tope inicial suba con la revalorización general
   // más 0,115 puntos porcentuales adicionales cada año hasta 2050.
-  const PENSION_MAX_2026_MONTHLY=3359.60;
-  const PENSION_MAX_EXTRA_PCT=0.115;
+  const PENSION_MAX_2026_MONTHLY=FIN.rules.pensionMaxMonthly2026;
+  const PENSION_MAX_EXTRA_PCT=FIN.rules.pensionMaxExtraPct;
 
-  function pensionProjectedMaxMonthly(retirementYear,cpiPct){
-    let value=PENSION_MAX_2026_MONTHLY;
-    const end=Math.max(2026,Math.round(Number(retirementYear)||2026));
-    const annualReval=Math.max(0,Number(cpiPct)||0)+PENSION_MAX_EXTRA_PCT;
-    for(let year=2027;year<=end;year++) value*=1+annualReval/100;
-    return value;
-  }
+  function pensionProjectedMaxMonthly(retirementYear,cpiPct){return FIN.projectedPensionMaxMonthly(retirementYear,cpiPct)}
 
   function pensionCalculate(p=pensionSettings){
-    const currentYear=todayLocal().getFullYear();
-    const retirementYear=(Number(p.birthYear)||1972)+(Number(p.targetAge)||65);
-    const firstYear=retirementYear-29;
-    const rows=[];
-    const months=[];
-    let explicitCount=0;
-    let missingCount=0;
-    for(let year=firstYear;year<=retirementYear-1;year++){
-      const baseInfo=pensionBaseForYear(p,year,currentYear);
-      const updated=pensionUpdatedBase(baseInfo.value,year,retirementYear,p.baseCpi);
-      if(baseInfo.override || baseInfo.source==='Base actual')explicitCount++;
-      if(baseInfo.kind==='missing')missingCount++;
-      rows.push({year,age:year-(Number(p.birthYear)||1972),base:baseInfo.value,updated,source:baseInfo.source,kind:baseInfo.kind,override:baseInfo.override});
-      for(let m=0;m<12;m++)months.push({year,value:updated});
-    }
-    const last300=months.slice(-300);
-    const methodA=last300.reduce((sum,x)=>sum+x.value,0)/350;
-    const best324=[...months].sort((a,b)=>b.value-a.value).slice(0,324);
-    const methodB=best324.reduce((sum,x)=>sum+x.value,0)/378;
-    const baseReg=Math.max(methodA,methodB);
-    const method=methodB>methodA?'B':'A';
-    const contributionMonths=pensionProjectedContributionMonths(p,p.targetAge);
-    const percent=pensionPercentage(contributionMonths);
-    const theoreticalMonthly14=baseReg*percent/100;
-    const maxMonthly14=pensionProjectedMaxMonthly(retirementYear,p.baseCpi);
-    const capApplied=theoreticalMonthly14>maxMonthly14;
-    const monthly14=Math.min(theoreticalMonthly14,maxMonthly14);
-    const annual=monthly14*14;
-    const equivalent12=annual/12;
-    const retirementDate=pensionRetirementMonth(p,p.targetAge);
-    const monthsToRetirement=Math.max(0,monthDiff(monthStart(todayLocal()),retirementDate));
-    const todayMoneyFactor=Math.pow(1+(Number(p.baseCpi)||0)/100,monthsToRetirement/12);
-    const todayMoneyRawMonthly14=todayMoneyFactor>0?monthly14/todayMoneyFactor:monthly14;
-    // Lectura intuitiva "si hoy tuviera la edad de jubilación": además de descontar inflación,
-    // respetamos el tope máximo vigente hoy (2026).
-    const todayMoneyMonthly14=Math.min(todayMoneyRawMonthly14,PENSION_MAX_2026_MONTHLY);
-    const todayMoneyCapApplied=todayMoneyRawMonthly14>PENSION_MAX_2026_MONTHLY;
-    const todayMoneyAnnual=todayMoneyMonthly14*14;
-    const monthsAt65=pensionProjectedContributionMonths(p,65);
-    const ordinaryAge=monthsAt65>=462?65:67;
-    return {currentYear,retirementYear,firstYear,rows,methodA,methodB,baseReg,method,contributionMonths,percent,theoreticalMonthly14,maxMonthly14,capApplied,monthly14,annual,equivalent12,ordinaryAge,explicitCount,missingCount,monthsToRetirement,todayMoneyFactor,todayMoneyRawMonthly14,todayMoneyMonthly14,todayMoneyCapApplied,todayMoneyAnnual};
+    return FIN.calculatePension(p,todayLocal());
   }
 
   function pensionReadUI(){
@@ -4414,6 +4223,7 @@ No se borrará hasta que confirmes este mensaje.`))return;
   function gistDocument(){
     return {
       schemaVersion:4,
+      financeEngineVersion:FIN.version,
       app:'Dashboard financiero',
       updatedAt:new Date().toISOString(),
       cases:savedCases,
@@ -6530,7 +6340,7 @@ No se borrará hasta que confirmes este mensaje.`))return;
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {
-      navigator.serviceWorker.register('./service-worker.js').catch(function () {});
+      navigator.serviceWorker.register('./service-worker.js?v=1.18').catch(function () {});
     });
   }
 </script>
