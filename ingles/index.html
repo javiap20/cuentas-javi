@@ -14,7 +14,7 @@
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png" />
   <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png" />
-  <title>English Daily · v1.7</title>
+  <title>English Daily · v1.8</title>
   <style>
 :root {
   --bg: #f4f7fb;
@@ -834,7 +834,7 @@ body.dark .stat-card.favorite > span { background:#422532; color:#ff8fad; }
         <span class="brand-mark">ED</span>
         <span>
           <strong>English Daily</strong>
-          <small>v1.7 · aprende un poco cada día</small>
+          <small>v1.8 · aprende un poco cada día</small>
         </span>
       </button>
       <div class="top-actions">
@@ -2241,7 +2241,7 @@ window.SEED_CONTENT = [
   const GITHUB_API = 'https://api.github.com';
   const GITHUB_API_VERSION = '2026-03-10';
   const AUTO_SYNC_DELAY = 2200;
-  const APP_VERSION = '1.7';
+  const APP_VERSION = '1.8';
   const DEFAULT_GOAL = 12;
   const ALLOWED_GOALS = [5,10,12,15,20];
   const MAX_HARD_RETRY = 1;
@@ -4004,6 +4004,20 @@ window.SEED_CONTENT = [
   let googleIdentityPromise = null;
 
   let persistentAudioElement = null;
+  let relayAudioElement = null;
+  let relayPrimePromise = null;
+
+  function audioParkingArea() {
+    let parking = document.getElementById('audioPersistentParking');
+    if (!parking) {
+      parking = document.createElement('div');
+      parking.id = 'audioPersistentParking';
+      parking.setAttribute('aria-hidden', 'true');
+      parking.style.cssText = 'position:fixed;width:1px;height:1px;overflow:hidden;left:-9999px;top:-9999px;opacity:0;pointer-events:none';
+      document.body.appendChild(parking);
+    }
+    return parking;
+  }
 
   function isStandalonePwa() {
     return !!(window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true);
@@ -4024,8 +4038,47 @@ window.SEED_CONTENT = [
 
   function detachPersistentAudioElement() {
     const audio = persistentAudioElement;
-    if (audio?.parentNode) audio.parentNode.removeChild(audio);
+    if (audio && audio.parentNode !== audioParkingArea()) audioParkingArea().appendChild(audio);
     return audio;
+  }
+
+  function getRelayAudioElement() {
+    if (relayAudioElement) return relayAudioElement;
+    const audio = document.createElement('audio');
+    audio.preload = 'auto';
+    audio.setAttribute('playsinline', '');
+    audio.setAttribute('webkit-playsinline', '');
+    audio.controls = false;
+    audio.muted = true;
+    audio.volume = 0;
+    audio.dataset.trackId = '';
+    audio.dataset.folderId = '';
+    audio.dataset.collectionKey = '';
+    audio.dataset.primed = '0';
+    audio.dataset.priming = '0';
+    audio.dataset.sourceMode = 'drive-api';
+    audioParkingArea().appendChild(audio);
+    relayAudioElement = audio;
+    return audio;
+  }
+
+  function resetAudioRelay({clearSource=false}={}) {
+    const relay = relayAudioElement;
+    relayPrimePromise = null;
+    if (!relay) return;
+    try { relay.pause(); } catch (_) {}
+    relay.muted = true;
+    relay.volume = 0;
+    relay.dataset.primed = '0';
+    relay.dataset.priming = '0';
+    if (clearSource) {
+      relay.removeAttribute('src');
+      relay.dataset.trackId = '';
+      relay.dataset.folderId = '';
+      relay.dataset.collectionKey = '';
+      try { relay.load(); } catch (_) {}
+    }
+    if (relay.parentNode !== audioParkingArea()) audioParkingArea().appendChild(relay);
   }
 
   function renderAudioPwaContext() {
@@ -4310,15 +4363,127 @@ window.SEED_CONTENT = [
     finally { driveAudioFetches.delete(driveId); }
   }
 
-  async function prefetchNextDriveAudio(track) {
+  function nextAudioChainItem(key, folder, track) {
+    if (!key || !folder || !track) return null;
+    const chain = audioTrackChain(key);
+    const index = chain.findIndex(item => item.folder.id === folder.id && item.track.id === track.id);
+    return index >= 0 ? chain[index + 1] || null : null;
+  }
+
+  async function prepareNextAudioRelay(track) {
     if (!driveAudioTokenValid() || !track) return;
     const key = state.activeAudioCollection;
     const folder = currentAudioFolder(key);
-    const chain = audioTrackChain(key);
-    const index = chain.findIndex(item => item.folder.id === folder?.id && item.track.id === track.id);
-    const next = index >= 0 ? chain[index + 1] : null;
-    if (!next || driveAudioBlobCache.has(next.track.driveId)) return;
-    try { await driveAudioBlobUrl(next.track.driveId); } catch (_) {}
+    const next = nextAudioChainItem(key, folder, track);
+    if (!next) { resetAudioRelay({clearSource:true}); return; }
+    try {
+      const url = await driveAudioBlobUrl(next.track.driveId);
+      if (state.activeAudioCollection !== key) return;
+      const activeFolder = currentAudioFolder(key);
+      const activeTrack = currentAudioTrack(key);
+      if (activeFolder?.id !== folder?.id || activeTrack?.id !== track.id) return;
+      const relay = getRelayAudioElement();
+      const same = relay.dataset.trackId === next.track.id && relay.src === url;
+      if (!same) {
+        resetAudioRelay();
+        relay.dataset.trackId = next.track.id;
+        relay.dataset.folderId = next.folder.id;
+        relay.dataset.collectionKey = key;
+        relay.dataset.sourceMode = 'drive-api';
+        relay.src = url;
+        relay.preload = 'auto';
+        relay.load();
+      }
+    } catch (_) {}
+  }
+
+  async function prefetchNextDriveAudio(track) {
+    await prepareNextAudioRelay(track);
+  }
+
+  function maybePrimeAudioRelay(audio, track) {
+    if (!driveAudioTokenValid() || !audio || !track || audio.paused || audio.ended) return;
+    if (!Number.isFinite(audio.duration) || audio.duration <= 0) return;
+    const remaining = audio.duration - audio.currentTime;
+    if (remaining > 1.10 || remaining < 0) return;
+    const key = state.activeAudioCollection;
+    const folder = currentAudioFolder(key);
+    const next = nextAudioChainItem(key, folder, track);
+    const relay = relayAudioElement;
+    if (!next || !relay) return;
+    if (relay.dataset.collectionKey !== key || relay.dataset.folderId !== next.folder.id || relay.dataset.trackId !== next.track.id) return;
+    if (relay.dataset.primed === '1' || relay.dataset.priming === '1') return;
+    if (relay.readyState < 2) return;
+    relay.dataset.priming = '1';
+    relay.muted = true;
+    relay.volume = 0;
+    try { relay.currentTime = 0; } catch (_) {}
+    const p = relay.play();
+    relayPrimePromise = p || Promise.resolve();
+    Promise.resolve(p).then(() => {
+      if (relay.dataset.trackId === next.track.id) relay.dataset.primed = '1';
+    }).catch(() => {
+      relay.dataset.primed = '0';
+    }).finally(() => {
+      relay.dataset.priming = '0';
+    });
+  }
+
+  function promotePrimedRelay() {
+    const key = state.activeAudioCollection;
+    const progress = ensureAudioProgress(key);
+    const currentFolder = currentAudioFolder(key);
+    const currentTrack = currentAudioTrack(key);
+    const next = nextAudioChainItem(key, currentFolder, currentTrack);
+    const relay = relayAudioElement;
+    if (!next || !relay || relay.dataset.primed !== '1') return false;
+    if (relay.dataset.collectionKey !== key || relay.dataset.folderId !== next.folder.id || relay.dataset.trackId !== next.track.id || relay.paused) return false;
+
+    delete progress.trackPositions[currentTrack.id];
+    if (next.folder.id !== currentFolder.id) {
+      const completed = new Set(progress.completed);
+      completed.add(currentFolder.id);
+      progress.completed = [...completed];
+    }
+    progress.currentFolderId = next.folder.id;
+    progress.currentTrackId = next.track.id;
+    saveState();
+
+    const oldActive = persistentAudioElement;
+    persistentAudioElement = relay;
+    relayAudioElement = oldActive;
+    if (relayAudioElement) {
+      relayAudioElement.controls = false;
+      relayAudioElement.muted = true;
+      relayAudioElement.volume = 0;
+      relayAudioElement.dataset.primed = '0';
+      relayAudioElement.dataset.priming = '0';
+      audioParkingArea().appendChild(relayAudioElement);
+    }
+
+    persistentAudioElement.controls = true;
+    persistentAudioElement.style.display = '';
+    persistentAudioElement.dataset.sourceMode = 'drive-api';
+    persistentAudioElement.dataset.primed = '0';
+    persistentAudioElement.dataset.priming = '0';
+    try { persistentAudioElement.currentTime = 0; } catch (_) {}
+
+    // Sigue reproduciendo ya antes del final de la pista anterior. Primero recolocamos
+    // el reproductor conectado al DOM y solo después abrimos el sonido.
+    renderHomeAudio();
+    renderAudioBrowser();
+    requestAnimationFrame(() => {
+      const active = persistentAudioElement;
+      if (!active || active.dataset.trackId !== next.track.id) return;
+      try { active.currentTime = 0; } catch (_) {}
+      active.volume = 1;
+      active.muted = false;
+      const msg = els('audioNativeMessage');
+      if (msg) msg.textContent = '✓ Relevo iPad activo: la siguiente pista ya estaba arrancada antes de terminar la anterior.';
+      prepareNextAudioRelay(next.track);
+    });
+    if (next.folder.id !== currentFolder.id) showToast(`✓ ${currentFolder.title} completado · continúa ${next.folder.title}.`);
+    return true;
   }
 
   async function loadDriveApiAudioSource(audio, track) {
@@ -4334,7 +4499,7 @@ window.SEED_CONTENT = [
       audio.dataset.loading = '';
       audio.load();
       const badge = document.querySelector('.audio-sequence-badge');
-      if (badge) badge.textContent = isStandalonePwa() ? '📱 PWA CONTINUO' : '⚡ CONTINUO';
+      if (badge) badge.textContent = isStandalonePwa() ? '📱 PWA RELEVO' : '⚡ CONTINUO';
       if (msg) msg.textContent = 'Modo continuo activo: al terminar esta pista empieza automáticamente la siguiente.';
       if (audio.dataset.autoplayRequested === '1') {
         audio.dataset.autoplayRequested = '';
@@ -4393,6 +4558,7 @@ window.SEED_CONTENT = [
     audio.dataset.ignorePause = '1';
     persistAudioPlaybackTime({sync});
     try { audio.pause(); } catch (_) {}
+    resetAudioRelay();
   }
 
   function playCurrentAudio() {
@@ -4534,6 +4700,9 @@ window.SEED_CONTENT = [
   }
 
   function handleAudioEnded() {
+    // iPad/PWA: si la siguiente pista ya está reproduciéndose en silencio,
+    // la promovemos sin lanzar un play() nuevo tras ended.
+    if (promotePrimedRelay()) return;
     moveAudioTrack(1, {autoplay:true, natural:true});
   }
 
@@ -4712,10 +4881,10 @@ window.SEED_CONTENT = [
             <h3>${escapeHtml(track.title)}</h3>
             <p class="audio-native-next-note">${escapeHtml(nextNote)}</p>
           </div>
-          <span class="audio-sequence-badge">${driveAudioTokenValid() ? (isStandalonePwa() ? '📱 PWA CONTINUO' : '⚡ CONTINUO') : '▶ INTENTO DIRECTO'}</span>
+          <span class="audio-sequence-badge">${driveAudioTokenValid() ? (isStandalonePwa() ? '📱 PWA RELEVO' : '⚡ CONTINUO') : '▶ INTENTO DIRECTO'}</span>
         </div>
         <div id="audioNativeMount"></div>
-        <div class="audio-native-message" id="audioNativeMessage">${driveAudioTokenValid() ? 'Drive conectado: la PWA conserva el mismo reproductor entre pistas para que el salto automático sea compatible con iPad.' : 'Sin Drive conectado intentaré el audio directo. Para el continuo real dentro de la PWA, conecta Google Drive arriba.'}</div>
+        <div class="audio-native-message" id="audioNativeMessage">${driveAudioTokenValid() ? 'Drive conectado: la PWA precarga la siguiente pista y la arranca en silencio justo antes de acabar la actual para intentar mantener el continuo en iPad.' : 'Sin Drive conectado intentaré el audio directo. Para el continuo real dentro de la PWA, conecta Google Drive arriba.'}</div>
         <div class="audio-track-list-wrap">
           <div class="audio-track-list-head"><strong>Pistas de ${escapeHtml(folder.title)}</strong><small>${tracks.length} audios · puedes saltar a cualquiera</small></div>
           <div class="audio-track-list">${rows}</div>
@@ -4739,6 +4908,7 @@ window.SEED_CONTENT = [
       if (driveAudioTokenValid()) prefetchNextDriveAudio(track);
     };
     audio.ontimeupdate = () => {
+      maybePrimeAudioRelay(audio, track);
       const now = Date.now();
       if (now - audioLastLocalSave < 8000) return;
       audioLastLocalSave = now;

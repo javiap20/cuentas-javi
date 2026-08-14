@@ -1,38 +1,35 @@
-ENGLISH DAILY v1.7 · PWA iPad + AUDIO CONTINUO
-==================================================
+ENGLISH DAILY v1.8 · PRUEBA DE RELEVO DE AUDIO PARA iPAD/PWA
 
-Esta versión sustituye la v1.6 local. Está pensada para la PWA que ya tienes instalada en el iPad.
+Objetivo de esta versión
+------------------------
+La v1.7 esperaba a que una pista terminase para llamar a play() sobre la siguiente.
+En iPadOS/PWA ese nuevo play() puede ser bloqueado aunque la primera reproducción sí
+haya comenzado con un toque del usuario.
 
-ARCHIVOS DEL ZIP
-- index.html
-- manifest.webmanifest
-- sw.js
-- iconos PWA
+La v1.8 usa un enfoque distinto:
+1. Mientras suena la pista actual, descarga y precarga la siguiente desde Drive API.
+2. Aproximadamente 1 segundo antes del final intenta arrancar la siguiente pista en
+   un segundo elemento de audio, completamente silenciado.
+3. Cuando termina la pista actual, no pide un nuevo play(): promueve el audio que ya
+   estaba reproduciéndose y lo abre desde el inicio.
+4. Después prepara la siguiente pista para repetir el proceso.
 
-CÓMO ACTUALIZAR TU PWA
-1) Sube/reemplaza estos archivos en la MISMA carpeta web donde ya vive English Daily (la carpeta /ingles/ de tu Javi Apps).
-2) No hace falta cambiar el icono instalado ni crear una segunda app si mantienes la misma URL/scope.
-3) Abre English Daily desde el icono del iPad. El service worker v1.7 usa navegación network-first para coger la versión nueva cuando hay conexión.
+IMPORTANTE
+----------
+- Google Drive debe estar conectado en English Daily para este modo continuo.
+- Pulsa Play una vez para iniciar la sesión.
+- Es una prueba específica para el comportamiento de Safari/PWA en iPad. Si iPadOS
+  bloquea incluso el arranque silenciado del segundo audio, la interfaz seguirá
+  funcionando y podrás avanzar manualmente.
+- El modo compatible de Drive mediante iframe no puede detectar el final de una pista.
 
-AUDIO CONTINUO · CONFIGURACIÓN DE GOOGLE (UNA VEZ)
-1) En English Daily abre cualquiera de los dos cursos de audio.
-2) Copia el valor que aparece en “Origen que debes autorizar en Google”. Será algo como https://tudominio.com (SIN /ingles/).
-3) En Google Cloud:
-   - Activa Google Drive API.
-   - Configura la pantalla de consentimiento OAuth. Si está en modo Testing, añade tu cuenta de Google como usuario de prueba.
-   - Crea OAuth Client ID > Aplicación web.
-   - Añade el origen copiado en “Orígenes de JavaScript autorizados”.
-   - No hace falta Client Secret ni URI de redirección para el modelo usado por esta PWA.
-4) Copia el Client ID que termina en .apps.googleusercontent.com, pégalo en English Daily y pulsa “Conectar Drive”.
-5) Pulsa Play una vez. Después la misma etiqueta <audio> se conserva durante todo el recorrido para favorecer el salto automático en iPad.
+Instalación
+-----------
+Sustituye los archivos de la carpeta /ingles/ de tu PWA por los de este ZIP.
+El service worker usa una caché nueva (v1.8), así que al volver a abrir la PWA debería
+recoger esta versión. Si siguiera apareciendo v1.7, cierra del todo la PWA y ábrela de nuevo.
 
-ORDEN PROGRAMADO
-VAUGHAN: Principiante 1→10, Intermedio 1→10, Avanzado 1→10.
-Translation: Booklet 1→8.
-Dentro de cada carpeta: todas las pistas por orden. Al terminar la última, pasa a la primera de la carpeta siguiente.
-
-NOTAS
-- El Client ID se guarda en localStorage; el token de acceso NO se guarda de forma permanente.
-- Si Google caduca el token durante una sesión larga, la app pedirá reconectar Drive.
-- Sin Drive autorizado, queda el reproductor /preview de Google como respaldo, pero ese modo no puede detectar el final de cada pista.
-- En segundo plano o con el iPad bloqueado, iPadOS puede suspender JavaScript; el objetivo principal de esta versión es el continuo con la PWA abierta/activa.
+Orden de reproducción
+---------------------
+VAUGHAN: Principiante CD01-CD10 -> Intermedio CD01-CD10 -> Avanzado CD01-CD10.
+Translation: Booklet 1 -> Booklet 8, con todas las pistas de cada booklet.
