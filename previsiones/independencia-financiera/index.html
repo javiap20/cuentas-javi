@@ -110,8 +110,9 @@ h1{font-family:"Manrope",sans-serif;font-size:clamp(26px,3vw,40px);line-height:1
 .mini-control label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:800;color:var(--muted);margin-bottom:5px}
 .mini-input{width:100%;border:0;background:transparent;outline:0;color:var(--ink);font-weight:800;font-size:15px;padding:0}
 .mini-copy{font-size:11px;color:var(--ink-2);line-height:1.45;padding:4px 3px}
-.gist-freshness{display:flex;align-items:center;justify-content:center;gap:7px;margin:-2px 0 14px;color:var(--accent-2);font-size:12px;font-weight:800;text-align:center;letter-spacing:.01em}
-.gist-freshness-dot{width:7px;height:7px;border-radius:50%;background:var(--accent-2);box-shadow:0 0 0 4px rgba(124,77,255,.09);flex:0 0 auto}
+.gist-freshness{display:flex;align-items:center;justify-content:center;gap:7px;margin:-8px 0 22px;color:var(--accent-2);font-size:12px;font-weight:800;text-align:center;letter-spacing:.01em;min-height:20px}
+.gist-freshness-dot{width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 0 4px rgba(124,77,255,.09);flex:0 0 auto}
+.gist-freshness.pending{color:var(--amber)}.gist-freshness.error{color:var(--red)}.gist-freshness.loading{color:var(--accent-2)}.gist-freshness.readonly{color:#7459c7}
 .summary-section{margin-bottom:18px;padding:20px}
 .summary-overview-head{display:flex;align-items:center;justify-content:center;gap:18px;text-align:center;padding:2px 4px 16px;margin-bottom:16px;border-bottom:1px solid var(--line)}
 .summary-overview-head>div{width:100%}
@@ -283,6 +284,8 @@ details summary::-webkit-details-marker{display:none}
     </div>
   </header>
 
+  <div id="gistFreshness" class="gist-freshness loading" aria-live="polite"><span class="gist-freshness-dot"></span><span>&#9729; &Uacute;ltima actualizaci&oacute;n del Gist &middot; comprobando&hellip;</span></div>
+
   <div id="errorBox" class="error-box"></div>
   <div id="retirementNotice" class="notice">La previsión ya llega a la jubilación, pero la <b>pensión mensual estimada está a 0 €</b>. Puedes completarla cuando quieras.</div>
 
@@ -408,7 +411,7 @@ details summary::-webkit-details-marker{display:none}
       <div class="sync-head">
         <div>
           <div class="sync-title">Guardar y recuperar los escenarios</div>
-          <div class="sync-note">Al abrir el dashboard se carga automáticamente el Gist vinculado y después el Excel. El JSON y el Gist incluyen el ahorro, el resto de supuestos y todos los escenarios guardados con sus ajustes de gasto. También recuerdan el vínculo al Gist del Dashboard cuando se detecta, pero no copian tus bases de cotización dentro de este HTML. La lectura automática usa el JSON raw del Gist. El token solo hace falta para guardar cambios en GitHub: no se guarda en el HTML, en localStorage ni dentro del JSON.</div>
+          <div class="sync-note">Al abrir el dashboard se lee <b>primero el Gist</b> y solo después se compara con la copia local: siempre gana la versión más nueva. Con token, cualquier cambio se sincroniza automáticamente; sin token, el Gist sigue pudiéndose leer desde cualquier dispositivo. El JSON guarda los supuestos, escenarios y también la última fotografía de los cálculos para poder consultarla aunque no esté disponible el motor compartido. El token nunca se guarda en el HTML, en localStorage ni dentro del JSON.</div>
         </div>
       </div>
       <div class="sync-grid">
@@ -445,8 +448,6 @@ details summary::-webkit-details-marker{display:none}
       </div>
     </div>
   </div>
-
-  <div id="gistFreshness" class="gist-freshness" aria-live="polite"><span class="gist-freshness-dot"></span><span>&#9729; &Uacute;ltima actualizaci&oacute;n del Gist &middot; comprobando&hellip;</span></div>
 
   <section class="panel summary-section">
     <div class="summary-overview-head">
@@ -542,7 +543,7 @@ details summary::-webkit-details-marker{display:none}
   </section>
 
   <footer class="footer">
-    <div>El dashboard no contiene importes del Excel: prioriza <b>../../excel/finanzas-master.xlsx</b> y lee únicamente <b>DESPIDO</b>. Si no está disponible, permite cargar el archivo manualmente. <b>v1.21</b></div>
+    <div>El dashboard no contiene importes del Excel: prioriza <b>../../excel/finanzas-master.xlsx</b> y lee únicamente <b>DESPIDO</b>. Si no está disponible, permite cargar el archivo manualmente. <b>v1.22</b></div>
     <div>Prestaciones automáticas orientativas con reglas 2026. Desde 2027 la edad ordinaria general es 67 años, o 65 con al menos 38 años y 6 meses cotizados. <a href="https://www.seg-social.es/" target="_blank" rel="noreferrer">Seguridad Social</a></div>
   </footer>
 </div>
@@ -551,8 +552,28 @@ details summary::-webkit-details-marker{display:none}
 (() => {
   'use strict';
 
-  const FIN=window.JaviFinanceEngine;
-  if(!FIN) throw new Error('No se ha cargado ../../shared/finanzas-engine.js');
+  const HAS_FIN=!!window.JaviFinanceEngine;
+  function createFallbackFinanceEngine(){
+    const parseDate=value=>{
+      if(value instanceof Date && !Number.isNaN(value.getTime())) return new Date(value.getTime());
+      const m=String(value||'').match(/^(\d{4})-(\d{2})(?:-(\d{2}))?/);
+      if(!m) return null;
+      const d=new Date(Number(m[1]),Number(m[2])-1,Number(m[3]||1));
+      return Number.isNaN(d.getTime())?null:d;
+    };
+    const monthStart=value=>{const d=parseDate(value)||new Date(value);return new Date(d.getFullYear(),d.getMonth(),1)};
+    const dateKey=value=>{const d=parseDate(value)||new Date(value);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
+    const monthKey=value=>dateKey(monthStart(value)).slice(0,7);
+    const addMonths=(value,n)=>{const d=monthStart(value);return new Date(d.getFullYear(),d.getMonth()+Number(n||0),1)};
+    const monthDiff=(a,b)=>{const x=monthStart(a),y=monthStart(b);return (y.getFullYear()-x.getFullYear())*12+y.getMonth()-x.getMonth()};
+    const defaultDismissalDate=(now,minKey)=>{const min=parseDate(minKey)||new Date(2027,0,1);const n=monthStart(now||new Date());return n<min?min:n};
+    return {
+      version:'snapshot-only',
+      rules:{referenceYear:2026,unemploymentMonths:24,subsidy52Monthly2026:480,unemploymentMax2026:{'0':1225,'1':1400,'2':1575},unemploymentMin2026:{'0':560,'1':749}},
+      parseDate,monthStart,dateKey,monthKey,addMonths,monthDiff,defaultDismissalDate
+    };
+  }
+  const FIN=window.JaviFinanceEngine || createFallbackFinanceEngine();
 
   const EXCEL_PATHS = [
     '../../excel/finanzas-master.xlsx',
@@ -595,6 +616,14 @@ details summary::-webkit-details-marker{display:none}
   let javiRealSource = '';
   let javiRealLoadError = '';
   let linkedDashboardGistId = '';
+  let loadedCalculatedSnapshots = {};
+  let localUpdatedAt = '';
+  let gistUpdatedAt = '';
+  let pendingRemoteSync = false;
+  let syncTimer = null;
+  let syncInFlight = false;
+  let isApplyingRemote = false;
+  let isBootstrapping = true;
 
   const $ = id => document.getElementById(id);
   const els = {
@@ -765,7 +794,7 @@ details summary::-webkit-details-marker{display:none}
     const item=cases.find(c=>clean(c?.name).toLocaleLowerCase('es-ES')==='javi real') || cases[0] || null;
     return item?.state && typeof item.state==='object' ? item.state : null;
   }
-  function normalizeSharedPensionState(raw){return raw&&typeof raw==='object'?FIN.normalizePensionState(raw):null}
+  function normalizeSharedPensionState(raw){return HAS_FIN&&raw&&typeof raw==='object'?FIN.normalizePensionState(raw):null}
 
   function readJaviRealFromLocalStorage(){
     try{
@@ -777,6 +806,7 @@ details summary::-webkit-details-marker{display:none}
   }
   async function loadJaviRealData(){
     javiRealLoadError='';
+    if(!HAS_FIN){javiRealState=null;javiRealSource='';javiRealLoadError='motor financiero no disponible';return false;}
     const storedId=(()=>{try{return normalizeGistId(localStorage.getItem(DASHBOARD_GIST_STORAGE_KEY)||'')}catch(e){return ''}})();
     const candidates=[linkedDashboardGistId,storedId,DEFAULT_GIST_ID].map(normalizeGistId).filter((v,i,a)=>v&&a.indexOf(v)===i);
     for(const id of candidates){
@@ -934,9 +964,12 @@ details summary::-webkit-details-marker{display:none}
 
   function persistState(){
     try{
+      if(!localUpdatedAt) localUpdatedAt=new Date().toISOString();
       localStorage.setItem(STORAGE_KEY,JSON.stringify({
-        stateVersion:5,
+        stateVersion:6,
+        updatedAt:localUpdatedAt || new Date().toISOString(),
         gistId:normalizeGistId(els.gistId.value),
+        calculatedSnapshots:cloneJson(loadedCalculatedSnapshots)||{},
         linkedDashboardGistId:normalizeGistId(linkedDashboardGistId),
         baseAssumptions:cloneJson(baseAssumptions || assumptionsFromUI()),
         scenarios:cloneJson(savedScenarios),
@@ -955,6 +988,34 @@ details summary::-webkit-details-marker{display:none}
   function saveInputs(){
     if(activeScenarioId==='base') baseAssumptions=assumptionsFromUI();
     persistState();
+  }
+
+  function readLocalState(){
+    try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'null')}catch(e){return null}
+  }
+
+  function timestampMs(value){
+    const t=Date.parse(value||'');return Number.isFinite(t)?t:0;
+  }
+
+  function scheduleGistSync(delay=850){
+    if(isApplyingRemote||isBootstrapping) return;
+    clearTimeout(syncTimer);
+    if(!clean(els.githubToken?.value)){
+      pendingRemoteSync=true;
+      updateGistFreshness(gistUpdatedAt||localUpdatedAt,'pending');
+      return;
+    }
+    syncTimer=setTimeout(()=>saveToGist({auto:true}),delay);
+  }
+
+  function markDataChanged(){
+    if(isApplyingRemote||isBootstrapping) return;
+    localUpdatedAt=new Date().toISOString();
+    pendingRemoteSync=true;
+    persistState();
+    updateGistFreshness(gistUpdatedAt||localUpdatedAt,'pending');
+    scheduleGistSync();
   }
 
   function legacyAssumptions(data){
@@ -979,6 +1040,8 @@ details summary::-webkit-details-marker{display:none}
   function loadInputs(){
     let data={};
     try{ data=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}')||{}; }catch(e){}
+    localUpdatedAt=clean(data.updatedAt)||localUpdatedAt;
+    loadedCalculatedSnapshots=(data.calculatedSnapshots&&typeof data.calculatedSnapshots==='object')?cloneJson(data.calculatedSnapshots):loadedCalculatedSnapshots;
     els.gistId.value=DEFAULT_GIST_ID;
     linkedDashboardGistId=normalizeGistId(data.linkedDashboardGistId||linkedDashboardGistId);
 
@@ -1016,6 +1079,7 @@ details summary::-webkit-details-marker{display:none}
 
   function markScenarioDirty(){
     if(activeScenarioId!=='base') scenarioDirty=true;
+    markDataChanged();
   }
 
   function uniqueScenarioName(){
@@ -1086,7 +1150,7 @@ details summary::-webkit-details-marker{display:none}
     workingScenarioName=sc.name;
     expenseOverrides={};
     scenarioDirty=false;
-    persistState();
+    markDataChanged();
     render();
     if(els.expenseDetails){els.expenseDetails.open=true;els.expenseDetails.scrollIntoView({behavior:'smooth',block:'start'});}
   }
@@ -1102,7 +1166,7 @@ details summary::-webkit-details-marker{display:none}
     sc.expenseOverrides=cloneJson(expenseOverrides)||{};
     sc.updatedAt=new Date().toISOString();
     scenarioDirty=false;
-    persistState();
+    markDataChanged();
     renderScenarioControls();
   }
 
@@ -1114,6 +1178,7 @@ details summary::-webkit-details-marker{display:none}
     savedScenarios=savedScenarios.filter(x=>x.id!==activeScenarioId);
     activeScenarioId='base';workingScenarioName='Base Excel';expenseOverrides={};scenarioDirty=false;
     applyAssumptions(baseAssumptions||defaultAssumptions());
+    markDataChanged();
     render();
   }
 
@@ -1121,6 +1186,7 @@ details summary::-webkit-details-marker{display:none}
     if(activeScenarioId==='base'||!scenarioOverrideCount()) return;
     expenseOverrides={};
     scenarioDirty=true;
+    markDataChanged();
     render();
   }
 
@@ -1135,6 +1201,7 @@ details summary::-webkit-details-marker{display:none}
     if(Object.prototype.hasOwnProperty.call(next,'active') && !!next.active===baseActive) delete next.active;
     if(Object.keys(next).length) expenseOverrides[key]=next; else delete expenseOverrides[key];
     scenarioDirty=true;
+    markDataChanged();
     render();
   }
 
@@ -1142,6 +1209,7 @@ details summary::-webkit-details-marker{display:none}
     if(activeScenarioId==='base'||!expenseOverrides[key]) return;
     delete expenseOverrides[key];
     scenarioDirty=true;
+    markDataChanged();
     render();
   }
 
@@ -1276,8 +1344,37 @@ details summary::-webkit-details-marker{display:none}
     return {input,initial,rows,startYear};
   }
 
+  function applyReadOnlyUi(){
+    ['savings','severance','assets','unemployment','subsidy','pension','currentAge','endYear','dismissalDate'].forEach(id=>{if(els[id])els[id].readOnly=true;});
+    [els.autoBenefits,els.children,els.includeSubsidy52,els.longContribution,els.dismissalAutoBtn].forEach(el=>{if(el)el.disabled=true;});
+    [els.newScenarioBtn,els.saveScenarioBtn,els.resetScenarioBtn,els.deleteScenarioBtn].forEach(el=>{if(el)el.disabled=true;});
+    if(els.scenarioName)els.scenarioName.disabled=true;
+  }
+
   function render(){
     saveInputs();
+    if(!HAS_FIN){
+      const snap=activeCalculatedSnapshot();
+      if(snap&&Array.isArray(snap.rows)&&snap.rows.length){
+        const input=getInputs();
+        const model={input,initial:num(snap.initial),rows:cloneJson(snap.rows)||[],startYear:snap.rows[0].year,fromSnapshot:true,retirementDate:parseIsoDate(snap.retirementDate)};
+        renderBenefitsUi(input);
+        els.unemployment.readOnly=true;els.subsidy.readOnly=true;els.pension.readOnly=true;
+        if(snap.benefits){
+          if(snap.benefits.unemploymentAverage!=null)els.unemployment.value=groupedIntegerES(snap.benefits.unemploymentAverage);
+          if(snap.benefits.subsidyMonthly!=null)els.subsidy.value=groupedIntegerES(snap.benefits.subsidyMonthly);
+          if(snap.benefits.pensionMonthly14!=null)els.pension.value=groupedIntegerES(snap.benefits.pensionMonthly14);
+        }
+        els.benefitSourceMini.innerHTML='<b>Último cálculo guardado en el Gist</b> · motor no disponible';
+        els.benefitStatus.classList.add('warn');
+        els.benefitStatus.querySelector('span:last-child').textContent=`Modo lectura · mostrando la fotografía calculada el ${new Date(snap.calculatedAt||localUpdatedAt||Date.now()).toLocaleString('es-ES')}.`;
+        if(snap.retirementAge)els.retirementAgeDisplay.textContent=`${snap.retirementAge} años`;
+        renderKpis(model);renderForecastTable(model);renderChart(model);renderScenarioControls();applyReadOnlyUi();
+        els.retirementNotice.classList.remove('show');
+        els.tableNote.textContent=`Última fotografía calculada guardada en el Gist · ${snap.calculatedAt?new Date(snap.calculatedAt).toLocaleString('es-ES'):'fecha no disponible'}.`;
+        return;
+      }
+    }
     const model = buildForecast();
     renderBenefitsUi(model.input);
     renderKpis(model);
@@ -1294,7 +1391,8 @@ details summary::-webkit-details-marker{display:none}
   function renderKpis(model){
     els.kpiInitial.textContent = euro0.format(model.initial);
     const startYear=projectionStartYear(model.input),months=activeMonthsForYear(startYear,model.input);
-    const fullSpend=excelMeta.loaded?expensesForYear(startYear):null,spend=fullSpend===null?null:proratedExpense(fullSpend,startYear,model.input);
+    const snapshotSpend=model.fromSnapshot?(model.rows[0]?.expenses??null):null;
+    const fullSpend=model.fromSnapshot?(snapshotSpend===null?null:snapshotSpend*12/Math.max(1,months)):(excelMeta.loaded?expensesForYear(startYear):null),spend=model.fromSnapshot?snapshotSpend:(fullSpend===null?null:proratedExpense(fullSpend,startYear,model.input));
     els.kpiSpendLabel.textContent=`Gasto ${startYear} · ${months} mes${months===1?'':'es'}`;
     els.kpiSpend.textContent=spend===null?'—':euro0.format(spend);
     els.kpiSpendSub.textContent=spend===null?'Esperando datos de DESPIDO.':`${euro0.format(fullSpend/12)} al mes de media · ${recordsForYear(startYear).length} partidas activas.`;
@@ -1344,7 +1442,7 @@ details summary::-webkit-details-marker{display:none}
   }
 
   function renderChart(model){
-    if(!excelMeta.loaded || !model.rows.length){ els.chart.innerHTML='<div class="chart-empty">La gráfica aparecerá cuando cargue el Excel.</div>'; return; }
+    if((!excelMeta.loaded && !model.fromSnapshot) || !model.rows.length){ els.chart.innerHTML='<div class="chart-empty">La gráfica aparecerá cuando cargue el Excel.</div>'; return; }
     const W=1000,H=240,PX=46,PY=28;
     const vals=model.rows.map(r=>r.closing);
     let min=Math.min(...vals,0), max=Math.max(...vals,0);
@@ -1428,13 +1526,65 @@ details summary::-webkit-details-marker{display:none}
     return list;
   }
 
+  function safeIso(value){
+    const d=value instanceof Date?value:parseIsoDate(value);return d&&!Number.isNaN(d.getTime())?d.toISOString():null;
+  }
+
+  function calculatedSnapshotFor(config){
+    if(!HAS_FIN||!excelMeta.loaded) return null;
+    const model=buildComparisonForecast(config);
+    const plan=benefitsPlan(model.input);
+    return {
+      scenarioId:config.id,
+      name:config.name,
+      calculatedAt:new Date().toISOString(),
+      engineVersion:FIN.version,
+      retirementDate:safeIso(plan.retirementDate),
+      retirementAge:plan.retirementAge,
+      initial:model.initial,
+      input:cloneJson(model.input),
+      benefits:{
+        unemploymentBase:plan.unemploymentBase??null,
+        unemploymentFirst6:plan.unemploymentFirst6??null,
+        unemploymentRest:plan.unemploymentRest??null,
+        unemploymentAverage:plan.unemploymentAverage??null,
+        unemploymentEnd:safeIso(plan.unemploymentEnd),
+        subsidyStart:safeIso(plan.subsidyStart),
+        subsidyMonthly:plan.subsidyMonthly??null,
+        pensionMonthly14:plan.pensionMonthly14??null,
+        pensionEquivalent12:plan.pensionEquivalent12??null
+      },
+      rows:model.rows.map(r=>({
+        year:r.year,age:r.age,opening:r.opening,expenses:r.expenses,annualDelta:r.annualDelta,closing:r.closing,
+        income:{type:r.income?.type||'none',label:r.income?.label||'Sin ingreso',amount:r.income?.amount||0,parts:(r.income?.parts||[]).map(x=>({type:x.type,label:x.label,amount:x.amount}))}
+      }))
+    };
+  }
+
+  function buildCalculatedSnapshots(){
+    if(!HAS_FIN||!excelMeta.loaded) return cloneJson(loadedCalculatedSnapshots)||{};
+    const out={};
+    comparisonScenarioConfigs().forEach(config=>{
+      try{const snap=calculatedSnapshotFor(config);if(snap)out[config.id]=snap;}catch(err){console.warn('Snapshot',config.id,err);}
+    });
+    return out;
+  }
+
+  function activeCalculatedSnapshot(){
+    return loadedCalculatedSnapshots?.[activeScenarioId] || null;
+  }
+
   function scenarioPayload(){
     const input=assumptionsFromUI();
+    if(HAS_FIN&&excelMeta.loaded) loadedCalculatedSnapshots=buildCalculatedSnapshots();
+    const savedAt=localUpdatedAt || new Date().toISOString();
     return {
       schema:'independencia-financiera',
-      version:4,
-      engineVersion:FIN.version,
-      savedAt:new Date().toISOString(),
+      version:5,
+      engineVersion:HAS_FIN?FIN.version:'snapshot-only',
+      savedAt,
+      updatedAt:savedAt,
+      calculatedSnapshots:cloneJson(loadedCalculatedSnapshots)||{},
       linkedDashboardGistId:normalizeGistId(linkedDashboardGistId),
       assumptions:{earliestProjectionYear:START_YEAR,unemploymentMonths:UNEMPLOYMENT_MONTHS,defaultBirthYear:BIRTH_YEAR,excelSheet:SHEET_NAME,publicRulesReferenceYear:FIN.rules.referenceYear,sharedEngine:'../../shared/finanzas-engine.js'},
       baseAssumptions:cloneJson(baseAssumptions||input),
@@ -1447,6 +1597,8 @@ details summary::-webkit-details-marker{display:none}
   function applyScenarioPayload(payload){
     if(!payload || typeof payload!=='object') throw new Error('El JSON no contiene un escenario válido.');
     linkedDashboardGistId=normalizeGistId(payload.linkedDashboardGistId||linkedDashboardGistId);
+    if(payload.calculatedSnapshots&&typeof payload.calculatedSnapshots==='object') loadedCalculatedSnapshots=cloneJson(payload.calculatedSnapshots)||{};
+    else if(payload.calculatedSnapshot&&typeof payload.calculatedSnapshot==='object') loadedCalculatedSnapshots={base:cloneJson(payload.calculatedSnapshot)};
 
     if(Array.isArray(payload.scenarios)){
       savedScenarios=payload.scenarios.filter(x=>x&&x.id&&x.name).map(x=>({...x,expenseOverrides:x.expenseOverrides||{}}));
@@ -1488,25 +1640,19 @@ details summary::-webkit-details-marker{display:none}
 
   function updateGistFreshness(savedAt,status='ok'){
     if(!els.gistFreshness) return;
+    els.gistFreshness.className=`gist-freshness ${status||'ok'}`.trim();
     const label=els.gistFreshness.querySelector('span:last-child');
     if(!label) return;
-    if(status==='loading'){
-      label.textContent='\u2601 \u00daltima actualizaci\u00f3n del Gist \u00b7 comprobando\u2026';
-      return;
-    }
-    if(status==='error'){
-      label.textContent='\u2601 \u00daltima actualizaci\u00f3n del Gist \u00b7 no disponible';
-      return;
-    }
+    if(status==='loading'){label.textContent='☁ Última actualización del Gist · comprobando…';return;}
+    if(status==='error'){label.textContent='☁ Gist no disponible · mostrando la mejor copia disponible';return;}
     const d=new Date(savedAt||'');
-    if(!savedAt || Number.isNaN(d.getTime())){
-      label.textContent='\u2601 \u00daltima actualizaci\u00f3n del Gist \u00b7 fecha no disponible';
-      return;
-    }
-    const date=d.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'});
-    const time=d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
-    label.textContent=`\u2601 \u00daltima actualizaci\u00f3n del Gist \u00b7 ${date} \u00b7 ${time}`;
+    const hasDate=savedAt&&!Number.isNaN(d.getTime());
+    const when=hasDate?`${d.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'})} · ${d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})}`:'fecha no disponible';
+    if(status==='pending'){label.textContent=`☁ Última actualización del Gist · ${when} · cambios locales pendientes`;return;}
+    if(status==='readonly'){label.textContent=`☁ Última actualización del Gist · ${when} · modo lectura`;return;}
+    label.textContent=`☁ Última actualización del Gist · ${when}`;
   }
+
 
   function downloadJson(){
     const content=JSON.stringify(scenarioPayload(),null,2);
@@ -1527,6 +1673,7 @@ details summary::-webkit-details-marker{display:none}
     try{
       const payload=JSON.parse(await file.text());
       applyScenarioPayload(payload);
+      markDataChanged();
       setSyncStatus('ok',`Escenarios importados desde <b>${esc(file.name)}</b>.`);
     }catch(err){
       console.error(err);
@@ -1557,103 +1704,114 @@ details summary::-webkit-details-marker{display:none}
     return body;
   }
 
-  async function saveToGist(){
+  async function saveToGist({auto=false}={}){
+    if(syncInFlight) return false;
+    if(!HAS_FIN){
+      pendingRemoteSync=true;
+      updateGistFreshness(gistUpdatedAt||localUpdatedAt,'readonly');
+      if(!auto)setSyncStatus('warn','Modo lectura: el motor financiero no está disponible. Puedes consultar todo lo guardado en el Gist, pero no se sobrescribirá el servidor con cálculos sin actualizar.');
+      return false;
+    }
     const token=clean(els.githubToken.value);
     if(!token){
-      setSyncStatus('error','Introduce un <b>token de GitHub</b> con permiso de escritura en Gists. El token no se guardará.');
-      els.githubToken.focus();
-      return;
+      pendingRemoteSync=true;
+      updateGistFreshness(gistUpdatedAt||localUpdatedAt,'pending');
+      if(!auto){setSyncStatus('error','Introduce un <b>token de GitHub</b> con permiso de escritura en Gists. El token no se guardará.');els.githubToken.focus();}
+      return false;
     }
-    const gistId=DEFAULT_GIST_ID;
-    els.gistId.value=gistId;
+    if(!localUpdatedAt) localUpdatedAt=new Date().toISOString();
+    const gistId=DEFAULT_GIST_ID;els.gistId.value=gistId;
     const payload=scenarioPayload();
-    const body={
-      description:'Escenarios · Independencia financiera',
-      files:{[GIST_FILENAME]:{content:JSON.stringify(payload,null,2)}}
-    };
-    els.saveGistBtn.disabled=true;
-    els.loadGistBtn.disabled=true;
-    setSyncStatus('warn','Actualizando Gist…');
+    const body={description:'Escenarios · Independencia financiera',files:{[GIST_FILENAME]:{content:JSON.stringify(payload,null,2)}}};
+    syncInFlight=true;els.saveGistBtn.disabled=true;els.loadGistBtn.disabled=true;
+    setSyncStatus('warn',auto?'Sincronizando cambios automáticamente…':'Actualizando Gist…');
     try{
-      const res=await fetch(`https://api.github.com/gists/${encodeURIComponent(gistId)}`,{
-        method:'PATCH',
-        headers:{...githubHeaders(true),'Content-Type':'application/json'},
-        body:JSON.stringify(body)
-      });
+      const res=await fetch(`https://api.github.com/gists/${encodeURIComponent(gistId)}`,{method:'PATCH',headers:{...githubHeaders(true),'Content-Type':'application/json'},body:JSON.stringify(body)});
       const data=await parseGitHubResponse(res);
       if(data?.id) els.gistId.value=data.id;
-      saveInputs();
-      const link=data?.html_url ? ` · <a href="${esc(data.html_url)}" target="_blank" rel="noreferrer">Abrir Gist</a>` : '';
-      setSyncStatus('ok',`Gist actualizado correctamente${link}.`);
-      updateGistFreshness(payload.savedAt);
+      gistUpdatedAt=payload.savedAt;pendingRemoteSync=false;persistState();
+      const link=data?.html_url?` · <a href="${esc(data.html_url)}" target="_blank" rel="noreferrer">Abrir Gist</a>`:'';
+      setSyncStatus('ok',`${auto?'Gist sincronizado automáticamente':'Gist actualizado correctamente'}${link}.`);
+      updateGistFreshness(gistUpdatedAt,HAS_FIN?'ok':'readonly');
+      return true;
     }catch(err){
-      console.error(err);
-      setSyncStatus('error',`No he podido guardar en GitHub: ${esc(err.message)}. Revisa el token y que tenga permiso <b>Gists: write</b>.`);
+      console.error(err);pendingRemoteSync=true;
+      setSyncStatus('error',`No he podido guardar en GitHub: ${esc(err.message)}. Los cambios siguen guardados localmente.`);
+      updateGistFreshness(gistUpdatedAt||localUpdatedAt,'pending');
+      return false;
     }finally{
-      els.saveGistBtn.disabled=false;
-      els.loadGistBtn.disabled=false;
+      syncInFlight=false;els.saveGistBtn.disabled=false;els.loadGistBtn.disabled=false;
     }
+  }
+
+
+  async function fetchWithTimeout(url,options={},ms=12000){
+    const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),ms);
+    try{return await fetch(url,{...options,signal:controller.signal});}finally{clearTimeout(timer);}
+  }
+
+  async function fetchGistPayload(){
+    const gistId=DEFAULT_GIST_ID;
+    const rawUrl=`${GIST_RAW_URL}?t=${Date.now()}`;
+    let rawError=null;
+    try{
+      const rawRes=await fetchWithTimeout(rawUrl,{cache:'no-store'});
+      if(!rawRes.ok) throw new Error(`RAW HTTP ${rawRes.status}`);
+      return JSON.parse(await rawRes.text());
+    }catch(err){rawError=err;}
+    const token=clean(els.githubToken.value);
+    if(!token) throw new Error(`No he podido leer el JSON raw del Gist (${rawError?.name==='AbortError'?'tiempo de espera agotado':rawError?.message||'error desconocido'}).`);
+    const res=await fetchWithTimeout(`https://api.github.com/gists/${encodeURIComponent(gistId)}`,{headers:githubHeaders(true),cache:'no-store'});
+    const data=await parseGitHubResponse(res);
+    let file=data?.files?.[GIST_FILENAME];
+    if(!file&&data?.files) file=Object.values(data.files).find(f=>String(f?.filename||'').toLowerCase()===GIST_FILENAME.toLowerCase());
+    if(!file) throw new Error(`El Gist no contiene ${GIST_FILENAME}.`);
+    let content=file.content;
+    if(file.truncated&&file.raw_url){const rr=await fetchWithTimeout(`${file.raw_url}${file.raw_url.includes('?')?'&':'?'}t=${Date.now()}`,{cache:'no-store'});if(!rr.ok)throw new Error(`JSON truncado HTTP ${rr.status}`);content=await rr.text();}
+    return JSON.parse(content);
   }
 
   async function loadFromGist({auto=false}={}){
-    const gistId=DEFAULT_GIST_ID;
-    els.gistId.value=gistId;
-    els.saveGistBtn.disabled=true;
-    els.loadGistBtn.disabled=true;
-    setSyncStatus('warn',auto?'Sincronizando Gist al iniciar…':'Cargando Gist…');
-    updateGistFreshness(null,'loading');
+    const gistId=DEFAULT_GIST_ID;els.gistId.value=gistId;els.saveGistBtn.disabled=true;els.loadGistBtn.disabled=true;
+    setSyncStatus('warn',auto?'Leyendo primero el Gist…':'Cargando Gist…');updateGistFreshness(null,'loading');
     try{
-      // Para la lectura usamos el fichero RAW del Gist. Así no hace falta exponer
-      // ni guardar el token: conocer la URL/ID del Gist basta para leer el JSON.
-      const rawUrl=`${GIST_RAW_URL}?t=${Date.now()}`;
-      let payload=null;
-      let rawError=null;
-      try{
-        const rawRes=await fetch(rawUrl,{cache:'no-store'});
-        if(!rawRes.ok) throw new Error(`RAW HTTP ${rawRes.status}`);
-        payload=JSON.parse(await rawRes.text());
-      }catch(err){
-        rawError=err;
+      // Regla central: primero se obtiene el servidor. Solo después se consulta local.
+      const payload=await fetchGistPayload();
+      const remoteAt=clean(payload?.updatedAt||payload?.savedAt);
+      gistUpdatedAt=remoteAt;
+      const local=readLocalState();
+      const localAt=clean(local?.updatedAt);
+      const localIsNewer=auto&&local&&timestampMs(localAt)>timestampMs(remoteAt);
+      if(localIsNewer){
+        loadInputs();
+        pendingRemoteSync=true;
+        updateGistFreshness(remoteAt,'pending');
+        setSyncStatus('warn',`El dispositivo tiene cambios más nuevos (${esc(localAt)}). Se mantienen y se subirán automáticamente cuando haya token.`);
+        if(clean(els.githubToken.value)) scheduleGistSync(120);
+      }else{
+        isApplyingRemote=true;
+        localUpdatedAt=remoteAt||new Date().toISOString();
+        applyScenarioPayload(payload);
+        isApplyingRemote=false;
+        pendingRemoteSync=false;
+        persistState();
+        updateGistFreshness(remoteAt,HAS_FIN?'ok':'readonly');
+        setSyncStatus('ok',`${auto?'Gist cargado automáticamente':'Datos cargados desde GitHub'} · <b>${esc(gistId)}</b>.`);
       }
-
-      // Fallback: si el RAW falla y el usuario ha introducido un token en esta sesión,
-      // intentamos la API autenticada. El token nunca se persiste.
-      if(!payload){
-        const token=clean(els.githubToken.value);
-        if(!token){
-          throw new Error(`No he podido leer el JSON raw del Gist (${rawError?.message||'error desconocido'}). No hace falta token normalmente; si GitHub bloquea temporalmente el RAW puedes introducirlo y pulsar Cargar Gist.`);
-        }
-        const res=await fetch(`https://api.github.com/gists/${encodeURIComponent(gistId)}`,{headers:githubHeaders(true),cache:'no-store'});
-        const data=await parseGitHubResponse(res);
-        let file=data?.files?.[GIST_FILENAME];
-        if(!file && data?.files){
-          file=Object.values(data.files).find(f=>String(f?.filename||'').toLowerCase().endsWith('.json'));
-        }
-        if(!file) throw new Error(`El Gist no contiene ${GIST_FILENAME} ni otro archivo JSON.`);
-        let content=file.content;
-        if(file.truncated && file.raw_url){
-          const rawRes=await fetch(`${file.raw_url}${file.raw_url.includes('?')?'&':'?'}t=${Date.now()}`,{cache:'no-store'});
-          if(!rawRes.ok) throw new Error(`No he podido leer el contenido completo del JSON (HTTP ${rawRes.status}).`);
-          content=await rawRes.text();
-        }
-        payload=JSON.parse(content);
-      }
-
-      applyScenarioPayload(payload);
-      updateGistFreshness(payload?.savedAt);
-      saveInputs();
-      setSyncStatus('ok',`${auto?'Gist cargado automáticamente':'Escenarios cargados desde GitHub'} · <b>${esc(gistId)}</b>.`);
       return true;
     }catch(err){
       console.error(err);
-      setSyncStatus('error',`${auto?'No he podido cargar automáticamente el Gist':'No he podido cargar el Gist'}: ${esc(err.message)}`);
-      updateGistFreshness(null,'error');
+      const local=readLocalState();
+      if(auto){
+        if(local){loadInputs();updateGistFreshness(local?.updatedAt,'error');setSyncStatus('warn',`Gist no disponible. Muestro la copia local${local?.updatedAt?` de <b>${esc(local.updatedAt)}</b>`:''}.`);}
+        else{loadInputs();updateGistFreshness(null,'error');setSyncStatus('error','No he podido leer el Gist y este dispositivo todavía no tiene copia local.');}
+      }else{setSyncStatus('error',`No he podido cargar el Gist: ${esc(err.message)}`);updateGistFreshness(gistUpdatedAt,'error');}
       return false;
     }finally{
-      els.saveGistBtn.disabled=false;
-      els.loadGistBtn.disabled=false;
+      isApplyingRemote=false;els.saveGistBtn.disabled=false;els.loadGistBtn.disabled=false;
     }
   }
+
 
   function openSyncModal(){
     els.syncModal.classList.add('open');
@@ -1750,7 +1908,6 @@ details summary::-webkit-details-marker{display:none}
     }
   }
 
-  loadInputs();
   MONEY_INPUT_IDS.forEach(id=>{
     els[id].addEventListener('input',()=>{formatMoneyInputLive(els[id]);markScenarioDirty();render();});
     els[id].addEventListener('change',()=>{formatMoneyInput(els[id]);markScenarioDirty();render();});
@@ -1775,7 +1932,7 @@ details summary::-webkit-details-marker{display:none}
     }
     loadScenario(next);
   });
-  els.scenarioName.addEventListener('input',()=>{if(activeScenarioId!=='base'){workingScenarioName=els.scenarioName.value;scenarioDirty=true;persistState();renderScenarioControls();}});
+  els.scenarioName.addEventListener('input',()=>{if(activeScenarioId!=='base'){workingScenarioName=els.scenarioName.value;scenarioDirty=true;markDataChanged();renderScenarioControls();}});
   els.newScenarioBtn.addEventListener('click',createScenario);
   els.saveScenarioBtn.addEventListener('click',saveActiveScenario);
   els.resetScenarioBtn.addEventListener('click',resetScenarioExpenses);
@@ -1810,7 +1967,8 @@ details summary::-webkit-details-marker{display:none}
     if(els.comparisonModal.classList.contains('open')) closeComparisonModal();
     else if(els.syncModal.classList.contains('open')) closeSyncModal();
   });
-  els.saveGistBtn.addEventListener('click',saveToGist);
+  els.githubToken.addEventListener('input',()=>{if(clean(els.githubToken.value)&&pendingRemoteSync)scheduleGistSync(150);});
+  els.saveGistBtn.addEventListener('click',()=>saveToGist({auto:false}));
   els.loadGistBtn.addEventListener('click',()=>loadFromGist());
   els.downloadJsonBtn.addEventListener('click',downloadJson);
   els.importJsonBtn.addEventListener('click',()=>els.importJsonInput.click());
@@ -1818,11 +1976,22 @@ details summary::-webkit-details-marker{display:none}
   setSyncStatus('warn','El Gist vinculado se carga automáticamente al abrir. Gist secreto = no indexado, pero <b>no privado</b>. El token nunca se guarda en el dashboard.');
 
   async function bootstrap(){
-    // El Gist es la fuente de verdad de ahorro, supuestos y escenarios.
-    // Solo después cargamos DESPIDO para aplicar los gastos base y recalcular.
+    // Arquitectura estándar: 1) Gist, 2) comparar local, 3) cargar fuentes de cálculo.
+    // El HTML nunca necesita token para leer y el motor externo nunca bloquea la lectura del Gist.
     await loadFromGist({auto:true});
-    await loadJaviRealData();
-    await loadExcel();
+    isBootstrapping=false;
+    if(HAS_FIN){
+      await loadJaviRealData();
+      await loadExcel();
+      // Si esta sesión ya tiene token y había cambios locales pendientes, se sincronizan al terminar de cargar.
+      if(pendingRemoteSync&&clean(els.githubToken.value))scheduleGistSync(150);
+    }else{
+      setStatus('error','Modo lectura · motor financiero no disponible');
+      els.manualExcelBtn.hidden=false;
+      render();
+      applyReadOnlyUi();
+      updateGistFreshness(gistUpdatedAt||localUpdatedAt,pendingRemoteSync?'pending':'readonly');
+    }
   }
   bootstrap();
 })();
@@ -1831,7 +2000,7 @@ details summary::-webkit-details-marker{display:none}
 <script>
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=1.21', {scope:'./'}).catch(err => console.warn('Service worker:', err));
+    navigator.serviceWorker.register('./sw.js?v=1.22', {scope:'./'}).catch(err => console.warn('Service worker:', err));
   });
 }
 </script>
