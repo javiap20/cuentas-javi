@@ -561,6 +561,202 @@
     .payroll-table th,.payroll-table td{padding:7px 4px}
   }
 
+  /* Layoff cash / safety calculator */
+  #layoffCashPlaceholder{display:none}
+  .layout.layoff-cash-mode{grid-template-columns:minmax(0,1fr)}
+  .layout.layoff-cash-mode .loan-top{display:none}
+  .layout.layoff-cash-mode .sidebar{display:none}
+  .layout.layoff-cash-mode .main{grid-column:1/-1;min-width:0}
+  .layout.layoff-cash-mode .main > :not(#layoffCashPlaceholder){display:none !important}
+  .layout.layoff-cash-mode #layoffCashPlaceholder{display:block !important}
+  .layoff-cash-layout{display:grid;grid-template-columns:300px minmax(0,1fr);gap:14px;align-items:start}
+  .layoff-cash-input-panel{padding:16px;position:sticky;top:12px}
+  .layoff-cash-input-panel h3{margin:0 0 10px;font-size:13px;color:#344054;text-align:center}
+  .layoff-cash-input-panel .field label{text-align:center;display:block}
+  .layoff-cash-input-panel input,.layoff-cash-input-panel select{text-align:center}
+  .layoff-cash-source{display:flex;align-items:center;justify-content:center;gap:7px;margin:0 0 11px;padding:8px 10px;border-radius:12px;background:#f3efff;color:#6941c6;font-size:9px;font-weight:900;text-align:center}
+  .layoff-cash-toggle{display:flex;align-items:center;justify-content:center;gap:8px;padding:9px 10px;border:1px solid #e0d8f7;border-radius:12px;background:#fff;color:#59458f;font-size:9px;font-weight:900;cursor:pointer;text-align:center}
+  .layoff-cash-toggle input{accent-color:#6941c6}
+  .layoff-cash-results{min-width:0;display:grid;gap:12px}
+  .layoff-cash-status{padding:11px 14px;text-align:center;background:linear-gradient(145deg,#fff 0%,#faf8ff 55%,#f4f8ff 100%)}
+  .layoff-cash-status strong{display:block;font-size:13px;color:#344054;margin-bottom:3px}
+  .layoff-cash-status span{font-size:9.2px;color:#667085;line-height:1.45}
+  .layoff-resource-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}
+  .layoff-resource-card{padding:13px 10px;text-align:center;min-height:96px;display:flex;flex-direction:column;justify-content:center}
+  .layoff-resource-card span{font-size:8.5px;color:#98a2b3;text-transform:uppercase;font-weight:900;letter-spacing:.04em}
+  .layoff-resource-card strong{font-size:20px;color:#344054;margin:5px 0 3px;letter-spacing:-.025em}
+  .layoff-resource-card small{font-size:8.4px;color:#667085;line-height:1.35}
+  .layoff-resource-card.extra{background:linear-gradient(145deg,#fff 0%,#f7f3ff 100%);border-color:#ddd2ff}.layoff-resource-card.extra strong{color:#6941c6}
+  .layoff-resource-card.total{background:linear-gradient(145deg,#f7fbff 0%,#eef5ff 100%);border-color:#c8d9ff}.layoff-resource-card.total strong{color:#175cd3;font-size:23px}
+  .layoff-key-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .layoff-key-card{padding:15px;text-align:center;min-height:116px;display:flex;flex-direction:column;justify-content:center}
+  .layoff-key-card span{font-size:9px;color:#98a2b3;text-transform:uppercase;font-weight:900;letter-spacing:.04em}
+  .layoff-key-card strong{font-size:26px;color:#1f2a44;margin:6px 0 4px;letter-spacing:-.03em}
+  .layoff-key-card small{font-size:9px;color:#667085;line-height:1.4}
+  .layoff-key-card.horizon.good{background:linear-gradient(145deg,#fff 0%,#ecfdf3 100%);border-color:#abefc6}.layoff-key-card.horizon.good strong{color:#067647}
+  .layoff-key-card.horizon.warn{background:linear-gradient(145deg,#fff 0%,#fff6ed 100%);border-color:#fedf89}.layoff-key-card.horizon.warn strong{color:#b54708}
+  .layoff-benefit-panel{padding:16px}
+  .layoff-benefit-head{text-align:center;margin-bottom:12px}.layoff-benefit-head h3{margin:0 0 3px;font-size:15px}.layoff-benefit-head p{margin:0;color:#667085;font-size:9px;line-height:1.4}
+  .layoff-benefit-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+  .layoff-benefit-card{padding:12px 10px;border:1px solid #e4e7ec;border-radius:12px;background:#fbfcfe;text-align:center;min-height:108px;display:flex;flex-direction:column;justify-content:center}
+  .layoff-benefit-card span{font-size:8.2px;color:#98a2b3;text-transform:uppercase;font-weight:900;letter-spacing:.04em}
+  .layoff-benefit-card strong{font-size:20px;color:#344054;margin:5px 0 3px}.layoff-benefit-card small{font-size:8.5px;color:#667085;line-height:1.35}
+  .layoff-benefit-card.paro{background:#f3f7ff;border-color:#d6e4ff}.layoff-benefit-card.paro strong{color:#1849a9}
+  .layoff-benefit-card.subsidy{background:#faf7ff;border-color:#e0d8f7}.layoff-benefit-card.subsidy strong{color:#6941c6}
+  .layoff-benefit-card.total{background:#eefbf5;border-color:#b7ebcd}.layoff-benefit-card.total strong{color:#067647;font-size:23px}
+  .layoff-stage-panel{padding:16px;overflow:hidden}.layoff-stage-wrap{overflow:auto;border:1px solid #e6ebf2;border-radius:12px}
+  .layoff-stage-table{width:100%;min-width:700px;border-collapse:collapse;table-layout:fixed;font-size:9.5px}
+  .layoff-stage-table th,.layoff-stage-table td{text-align:center;padding:8px 7px;border-bottom:1px solid #edf0f5}.layoff-stage-table tr:last-child td{border-bottom:0}
+  .layoff-stage-table th{background:#faf8ff;color:#7667a5;font-size:8.2px;text-transform:uppercase;letter-spacing:.035em}
+  .layoff-stage-badge{display:inline-flex;align-items:center;justify-content:center;padding:4px 7px;border-radius:999px;font-size:8px;font-weight:900;white-space:nowrap}
+  .layoff-stage-badge.paro{background:#eef4ff;color:#1849a9}.layoff-stage-badge.subsidy{background:#f3efff;color:#6941c6}.layoff-stage-badge.none{background:#f2f4f7;color:#667085}
+  .layoff-year-table td{font-variant-numeric:tabular-nums}.layoff-year-table td.year{font-weight:900;color:#344054}.layoff-year-table td.balance{font-weight:900}.layoff-year-table td.balance.positive{color:#067647}.layoff-year-table td.balance.negative{color:#b42318}.layoff-year-table tr.first-negative{background:#fff4f2}.layoff-year-table tr.first-negative td.year{color:#b42318}
+  .layoff-cash-note{padding:12px 15px;text-align:center;font-size:8.8px;line-height:1.5;color:#667085;background:#fbfcfe}
+  @media(max-width:980px){.layoff-cash-layout{grid-template-columns:1fr}.layoff-cash-input-panel{position:static}.layoff-resource-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.layoff-resource-card.total{grid-column:1/-1}.layoff-benefit-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:620px){.layoff-resource-grid,.layoff-key-grid,.layoff-benefit-grid{grid-template-columns:1fr}.layoff-resource-card.total{grid-column:auto}}
+
+  /* Pension calculator */
+  #pensionPlaceholder{display:none}
+  .layout.pension-mode{grid-template-columns:minmax(0,1fr)}
+  .layout.pension-mode .loan-top{display:none}
+  .layout.pension-mode .sidebar{display:none}
+  .layout.pension-mode .main{grid-column:1/-1;min-width:0}
+  .layout.pension-mode .main > :not(#pensionPlaceholder):not(#pensionLayoffModal){display:none !important}
+  .layout.pension-mode #pensionPlaceholder{display:block !important}
+  .pension-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:10px 0 2px}
+  .pension-actions .btn{padding:9px 8px;font-size:10.5px}
+  .pension-status-card{padding:12px 14px;margin-bottom:14px;text-align:center;background:linear-gradient(145deg,#ffffff 0%,#f5f3ff 58%,#f3f8ff 100%)}
+  .pension-status-card strong{display:block;font-size:13px;margin-bottom:3px}
+  .pension-status-card span{font-size:10px;color:var(--muted);line-height:1.45}
+  .pension-status-card.warn{border-color:#f7c98a;background:linear-gradient(145deg,#fff 0%,#fff8e8 100%)}
+  .pension-status-card.error{border-color:#f3b2ad;background:linear-gradient(145deg,#fff 0%,#fff1ef 100%)}
+  .pension-bases-panel{padding:16px;margin-bottom:14px;overflow:hidden}
+  .pension-bases-wrap{max-height:620px;overflow:auto;border:1px solid #e6ebf2;border-radius:12px}
+  .pension-bases-table{width:100%;min-width:720px;border-collapse:collapse;table-layout:fixed;font-size:10px}
+  .pension-bases-table th,.pension-bases-table td{padding:8px 7px;border-bottom:1px solid #edf0f5;text-align:center;vertical-align:middle}
+  .pension-bases-table th{position:sticky;top:0;z-index:2;background:#f8fafc;color:#667085;font-size:8.8px;text-transform:uppercase;letter-spacing:.035em}
+  .pension-bases-table tr:last-child td{border-bottom:0}
+  .pension-bases-table tr.pension-current td{background:#f3f7ff}
+  .pension-bases-table tr.pension-future td{background:#fbfaff}
+  .pension-bases-table tr.pension-zero td{background:#fff8f7}
+  .pension-base-input{width:118px;max-width:100%;padding:7px 8px;border-radius:9px;text-align:center;font-weight:850;font-size:10.5px}
+  .pension-source{display:inline-flex;align-items:center;justify-content:center;padding:4px 7px;border-radius:999px;background:#f2f4f7;color:#475467;font-size:8.5px;font-weight:900;white-space:nowrap}
+  .pension-source.real{background:#eaf8f2;color:#067647}.pension-source.projected{background:#eef4ff;color:#1849a9}.pension-source.missing{background:#fff1ef;color:#b42318}
+  .pension-method-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+  .pension-method-item{padding:11px 9px;border:1px solid #e1e7ef;border-radius:11px;background:#fafcff;text-align:center}
+  .pension-method-item span{display:block;font-size:9px;color:var(--muted);font-weight:800;margin-bottom:4px;line-height:1.25}
+  .pension-method-item strong{font-size:15px}
+  .pension-method-item.technical{background:#f4f5f7;border-color:#e7e9ee}
+  .pension-method-item.technical span{color:#a0a7b4}
+  .pension-method-item.technical strong{color:#8b94a4;font-weight:700}
+  .pension-method-item.featured{background:#f3f7ff;border-color:#c8d9ff}
+  .pension-inline-note{font-size:9px;color:var(--muted);line-height:1.4;margin-top:5px;text-align:center}
+  .pension-history-import-row{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:7px 0 2px}
+  .pension-history-import-row .btn{padding:9px 8px;font-size:10.5px}
+  .pension-private-note{font-size:8.8px;line-height:1.4;color:#7c6bb0;text-align:center;margin-top:7px}
+  .pension-history-panel{padding:16px;margin-bottom:14px;overflow:hidden}
+  .pension-history-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:10px 0 12px}
+  .pension-history-card{padding:11px 9px;border:1px solid #e4e7ec;border-radius:11px;background:linear-gradient(145deg,#fff 0%,#faf8ff 100%);text-align:center}
+  .pension-history-card span{display:block;font-size:8.5px;color:var(--muted);font-weight:850;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+  .pension-history-card strong{display:block;font-size:13px;line-height:1.25;color:#344054}
+  .pension-history-wrap{overflow:auto;border:1px solid #e6ebf2;border-radius:12px}
+  .pension-history-table{width:100%;min-width:690px;border-collapse:collapse;table-layout:fixed;font-size:9.6px}
+  .pension-history-table th,.pension-history-table td{padding:8px 7px;border-bottom:1px solid #edf0f5;text-align:center;vertical-align:middle}
+  .pension-history-table th{background:#faf8ff;color:#7667a5;font-size:8.5px;text-transform:uppercase;letter-spacing:.035em}
+  .pension-history-table td:nth-child(3){text-align:left;font-weight:800}
+  .pension-history-table tr:last-child td{border-bottom:0}
+  .pension-life-table{min-width:760px}
+  .pension-life-table th:nth-child(1),.pension-life-table td:nth-child(1),
+  .pension-life-table th:nth-child(2),.pension-life-table td:nth-child(2){width:8%;white-space:nowrap}
+  .pension-life-table th:nth-child(3),.pension-life-table td:nth-child(3){width:50%;white-space:normal;line-height:1.25;padding-left:12px;padding-right:12px}
+  .pension-life-table th:nth-child(4),.pension-life-table td:nth-child(4){width:13%;white-space:nowrap}
+  .pension-life-table th:nth-child(5),.pension-life-table td:nth-child(5){width:7%;white-space:nowrap}
+  .pension-life-table th:nth-child(6),.pension-life-table td:nth-child(6){width:14%;white-space:nowrap}
+  .pension-real-bases-table th:nth-child(1),.pension-real-bases-table td:nth-child(1){width:13%}
+  .pension-real-bases-table th:nth-child(2),.pension-real-bases-table td:nth-child(2){width:12%}
+  .pension-real-bases-table th:nth-child(3),.pension-real-bases-table td:nth-child(3){width:30%;text-align:center}
+  .pension-real-bases-table th:nth-child(4),.pension-real-bases-table td:nth-child(4){width:18%}
+  .pension-real-bases-table th:nth-child(5),.pension-real-bases-table td:nth-child(5){width:27%}
+  .pension-history-empty{padding:22px 14px;text-align:center;color:var(--muted);font-size:10px;border:1px dashed #d9d4e8;border-radius:12px;background:#fcfbff}
+  .pension-history-source{display:inline-flex;align-items:center;justify-content:center;padding:4px 7px;border-radius:999px;background:#f3efff;color:#6941c6;font-size:8.4px;font-weight:900;white-space:nowrap}
+  .pension-centered-panel .payroll-section-head{position:relative;display:block;text-align:center;min-height:34px;padding:0 112px}
+  .pension-centered-panel .payroll-section-head>div{max-width:860px;margin:0 auto}
+  .pension-centered-panel .payroll-section-head .payroll-chip{position:absolute;right:0;top:0}
+  .pension-centered-panel .pension-history-table th,.pension-centered-panel .pension-history-table td,
+  .pension-centered-panel .pension-bases-table th,.pension-centered-panel .pension-bases-table td{text-align:center}
+  .pension-centered-panel .pension-life-table td:nth-child(3){text-align:center}
+  .pension-early-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:-2px 0 14px}
+  .pension-early-card{min-height:78px;padding:10px 12px;border:1px solid #ddd6fe;border-radius:13px;background:linear-gradient(145deg,#ffffff 0%,#f8f5ff 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+  .pension-early-card span{font-size:9px;font-weight:900;color:#6d5aa8;text-transform:uppercase;letter-spacing:.035em;margin-bottom:4px}
+  .pension-early-card strong{font-size:19px;line-height:1.05;letter-spacing:-.02em;color:#3f2f78}
+  .pension-early-card small{font-size:8.4px;color:var(--muted);margin-top:5px;line-height:1.25}
+  .pension-early-card .pension-early-meta{display:flex;align-items:baseline;justify-content:center;gap:4px;flex-wrap:wrap;margin-top:5px;font-size:9px;color:#667085;line-height:1.2;font-weight:800}
+  .pension-early-card .pension-early-meta .pension-early-year{font-size:11px;line-height:1;color:#15966a;font-weight:950}
+  .pension-early-card .pension-early-meta .pension-early-meta-text{font-size:8.8px;color:#667085;font-weight:800}
+  .pension-early-card.unavailable{background:#fafafa;border-color:#e4e7ec}
+  .pension-early-card.unavailable strong{color:#98a2b3}
+  .pension-view-switch{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:0 0 14px}
+  .pension-view-btn{border:1px solid #e3e7ef;background:#fff;border-radius:14px;padding:10px 14px;cursor:pointer;text-align:center;color:#667085;transition:.18s ease;box-shadow:0 1px 2px rgba(16,24,40,.03)}
+  .pension-view-btn small{display:block;font-size:8.5px;font-weight:900;text-transform:uppercase;letter-spacing:.055em;margin-bottom:3px;color:#98a2b3}
+  .pension-view-btn strong{display:block;font-size:13px;color:#344054}
+  .pension-view-btn.active{background:linear-gradient(145deg,#f5f1ff 0%,#eef4ff 100%);border-color:#cfc5ff;box-shadow:0 7px 18px rgba(105,65,198,.08)}
+  .pension-view-btn.active small{color:#8067c7}.pension-view-btn.active strong{color:#4f378d}
+  #pensionLayoffView{display:none}
+  #pensionPlaceholder.pension-layoff-mode .payroll-layout{grid-template-columns:minmax(0,1fr)}
+  #pensionPlaceholder.pension-layoff-mode .payroll-input-panel{display:none}
+  #pensionPlaceholder.pension-layoff-mode #pensionMainView{display:none}
+  #pensionPlaceholder.pension-layoff-mode #pensionLayoffView{display:block}
+  .pension-layoff-head{padding:15px 17px;margin-bottom:12px;text-align:center;background:linear-gradient(145deg,#fff 0%,#faf8ff 52%,#f5f8ff 100%)}
+  .pension-layoff-head h3{margin:0 0 4px;font-size:17px}.pension-layoff-head p{margin:0 auto;max-width:900px;color:var(--muted);font-size:9.5px;line-height:1.45}
+  .pension-layoff-tools{display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap;margin-top:11px}
+  .pension-layoff-source{display:inline-flex;align-items:center;gap:5px;padding:6px 9px;border-radius:999px;background:#f3efff;color:#6941c6;font-size:8.5px;font-weight:900}
+  .pension-layoff-toggle{display:inline-flex;align-items:center;gap:7px;padding:6px 10px;border:1px solid #e0d8f7;border-radius:999px;background:#fff;color:#59458f;font-size:8.7px;font-weight:900;cursor:pointer;white-space:nowrap}
+  .pension-layoff-toggle input{accent-color:#6941c6}
+  .pension-layoff-list{display:grid;gap:11px}
+  .pension-layoff-row{padding:14px 15px;border:1px solid #e4e7ec;border-radius:15px;background:#fff;box-shadow:0 2px 7px rgba(16,24,40,.035)}
+  .pension-layoff-row-head{display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:10px;text-align:center}
+  .pension-layoff-row-head h4{margin:0;font-size:15px;color:#243047}
+  .pension-info-btn{width:22px;height:22px;border-radius:50%;border:1px solid #cfc5ff;background:#f5f1ff;color:#6941c6;font-weight:950;font-size:11px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+  .pension-layoff-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;max-width:1180px;margin:0 auto}
+  .pension-layoff-card{min-height:106px;border:1px solid #e3e7ef;border-radius:13px;background:#fbfcfe;padding:12px 14px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .pension-layoff-card.early{background:linear-gradient(145deg,#fff 0%,#f7f3ff 100%);border-color:#ddd2ff}
+  .pension-layoff-card.voluntary{background:linear-gradient(145deg,#fff 0%,#f2f7ff 100%);border-color:#cfdcff}
+  .pension-layoff-card span{font-size:8.6px;color:#8a94a6;font-weight:900;text-transform:uppercase;letter-spacing:.045em}
+  .pension-layoff-card strong{font-size:22px;color:#1f2a44;line-height:1.05;margin:5px 0 4px;letter-spacing:-.025em}
+  .pension-layoff-card.early strong{color:#563a9b}
+  .pension-layoff-card.voluntary strong{color:#2855a6}
+  .pension-layoff-card small{font-size:8.6px;color:#667085;line-height:1.35}
+  .pension-layoff-card .pension-layoff-meta{display:flex;align-items:baseline;justify-content:center;gap:5px;flex-wrap:wrap;margin-top:2px;font-size:10.8px;color:#475467;line-height:1.25;font-weight:800}
+  .pension-layoff-card .pension-layoff-meta .pension-layoff-year{font-size:14px;line-height:1;color:#15966a;font-weight:950;letter-spacing:-.015em}
+  .pension-layoff-card .pension-layoff-meta .pension-layoff-meta-text{font-size:10.4px;color:#475467;font-weight:800;text-transform:none;letter-spacing:0}
+  .pension-layoff-card em{display:block;margin-top:5px;font-size:8.4px;font-style:normal;color:#8c7ab8}
+  .pension-layoff-card.unavailable{background:#f8f8f9;border-color:#eaecf0}.pension-layoff-card.unavailable strong{color:#98a2b3}
+  .pension-layoff-history{margin-top:18px;padding:14px;border:1px dashed #d8dde6;border-radius:16px;background:#f7f8fa}
+  .pension-layoff-history[hidden]{display:none}
+  .pension-layoff-history-head{text-align:center;margin-bottom:11px}
+  .pension-layoff-history-head h4{margin:0;color:#667085;font-size:14px}
+  .pension-layoff-history-head p{margin:3px 0 0;color:#98a2b3;font-size:8.8px}
+  .pension-layoff-history .pension-layoff-row{background:#fcfcfd;border-color:#e8ebf0;box-shadow:none}
+  .pension-layoff-history .pension-layoff-row-head h4{color:#667085}
+  .pension-layoff-history .pension-layoff-card{background:#fafafa;border-color:#e8eaee}
+  .pension-layoff-note{margin-top:12px;text-align:center;font-size:8.7px;line-height:1.45;color:#667085}
+  .pension-layoff-modal{position:fixed;inset:0;z-index:1200;display:none;align-items:center;justify-content:center;padding:22px}
+  .pension-layoff-modal.open{display:flex}
+  .pension-layoff-modal-backdrop{position:absolute;inset:0;background:rgba(12,18,35,.58);backdrop-filter:blur(4px)}
+  .pension-layoff-modal-card{position:relative;z-index:1;width:min(920px,96vw);max-height:86vh;overflow:auto;background:#fff;border:1px solid #e4e7ec;border-radius:18px;box-shadow:0 24px 70px rgba(16,24,40,.28);padding:18px}
+  .pension-layoff-modal-close{position:absolute;right:12px;top:10px;border:0;background:#f2f4f7;width:30px;height:30px;border-radius:50%;font-size:18px;cursor:pointer;color:#475467}
+  .pension-layoff-modal-card h3{text-align:center;margin:2px 38px 4px;font-size:18px}.pension-layoff-modal-card>p{text-align:center;color:#667085;font-size:9px;margin:0 30px 12px;line-height:1.45}
+  .pension-layoff-breakdown-wrap{overflow:auto;border:1px solid #e6ebf2;border-radius:12px}
+  .pension-layoff-breakdown{width:100%;min-width:680px;border-collapse:collapse;table-layout:fixed;font-size:9.3px}
+  .pension-layoff-breakdown th,.pension-layoff-breakdown td{text-align:center;padding:8px 7px;border-bottom:1px solid #edf0f5}
+  .pension-layoff-breakdown th{background:#faf8ff;color:#7667a5;font-size:8.2px;text-transform:uppercase;letter-spacing:.035em}
+  .pension-layoff-breakdown tr:last-child td{border-bottom:0}
+  .pension-stage{display:inline-flex;align-items:center;justify-content:center;padding:4px 7px;border-radius:999px;font-size:8px;font-weight:900;white-space:nowrap}
+  .pension-stage.work{background:#eaf8f2;color:#067647}.pension-stage.unemployment{background:#eef4ff;color:#1849a9}.pension-stage.gap{background:#fff3f0;color:#b42318}.pension-stage.subsidy{background:#f3efff;color:#6941c6}
+  @media(max-width:760px){.pension-view-switch,.pension-layoff-cards{grid-template-columns:1fr}.pension-layoff-row{padding:12px 10px}.pension-layoff-modal{padding:10px}}
+  @media(max-width:1100px){.pension-method-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.pension-history-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.pension-early-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:700px){.pension-method-grid,.pension-actions,.pension-history-import-row,.pension-history-summary,.pension-early-grid{grid-template-columns:1fr}.pension-bases-table{min-width:640px}.pension-history-table{min-width:620px}.pension-centered-panel .payroll-section-head{padding:0}.pension-centered-panel .payroll-section-head .payroll-chip{position:static;margin-top:7px}}
+
   .kpis .kpi-all-extra{display:none}
   .kpis.aggregate-mode{
     grid-template-columns:repeat(4,minmax(0,1fr));
@@ -811,6 +1007,41 @@
     font-size:11px;
     padding:18px;
   }
+  .projection-archive{
+    margin-top:18px;
+    padding-top:16px;
+    border-top:1px dashed #d0d5dd;
+  }
+  .projection-archive-head{
+    text-align:center;
+    margin-bottom:10px;
+  }
+  .projection-archive-head h3{
+    margin:0 0 4px;
+    font-size:13px;
+    font-weight:950;
+    color:#667085;
+  }
+  .projection-archive-head p{
+    margin:0;
+    font-size:9.5px;
+    color:#98a2b3;
+  }
+  .projection-archive-years{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .projection-archive .projection-year{
+    background:#f8f9fb !important;
+    border-color:#e4e7ec;
+    opacity:.82;
+  }
+  .projection-archive .projection-year-title{color:#667085}
+  .projection-archive .semester-label,
+  .projection-archive .semester-metric{
+    background:rgba(255,255,255,.56);
+  }
   .gist-settings{margin-top:9px;border-top:1px solid #e4e7ec;padding-top:8px}
   .gist-settings summary{
     cursor:pointer;list-style:none;font-size:11px;font-weight:900;color:#344054;
@@ -1055,6 +1286,14 @@
               data-calculator-id="payroll" data-calculator-name="Nómina">
         <span class="tab-dot"></span>Nómina
       </button>
+      <button class="tab-btn" type="button" role="tab" aria-selected="false"
+              data-calculator-id="pension" data-calculator-name="Pensi&oacute;n">
+        <span class="tab-dot"></span>Pensi&oacute;n
+      </button>
+      <button class="tab-btn" type="button" role="tab" aria-selected="false"
+              data-calculator-id="layoff" data-calculator-name="Despido">
+        <span class="tab-dot"></span>Despido
+      </button>
     </div>
   </nav>
 
@@ -1131,7 +1370,7 @@
 
       <div id="mortgageStartBlock" class="field">
         <label for="start">Fecha de inicio</label>
-        <input id="start" type="month" value="2026-08">
+        <input id="start" type="date">
       </div>
 
       <div id="personalDatesBlock" style="display:none">
@@ -1407,6 +1646,318 @@
         </div>
       </section>
 
+      <section id="pensionPlaceholder" class="payroll-app">
+        <div class="payroll-top">
+          <div>
+            <div class="payroll-eyebrow">Calculadora activa</div>
+            <h2>Pensi&oacute;n de jubilaci&oacute;n</h2>
+            <p>Estimaci&oacute;n orientativa de la pensi&oacute;n contributiva con escenarios y bases de cotizaci&oacute;n.</p>
+          </div>
+          <div class="payroll-badge">Normativa vigente &middot; estimaci&oacute;n</div>
+        </div>
+
+        <div class="payroll-saved-strip" aria-label="Escenarios de pension guardados">
+          <div class="payroll-saved-head">
+            <span>Escenarios</span>
+            <span id="pensionCaseCount" class="case-count">0</span>
+          </div>
+          <div id="pensionCaseList" class="payroll-case-buttons"></div>
+        </div>
+
+        <div class="pension-view-switch" aria-label="Vistas de pension">
+          <button id="pensionMainViewBtn" class="pension-view-btn active" type="button" data-pension-view="main"><small>Escenario principal</small><strong id="pensionMainViewName">Javi Real</strong></button>
+          <button id="pensionLayoffViewBtn" class="pension-view-btn" type="button" data-pension-view="layoff"><small>Escenario derivado</small><strong>Despido</strong></button>
+        </div>
+
+        <div class="payroll-layout">
+          <aside class="panel payroll-input-panel">
+            <section class="payroll-save-manager" aria-label="Guardar escenario de pension">
+              <h3>Guardar escenario</h3>
+              <div class="payroll-save-row">
+                <input id="pensionCaseName" type="text" maxlength="80" autocomplete="off" placeholder="Ej. Sigo hasta 65, Despido 2027...">
+                <button id="pensionSaveCaseBtn" class="btn btn-primary" type="button">Guardar</button>
+              </div>
+              <div class="payroll-save-footer">
+                <button id="pensionNewCaseBtn" class="btn btn-secondary" type="button">+ Nuevo escenario</button>
+                <span id="pensionCaseStatus" class="case-status"></span>
+              </div>
+            </section>
+
+            <h3>Datos personales y cotizaci&oacute;n</h3>
+            <div class="two">
+              <div class="field">
+                <label for="pensionBirthYear">A&ntilde;o de nacimiento</label>
+                <input id="pensionBirthYear" type="number" min="1940" max="2010" step="1" value="1972">
+              </div>
+              <div class="field">
+                <label for="pensionBirthMonth">Mes de nacimiento</label>
+                <select id="pensionBirthMonth">
+                  <option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option><option value="4">Abril</option>
+                  <option value="5">Mayo</option><option value="6">Junio</option><option value="7">Julio</option><option value="8">Agosto</option>
+                  <option value="9">Septiembre</option><option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="two">
+              <div class="field">
+                <label for="pensionTargetAge">Edad a simular</label>
+                <select id="pensionTargetAge"><option value="65" selected>65 a&ntilde;os</option><option value="67">67 a&ntilde;os</option></select>
+              </div>
+              <div class="field">
+                <label for="pensionContributionEnd">Cotizar hasta</label>
+                <input id="pensionContributionEnd" type="date">
+              </div>
+            </div>
+
+            <div class="two">
+              <div class="field">
+                <label for="pensionYearsNow">A&ntilde;os cotizados hoy</label>
+                <input id="pensionYearsNow" type="number" min="0" max="60" step="1" value="0">
+              </div>
+              <div class="field">
+                <label for="pensionMonthsNow">Meses adicionales</label>
+                <input id="pensionMonthsNow" type="number" min="0" max="11" step="1" value="0">
+              </div>
+            </div>
+            <div class="payroll-field-note">Los a&ntilde;os/meses cotizados conviene tomarlos del informe de vida laboral, no de la n&oacute;mina.</div>
+
+            <div class="divider"></div>
+            <h3>Bases para el c&aacute;lculo</h3>
+            <div class="field">
+              <label for="pensionCurrentBase">Base de cotizaci&oacute;n mensual actual</label>
+              <div class="input-wrap has-suffix"><input id="pensionCurrentBase" type="text" inputmode="decimal" autocomplete="off" value="0"><span class="suffix">&euro;</span></div>
+              <div class="payroll-field-note">Busca en tu n&oacute;mina la base de cotizaci&oacute;n por contingencias comunes.</div>
+            </div>
+            <div class="field">
+              <label for="pensionHistoricalBase">Base hist&oacute;rica media <span class="optional">(apoyo si faltan a&ntilde;os)</span></label>
+              <div class="input-wrap has-suffix"><input id="pensionHistoricalBase" type="text" inputmode="decimal" autocomplete="off" value="0"><span class="suffix">&euro;</span></div>
+              <div class="payroll-field-note">La tabla de bases anuales de la derecha tiene prioridad sobre este valor.</div>
+            </div>
+            <div class="two">
+              <div class="field">
+                <label for="pensionFutureGrowth">Subida futura de la base</label>
+                <div class="input-wrap has-suffix"><input id="pensionFutureGrowth" type="number" min="-10" max="20" step="0.1" value="2"><span class="suffix">%</span></div>
+              </div>
+              <div class="field">
+                <label for="pensionBaseCpi">IPC para actualizar bases</label>
+                <div class="input-wrap has-suffix"><input id="pensionBaseCpi" type="number" min="0" max="10" step="0.1" value="2"><span class="suffix">%</span></div>
+              </div>
+            </div>
+            <div class="pension-actions">
+              <button id="pensionUsePayrollBaseBtn" class="btn btn-secondary" type="button">Usar base de N&oacute;mina</button>
+              <button id="pensionResetFutureBtn" class="btn btn-secondary" type="button">Restablecer proyecci&oacute;n futura</button>
+            </div>
+            <div class="pension-history-import-row">
+              <button id="pensionImportHistoryBtn" class="btn btn-secondary" type="button">Importar hist&oacute;rico JSON</button>
+              <button id="pensionDuplicateCaseBtn" class="btn btn-secondary" type="button">Duplicar escenario</button>
+              <input id="pensionHistoryFile" type="file" accept="application/json,.json" hidden>
+            </div>
+            <div class="pension-private-note">El hist&oacute;rico personal se guarda en el JSON del escenario/Gist. No est&aacute; escrito en el HTML.</div>
+            <div class="payroll-input-foot">Para afinar: informe de bases de cotizaci&oacute;n + vida laboral. Los datos anuales pueden editarse uno a uno.</div>
+          </aside>
+
+          <div class="payroll-results">
+            <div id="pensionMainView">
+            <section id="pensionStatusCard" class="panel pension-status-card">
+              <strong id="pensionEligibilityTitle">Completa los datos para empezar</strong>
+              <span id="pensionEligibilityText">La estimaci&oacute;n se recalcula al instante y puede guardarse como escenario.</span>
+            </section>
+
+            <section class="payroll-kpis">
+              <article class="panel payroll-kpi"><span>Pensi&oacute;n bruta / paga</span><strong id="pensionMonthly">&mdash;</strong><small id="pensionMonthlyMeta">14 pagas</small></article>
+              <article class="panel payroll-kpi"><span>Bruto anual estimado</span><strong id="pensionAnnual">&mdash;</strong><small>antes de IRPF</small></article>
+              <article class="panel payroll-kpi"><span>Pensi&oacute;n si fuese hoy</span><strong id="pensionTodayMoney">&mdash;</strong><small id="pensionTodayMoneyMeta">equivalente en euros de 2026</small></article>
+              <article class="panel payroll-kpi"><span>% aplicable</span><strong id="pensionPercent">&mdash;</strong><small>seg&uacute;n meses cotizados</small></article>
+              <article class="panel payroll-kpi"><span>Cotizaci&oacute;n al jubilarte</span><strong id="pensionYearsProjected">&mdash;</strong><small>estimaci&oacute;n con el fin de cotizaci&oacute;n indicado</small></article>
+              <article class="panel payroll-kpi"><span>Edad ordinaria estimada</span><strong id="pensionOrdinaryAge">&mdash;</strong><small>regla vigente desde 2027</small></article>
+            </section>
+
+            <section class="pension-early-grid" aria-label="Estimacion de jubilacion anticipada voluntaria">
+              <article class="pension-early-card" data-early-months="24"><span>24 meses antes</span><strong id="pensionEarly24">&mdash;</strong><small id="pensionEarly24Meta">coeficiente vigente</small></article>
+              <article class="pension-early-card" data-early-months="18"><span>18 meses antes</span><strong id="pensionEarly18">&mdash;</strong><small id="pensionEarly18Meta">coeficiente vigente</small></article>
+              <article class="pension-early-card" data-early-months="12"><span>12 meses antes</span><strong id="pensionEarly12">&mdash;</strong><small id="pensionEarly12Meta">coeficiente vigente</small></article>
+              <article class="pension-early-card" data-early-months="6"><span>6 meses antes</span><strong id="pensionEarly6">&mdash;</strong><small id="pensionEarly6Meta">coeficiente vigente</small></article>
+            </section>
+
+            <section class="panel payroll-breakdown">
+              <div class="payroll-section-head">
+                <div><h3>C&oacute;mo sale la estimaci&oacute;n</h3><p>Los m&eacute;todos A y B calculan la base reguladora. Sobre la m&aacute;s favorable se aplica el % por cotizaci&oacute;n y, si corresponde, el tope m&aacute;ximo de pensi&oacute;n.</p></div>
+                <span id="pensionMethodChip" class="payroll-chip">&mdash;</span>
+              </div>
+              <div class="pension-method-grid">
+                <div class="pension-method-item technical"><span>Base reguladora A &middot; 300 meses / 350</span><strong id="pensionMethodA">&mdash;</strong></div>
+                <div class="pension-method-item technical"><span>Base reguladora B &middot; mejores 324 de 348 / 378</span><strong id="pensionMethodB">&mdash;</strong></div>
+                <div class="pension-method-item featured"><span>Pensi&oacute;n final / paga &middot; con tope</span><strong id="pensionMethodFinal">&mdash;</strong></div>
+                <div class="pension-method-item"><span>Datos reales introducidos</span><strong id="pensionDataCoverage">&mdash;</strong></div>
+              </div>
+              <div id="pensionDataStatus" class="pension-inline-note"></div>
+            </section>
+
+            <section class="panel pension-bases-panel pension-centered-panel">
+              <div class="payroll-section-head">
+                <div><h3>Bases de cotizaci&oacute;n por a&ntilde;o</h3><p>La tabla cubre los 29 a&ntilde;os previos a la jubilaci&oacute;n simulada. Puedes sustituir cualquier estimaci&oacute;n por tu dato real.</p></div>
+                <span id="pensionRetirementYearChip" class="payroll-chip">&mdash;</span>
+              </div>
+              <div class="pension-bases-wrap">
+                <table class="pension-bases-table">
+                  <thead><tr><th>A&ntilde;o</th><th>Edad</th><th>Base mensual</th><th>Base actualizada</th><th>Origen</th></tr></thead>
+                  <tbody id="pensionBasesRows"></tbody>
+                </table>
+              </div>
+            </section>
+
+
+            <section class="panel pension-history-panel pension-centered-panel">
+              <div class="payroll-section-head">
+                <div><h3>Hist&oacute;rico laboral</h3><p>Periodos reales guardados en el escenario activo. No se incluyen DNI, n&uacute;mero de Seguridad Social ni domicilio.</p></div>
+                <span id="pensionLifeReportChip" class="payroll-chip">Sin hist&oacute;rico</span>
+              </div>
+              <div id="pensionLifeSummary" class="pension-history-summary" style="display:none">
+                <div class="pension-history-card"><span>Total en alta</span><strong id="pensionLifeTotal">&mdash;</strong></div>
+                <div class="pension-history-card"><span>Fecha del informe</span><strong id="pensionLifeAsOf">&mdash;</strong></div>
+                <div class="pension-history-card"><span>Primera alta</span><strong id="pensionLifeFirst">&mdash;</strong></div>
+                <div class="pension-history-card"><span>Periodo actual desde</span><strong id="pensionLifeCurrent">&mdash;</strong></div>
+              </div>
+              <div id="pensionLifeEmpty" class="pension-history-empty">Todav&iacute;a no hay vida laboral cargada en este escenario.</div>
+              <div id="pensionLifeWrap" class="pension-history-wrap" style="display:none">
+                <table class="pension-history-table pension-life-table">
+                  <thead><tr><th>Desde</th><th>Hasta</th><th>Empresa / situaci&oacute;n</th><th>R&eacute;gimen</th><th>Grupo</th><th>D&iacute;as</th></tr></thead>
+                  <tbody id="pensionLifeRows"></tbody>
+                </table>
+              </div>
+            </section>
+
+            <section class="panel pension-history-panel pension-centered-panel">
+              <div class="payroll-section-head">
+                <div><h3>Hist&oacute;rico de bases reales</h3><p>Bases mensuales reales guardadas en el JSON. La cifra anual es la media de los meses disponibles; las proyecciones futuras quedan fuera de este bloque.</p></div>
+                <span id="pensionRealBasesCount" class="payroll-chip">0 a&ntilde;os</span>
+              </div>
+              <div id="pensionRealBasesEmpty" class="pension-history-empty">Todav&iacute;a no hay un informe de bases cargado.</div>
+              <div id="pensionRealBasesWrap" class="pension-history-wrap" style="display:none">
+                <table class="pension-history-table pension-real-bases-table">
+                  <thead><tr><th>A&ntilde;o</th><th>Edad</th><th>Base mensual media</th><th>Meses</th><th>Origen</th></tr></thead>
+                  <tbody id="pensionRealBasesRows"></tbody>
+                </table>
+              </div>
+            </section>
+
+            <section class="panel payroll-note">
+              <strong>Estimaci&oacute;n orientativa, no c&aacute;lculo oficial.</strong>
+              El JSON conserva las bases mensuales reales del informe. Para esta estimaci&oacute;n orientativa se calcula la media mensual real de cada a&ntilde;o y se repite durante 12 meses. Se comparan los dos m&eacute;todos previstos para 2037 y se aplica el porcentaje por meses cotizados vigente desde 2027. La card &ldquo;Pensi&oacute;n en &euro; de hoy&rdquo; descuenta la inflaci&oacute;n estimada desde la fecha actual hasta la jubilaci&oacute;n para expresar el poder adquisitivo equivalente actual. La actualizaci&oacute;n por IPC es una aproximaci&oacute;n. El tope m&aacute;ximo futuro se proyecta desde el m&aacute;ximo vigente en 2026 con la revalorizaci&oacute;n supuesta y el incremento adicional legal previsto. No se modelan de forma completa pensiones m&iacute;nimas futuras, jubilaci&oacute;n demorada, complementos ni IRPF de la pensi&oacute;n. La referencia final debe ser el simulador oficial de la Seguridad Social.
+            </section>
+            </div>
+
+            <div id="pensionLayoffView">
+              <section class="panel pension-layoff-head">
+                <h3>Escenario Despido</h3>
+                <p>Comparativa derivada del escenario principal. Se supone despido el 1 de enero del a&ntilde;o indicado, hasta 24 meses de prestaci&oacute;n contributiva y, despu&eacute;s, lagunas de cotizaci&oacute;n o subsidio +52 si lo activas.</p>
+                <div class="pension-layoff-tools">
+                  <span id="pensionLayoffSource" class="pension-layoff-source">Derivado de Javi Real</span>
+                  <label class="pension-layoff-toggle"><input id="pensionLayoffSubsidy52" type="checkbox"> Subsidio +52 tras el paro</label>
+                </div>
+              </section>
+              <section id="pensionLayoffRows" class="pension-layoff-list" aria-label="Comparativa por ano de despido"></section>
+              <section id="pensionLayoffHistory" class="pension-layoff-history" hidden>
+                <div class="pension-layoff-history-head"><h4>Hist&oacute;rico</h4><p>Supuestos cuyo 1 de enero ya ha pasado. Se conservan como referencia.</p></div>
+                <section id="pensionLayoffHistoryRows" class="pension-layoff-list" aria-label="Historico de escenarios de despido"></section>
+              </section>
+              <div class="pension-layoff-note">La primera anticipada supone un cese que permita la jubilaci&oacute;n anticipada involuntaria. La primera voluntaria es la v&iacute;a general de jubilaci&oacute;n anticipada por voluntad propia, hasta 2 a&ntilde;os antes de la edad legal si se cumplen sus requisitos. El c&aacute;lculo es orientativo y aplica la normativa vigente en 2026; las bases m&iacute;nimas y el tope m&aacute;ximo futuros se proyectan con los supuestos del escenario.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="layoffCashPlaceholder" class="payroll-app layoff-cash-app">
+        <div class="payroll-top">
+          <div>
+            <div class="payroll-eyebrow">Calculadora activa</div>
+            <h2>Colch&oacute;n tras despido</h2>
+            <p>Paro, subsidio +52 y capital disponible para saber con cu&aacute;nto cuentas y hasta cu&aacute;ndo aguanta.</p>
+          </div>
+          <div class="payroll-badge">SEPE + ahorro &middot; orientativo</div>
+        </div>
+
+        <div class="layoff-cash-layout">
+          <aside class="panel layoff-cash-input-panel">
+            <div id="layoffCashSource" class="layoff-cash-source">Derivado de Javi Real</div>
+            <h3>Supuesto de despido</h3>
+            <div class="field">
+              <label for="layoffCashDismissalMonth">Fecha del despido</label>
+              <input id="layoffCashDismissalMonth" type="date">
+            </div>
+            <div class="field">
+              <label for="layoffCashChildren">Hijos a cargo para topes del paro</label>
+              <select id="layoffCashChildren">
+                <option value="0">Sin hijos a cargo</option>
+                <option value="1">1 hijo a cargo</option>
+                <option value="2">2 o m&aacute;s hijos a cargo</option>
+              </select>
+            </div>
+            <label class="layoff-cash-toggle"><input id="layoffCashIncludeSubsidy" type="checkbox"> Incluir subsidio +52 si cumplo requisitos</label>
+
+            <div class="divider"></div>
+            <h3>Dinero de partida</h3>
+            <div class="field"><label for="layoffCashSavings">Ahorro</label><div class="input-wrap has-suffix"><input id="layoffCashSavings" type="text" inputmode="decimal" autocomplete="off" value="0"><span class="suffix">&euro;</span></div></div>
+            <div class="field"><label for="layoffCashSeverance">Despido / finiquito</label><div class="input-wrap has-suffix"><input id="layoffCashSeverance" type="text" inputmode="decimal" autocomplete="off" value="0"><span class="suffix">&euro;</span></div></div>
+            <div class="field"><label for="layoffCashPatrimony">Patrimonio disponible</label><div class="input-wrap has-suffix"><input id="layoffCashPatrimony" type="text" inputmode="decimal" autocomplete="off" value="0"><span class="suffix">&euro;</span></div></div>
+            <div class="field"><label for="layoffCashMonthlyNeed">Dinero que necesito cada mes</label><div class="input-wrap has-suffix"><input id="layoffCashMonthlyNeed" type="text" inputmode="decimal" autocomplete="off" value="2.000"><span class="suffix">&euro;</span></div></div>
+            <div class="payroll-field-note" style="text-align:center">Estos importes se guardan en el JSON/Gist del dashboard. El hist&oacute;rico laboral y las bases siguen viniendo de Pensi&oacute;n &rarr; Javi Real.</div>
+          </aside>
+
+          <div class="layoff-cash-results">
+            <section id="layoffCashStatus" class="panel layoff-cash-status"><strong>Preparando simulaci&oacute;n</strong><span>La calculadora usa las bases del escenario Javi Real.</span></section>
+
+            <section class="layoff-resource-grid" aria-label="Recursos disponibles">
+              <article class="panel layoff-resource-card"><span>Ahorro</span><strong id="layoffCashSavingsKpi">&mdash;</strong><small>capital de partida</small></article>
+              <article class="panel layoff-resource-card"><span>Despido</span><strong id="layoffCashSeveranceKpi">&mdash;</strong><small>indemnizaci&oacute;n / finiquito</small></article>
+              <article class="panel layoff-resource-card"><span>Patrimonio</span><strong id="layoffCashPatrimonyKpi">&mdash;</strong><small>importe que decides contar</small></article>
+              <article class="panel layoff-resource-card extra"><span>Extra p&uacute;blico</span><strong id="layoffCashExtraKpi">&mdash;</strong><small id="layoffCashExtraMeta">paro + subsidio</small></article>
+              <article class="panel layoff-resource-card total"><span>Total del escenario</span><strong id="layoffCashTotalKpi">&mdash;</strong><small>capital + prestaciones estimadas</small></article>
+            </section>
+
+            <section class="layoff-key-grid">
+              <article class="panel layoff-key-card"><span>Necesitas cada mes</span><strong id="layoffCashNeedKpi">&mdash;</strong><small>gasto mensual fijo usado para el horizonte</small></article>
+              <article id="layoffCashHorizonCard" class="panel layoff-key-card horizon"><span>Horizonte del dinero</span><strong id="layoffCashHorizonKpi">&mdash;</strong><small id="layoffCashHorizonMeta">&mdash;</small></article>
+            </section>
+
+            <section class="panel layoff-benefit-panel">
+              <div class="layoff-benefit-head"><h3>Paro y subsidio +52</h3><p>Cuant&iacute;as brutas estimadas. El paro aplica los topes oficiales vigentes en 2026 (sin hijos: 1.225 &euro;/mes); no se proyectan por IPC. El subsidio +52 sigue siendo una aproximaci&oacute;n para a&ntilde;os futuros.</p></div>
+              <div class="layoff-benefit-grid">
+                <article class="layoff-benefit-card paro"><span>Paro &middot; primeros 180 d&iacute;as</span><strong id="layoffCashParo1">&mdash;</strong><small id="layoffCashParo1Meta">&mdash;</small></article>
+                <article class="layoff-benefit-card paro"><span>Paro &middot; resto hasta 24 meses</span><strong id="layoffCashParo2">&mdash;</strong><small id="layoffCashParo2Meta">&mdash;</small></article>
+                <article class="layoff-benefit-card subsidy"><span>Subsidio +52</span><strong id="layoffCashSubsidy">&mdash;</strong><small id="layoffCashSubsidyMeta">si cumples requisitos</small></article>
+                <article class="layoff-benefit-card total"><span>Extra total estimado</span><strong id="layoffCashBenefitsTotal">&mdash;</strong><small id="layoffCashBenefitsTotalMeta">hasta la jubilaci&oacute;n ordinaria</small></article>
+              </div>
+            </section>
+
+            <section class="panel layoff-stage-panel">
+              <div class="layoff-benefit-head"><h3>Flujo por etapas</h3><p>As&iacute; entra el dinero mes a mes; el horizonte no suma las prestaciones de golpe al capital inicial.</p></div>
+              <div class="layoff-stage-wrap"><table class="layoff-stage-table"><thead><tr><th>Etapa</th><th>Desde</th><th>Hasta</th><th>Importe medio / mes</th><th>Total</th></tr></thead><tbody id="layoffCashStageRows"></tbody></table></div>
+            </section>
+
+            <section class="panel layoff-stage-panel">
+              <div class="layoff-benefit-head"><h3>Evoluci&oacute;n anual del patrimonio</h3><p>Saldo al cierre de cada a&ntilde;o desde el despido hasta la jubilaci&oacute;n ordinaria. La primera fila que entra en negativo queda resaltada.</p></div>
+              <div class="layoff-stage-wrap"><table class="layoff-stage-table layoff-year-table"><thead><tr><th>A&ntilde;o</th><th>Edad</th><th>Saldo inicial</th><th>Paro / subsidio</th><th>Gasto</th><th>Saldo final</th></tr></thead><tbody id="layoffCashYearRows"></tbody></table></div>
+            </section>
+
+            <section class="panel layoff-cash-note"><strong>Estimaci&oacute;n orientativa.</strong> El paro se calcula con la media aproximada de las seis bases previas, 70 % los primeros 180 d&iacute;as y 60 % despu&eacute;s, aplicando los topes oficiales vigentes en 2026. Para escenarios futuros esos topes se mantienen congelados, porque sus importes reales depender&aacute;n del IPREM que exista entonces. El subsidio +52 se muestra solo como supuesto si cumples sus requisitos, incluida la carencia de rentas. Las cifras de prestaciones son brutas: el efectivo ingresado puede ser menor por cotizaciones y, en su caso, IRPF. El horizonte usa un gasto mensual fijo y un flujo mensual simplificado.</section>
+          </div>
+        </div>
+      </section>
+
+      <div id="pensionLayoffModal" class="pension-layoff-modal" aria-hidden="true">
+        <div class="pension-layoff-modal-backdrop" data-close-layoff-modal></div>
+        <section class="pension-layoff-modal-card" role="dialog" aria-modal="true" aria-labelledby="pensionLayoffModalTitle">
+          <button id="pensionLayoffModalClose" class="pension-layoff-modal-close" type="button" aria-label="Cerrar">&times;</button>
+          <h3 id="pensionLayoffModalTitle">Detalle del escenario</h3>
+          <p id="pensionLayoffModalIntro"></p>
+          <div class="pension-layoff-breakdown-wrap">
+            <table class="pension-layoff-breakdown"><thead><tr><th>A&ntilde;o</th><th>Edad</th><th>Situaci&oacute;n</th><th>Base usada</th><th>Cotizaci&oacute;n acumulada</th></tr></thead><tbody id="pensionLayoffModalRows"></tbody></table>
+          </div>
+        </section>
+      </div>
+
 <section id="topKpis" class="kpis">
         <div id="kpiCard1" class="panel kpi"><div id="kpi1Label" class="kpi-label">Cuota inicial</div><div id="kpiPayment" class="kpi-value">—</div><div id="kpi1Note" class="kpi-note">antes de amortizaciones</div></div>
         <div id="kpiCardPaid" class="panel kpi"><div class="kpi-label">Total pagado</div><div id="kpiPaid" class="kpi-value">—</div><div class="kpi-note">incluye apertura, extras y comisiones</div></div>
@@ -1594,22 +2145,16 @@
       </div>
       <button id="gistModalClose" class="gist-modal-close" type="button" aria-label="Cerrar">×</button>
     </div>
-    <p class="gist-modal-copy">Un único Gist guarda los casos del dashboard, la proyección y las nóminas guardadas.</p>
+    <p class="gist-modal-copy">Un único Gist guarda todos los casos del dashboard: hipotecas, préstamos personales y las calculadoras que añadamos más adelante.</p>
     <div class="field">
       <label for="gistToken">Token de GitHub</label>
       <input id="gistToken" type="password" autocomplete="off" placeholder="github_pat_…">
-      <div class="gist-note">Si el token ya está guardado, al abrir la app se carga primero el Gist automáticamente. En un navegador nuevo, introduce el token una vez: al confirmar el campo la app cargará el Gist remoto. Hasta que esa lectura termine correctamente, cualquier escritura al Gist queda bloqueada.</div>
+      <div class="gist-note">La app localiza o crea automáticamente su Gist. El token se conserva solo durante esta sesión del navegador.</div>
     </div>
     <div class="gist-buttons">
-      <button id="gistPullBtn" class="btn btn-primary" type="button">Recargar desde Gist</button>
-      <button id="gistPushBtn" class="btn btn-secondary" type="button">Guardar en Gist</button>
+      <button id="gistPushBtn" class="btn btn-primary" type="button">Sincronizar ahora</button>
+      <button id="gistPullBtn" class="btn btn-secondary" type="button">Traer del Gist</button>
     </div>
-    <div class="gist-buttons" style="margin-top:8px;">
-      <button id="backupDownloadBtn" class="btn btn-secondary" type="button">Descargar JSON</button>
-      <button id="backupImportBtn" class="btn btn-secondary" type="button">Importar JSON</button>
-      <input id="backupImportFile" type="file" accept=".json,application/json" hidden>
-    </div>
-    <div class="gist-note" style="margin-top:8px;">El JSON guarda casos, proyección y nómina. No guarda el token de GitHub.</div>
     <div id="gistStatus" class="gist-status"></div>
     <div class="gist-auto-note"><strong>Guardado automático:</strong> después de guardar un caso por primera vez, cualquier cambio se guarda localmente y se sincroniza con Gist automáticamente.</div>
   </section>
@@ -1618,7 +2163,7 @@
 <div id="tooltip" class="tooltip"></div>
 
 <script>
-(async () => {
+(() => {
   const $ = s => document.querySelector(s);
   const $$ = s => [...document.querySelectorAll(s)];
   function formatEsNumber(value, decimals=2){
@@ -1698,13 +2243,15 @@
   function snapshotCurrentCalculator(){
     const d=defaultForCalculator(activeCalculatorId);
     const personal=activeCalculatorId==='personal';
+    const mortgageStartDate=personal ? null : ($('#start').value || d.startDate || dateValueFromMonthKey(d.start));
     return {
       amount: parseEsAmount($('#amount').value),
       interest: Number($('#interest').value)||0,
       termMonths: termMonthsFromUI(),
       inflation: Number($('#inflation').value)||0,
       altReturn: Number($('#altReturnCompare').value)||0,
-      start: personal ? monthKey(parseExactDate($('#firstPaymentDate').value)) : ($('#start').value || d.start),
+      start: personal ? monthKey(parseExactDate($('#firstPaymentDate').value)) : monthValueFromDateInput(mortgageStartDate,d.start),
+      startDate: personal ? null : mortgageStartDate,
       firstPaymentDate: personal ? $('#firstPaymentDate').value : null,
       openingFeeType: personal ? $('#openingFeeType').value : d.openingFeeType,
       openingFeeValue: personal ? Math.max(0,Number($('#openingFeeValue').value)||0) : 0,
@@ -1758,7 +2305,7 @@
       : formatSmartNumber(state.termMonths/12,2);
     $('#inflation').value = state.inflation;
     $('#altReturnCompare').value = state.altReturn;
-    $('#start').value = state.start;
+    $('#start').value = state.startDate || dateValueFromMonthKey(state.start);
     if(id==='personal'){
       $('#firstPaymentDate').value = state.firstPaymentDate;
       ensurePersonalDates();
@@ -1786,7 +2333,7 @@
     if(!id || id===activeCalculatorId) return;
 
     // Nómina tendrá su propio estado; no debe intentar guardar los campos de préstamo.
-    if(activeCalculatorId!=='payroll'){
+    if(activeCalculatorId!=='payroll' && activeCalculatorId!=='pension' && activeCalculatorId!=='layoff'){
       saveCurrentCalculatorState();
     }
 
@@ -1801,17 +2348,42 @@
     if(id==='payroll'){
       activeCalculatorId='payroll';
       if(layout){
-        layout.classList.remove('aggregate-mode','calculator-mortgage','calculator-personal');
+        layout.classList.remove('aggregate-mode','calculator-mortgage','calculator-personal','pension-mode','calculator-pension','layoff-cash-mode','calculator-layoff');
         layout.classList.add('payroll-mode','calculator-payroll');
       }
-      setActiveCalculatorName('Nómina');
+      setActiveCalculatorName('N\u00f3mina');
       payrollApplyUI();
       payrollRecalc();
       renderPayrollCases();
       return;
     }
 
-    if(layout) layout.classList.remove('payroll-mode');
+    if(id==='layoff'){
+      activeCalculatorId='layoff';
+      if(layout){
+        layout.classList.remove('aggregate-mode','calculator-mortgage','calculator-personal','payroll-mode','calculator-payroll','pension-mode','calculator-pension');
+        layout.classList.add('layoff-cash-mode','calculator-layoff');
+      }
+      setActiveCalculatorName('Despido');
+      layoffCashApplyUI();
+      layoffCashRecalc();
+      return;
+    }
+
+    if(id==='pension'){
+      activeCalculatorId='pension';
+      if(layout){
+        layout.classList.remove('aggregate-mode','calculator-mortgage','calculator-personal','payroll-mode','calculator-payroll','layoff-cash-mode','calculator-layoff');
+        layout.classList.add('pension-mode','calculator-pension');
+      }
+      setActiveCalculatorName('Pensi\u00f3n');
+      pensionApplyUI();
+      pensionRecalc();
+      renderPensionCases();
+      return;
+    }
+
+    if(layout) layout.classList.remove('payroll-mode','pension-mode','layoff-cash-mode','calculator-payroll','calculator-pension','calculator-layoff');
 
     allCasesView[id]=canUseAllCases(id);
     if(allCasesView[id]) activeSavedCaseIds[id]=null;
@@ -1826,12 +2398,12 @@
   const calculatorDefaults = {
     mortgage: {
       amount:200000, interest:3, termMonths:300,
-      inflation:2, altReturn:1, start:'2026-08',
+      inflation:2, altReturn:1, start:monthKey(todayLocal()), startDate:dateKey(todayLocal()),
       openingFeeType:'percent', openingFeeValue:0
     },
     personal: {
       amount:25000, interest:5, termMonths:60,
-      inflation:2, altReturn:1, start:'2026-08',
+      inflation:2, altReturn:1, start:monthKey(todayLocal()),
       firstPaymentDate:null,
       openingFeeType:'percent', openingFeeValue:0
     }
@@ -1856,6 +2428,7 @@
       inflation:d.inflation,
       altReturn:d.altReturn,
       start:personal ? monthKey(parseExactDate(firstPayment)) : d.start,
+      startDate:personal ? null : (d.startDate || dateValueFromMonthKey(d.start,today.getDate())),
       firstPaymentDate:firstPayment,
       openingFeeType:d.openingFeeType,
       openingFeeValue:d.openingFeeValue,
@@ -1871,9 +2444,7 @@
 
   const CASES_STORAGE_KEY = 'dashboard_financiero_saved_cases_v1';
   const GIST_ID_STORAGE_KEY = 'dashboard_financiero_gist_id_v1';
-  const GIST_TOKEN_STORAGE_KEY = 'dashboard_financiero_gist_token_v1';
-  const GIST_TOKEN_SESSION_KEY = 'dashboard_financiero_gist_token_v1'; // migración desde versiones anteriores
-  const GIST_REMOTE_STATE_STORAGE_KEY = 'dashboard_financiero_gist_remote_state_v1';
+  const GIST_TOKEN_SESSION_KEY = 'dashboard_financiero_gist_token_v1';
   const GIST_FILE_NAME = 'dashboard-financiero-casos.json';
   const GITHUB_API_VERSION = '2026-03-10';
   const PROJECTION_STORAGE_KEY = 'dashboard_financiero_projection_v1';
@@ -1889,8 +2460,6 @@
   let isLoadingCalculator=false;
   let isSyncingGist=false;
   let gistSyncPending=false;
-  let gistBootstrapping=false;
-  let gistRemoteReadyThisSession=false;
   let projectionSettings={
     mortgage:{
       initialSavings:null,startMonth:null,monthlyHistory:[],
@@ -1930,6 +2499,191 @@
   let activePayrollCaseId=null;
   let isLoadingPayrollCase=false;
 
+  const LAYOFF_CASH_STORAGE_KEY='dashboard_financiero_layoff_cash_v1';
+  const LAYOFF_CASH_DEFAULTS={dismissalMonth:'',dismissalDate:'',savings:0,severance:0,patrimony:0,monthlyNeed:2000,children:'0',includeSubsidy52:true};
+  const LAYOFF_IPREM_2026=600;
+  const LAYOFF_SUBSIDY52_2026=480;
+  const LAYOFF_UNEMPLOYMENT_MAX_2026={0:1225,1:1400,2:1575};
+  const LAYOFF_UNEMPLOYMENT_MIN_2026={0:560,1:749,2:749};
+  let layoffCashSettings={...LAYOFF_CASH_DEFAULTS};
+
+  const PENSION_STORAGE_KEY='dashboard_financiero_pension_v1';
+  const PENSION_CASES_STORAGE_KEY='dashboard_financiero_pension_cases_v1';
+  const PENSION_LAYOFF_STORAGE_KEY='dashboard_financiero_pension_layoff_v1';
+  const PENSION_DEFAULTS={
+    birthYear:1972,birthMonth:1,targetAge:65,
+    yearsNow:0,monthsNow:0,contributionEnd:'',contributionEndDate:'',
+    currentBase:0,historicalBase:0,futureGrowth:2,baseCpi:2,annualBases:{},monthlyBases:{},basesReport:null,
+    lifeSummary:null,lifeHistory:[]
+  };
+  let pensionSettings={...PENSION_DEFAULTS,annualBases:{},monthlyBases:{}};
+  let pensionCases=[];
+  let activePensionCaseId=null;
+  let isLoadingPensionCase=false;
+  let pensionLayoffSettings={subsidy52:false};
+  let pensionViewMode='main';
+
+  function layoffCashDefaultMonth(){
+    return monthKey(todayLocal());
+  }
+  function layoffCashDefaultDate(){
+    return dateKey(todayLocal());
+  }
+  function normalizeLayoffCashSettings(v={}){
+    const rawMonth=String(v?.dismissalMonth||'');
+    const normalizedMonth=/^\d{4}-\d{2}$/.test(rawMonth)?rawMonth:layoffCashDefaultMonth();
+    const rawDate=String(v?.dismissalDate||'');
+    const dismissalDate=/^\d{4}-\d{2}-\d{2}$/.test(rawDate)?rawDate:dateValueFromMonthKey(normalizedMonth,normalizedMonth===monthKey(todayLocal())?todayLocal().getDate():1);
+    return {
+      dismissalMonth:monthValueFromDateInput(dismissalDate,normalizedMonth),
+      dismissalDate,
+      savings:Math.max(0,Number(v?.savings)||0),
+      severance:Math.max(0,Number(v?.severance)||0),
+      patrimony:Math.max(0,Number(v?.patrimony)||0),
+      monthlyNeed:Math.max(0,Number(v?.monthlyNeed)||0),
+      children:['0','1','2'].includes(String(v?.children))?String(v.children):'0',
+      includeSubsidy52:v?.includeSubsidy52!==false
+    };
+  }
+  function loadLayoffCashSettingsLocal(){
+    try{const raw=safeStorageGet(localStorage,LAYOFF_CASH_STORAGE_KEY);layoffCashSettings=normalizeLayoffCashSettings(raw?JSON.parse(raw):LAYOFF_CASH_DEFAULTS)}catch(e){layoffCashSettings=normalizeLayoffCashSettings(LAYOFF_CASH_DEFAULTS)}
+  }
+  function persistLayoffCashSettingsLocal(){safeStorageSet(localStorage,LAYOFF_CASH_STORAGE_KEY,JSON.stringify(layoffCashSettings))}
+  function layoffCashSourceName(){return pensionPrincipalCase()?.name || (activePensionCaseId?pensionCases.find(c=>c.id===activePensionCaseId)?.name:null) || 'Javi Real'}
+  function layoffCashApplyUI(){
+    const p=normalizeLayoffCashSettings(layoffCashSettings);layoffCashSettings=p;
+    if($('#layoffCashDismissalMonth'))$('#layoffCashDismissalMonth').value=p.dismissalDate || dateValueFromMonthKey(p.dismissalMonth);
+    if($('#layoffCashSavings'))$('#layoffCashSavings').value=formatEditableAmount(p.savings);
+    if($('#layoffCashSeverance'))$('#layoffCashSeverance').value=formatEditableAmount(p.severance);
+    if($('#layoffCashPatrimony'))$('#layoffCashPatrimony').value=formatEditableAmount(p.patrimony);
+    if($('#layoffCashMonthlyNeed'))$('#layoffCashMonthlyNeed').value=formatEditableAmount(p.monthlyNeed);
+    if($('#layoffCashChildren'))$('#layoffCashChildren').value=p.children;
+    if($('#layoffCashIncludeSubsidy'))$('#layoffCashIncludeSubsidy').checked=!!p.includeSubsidy52;
+    if($('#layoffCashSource'))$('#layoffCashSource').textContent=`Derivado de ${layoffCashSourceName()}`;
+  }
+  function layoffCashReadUI(){
+    return normalizeLayoffCashSettings({
+      dismissalMonth:monthValueFromDateInput($('#layoffCashDismissalMonth')?.value,layoffCashSettings.dismissalMonth),
+      dismissalDate:$('#layoffCashDismissalMonth')?.value,
+      savings:parseEsAmount($('#layoffCashSavings')?.value),
+      severance:parseEsAmount($('#layoffCashSeverance')?.value),
+      patrimony:parseEsAmount($('#layoffCashPatrimony')?.value),
+      monthlyNeed:parseEsAmount($('#layoffCashMonthlyNeed')?.value),
+      children:$('#layoffCashChildren')?.value,
+      includeSubsidy52:!!$('#layoffCashIncludeSubsidy')?.checked
+    });
+  }
+  function layoffCashProjectedValue(value,date,p){
+    const year=date instanceof Date?date.getFullYear():Number(date)||2026;
+    return Math.max(0,Number(value)||0)*Math.pow(1+(Number(p?.baseCpi)||0)/100,Math.max(0,year-2026));
+  }
+  function layoffCashUnemploymentGrossForMonth(baseReg,index,date,p,children){
+    const pct=index<6?.70:.60;
+    const key=String(children||'0');
+    // Topes oficiales SEPE vigentes en 2026. Para fechas futuras se mantienen
+    // congelados hasta que exista un dato oficial futuro: no dependen directamente del IPC.
+    const min=LAYOFF_UNEMPLOYMENT_MIN_2026[key]??LAYOFF_UNEMPLOYMENT_MIN_2026[0];
+    const max=LAYOFF_UNEMPLOYMENT_MAX_2026[key]??LAYOFF_UNEMPLOYMENT_MAX_2026[0];
+    return Math.min(max,Math.max(min,Math.max(0,baseReg)*pct));
+  }
+  function layoffCashSubsidyForMonth(date,p){return layoffCashProjectedValue(LAYOFF_SUBSIDY52_2026,date,p)}
+  function layoffCashMonthRangeText(a,b){
+    if(!(a instanceof Date)||!(b instanceof Date))return '--';
+    return `${monthFmtLong.format(a)} - ${monthFmtLong.format(b)}`;
+  }
+  function layoffCashAverage(values){return values.length?values.reduce((a,b)=>a+b,0)/values.length:0}
+  function layoffCashCalc(settings=layoffCashSettings){
+    const c=normalizeLayoffCashSettings(settings),p=pensionPrincipalState();
+    const dismissal=parseMonth(c.dismissalMonth);
+    if(!(dismissal instanceof Date)||Number.isNaN(dismissal.getTime()))return {error:'Selecciona un mes de despido valido.'};
+    const ordinaryAgeWithSubsidy=pensionLayoffActualOrdinaryAge(p,dismissal,true);
+    const retirementDateWithSubsidy=pensionRetirementMonth(p,ordinaryAgeWithSubsidy);
+    const ordinaryAge=pensionLayoffActualOrdinaryAge(p,dismissal,!!c.includeSubsidy52);
+    const retirementDate=pensionRetirementMonth(p,ordinaryAge);
+    if(dismissal>=retirementDate)return {error:'El mes de despido debe ser anterior a la jubilacion ordinaria estimada.'};
+    const baseReg=pensionLayoffUnemploymentBase(p,dismissal);
+    const unemployment=[];
+    for(let i=0;i<24;i++){
+      const date=new Date(dismissal.getFullYear(),dismissal.getMonth()+i,1);
+      if(date>=retirementDate)break;
+      unemployment.push({date,amount:layoffCashUnemploymentGrossForMonth(baseReg,i,date,p,c.children)});
+    }
+    const unemploymentEnd=new Date(dismissal.getFullYear(),dismissal.getMonth()+unemployment.length,1);
+    const age52=new Date((Number(p.birthYear)||1972)+52,(Number(p.birthMonth)||1)-1,1);
+    const subsidyStart=unemploymentEnd>age52?unemploymentEnd:age52;
+    const subsidy=[];
+    for(let d=new Date(subsidyStart);d<retirementDateWithSubsidy;d=new Date(d.getFullYear(),d.getMonth()+1,1))subsidy.push({date:new Date(d),amount:layoffCashSubsidyForMonth(d,p)});
+    const unemploymentTotal=unemployment.reduce((sum,x)=>sum+x.amount,0);
+    const subsidyTotal=subsidy.reduce((sum,x)=>sum+x.amount,0);
+    const includedSubsidy=c.includeSubsidy52?subsidyTotal:0;
+    const extraTotal=unemploymentTotal+includedSubsidy;
+    const initialCapital=c.savings+c.severance+c.patrimony;
+    const potentialTotal=initialCapital+extraTotal;
+    let balance=initialCapital,exhaustDate=null;
+    const incomeByMonth=new Map();
+    unemployment.forEach(x=>incomeByMonth.set(monthKey(x.date),(incomeByMonth.get(monthKey(x.date))||0)+x.amount));
+    if(c.includeSubsidy52)subsidy.forEach(x=>incomeByMonth.set(monthKey(x.date),(incomeByMonth.get(monthKey(x.date))||0)+x.amount));
+    const yearRows=[],yearMap=new Map();
+    for(let d=new Date(dismissal);d<retirementDate;d=new Date(d.getFullYear(),d.getMonth()+1,1)){
+      const year=d.getFullYear();
+      if(!yearMap.has(year)){
+        const row={year,age:year-(Number(p.birthYear)||1972),startBalance:balance,income:0,expense:0,endBalance:balance,months:0,firstNegative:false};
+        yearMap.set(year,row);yearRows.push(row);
+      }
+      const row=yearMap.get(year),income=incomeByMonth.get(monthKey(d))||0;
+      row.income+=income;row.expense+=c.monthlyNeed;row.months+=1;
+      balance+=income-c.monthlyNeed;row.endBalance=balance;
+      if(balance<0 && !exhaustDate){exhaustDate=new Date(d);row.firstNegative=true}
+    }
+    const remainingAtRetirement=exhaustDate?0:balance;
+    const first6=unemployment.slice(0,6),rest=unemployment.slice(6);
+    const stages=[];
+    if(first6.length)stages.push({kind:'paro',label:'Paro - primeros 180 dias',from:first6[0].date,to:first6[first6.length-1].date,average:layoffCashAverage(first6.map(x=>x.amount)),total:first6.reduce((a,x)=>a+x.amount,0)});
+    if(rest.length)stages.push({kind:'paro',label:'Paro - resto',from:rest[0].date,to:rest[rest.length-1].date,average:layoffCashAverage(rest.map(x=>x.amount)),total:rest.reduce((a,x)=>a+x.amount,0)});
+    if(subsidy.length)stages.push({kind:c.includeSubsidy52?'subsidy':'none',label:c.includeSubsidy52?'Subsidio +52':'Subsidio +52 no incluido',from:subsidy[0].date,to:subsidy[subsidy.length-1].date,average:layoffCashAverage(subsidy.map(x=>x.amount)),total:c.includeSubsidy52?subsidyTotal:0,potentialTotal:subsidyTotal});
+    if(!c.includeSubsidy52 && unemploymentEnd<retirementDate)stages.push({kind:'none',label:'Sin prestacion',from:unemploymentEnd,to:new Date(retirementDate.getFullYear(),retirementDate.getMonth()-1,1),average:0,total:0});
+    const unemploymentMax=LAYOFF_UNEMPLOYMENT_MAX_2026[String(c.children)]??LAYOFF_UNEMPLOYMENT_MAX_2026[0];
+    const unemploymentMin=LAYOFF_UNEMPLOYMENT_MIN_2026[String(c.children)]??LAYOFF_UNEMPLOYMENT_MIN_2026[0];
+    return {settings:c,p,dismissal,retirementDate,retirementDateWithSubsidy,ordinaryAge,ordinaryAgeWithSubsidy,baseReg,unemployment,subsidy,unemploymentTotal,subsidyTotal,extraTotal,initialCapital,potentialTotal,exhaustDate,remainingAtRetirement,first6,rest,stages,yearRows,unemploymentMax,unemploymentMin};
+  }
+  function layoffCashRecalc(){
+    layoffCashSettings=layoffCashReadUI();persistLayoffCashSettingsLocal();
+    const calc=layoffCashCalc(layoffCashSettings),status=$('#layoffCashStatus');
+    if($('#layoffCashSource'))$('#layoffCashSource').textContent=`Derivado de ${layoffCashSourceName()}`;
+    if(calc.error){if(status)status.innerHTML=`<strong>No se puede calcular todavia</strong><span>${calc.error}</span>`;return}
+    const c=calc.settings;
+    if(status)status.innerHTML=`<strong>Despido en ${monthFmtLong.format(calc.dismissal)}</strong><span>Base reguladora aproximada del paro: ${eur0.format(calc.baseReg)}/mes &middot; tope SEPE aplicado: ${eur0.format(calc.unemploymentMax)}/mes &middot; jubilaci&oacute;n ordinaria estimada: ${monthFmtLong.format(calc.retirementDate)} &middot; ${calc.ordinaryAge} a&ntilde;os.</span>`;
+    const set=(id,text)=>{const el=$(id);if(el)el.textContent=text};
+    set('#layoffCashSavingsKpi',eur0.format(c.savings));set('#layoffCashSeveranceKpi',eur0.format(c.severance));set('#layoffCashPatrimonyKpi',eur0.format(c.patrimony));
+    set('#layoffCashExtraKpi',eur0.format(calc.extraTotal));set('#layoffCashTotalKpi',eur0.format(calc.potentialTotal));set('#layoffCashNeedKpi',`${eur0.format(c.monthlyNeed)}/mes`);
+    set('#layoffCashExtraMeta',c.includeSubsidy52?'paro + subsidio +52':'solo paro contributivo');
+    const hCard=$('#layoffCashHorizonCard');
+    if(calc.exhaustDate){
+      set('#layoffCashHorizonKpi',monthFmtLong.format(calc.exhaustDate));
+      const monthsLeft=Math.max(0,monthDiff(calc.exhaustDate,calc.retirementDate));
+      set('#layoffCashHorizonMeta',`El capital se agota antes de la jubilación ordinaria · faltan ${monthsLeft} meses para ${monthFmtLong.format(calc.retirementDate)} (${calc.ordinaryAge} años).`);
+      hCard?.classList.remove('good');hCard?.classList.add('warn');
+    }else{
+      set('#layoffCashHorizonKpi','Llega a jubilacion'.replace('jubilacion','jubilaci\u00f3n'));
+      set('#layoffCashHorizonMeta',`Sobraría aproximadamente ${eur0.format(calc.remainingAtRetirement)} al llegar a ${monthFmtLong.format(calc.retirementDate)} (${calc.ordinaryAge} años).`);
+      hCard?.classList.remove('warn');hCard?.classList.add('good');
+    }
+    const first6Avg=layoffCashAverage(calc.first6.map(x=>x.amount)),first6Total=calc.first6.reduce((a,x)=>a+x.amount,0);
+    const restAvg=layoffCashAverage(calc.rest.map(x=>x.amount)),restTotal=calc.rest.reduce((a,x)=>a+x.amount,0);
+    set('#layoffCashParo1',calc.first6.length?`${eur0.format(first6Avg)}/mes`:'--');set('#layoffCashParo1Meta',calc.first6.length?`${calc.first6.length} meses &middot; total ${eur0.format(first6Total)} &middot; tope ${eur0.format(calc.unemploymentMax)}/mes`.replaceAll('&middot;','·'):'Sin periodo');
+    set('#layoffCashParo2',calc.rest.length?`${eur0.format(restAvg)}/mes`:'--');set('#layoffCashParo2Meta',calc.rest.length?`${calc.rest.length} meses &middot; total ${eur0.format(restTotal)} &middot; tope ${eur0.format(calc.unemploymentMax)}/mes`.replaceAll('&middot;','·'):'Sin periodo');
+    const subsidyAvg=layoffCashAverage(calc.subsidy.map(x=>x.amount));
+    set('#layoffCashSubsidy',calc.subsidy.length?`${eur0.format(subsidyAvg)}/mes`:'--');
+    set('#layoffCashSubsidyMeta',calc.subsidy.length?`${calc.subsidy.length} meses &middot; potencial ${eur0.format(calc.subsidyTotal)}${c.includeSubsidy52?' &middot; incluido':' &middot; no incluido'}`.replaceAll('&middot;','·'):'No queda periodo hasta la jubilacion'.replace('jubilacion','jubilaci\u00f3n'));
+    set('#layoffCashBenefitsTotal',eur0.format(calc.extraTotal));set('#layoffCashBenefitsTotalMeta',c.includeSubsidy52?'paro + subsidio incluido':'solo paro; subsidio no contado');
+    const tbody=$('#layoffCashStageRows');if(tbody)tbody.innerHTML=calc.stages.map(st=>`<tr><td><span class="layoff-stage-badge ${st.kind}">${st.label}</span></td><td>${monthFmtLong.format(st.from)}</td><td>${monthFmtLong.format(st.to)}</td><td>${st.kind==='none'?eur0.format(st.average)+' potencial':eur0.format(st.average)}</td><td>${st.kind==='none'?eur0.format(st.potentialTotal||0)+' no incluido':eur0.format(st.total)}</td></tr>`).join('');
+    const yearTbody=$('#layoffCashYearRows');if(yearTbody)yearTbody.innerHTML=calc.yearRows.map(row=>{
+      const endClass=row.endBalance<0?'negative':'positive';
+      const partial=row.months<12?` <small style="color:#98a2b3">(${row.months} meses)</small>`:'';
+      return `<tr class="${row.firstNegative?'first-negative':''}"><td class="year">${row.year}${partial}</td><td>${row.age}</td><td>${eur0.format(row.startBalance)}</td><td>${eur0.format(row.income)}</td><td>${eur0.format(row.expense)}</td><td class="balance ${endClass}">${eur0.format(row.endBalance)}</td></tr>`;
+    }).join('');
+  }
+
   function safeStorageGet(storage,key){
     try{return storage.getItem(key)}catch(e){return null}
   }
@@ -1948,6 +2702,8 @@
     if(id==='mortgage') return 'Hipoteca';
     if(id==='personal') return 'Préstamo personal';
     if(id==='payroll') return 'Nómina';
+    if(id==='pension') return 'Pensión';
+    if(id==='layoff') return 'Despido';
     return 'Calculadora';
   }
 
@@ -1972,13 +2728,19 @@
       firstPaymentDate=dateKey(addMonthsClamped(oldDate,1,oldDate.getDate()));
     }
 
+    const rawMortgageStart=String(state?.start || base.start);
+    const mortgageStartDate=!personal && /^\d{4}-\d{2}-\d{2}$/.test(String(state?.startDate||''))
+      ? String(state.startDate)
+      : (!personal ? dateValueFromMonthKey(/^\d{4}-\d{2}$/.test(rawMortgageStart)?rawMortgageStart:base.start) : null);
+
     return {
       amount: Number(state?.amount ?? base.amount) || 0,
       interest: Number(state?.interest ?? base.interest) || 0,
       termMonths,
       inflation: Number(state?.inflation ?? base.inflation) || 0,
       altReturn: Number(state?.altReturn ?? base.altReturn) || 0,
-      start: personal ? monthKey(parseExactDate(firstPaymentDate)) : String(state?.start || base.start),
+      start: personal ? monthKey(parseExactDate(firstPaymentDate)) : monthValueFromDateInput(mortgageStartDate,base.start),
+      startDate: personal ? null : mortgageStartDate,
       firstPaymentDate: personal ? firstPaymentDate : null,
       openingFeeType: state?.openingFeeType==='fixed' ? 'fixed' : 'percent',
       openingFeeValue: Math.max(0,Number(state?.openingFeeValue ?? base.openingFeeValue)||0),
@@ -2399,6 +3161,952 @@
     if(Number($('#payrollUnder3').value)>maxUnder) $('#payrollUnder3').value=maxUnder;
   }
 
+  function pensionRetirementMonth(p=pensionSettings,age=Number(p.targetAge)||65){
+    const year=(Number(p.birthYear)||1972)+age;
+    const month=Math.max(1,Math.min(12,Number(p.birthMonth)||1));
+    return new Date(year,month-1,1);
+  }
+
+  function pensionMonthKey(date){
+    return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}`;
+  }
+
+  function normalizePensionDate(value){
+    const v=String(value||'').trim();
+    return /^\d{4}-\d{2}-\d{2}$/.test(v)?v:'';
+  }
+
+  function normalizePensionLifeSummary(raw){
+    if(!raw || typeof raw!=='object' || Array.isArray(raw))return null;
+    const years=Math.max(0,Math.min(80,Math.round(Number(raw.years)||0)));
+    const months=Math.max(0,Math.min(11,Math.round(Number(raw.months)||0)));
+    const days=Math.max(0,Math.min(31,Math.round(Number(raw.days)||0)));
+    const totalDays=Math.max(0,Math.round(Number(raw.totalDays)||0));
+    const asOf=normalizePensionDate(raw.asOf);
+    const firstStart=normalizePensionDate(raw.firstStart);
+    const currentSince=normalizePensionDate(raw.currentSince);
+    if(!years && !months && !days && !totalDays && !asOf && !firstStart && !currentSince)return null;
+    return {years,months,days,totalDays,asOf,firstStart,currentSince};
+  }
+
+  function normalizePensionLifeHistory(raw){
+    if(!Array.isArray(raw))return [];
+    return raw.slice(0,100).map(item=>{
+      if(!item || typeof item!=='object')return null;
+      const label=String(item.label||item.employer||item.situation||'').trim().slice(0,120);
+      const start=normalizePensionDate(item.start);
+      const effectiveStart=normalizePensionDate(item.effectiveStart);
+      const end=normalizePensionDate(item.end);
+      const regime=String(item.regime||'').trim().slice(0,40);
+      const group=String(item.group||'').trim().slice(0,12);
+      const days=Math.max(0,Math.round(Number(item.days)||0));
+      const kind=String(item.kind||'employment').trim().slice(0,30);
+      if(!label && !start && !end && !days)return null;
+      return {label,start,effectiveStart,end,regime,group,days,kind};
+    }).filter(Boolean);
+  }
+
+  function normalizePensionMonthlyBases(raw){
+    const out={};
+    if(!raw || typeof raw!=='object' || Array.isArray(raw))return out;
+    Object.entries(raw).forEach(([month,value])=>{
+      if(!/^\d{4}-\d{2}$/.test(String(month)))return;
+      const m=Number(String(month).slice(5,7));
+      if(m<1 || m>12)return;
+      const n=parseEsAmount(value);
+      if(Number.isFinite(n) && n>=0)out[String(month)]=n;
+    });
+    return out;
+  }
+
+  function normalizePensionBasesReport(raw){
+    if(!raw || typeof raw!=='object' || Array.isArray(raw))return null;
+    const asOf=normalizePensionDate(raw.asOf);
+    const periodStart=/^\d{4}-\d{2}$/.test(String(raw.periodStart||''))?String(raw.periodStart):'';
+    const periodEnd=/^\d{4}-\d{2}$/.test(String(raw.periodEnd||''))?String(raw.periodEnd):'';
+    const source=String(raw.source||'').trim().slice(0,100);
+    const numericMonths=Math.max(0,Math.round(Number(raw.numericMonths)||0));
+    const pending=Array.isArray(raw.pending)?raw.pending.filter(x=>/^\d{4}-\d{2}$/.test(String(x))).slice(0,60):[];
+    const noBaseRegistered=Array.isArray(raw.noBaseRegistered)?raw.noBaseRegistered.filter(x=>/^\d{4}-\d{2}$/.test(String(x))).slice(0,60):[];
+    if(!asOf && !periodStart && !periodEnd && !source && !numericMonths && !pending.length && !noBaseRegistered.length)return null;
+    return {asOf,periodStart,periodEnd,source,numericMonths,pending,noBaseRegistered};
+  }
+
+  function pensionMonthlyBasesForYear(p,year){
+    const prefix=String(year)+'-';
+    return Object.entries(p?.monthlyBases||{})
+      .filter(([month,value])=>month.startsWith(prefix) && Number(value)>0)
+      .sort((a,b)=>a[0].localeCompare(b[0]));
+  }
+
+  function pensionAnnualAverageFromMonthly(p,year){
+    const entries=pensionMonthlyBasesForYear(p,year);
+    if(!entries.length)return null;
+    return entries.reduce((sum,[,value])=>sum+Number(value),0)/entries.length;
+  }
+
+  function normalizePensionSettings(raw){
+    const d=PENSION_DEFAULTS;
+    const birthYear=Math.max(1940,Math.min(2010,Math.round(Number(raw?.birthYear ?? d.birthYear)||d.birthYear)));
+    const birthMonth=Math.max(1,Math.min(12,Math.round(Number(raw?.birthMonth ?? d.birthMonth)||d.birthMonth)));
+    const targetAge=Number(raw?.targetAge)===67?67:65;
+    const annualBases={};
+    if(raw?.annualBases && typeof raw.annualBases==='object' && !Array.isArray(raw.annualBases)){
+      Object.entries(raw.annualBases).forEach(([year,value])=>{
+        if(!/^\d{4}$/.test(String(year)))return;
+        const n=parseEsAmount(value);
+        if(Number.isFinite(n) && n>=0) annualBases[String(year)]=n;
+      });
+    }
+    const monthlyBases=normalizePensionMonthlyBases(raw?.monthlyBases);
+    const basesReport=normalizePensionBasesReport(raw?.basesReport);
+    let contributionEnd=String(raw?.contributionEnd||'');
+    if(!/^\d{4}-\d{2}$/.test(contributionEnd)){
+      contributionEnd=pensionMonthKey(new Date(birthYear+targetAge,birthMonth-1,1));
+    }
+    const rawContributionEndDate=String(raw?.contributionEndDate||'');
+    const contributionEndDate=/^\d{4}-\d{2}-\d{2}$/.test(rawContributionEndDate)
+      ? rawContributionEndDate
+      : dateValueFromMonthKey(contributionEnd);
+    return {
+      birthYear,birthMonth,targetAge,
+      yearsNow:Math.max(0,Math.min(60,Math.round(Number(raw?.yearsNow ?? d.yearsNow)||0))),
+      monthsNow:Math.max(0,Math.min(11,Math.round(Number(raw?.monthsNow ?? d.monthsNow)||0))),
+      contributionEnd,contributionEndDate,
+      currentBase:Math.max(0,parseEsAmount(raw?.currentBase ?? d.currentBase)||0),
+      historicalBase:Math.max(0,parseEsAmount(raw?.historicalBase ?? d.historicalBase)||0),
+      futureGrowth:Math.max(-10,Math.min(20,Number(raw?.futureGrowth ?? d.futureGrowth)||0)),
+      baseCpi:Math.max(0,Math.min(10,Number(raw?.baseCpi ?? d.baseCpi)||0)),
+      annualBases,monthlyBases,basesReport,
+      lifeSummary:normalizePensionLifeSummary(raw?.lifeSummary),
+      lifeHistory:normalizePensionLifeHistory(raw?.lifeHistory)
+    };
+  }
+
+  function loadPensionSettingsLocal(){
+    try{
+      const raw=safeStorageGet(localStorage,PENSION_STORAGE_KEY);
+      if(raw)pensionSettings=normalizePensionSettings(JSON.parse(raw));
+      else pensionSettings=normalizePensionSettings(PENSION_DEFAULTS);
+    }catch(e){pensionSettings=normalizePensionSettings(PENSION_DEFAULTS)}
+  }
+
+  function persistPensionSettingsLocal(){
+    safeStorageSet(localStorage,PENSION_STORAGE_KEY,JSON.stringify(pensionSettings));
+  }
+
+  function normalizePensionCase(raw){
+    if(!raw || !raw.id || !raw.name)return null;
+    return {
+      id:String(raw.id),name:String(raw.name).slice(0,80),
+      state:normalizePensionSettings(raw.state||{}),
+      createdAt:raw.createdAt || new Date().toISOString(),
+      updatedAt:raw.updatedAt || raw.createdAt || new Date().toISOString()
+    };
+  }
+
+  function loadPensionCasesLocal(){
+    try{
+      const raw=safeStorageGet(localStorage,PENSION_CASES_STORAGE_KEY);
+      if(!raw){pensionCases=[];return}
+      const data=JSON.parse(raw);
+      const arr=Array.isArray(data)?data:(Array.isArray(data?.cases)?data.cases:[]);
+      pensionCases=arr.map(normalizePensionCase).filter(Boolean);
+    }catch(e){pensionCases=[]}
+  }
+
+  function persistPensionCasesLocal(){
+    safeStorageSet(localStorage,PENSION_CASES_STORAGE_KEY,JSON.stringify({schemaVersion:1,updatedAt:new Date().toISOString(),cases:pensionCases}));
+  }
+
+  function setPensionCaseStatus(text,type=''){
+    const el=$('#pensionCaseStatus');if(!el)return;
+    el.textContent=text||'';el.className='case-status'+(type?' '+type:'');
+  }
+
+  function pensionProjectedContributionMonthsAtDate(p,retirement){
+    let currentTotal=Math.max(0,(Number(p.yearsNow)||0)*12+(Number(p.monthsNow)||0));
+    const start=monthStart(todayLocal());
+    const lifeSummary=normalizePensionLifeSummary(p?.lifeSummary);
+    const lifeHistory=normalizePensionLifeHistory(p?.lifeHistory);
+    if(lifeSummary?.asOf && lifeHistory.some(item=>!item.end)){
+      const reportDate=parseExactDate(lifeSummary.asOf);
+      if(reportDate instanceof Date && !Number.isNaN(reportDate.getTime()) && reportDate<todayLocal()){
+        currentTotal+=Math.max(0,monthDiff(monthStart(reportDate),start));
+      }
+    }
+    let end=/^\d{4}-\d{2}$/.test(String(p.contributionEnd||''))?parseMonth(p.contributionEnd):retirement;
+    if(end>retirement)end=retirement;
+    const future=end>start?monthDiff(start,end):0;
+    return currentTotal+Math.max(0,future);
+  }
+
+  function pensionProjectedContributionMonths(p,age=Number(p.targetAge)||65){
+    return pensionProjectedContributionMonthsAtDate(p,pensionRetirementMonth(p,age));
+  }
+
+  function pensionPercentage(months){
+    const m=Math.max(0,Math.floor(Number(months)||0));
+    if(m<180)return 0;
+    const extra=m-180;
+    const first=Math.min(extra,248);
+    const rest=Math.max(0,extra-248);
+    return Math.min(100,50+first*0.19+rest*0.18);
+  }
+
+  function pensionVoluntaryEarlyReduction(contributionMonths,monthsEarly){
+    const m=Math.max(0,Math.floor(Number(contributionMonths)||0));
+    const offset=Math.max(0,Math.floor(Number(monthsEarly)||0));
+    const tables={
+      24:[21.00,19.00,17.00,13.00],
+      18:[8.80,8.40,8.00,7.60],
+      12:[5.50,5.25,5.00,4.75],
+      6:[4.00,3.82,3.64,3.45]
+    };
+    const row=tables[offset];
+    if(!row)return null;
+    const band=m<462?0:m<498?1:m<534?2:3;
+    return row[band];
+  }
+
+  const PENSION_MIN_2026_MONTHLY=1424.40;
+  const PENSION_VOLUNTARY_REDUCTIONS={
+    24:[21.00,19.00,17.00,13.00],23:[17.60,16.50,15.00,12.00],22:[14.65,14.00,13.33,11.00],21:[12.57,12.00,11.43,10.00],
+    20:[11.00,10.50,10.00,9.20],19:[9.78,9.33,8.89,8.40],18:[8.80,8.40,8.00,7.60],17:[8.00,7.64,7.27,6.91],
+    16:[7.33,7.00,6.67,6.33],15:[6.77,6.46,6.15,5.85],14:[6.29,6.00,5.71,5.43],13:[5.87,5.60,5.33,5.07],
+    12:[5.50,5.25,5.00,4.75],11:[5.18,4.94,4.71,4.47],10:[4.89,4.67,4.44,4.22],9:[4.63,4.42,4.21,4.00],
+    8:[4.40,4.20,4.00,3.80],7:[4.19,4.00,3.81,3.62],6:[4.00,3.82,3.64,3.45],5:[3.83,3.65,3.48,3.30],
+    4:[3.67,3.50,3.33,3.17],3:[3.52,3.36,3.20,3.04],2:[3.38,3.23,3.08,2.92],1:[3.26,3.11,2.96,2.81]
+  };
+  const PENSION_INVOLUNTARY_REDUCTIONS={
+    48:[30.00,28.00,26.00,24.00],47:[29.38,27.42,25.46,23.50],46:[28.75,26.83,24.92,23.00],45:[28.13,26.25,24.38,22.50],
+    44:[27.50,25.67,23.83,22.00],43:[26.88,25.08,23.29,21.50],42:[26.25,24.50,22.75,21.00],41:[25.63,23.92,22.21,20.50],
+    40:[25.00,23.33,21.67,20.00],39:[24.38,22.75,21.13,19.50],38:[23.75,22.17,20.58,19.00],37:[23.13,21.58,20.04,18.50],
+    36:[22.50,21.00,19.50,18.00],35:[21.88,20.42,18.96,17.50],34:[21.25,19.83,18.42,17.00],33:[20.63,19.25,17.88,16.50],
+    32:[20.00,18.67,17.33,16.00],31:[19.38,18.08,16.79,15.50],30:[18.75,17.50,16.25,15.00],29:[18.13,16.92,15.71,14.50],
+    28:[17.50,16.33,15.17,14.00],27:[16.88,15.75,14.63,13.50],26:[16.25,15.17,14.08,13.00],25:[15.63,14.58,13.54,12.50],
+    24:[15.00,14.00,13.00,12.00],23:[14.38,13.42,12.46,11.50],22:[13.75,12.83,11.92,11.00],21:[12.57,12.00,11.38,10.00],
+    20:[11.00,10.50,10.00,9.20],19:[9.78,9.33,8.89,8.40],18:[8.80,8.40,8.00,7.60],17:[8.00,7.64,7.27,6.91],
+    16:[7.33,7.00,6.67,6.33],15:[6.77,6.46,6.15,5.85],14:[6.29,6.00,5.71,5.43],13:[5.87,5.60,5.33,5.07],
+    12:[5.50,5.25,5.00,4.75],11:[5.18,4.94,4.71,4.47],10:[4.89,4.67,4.44,4.22],9:[4.63,4.42,4.21,4.00],
+    8:[4.40,4.20,4.00,3.80],7:[4.19,4.00,3.81,3.62],6:[3.75,3.50,3.25,3.00],5:[3.13,2.92,2.71,2.50],
+    4:[2.50,2.33,2.17,2.00],3:[1.88,1.75,1.63,1.50],2:[1.25,1.17,1.08,1.00],1:[0.63,0.58,0.54,0.50]
+  };
+
+  function pensionReductionBand(contributionMonths){
+    const m=Math.max(0,Math.floor(Number(contributionMonths)||0));
+    return m<462?0:m<498?1:m<534?2:3;
+  }
+  function pensionEarlyReduction(table,contributionMonths,monthsEarly){
+    const row=table[Math.max(1,Math.min(48,Math.round(Number(monthsEarly)||0)))];
+    return row?row[pensionReductionBand(contributionMonths)]:null;
+  }
+  function loadPensionLayoffSettingsLocal(){
+    try{const raw=safeStorageGet(localStorage,PENSION_LAYOFF_STORAGE_KEY);if(raw){const v=JSON.parse(raw);pensionLayoffSettings={subsidy52:!!v?.subsidy52}}}catch(e){pensionLayoffSettings={subsidy52:false}}
+  }
+  function persistPensionLayoffSettingsLocal(){safeStorageSet(localStorage,PENSION_LAYOFF_STORAGE_KEY,JSON.stringify(pensionLayoffSettings))}
+  function pensionPrincipalCase(){
+    return pensionCases.find(c=>String(c.name||'').trim().toLocaleLowerCase('es-ES')==='javi real') || pensionCases.find(c=>c.id===activePensionCaseId) || null;
+  }
+  function pensionPrincipalState(){return normalizePensionSettings(pensionPrincipalCase()?.state || pensionSettings)}
+  function updatePensionViewLabels(){
+    const principal=pensionPrincipalCase();
+    const name=principal?.name || ($('#pensionCaseName')?.value.trim()) || 'Escenario principal';
+    if($('#pensionMainViewName'))$('#pensionMainViewName').textContent=name;
+    if($('#pensionLayoffSource'))$('#pensionLayoffSource').textContent=`Derivado de ${name}`;
+  }
+  function setPensionView(mode){
+    pensionViewMode=mode==='layoff'?'layoff':'main';
+    const root=$('#pensionPlaceholder');if(!root)return;
+    root.classList.toggle('pension-layoff-mode',pensionViewMode==='layoff');
+    $('#pensionMainViewBtn')?.classList.toggle('active',pensionViewMode==='main');
+    $('#pensionLayoffViewBtn')?.classList.toggle('active',pensionViewMode==='layoff');
+    updatePensionViewLabels();
+    if(pensionViewMode==='layoff')renderPensionLayoffScenario();
+  }
+  function pensionProjectedMinimumBase(p,date){
+    const year=date instanceof Date?date.getFullYear():Number(date)||2026;
+    return PENSION_MIN_2026_MONTHLY*Math.pow(1+(Number(p.baseCpi)||0)/100,Math.max(0,year-2026));
+  }
+  function pensionProjectedWorkBaseForMonth(p,date){
+    const key=pensionMonthKey(date),year=date.getFullYear(),currentYear=todayLocal().getFullYear();
+    const exact=Number(p.monthlyBases?.[key]);if(exact>0)return exact;
+    if(Object.prototype.hasOwnProperty.call(p.annualBases||{},String(year)))return Math.max(0,Number(p.annualBases[String(year)])||0);
+    const annualReal=pensionAnnualAverageFromMonthly(p,year);if(annualReal>0 && year<currentYear)return annualReal;
+    if(year<currentYear)return Math.max(0,Number(p.historicalBase)||0);
+    if(Number(p.currentBase)<=0)return Math.max(0,Number(p.historicalBase)||0);
+    return Number(p.currentBase)*Math.pow(1+(Number(p.futureGrowth)||0)/100,Math.max(0,year-currentYear));
+  }
+  function pensionLayoffUnemploymentBase(p,dismissalDate){
+    const values=[];for(let i=1;i<=6;i++){const d=new Date(dismissalDate.getFullYear(),dismissalDate.getMonth()-i,1);const v=pensionProjectedWorkBaseForMonth(p,d);if(v>0)values.push(v)}
+    return values.length?values.reduce((a,b)=>a+b,0)/values.length:Math.max(0,Number(p.currentBase)||0);
+  }
+  function pensionContributionMonthsAtSimulationDate(p,date){
+    let total=Math.max(0,(Number(p.yearsNow)||0)*12+(Number(p.monthsNow)||0));
+    const lifeSummary=normalizePensionLifeSummary(p?.lifeSummary),lifeHistory=normalizePensionLifeHistory(p?.lifeHistory);
+    let anchor=monthStart(todayLocal());
+    if(lifeSummary?.asOf && lifeHistory.some(item=>!item.end)){
+      const reportDate=parseExactDate(lifeSummary.asOf);
+      if(reportDate instanceof Date && !Number.isNaN(reportDate.getTime()))anchor=monthStart(reportDate);
+    }
+    const target=monthStart(date);
+    const delta=monthDiff(anchor,target);
+    return Math.max(0,total+delta);
+  }
+  function pensionLayoffContributionMonthsAt(p,dismissalDate,date,subsidy52){
+    if(date<=dismissalDate)return pensionContributionMonthsAtSimulationDate(p,date);
+    let current=pensionContributionMonthsAtSimulationDate(p,dismissalDate);
+    const unemploymentEnd=new Date(dismissalDate.getFullYear(),dismissalDate.getMonth()+24,1);
+    const paroEnd=date<unemploymentEnd?date:unemploymentEnd;
+    if(paroEnd>dismissalDate)current+=Math.max(0,monthDiff(dismissalDate,paroEnd));
+    if(subsidy52 && date>unemploymentEnd)current+=Math.max(0,monthDiff(unemploymentEnd,date));
+    return current;
+  }
+  function pensionLayoffStage(p,dismissalDate,date,subsidy52){
+    if(date<dismissalDate)return 'work';
+    const unemploymentEnd=new Date(dismissalDate.getFullYear(),dismissalDate.getMonth()+24,1);
+    if(date<unemploymentEnd)return 'unemployment';
+    return subsidy52?'subsidy':'gap';
+  }
+  function pensionLayoffGapBase(p,dismissalDate,date){
+    const unemploymentEnd=new Date(dismissalDate.getFullYear(),dismissalDate.getMonth()+24,1);
+    const gapIndex=Math.max(1,monthDiff(unemploymentEnd,date)+1);
+    const min=pensionProjectedMinimumBase(p,date);
+    if(gapIndex<=60)return min;
+    if(gapIndex<=84)return min*.80;
+    return min*.50;
+  }
+  function pensionLayoffRawBase(p,dismissalDate,date,subsidy52,unemploymentBase){
+    const stage=pensionLayoffStage(p,dismissalDate,date,subsidy52);
+    if(stage==='work')return pensionProjectedWorkBaseForMonth(p,date);
+    if(stage==='unemployment')return unemploymentBase;
+    if(stage==='subsidy')return pensionProjectedMinimumBase(p,date)*1.25;
+    return pensionLayoffGapBase(p,dismissalDate,date);
+  }
+  function pensionUpdatedMonthlyBase(value,date,retirementDate,cpiPct){
+    const monthsBefore=Math.max(0,monthDiff(date,retirementDate));
+    if(monthsBefore<=25)return Math.max(0,Number(value)||0);
+    const years=(monthsBefore-25)/12;
+    return Math.max(0,Number(value)||0)*Math.pow(1+(Number(cpiPct)||0)/100,Math.max(0,years));
+  }
+  function pensionMethodBRule(year){
+    const rules={2026:[302,304,352.33],2027:[304,308,354.67],2028:[306,312,357],2029:[308,316,359.33],2030:[310,320,361.67],2031:[312,324,364],2032:[314,328,366.33],2033:[316,332,368.67],2034:[318,336,371],2035:[320,340,373.33],2036:[322,344,375.67]};
+    return rules[year]||[324,348,378];
+  }
+  function pensionLayoffCalcAtDate(p,dismissalDate,retirementDate,subsidy52){
+    const unemploymentBase=pensionLayoffUnemploymentBase(p,dismissalDate);
+    const [keep,window,divisor]=pensionMethodBRule(retirementDate.getFullYear());
+    const latest=new Date(retirementDate.getFullYear(),retirementDate.getMonth()-2,1);
+    const series=[];
+    for(let i=window-1;i>=0;i--){
+      const date=new Date(latest.getFullYear(),latest.getMonth()-i,1);
+      const raw=pensionLayoffRawBase(p,dismissalDate,date,subsidy52,unemploymentBase);
+      series.push({date,raw,updated:pensionUpdatedMonthlyBase(raw,date,retirementDate,p.baseCpi)});
+    }
+    const last300=series.slice(-300);
+    const methodA=last300.reduce((sum,x)=>sum+x.updated,0)/350;
+    const methodB=[...series].sort((a,b)=>b.updated-a.updated).slice(0,keep).reduce((sum,x)=>sum+x.updated,0)/divisor;
+    const baseReg=Math.max(methodA,methodB),method=methodB>methodA?'B':'A';
+    const contributionMonths=pensionLayoffContributionMonthsAt(p,dismissalDate,retirementDate,subsidy52);
+    const percent=pensionPercentage(contributionMonths);
+    const theoretical=baseReg*percent/100;
+    const max=pensionProjectedMaxMonthly(retirementDate.getFullYear(),p.baseCpi);
+    const monthly=Math.min(theoretical,max);
+    const monthsFromToday=Math.max(0,monthDiff(monthStart(todayLocal()),retirementDate));
+    const todayFactor=Math.pow(1+(Number(p.baseCpi)||0)/100,monthsFromToday/12);
+    const todayMoney=Math.min(todayFactor>0?monthly/todayFactor:monthly,PENSION_MAX_2026_MONTHLY);
+    return {baseReg,methodA,methodB,method,contributionMonths,percent,theoretical,max,monthly,todayMoney,unemploymentBase,retirementDate};
+  }
+  function pensionHypotheticalLegalAge(p){
+    const at65=pensionRetirementMonth(p,65);
+    const months=pensionProjectedContributionMonthsAtDate({...p,contributionEnd:pensionMonthKey(at65)},at65);
+    return months>=462?65:67;
+  }
+  function pensionLayoffActualOrdinaryAge(p,dismissalDate,subsidy52){
+    const at65=pensionRetirementMonth(p,65);
+    return pensionLayoffContributionMonthsAt(p,dismissalDate,at65,subsidy52)>=462?65:67;
+  }
+  function pensionDateMax(a,b){return a>b?a:b}
+  function pensionFindFirstEarlyDate(p,dismissalDate,subsidy52,type){
+    const legalAge=pensionHypotheticalLegalAge(p),legalDate=pensionRetirementMonth(p,legalAge);
+    const maxEarly=type==='involuntary'?48:24,minMonths=type==='involuntary'?396:420;
+    const afterParo=new Date(dismissalDate.getFullYear(),dismissalDate.getMonth()+24,1);
+    let date=pensionDateMax(new Date(legalDate.getFullYear(),legalDate.getMonth()-maxEarly,1),afterParo);
+    while(date<legalDate){
+      const contrib=pensionLayoffContributionMonthsAt(p,dismissalDate,date,subsidy52);
+      if(contrib>=minMonths){
+        const monthsEarly=Math.max(1,monthDiff(date,legalDate));
+        if(monthsEarly<=maxEarly)return {date,legalAge,legalDate,monthsEarly,contributionMonths:contrib};
+      }
+      date=new Date(date.getFullYear(),date.getMonth()+1,1);
+    }
+    return null;
+  }
+  function pensionLayoffEarlyAmount(p,dismissalDate,subsidy52,info,type){
+    if(!info)return null;
+    const calc=pensionLayoffCalcAtDate(p,dismissalDate,info.date,subsidy52);
+    const table=type==='involuntary'?PENSION_INVOLUNTARY_REDUCTIONS:PENSION_VOLUNTARY_REDUCTIONS;
+    const reduction=pensionEarlyReduction(table,info.contributionMonths,info.monthsEarly);
+    if(reduction==null)return null;
+    let amount=0,cap=calc.max,capApplied=false;
+    if(type==='involuntary'){
+      // Art. 210.4 LGSS: primero se reduce la pensión teórica y después se aplica
+      // el límite específico de la anticipada involuntaria: -0,50 % por trimestre o fracción.
+      const reducedTheoretical=calc.theoretical*(1-reduction/100);
+      cap=calc.max*(1-Math.ceil(info.monthsEarly/3)*.005);
+      amount=Math.min(reducedTheoretical,cap);
+      capApplied=reducedTheoretical>cap;
+    }else{
+      // Art. 210.3 LGSS: si la pensión teórica supera el máximo, el coeficiente
+      // reductor de la voluntaria se aplica sobre el propio límite máximo.
+      const baseForReduction=Math.min(calc.theoretical,calc.max);
+      amount=baseForReduction*(1-reduction/100);
+      cap=baseForReduction;
+      capApplied=calc.theoretical>calc.max;
+    }
+    const monthsFromToday=Math.max(0,monthDiff(monthStart(todayLocal()),info.date));
+    const todayFactor=Math.pow(1+(Number(p.baseCpi)||0)/100,monthsFromToday/12);
+    const todayMoney=todayFactor>0?amount/todayFactor:amount;
+    return {...info,...calc,reduction,amount,todayMoney,type,earlyCap:cap,earlyCapApplied:capApplied};
+  }
+  function pensionAgeAtDateText(p,date){
+    const born=new Date(Number(p.birthYear)||1972,(Number(p.birthMonth)||1)-1,1);
+    const months=Math.max(0,monthDiff(born,date));
+    const y=Math.floor(months/12),m=months%12;
+    return `${y} años${m?` y ${m} meses`:''}`;
+  }
+  function pensionRetirementMonthName(date){
+    if(!(date instanceof Date) || Number.isNaN(date.getTime()))return '--';
+    return new Intl.DateTimeFormat('es-ES',{month:'long'}).format(date);
+  }
+  function pensionLayoffStageLabel(stage){return stage==='work'?'Trabajo':stage==='unemployment'?'Paro contributivo':stage==='subsidy'?'Subsidio +52':'Laguna integrada'}
+  function pensionLayoffStageClass(stage){return stage==='unemployment'?'unemployment':stage}
+  function pensionLayoffYearAverageBase(p,dismissalDate,year,subsidy52,unemploymentBase,untilDate){
+    const values=[];for(let m=0;m<12;m++){const d=new Date(year,m,1);if(untilDate && d>=untilDate)break;values.push(pensionLayoffRawBase(p,dismissalDate,d,subsidy52,unemploymentBase))}
+    return values.length?values.reduce((a,b)=>a+b,0)/values.length:0;
+  }
+  function pensionLayoffBreakdown(p,dismissalYear,ordinaryDate,subsidy52){
+    const dismissalDate=new Date(dismissalYear,0,1),unemploymentBase=pensionLayoffUnemploymentBase(p,dismissalDate),rows=[];
+    const start=todayLocal().getFullYear(),end=ordinaryDate.getFullYear();
+    for(let year=start;year<=end;year++){
+      let marker=new Date(year,6,1);if(year===dismissalYear)marker=new Date(year,0,1);if(marker>=ordinaryDate)marker=new Date(ordinaryDate.getFullYear(),ordinaryDate.getMonth()-1,1);
+      const stage=pensionLayoffStage(p,dismissalDate,marker,subsidy52);
+      const avg=pensionLayoffYearAverageBase(p,dismissalDate,year,subsidy52,unemploymentBase,ordinaryDate);
+      const endDate=year===end?ordinaryDate:new Date(year+1,0,1);
+      const contrib=pensionLayoffContributionMonthsAt(p,dismissalDate,endDate,subsidy52);
+      rows.push({year,age:year-(Number(p.birthYear)||1972),stage,avg,contrib});
+    }
+    return rows;
+  }
+  function openPensionLayoffModal(dismissalYear){
+    const p=pensionPrincipalState(),subsidy52=!!pensionLayoffSettings.subsidy52,dismissalDate=new Date(dismissalYear,0,1);
+    const ordinaryAge=pensionLayoffActualOrdinaryAge(p,dismissalDate,subsidy52),ordinaryDate=pensionRetirementMonth(p,ordinaryAge);
+    const rows=pensionLayoffBreakdown(p,dismissalYear,ordinaryDate,subsidy52),tbody=$('#pensionLayoffModalRows');if(!tbody)return;
+    $('#pensionLayoffModalTitle').textContent=`Si te despiden en ${dismissalYear}`;
+    $('#pensionLayoffModalIntro').textContent=`Supuesto: despido el 1 de enero · hasta 24 meses de paro cotizando con la media aproximada de los 6 meses previos (${eur0.format(pensionLayoffUnemploymentBase(p,dismissalDate))}/mes) · después ${subsidy52?'subsidio +52 al 125 % de la base mínima proyectada':'integración de lagunas para el cálculo de la base reguladora'}.`;
+    tbody.innerHTML=rows.map(r=>`<tr><td><strong>${r.year}</strong></td><td>${r.age}</td><td><span class="pension-stage ${pensionLayoffStageClass(r.stage)}">${pensionLayoffStageLabel(r.stage)}</span></td><td>${r.avg>0?eur0.format(r.avg):'--'}</td><td>${pensionYearsText(r.contrib)}</td></tr>`).join('');
+    const modal=$('#pensionLayoffModal');modal.classList.add('open');modal.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';
+  }
+  function closePensionLayoffModal(){const modal=$('#pensionLayoffModal');if(!modal)return;modal.classList.remove('open');modal.setAttribute('aria-hidden','true');document.body.style.overflow=''}
+  function pensionLayoffScenarioRowHtml(p,subsidy52,year,isHistorical=false){
+    const dismissalDate=new Date(year,0,1);
+    const ordinaryAge=pensionLayoffActualOrdinaryAge(p,dismissalDate,subsidy52),ordinaryDate=pensionRetirementMonth(p,ordinaryAge);
+    const ordinary=pensionLayoffCalcAtDate(p,dismissalDate,ordinaryDate,subsidy52);
+    const involInfo=pensionFindFirstEarlyDate(p,dismissalDate,subsidy52,'involuntary');
+    const voluntaryInfo=pensionFindFirstEarlyDate(p,dismissalDate,subsidy52,'voluntary');
+    const invol=pensionLayoffEarlyAmount(p,dismissalDate,subsidy52,involInfo,'involuntary');
+    const voluntary=pensionLayoffEarlyAmount(p,dismissalDate,subsidy52,voluntaryInfo,'voluntary');
+    const meta=(yearValue,text)=>`<small class="pension-layoff-meta"><b class="pension-layoff-year">${yearValue}</b><span class="pension-layoff-meta-text">· ${text}</span></small>`;
+    const ordinaryMeta=meta(ordinaryDate.getFullYear(),`${pensionRetirementMonthName(ordinaryDate)} · ${pensionYearsText(ordinary.contributionMonths)} cotizados`);
+    let earlyStrong='--',earlyMeta='<small>No alcanza los requisitos con este supuesto</small>',earlyExtra='Suponiendo cese apto para anticipada involuntaria';
+    if(invol){
+      earlyStrong=eur0.format(invol.amount);
+      earlyMeta=meta(invol.date.getFullYear(),`${pensionRetirementMonthName(invol.date)} · ${pensionYearsText(invol.contributionMonths)} cotizados`);
+      earlyExtra=`Reducción -${formatSmartNumber(invol.reduction,2)} % · ≈ ${eur0.format(invol.todayMoney)} en euros de hoy${invol.earlyCapApplied?' · tope máximo aplicado':''}`;
+    }
+    let voluntaryStrong='--',voluntaryMeta='<small>No alcanza los requisitos con este supuesto</small>',voluntaryExtra='Vía general · hasta 2 años antes';
+    if(voluntary){
+      voluntaryStrong=eur0.format(voluntary.amount);
+      voluntaryMeta=meta(voluntary.date.getFullYear(),`${pensionRetirementMonthName(voluntary.date)} · ${pensionYearsText(voluntary.contributionMonths)} cotizados`);
+      voluntaryExtra=`Reducción -${formatSmartNumber(voluntary.reduction,2)} % · ≈ ${eur0.format(voluntary.todayMoney)} en euros de hoy${voluntary.earlyCapApplied?' · tope máximo aplicado':''}`;
+    }
+    return `<article class="pension-layoff-row${isHistorical?' historical':''}"><div class="pension-layoff-row-head"><h4>${isHistorical?'Si te hubieran despedido en ': 'Si te despiden en '}${year}...</h4><button class="pension-info-btn" type="button" data-layoff-info-year="${year}" aria-label="Ver cotizaciones del escenario ${year}" title="Ver desglose">i</button></div><div class="pension-layoff-cards"><div class="pension-layoff-card"><span>Jubilación ordinaria</span><strong>${eur0.format(ordinary.monthly)}</strong>${ordinaryMeta}<em>≈ ${eur0.format(ordinary.todayMoney)} en euros de hoy${ordinary.theoretical>ordinary.max?' · tope máximo aplicado':''}</em></div><div class="pension-layoff-card early${invol?'':' unavailable'}"><span>Primera anticipada</span><strong>${earlyStrong}</strong>${earlyMeta}<em>${earlyExtra}</em></div><div class="pension-layoff-card voluntary${voluntary?'':' unavailable'}"><span>Primera voluntaria</span><strong>${voluntaryStrong}</strong>${voluntaryMeta}<em>${voluntaryExtra}</em></div></div></article>`;
+  }
+  function bindPensionLayoffInfoButtons(scope){
+    scope?.querySelectorAll('[data-layoff-info-year]').forEach(btn=>btn.addEventListener('click',()=>openPensionLayoffModal(Number(btn.dataset.layoffInfoYear))));
+  }
+  function renderPensionLayoffScenario(){
+    const container=$('#pensionLayoffRows'),history=$('#pensionLayoffHistory'),historyRows=$('#pensionLayoffHistoryRows');if(!container)return;
+    const p=pensionPrincipalState(),subsidy52=!!pensionLayoffSettings.subsidy52;updatePensionViewLabels();
+    if($('#pensionLayoffSubsidy52'))$('#pensionLayoffSubsidy52').checked=subsidy52;
+    const currentYear=todayLocal().getFullYear();
+    const startYear=Math.max(2028,currentYear+1),endYear=(Number(p.birthYear)||1972)+65-2;
+    const activeHtml=[];
+    for(let year=startYear;year<=endYear;year++)activeHtml.push(pensionLayoffScenarioRowHtml(p,subsidy52,year,false));
+    container.innerHTML=activeHtml.length?activeHtml.join(''):'<section class="panel pension-layoff-head"><p>No quedan años futuros completos con margen para modelar el despido el 1 de enero.</p></section>';
+    bindPensionLayoffInfoButtons(container);
+
+    const historicEnd=Math.min(currentYear,endYear),historicHtml=[];
+    for(let year=historicEnd;year>=2028;year--)historicHtml.push(pensionLayoffScenarioRowHtml(p,subsidy52,year,true));
+    if(history && historyRows){
+      history.hidden=!historicHtml.length;
+      historyRows.innerHTML=historicHtml.join('');
+      bindPensionLayoffInfoButtons(historyRows);
+    }
+  }
+
+  function pensionEarlyAgeText(ordinaryAge,monthsEarly){
+    const total=Math.max(0,Math.round(Number(ordinaryAge||65)*12)-Math.round(Number(monthsEarly)||0));
+    const years=Math.floor(total/12),months=total%12;
+    return `${years} a\u00f1os${months?` y ${months} meses`:''}`;
+  }
+
+  function renderPensionEarlyRetirement(calc,p){
+    const ordinaryDate=pensionRetirementMonth(p,calc.ordinaryAge);
+    const ordinaryCalc=Number(p.targetAge)===calc.ordinaryAge?calc:pensionCalculate({...p,targetAge:calc.ordinaryAge});
+    [24,18,12,6].forEach(offset=>{
+      const amountEl=$(`#pensionEarly${offset}`),metaEl=$(`#pensionEarly${offset}Meta`);
+      const card=amountEl?.closest('.pension-early-card');
+      if(!amountEl || !metaEl)return;
+      const earlyDate=new Date(ordinaryDate.getFullYear(),ordinaryDate.getMonth()-offset,1);
+      const contributionMonths=pensionProjectedContributionMonthsAtDate(p,earlyDate);
+      const reduction=pensionVoluntaryEarlyReduction(contributionMonths,offset);
+      const qualifies=contributionMonths>=420 && ordinaryCalc.baseReg>0 && reduction!=null;
+      if(card)card.classList.toggle('unavailable',!qualifies);
+      if(!qualifies){
+        amountEl.textContent='--';
+        metaEl.textContent=contributionMonths<420?'No alcanza 35 a\u00f1os cotizados':'Faltan datos para estimar';
+        return;
+      }
+      const earlyPercent=pensionPercentage(contributionMonths);
+      const beforeReduction=ordinaryCalc.baseReg*earlyPercent/100;
+      const earlyMax=pensionProjectedMaxMonthly(earlyDate.getFullYear(),p.baseCpi);
+      const amount=Math.min(beforeReduction,earlyMax)*(1-reduction/100);
+      amountEl.textContent=eur0.format(amount);
+      metaEl.innerHTML=`<span class="pension-early-meta"><b class="pension-early-year">${earlyDate.getFullYear()}</b><span class="pension-early-meta-text">· ${pensionRetirementMonthName(earlyDate)} · -${formatSmartNumber(reduction,2)} %</span></span>`;
+    });
+  }
+
+  function pensionBaseForYear(p,year,currentYear){
+    const key=String(year);
+    const monthly=pensionMonthlyBasesForYear(p,year);
+    if(Object.prototype.hasOwnProperty.call(p.annualBases,key)){
+      const source=monthly.length?`Informe TGSS · ${monthly.length} mes${monthly.length===1?'':'es'}`:'Introducida';
+      return {value:Math.max(0,Number(p.annualBases[key])||0),source,kind:'real',override:true};
+    }
+    if(monthly.length){
+      return {value:pensionAnnualAverageFromMonthly(p,year)||0,source:`Informe TGSS · ${monthly.length} mes${monthly.length===1?'':'es'}`,kind:'real',override:true};
+    }
+    const endYear=Number(String(p.contributionEnd||'').slice(0,4))||((Number(p.birthYear)||1972)+(Number(p.targetAge)||65));
+    if(year>endYear)return {value:0,source:'Sin cotizar',kind:'missing',override:false};
+    if(year<currentYear){
+      if(p.historicalBase>0)return {value:p.historicalBase,source:'Media historica',kind:'projected',override:false};
+      return {value:0,source:'Falta dato',kind:'missing',override:false};
+    }
+    if(year===currentYear){
+      if(p.currentBase>0)return {value:p.currentBase,source:'Base actual',kind:'real',override:false};
+      if(p.historicalBase>0)return {value:p.historicalBase,source:'Media historica',kind:'projected',override:false};
+      return {value:0,source:'Falta dato',kind:'missing',override:false};
+    }
+    if(p.currentBase<=0)return {value:0,source:'Falta base actual',kind:'missing',override:false};
+    const yearsAhead=year-currentYear;
+    const value=p.currentBase*Math.pow(1+(Number(p.futureGrowth)||0)/100,yearsAhead);
+    return {value,source:'Proyeccion',kind:'projected',override:false};
+  }
+
+  function pensionUpdatedBase(base,year,retirementYear,cpiPct){
+    const value=Math.max(0,Number(base)||0);
+    if(value<=0)return 0;
+    const targetYear=retirementYear-2;
+    if(year>=targetYear)return value;
+    const years=Math.max(0,targetYear-year);
+    return value*Math.pow(1+(Number(cpiPct)||0)/100,years);
+  }
+
+  // Tope inicial de pensión pública vigente en 2026: 3.359,60 €/mes en 14 pagas.
+  // Desde 2025 la ley prevé que el tope inicial suba con la revalorización general
+  // más 0,115 puntos porcentuales adicionales cada año hasta 2050.
+  const PENSION_MAX_2026_MONTHLY=3359.60;
+  const PENSION_MAX_EXTRA_PCT=0.115;
+
+  function pensionProjectedMaxMonthly(retirementYear,cpiPct){
+    let value=PENSION_MAX_2026_MONTHLY;
+    const end=Math.max(2026,Math.round(Number(retirementYear)||2026));
+    const annualReval=Math.max(0,Number(cpiPct)||0)+PENSION_MAX_EXTRA_PCT;
+    for(let year=2027;year<=end;year++) value*=1+annualReval/100;
+    return value;
+  }
+
+  function pensionCalculate(p=pensionSettings){
+    const currentYear=todayLocal().getFullYear();
+    const retirementYear=(Number(p.birthYear)||1972)+(Number(p.targetAge)||65);
+    const firstYear=retirementYear-29;
+    const rows=[];
+    const months=[];
+    let explicitCount=0;
+    let missingCount=0;
+    for(let year=firstYear;year<=retirementYear-1;year++){
+      const baseInfo=pensionBaseForYear(p,year,currentYear);
+      const updated=pensionUpdatedBase(baseInfo.value,year,retirementYear,p.baseCpi);
+      if(baseInfo.override || baseInfo.source==='Base actual')explicitCount++;
+      if(baseInfo.kind==='missing')missingCount++;
+      rows.push({year,age:year-(Number(p.birthYear)||1972),base:baseInfo.value,updated,source:baseInfo.source,kind:baseInfo.kind,override:baseInfo.override});
+      for(let m=0;m<12;m++)months.push({year,value:updated});
+    }
+    const last300=months.slice(-300);
+    const methodA=last300.reduce((sum,x)=>sum+x.value,0)/350;
+    const best324=[...months].sort((a,b)=>b.value-a.value).slice(0,324);
+    const methodB=best324.reduce((sum,x)=>sum+x.value,0)/378;
+    const baseReg=Math.max(methodA,methodB);
+    const method=methodB>methodA?'B':'A';
+    const contributionMonths=pensionProjectedContributionMonths(p,p.targetAge);
+    const percent=pensionPercentage(contributionMonths);
+    const theoreticalMonthly14=baseReg*percent/100;
+    const maxMonthly14=pensionProjectedMaxMonthly(retirementYear,p.baseCpi);
+    const capApplied=theoreticalMonthly14>maxMonthly14;
+    const monthly14=Math.min(theoreticalMonthly14,maxMonthly14);
+    const annual=monthly14*14;
+    const equivalent12=annual/12;
+    const retirementDate=pensionRetirementMonth(p,p.targetAge);
+    const monthsToRetirement=Math.max(0,monthDiff(monthStart(todayLocal()),retirementDate));
+    const todayMoneyFactor=Math.pow(1+(Number(p.baseCpi)||0)/100,monthsToRetirement/12);
+    const todayMoneyRawMonthly14=todayMoneyFactor>0?monthly14/todayMoneyFactor:monthly14;
+    // Lectura intuitiva "si hoy tuviera la edad de jubilación": además de descontar inflación,
+    // respetamos el tope máximo vigente hoy (2026).
+    const todayMoneyMonthly14=Math.min(todayMoneyRawMonthly14,PENSION_MAX_2026_MONTHLY);
+    const todayMoneyCapApplied=todayMoneyRawMonthly14>PENSION_MAX_2026_MONTHLY;
+    const todayMoneyAnnual=todayMoneyMonthly14*14;
+    const monthsAt65=pensionProjectedContributionMonths(p,65);
+    const ordinaryAge=monthsAt65>=462?65:67;
+    return {currentYear,retirementYear,firstYear,rows,methodA,methodB,baseReg,method,contributionMonths,percent,theoreticalMonthly14,maxMonthly14,capApplied,monthly14,annual,equivalent12,ordinaryAge,explicitCount,missingCount,monthsToRetirement,todayMoneyFactor,todayMoneyRawMonthly14,todayMoneyMonthly14,todayMoneyCapApplied,todayMoneyAnnual};
+  }
+
+  function pensionReadUI(){
+    const contributionEndDate=$('#pensionContributionEnd')?.value;
+    return normalizePensionSettings({
+      birthYear:Number($('#pensionBirthYear')?.value),birthMonth:Number($('#pensionBirthMonth')?.value),targetAge:Number($('#pensionTargetAge')?.value),
+      yearsNow:Number($('#pensionYearsNow')?.value),monthsNow:Number($('#pensionMonthsNow')?.value),contributionEnd:monthValueFromDateInput(contributionEndDate,pensionSettings.contributionEnd),contributionEndDate,
+      currentBase:parseEsAmount($('#pensionCurrentBase')?.value),historicalBase:parseEsAmount($('#pensionHistoricalBase')?.value),
+      futureGrowth:Number($('#pensionFutureGrowth')?.value),baseCpi:Number($('#pensionBaseCpi')?.value),annualBases:pensionSettings.annualBases,
+      monthlyBases:pensionSettings.monthlyBases,basesReport:pensionSettings.basesReport,
+      lifeSummary:pensionSettings.lifeSummary,lifeHistory:pensionSettings.lifeHistory
+    });
+  }
+
+  function pensionApplyUI(){
+    const p=normalizePensionSettings(pensionSettings);pensionSettings=p;
+    if(!$('#pensionBirthYear'))return;
+    $('#pensionBirthYear').value=p.birthYear;$('#pensionBirthMonth').value=String(p.birthMonth);$('#pensionTargetAge').value=String(p.targetAge);
+    $('#pensionYearsNow').value=p.yearsNow;$('#pensionMonthsNow').value=p.monthsNow;$('#pensionContributionEnd').value=p.contributionEndDate || dateValueFromMonthKey(p.contributionEnd);
+    $('#pensionCurrentBase').value=formatEditableAmount(p.currentBase);$('#pensionHistoricalBase').value=formatEditableAmount(p.historicalBase);
+    $('#pensionFutureGrowth').value=p.futureGrowth;$('#pensionBaseCpi').value=p.baseCpi;
+  }
+
+  function pensionYearsText(months){
+    const m=Math.max(0,Math.floor(Number(months)||0));
+    const y=Math.floor(m/12),r=m%12;
+    return `${y} a\u00f1os${r?` y ${r} mes${r===1?'':'es'}`:''}`;
+  }
+
+  function renderPensionBases(calc){
+    const tbody=$('#pensionBasesRows');if(!tbody)return;
+    tbody.innerHTML='';
+    [...calc.rows].reverse().forEach(row=>{
+      const tr=document.createElement('tr');
+      if(row.year===calc.currentYear)tr.classList.add('pension-current');
+      else if(row.year>calc.currentYear)tr.classList.add('pension-future');
+      if(row.kind==='missing')tr.classList.add('pension-zero');
+      const sourceClass=row.kind==='real'?'real':row.kind==='projected'?'projected':'missing';
+      tr.innerHTML=`<td><strong>${row.year}</strong></td><td>${row.age}</td><td><input class="pension-base-input" data-pension-base-year="${row.year}" type="text" inputmode="decimal" autocomplete="off" value="${formatEditableAmount(row.base)}" aria-label="Base de cotizacion ${row.year}"></td><td><strong>${eur0.format(row.updated)}</strong></td><td><span class="pension-source ${sourceClass}">${row.source}</span></td>`;
+      tbody.appendChild(tr);
+    });
+    tbody.querySelectorAll('[data-pension-base-year]').forEach(input=>{
+      input.addEventListener('focus',()=>{
+        const n=parseEsAmount(input.value);input.value=n?String(n).replace('.',','):'';
+      });
+      input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();input.blur()}});
+      input.addEventListener('blur',()=>{
+        const year=input.dataset.pensionBaseYear;
+        const raw=input.value.trim();
+        if(raw==='')delete pensionSettings.annualBases[year];
+        else pensionSettings.annualBases[year]=Math.max(0,parseEsAmount(raw));
+        persistPensionSettingsLocal();
+        pensionRecalc();
+      });
+    });
+  }
+
+  function pensionFormatDate(value){
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(String(value||'')))return '--';
+    const [y,m,d]=String(value).split('-');
+    return `${d}/${m}/${y}`;
+  }
+
+  function pensionExactContributionText(summary,extraDays=0){
+    if(!summary)return '--';
+    let years=Math.max(0,Number(summary.years)||0);
+    let months=Math.max(0,Number(summary.months)||0);
+    let days=Math.max(0,Number(summary.days)||0)+Math.max(0,Math.floor(Number(extraDays)||0));
+    // El informe es una foto fija. Para el periodo abierto usamos una conversión
+    // sencilla de 30 días = 1 mes solo para que el contador visual siga avanzando.
+    if(days>=30){months+=Math.floor(days/30);days%=30}
+    if(months>=12){years+=Math.floor(months/12);months%=12}
+    const parts=[];
+    if(years)parts.push(`${years} año${years===1?'':'s'}`);
+    if(months)parts.push(`${months} mes${months===1?'':'es'}`);
+    if(days)parts.push(`${days} día${days===1?'':'s'}`);
+    const totalDays=Math.max(0,Number(summary.totalDays)||0)+Math.max(0,Math.floor(Number(extraDays)||0));
+    return parts.length?parts.join(' · '):(totalDays?`${formatEsNumber(totalDays,0)} días`:'--');
+  }
+
+  function pensionLifeElapsedDays(summary,history){
+    if(!summary?.asOf || !Array.isArray(history) || !history.some(item=>!item.end))return 0;
+    const reportDate=parseExactDate(summary.asOf);
+    const today=todayLocal();
+    if(!(reportDate instanceof Date) || Number.isNaN(reportDate.getTime()) || today<=reportDate)return 0;
+    return daysBetween(reportDate,today);
+  }
+
+  function renderPensionHistory(){
+    const summary=normalizePensionLifeSummary(pensionSettings.lifeSummary);
+    const history=normalizePensionLifeHistory(pensionSettings.lifeHistory);
+    const elapsedDays=pensionLifeElapsedDays(summary,history);
+    const summaryEl=$('#pensionLifeSummary'),empty=$('#pensionLifeEmpty'),wrap=$('#pensionLifeWrap'),tbody=$('#pensionLifeRows'),chip=$('#pensionLifeReportChip');
+    const hasLife=history.length>0 || !!summary;
+    if(summaryEl)summaryEl.style.display=hasLife?'grid':'none';
+    if(empty)empty.style.display=hasLife?'none':'block';
+    if(wrap)wrap.style.display=history.length?'block':'none';
+    if(chip)chip.textContent=summary?.asOf?`Informe ${pensionFormatDate(summary.asOf)}${elapsedDays?` · +${formatEsNumber(elapsedDays,0)} días`:''}`:(history.length?'Histórico cargado':'Sin histórico');
+    if($('#pensionLifeTotal'))$('#pensionLifeTotal').textContent=pensionExactContributionText(summary,elapsedDays);
+    if($('#pensionLifeAsOf'))$('#pensionLifeAsOf').textContent=pensionFormatDate(summary?.asOf);
+    if($('#pensionLifeFirst'))$('#pensionLifeFirst').textContent=pensionFormatDate(summary?.firstStart || history.map(x=>x.start).filter(Boolean).sort()[0]);
+    if($('#pensionLifeCurrent'))$('#pensionLifeCurrent').textContent=pensionFormatDate(summary?.currentSince || history.find(x=>!x.end)?.start);
+    if(tbody){
+      tbody.innerHTML='';
+      [...history].sort((a,b)=>String(b.start||'').localeCompare(String(a.start||''))).forEach(item=>{
+        const tr=document.createElement('tr');
+        const values=[
+          pensionFormatDate(item.start),
+          item.end?pensionFormatDate(item.end):'Actual',
+          item.label||'--',
+          item.regime||'--',
+          item.group||'--',
+          item.days?formatEsNumber(item.days+(!item.end?elapsedDays:0),0):'--'
+        ];
+        values.forEach((value,index)=>{const td=document.createElement('td');td.textContent=value;if(index===2)td.title=item.effectiveStart && item.effectiveStart!==item.start?`Efecto de alta: ${pensionFormatDate(item.effectiveStart)}`:'';tr.appendChild(td)});
+        tbody.appendChild(tr);
+      });
+    }
+
+    const currentYear=todayLocal().getFullYear();
+    const monthlyGroups={};
+    Object.entries(pensionSettings.monthlyBases||{}).forEach(([month,value])=>{
+      const year=Number(String(month).slice(0,4));
+      if(!year || year>currentYear || !(Number(value)>0))return;
+      (monthlyGroups[year] ||= []).push(Number(value));
+    });
+    const annualEntries=Object.entries(pensionSettings.annualBases||{})
+      .map(([year,value])=>({year:Number(year),value:Number(value)||0}))
+      .filter(x=>x.year<=currentYear && x.value>0);
+    const yearSet=new Set([...Object.keys(monthlyGroups).map(Number),...annualEntries.map(x=>x.year)]);
+    const annualMap=new Map(annualEntries.map(x=>[x.year,x.value]));
+    const realBases=[...yearSet].sort((a,b)=>b-a).map(year=>{
+      const vals=monthlyGroups[year]||[];
+      const value=vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:(annualMap.get(year)||0);
+      return {year,value,months:vals.length,source:vals.length?'Informe TGSS':'JSON / manual'};
+    }).filter(x=>x.value>0);
+    const basesEmpty=$('#pensionRealBasesEmpty'),basesWrap=$('#pensionRealBasesWrap'),basesBody=$('#pensionRealBasesRows'),basesCount=$('#pensionRealBasesCount');
+    if(basesEmpty)basesEmpty.style.display=realBases.length?'none':'block';
+    if(basesWrap)basesWrap.style.display=realBases.length?'block':'none';
+    const report=normalizePensionBasesReport(pensionSettings.basesReport);
+    const monthCount=Object.keys(pensionSettings.monthlyBases||{}).length;
+    if(basesCount)basesCount.textContent=realBases.length?`${realBases.length} años${monthCount?` · ${monthCount} meses`:''}`:'0 años';
+    if(basesBody){
+      basesBody.innerHTML='';
+      realBases.forEach(row=>{
+        const tr=document.createElement('tr');
+        const monthText=row.months?`${row.months} / 12`:'--';
+        const sourceText=report?.asOf && row.source==='Informe TGSS'?`TGSS · ${pensionFormatDate(report.asOf)}`:row.source;
+        const values=[String(row.year),String(row.year-(Number(pensionSettings.birthYear)||1972)),eur0.format(row.value),monthText,sourceText];
+        values.forEach((value,index)=>{const td=document.createElement('td');if(index===4){const span=document.createElement('span');span.className='pension-history-source';span.textContent=value;td.appendChild(span)}else td.textContent=value;tr.appendChild(td)});
+        basesBody.appendChild(tr);
+      });
+    }
+  }
+
+  function pensionHistoryPayload(parsed){
+    if(!parsed || typeof parsed!=='object' || Array.isArray(parsed))throw new Error('JSON de histórico no reconocido');
+    const kind=String(parsed.kind||'');
+    if(kind && kind!=='dashboard-financiero-pension-history')throw new Error('Este JSON no es un histórico de Pensión');
+    const source=(parsed.profile && typeof parsed.profile==='object')?parsed.profile:parsed;
+    const annualBases={...(pensionSettings.annualBases||{})};
+    if(source.annualBases && typeof source.annualBases==='object' && !Array.isArray(source.annualBases)){
+      Object.entries(source.annualBases).forEach(([year,value])=>{if(/^\d{4}$/.test(String(year)) && Number(value)>=0)annualBases[String(year)]=Number(value)});
+    }
+    const monthlyBases={...(pensionSettings.monthlyBases||{}),...normalizePensionMonthlyBases(source.monthlyBases)};
+    const basesReport=source.basesReport ?? pensionSettings.basesReport;
+    const birthYear=source.birthYear ?? pensionSettings.birthYear;
+    const birthMonth=source.birthMonth ?? pensionSettings.birthMonth;
+    const targetAge=source.targetAge ?? pensionSettings.targetAge;
+    const contributionEnd=source.contributionEnd ?? ((source.birthYear!=null || source.birthMonth!=null)?pensionMonthKey(new Date(Number(birthYear)+Number(targetAge||65),Number(birthMonth)-1,1)):pensionSettings.contributionEnd);
+    const merged=normalizePensionSettings({
+      ...pensionSettings,
+      birthYear,birthMonth,targetAge,contributionEnd,
+      yearsNow:source.yearsNow ?? source.lifeSummary?.years ?? pensionSettings.yearsNow,
+      monthsNow:source.monthsNow ?? source.lifeSummary?.months ?? pensionSettings.monthsNow,
+      currentBase:source.currentBase ?? pensionSettings.currentBase,
+      historicalBase:source.historicalBase ?? pensionSettings.historicalBase,
+      annualBases,monthlyBases,basesReport,
+      lifeSummary:source.lifeSummary ?? pensionSettings.lifeSummary,
+      lifeHistory:source.lifeHistory ?? pensionSettings.lifeHistory
+    });
+    return {caseName:String(parsed.caseName||'Javi Real').trim().slice(0,80)||'Javi Real',state:merged};
+  }
+
+  async function importPensionHistoryFile(file){
+    if(!file)return;
+    try{
+      const parsed=JSON.parse(await file.text());
+      const payload=pensionHistoryPayload(parsed);
+      const now=new Date().toISOString();
+      let existing=pensionCases.find(c=>c.name.trim().toLocaleLowerCase('es-ES')===payload.caseName.toLocaleLowerCase('es-ES'));
+      if(existing){existing.state=payload.state;existing.updatedAt=now;activePensionCaseId=existing.id}
+      else{
+        existing={id:newId(),name:payload.caseName,state:payload.state,createdAt:now,updatedAt:now};
+        pensionCases.push(existing);activePensionCaseId=existing.id;
+      }
+      pensionSettings=normalizePensionSettings(existing.state);
+      persistPensionSettingsLocal();persistPensionCasesLocal();pensionApplyUI();pensionRecalc();renderPensionCases();
+      if($('#pensionCaseName'))$('#pensionCaseName').value=existing.name;
+      setPensionCaseStatus('Histórico importado · escenario guardado','ok');
+      scheduleGistAutoSync();
+    }catch(e){
+      setPensionCaseStatus(e.message||'No se pudo importar el histórico','error');
+    }finally{
+      const input=$('#pensionHistoryFile');if(input)input.value='';
+    }
+  }
+
+  function duplicatePensionCase(){
+    const base=activePensionCaseId?pensionCases.find(c=>c.id===activePensionCaseId):null;
+    const state=normalizePensionSettings(base?.state||pensionSettings);
+    const now=new Date().toISOString();
+    const baseName=(base?.name||$('#pensionCaseName')?.value.trim()||'Escenario').replace(/\s+·\s+copia(?:\s+\d+)?$/i,'');
+    let name=`${baseName} · copia`,n=2;
+    while(pensionCases.some(c=>c.name.toLocaleLowerCase('es-ES')===name.toLocaleLowerCase('es-ES')))name=`${baseName} · copia ${n++}`;
+    const item={id:newId(),name,state,createdAt:now,updatedAt:now};
+    pensionCases.push(item);activePensionCaseId=item.id;pensionSettings=normalizePensionSettings(state);
+    persistPensionCasesLocal();persistPensionSettingsLocal();pensionApplyUI();pensionRecalc();renderPensionCases();
+    $('#pensionCaseName').value=name;setPensionCaseStatus('Escenario duplicado · cambia solo lo que quieras','ok');scheduleGistAutoSync();
+  }
+
+  function pensionRecalc(){
+    if(!$('#pensionBirthYear'))return;
+    pensionSettings=pensionReadUI();
+    const calc=pensionCalculate(pensionSettings);
+    $('#pensionMonthly').textContent=calc.baseReg>0?eur0.format(calc.monthly14):'--';
+    $('#pensionMonthlyMeta').textContent=calc.baseReg>0
+      ? (calc.capApplied?`14 pagas · tope proyectado ${eur0.format(calc.maxMonthly14)}`:'14 pagas · sin alcanzar el tope')
+      : '14 pagas';
+    $('#pensionAnnual').textContent=calc.baseReg>0?eur0.format(calc.annual):'--';
+    $('#pensionTodayMoney').textContent=calc.baseReg>0?eur0.format(calc.todayMoneyMonthly14):'--';
+    $('#pensionTodayMoneyMeta').textContent=calc.baseReg>0
+      ? `por paga · euros de ${todayLocal().getFullYear()} · IPC ${formatSmartNumber(pensionSettings.baseCpi,1)} %${calc.todayMoneyCapApplied?' · tope actual aplicado':''}`
+      : 'equivalente en euros actuales';
+    $('#pensionPercent').textContent=calc.percent>0?`${formatSmartNumber(calc.percent,2)} %`:'--';
+    $('#pensionYearsProjected').textContent=pensionYearsText(calc.contributionMonths);
+    $('#pensionOrdinaryAge').textContent=`${calc.ordinaryAge} a\u00f1os`;
+    $('#pensionMethodA').textContent=calc.methodA>0?eur0.format(calc.methodA):'--';
+    $('#pensionMethodB').textContent=calc.methodB>0?eur0.format(calc.methodB):'--';
+    $('#pensionMethodFinal').textContent=calc.baseReg>0?eur0.format(calc.monthly14):'--';
+    $('#pensionDataCoverage').textContent=`${calc.explicitCount} / 29`;
+    $('#pensionMethodChip').textContent=calc.baseReg>0?`Metodo ${calc.method} mas favorable`:'Esperando bases';
+    $('#pensionRetirementYearChip').textContent=`Jubilacion ${calc.retirementYear}`;
+    renderPensionEarlyRetirement(calc,pensionSettings);
+    $('#pensionDataStatus').textContent=calc.missingCount
+      ? `${calc.missingCount} a\u00f1o${calc.missingCount===1?'':'s'} sin base: se computan como 0 en esta aproximacion. Completa la tabla o usa una base historica media.`
+      : 'Serie completa para la aproximacion anual.';
+
+    const status=$('#pensionStatusCard');
+    const title=$('#pensionEligibilityTitle'),text=$('#pensionEligibilityText');
+    status.classList.remove('warn','error');
+    if(calc.contributionMonths<180){
+      status.classList.add('error');title.textContent='Faltan cotizaciones para el minimo contributivo';
+      text.textContent='Con los datos introducidos no se alcanzan 15 a\u00f1os cotizados en la fecha simulada.';
+    }else if(Number(pensionSettings.targetAge)===65 && calc.ordinaryAge!==65){
+      status.classList.add('warn');title.textContent='A los 65 no seria la edad ordinaria con este escenario';
+      text.textContent='Con la regla vigente desde 2027 se necesitan 38 a\u00f1os y 6 meses cotizados para que la edad ordinaria sea 65.';
+    }else{
+      title.textContent=`Escenario a ${pensionSettings.targetAge} a\u00f1os · ${pensionYearsText(calc.contributionMonths)} cotizados`;
+      text.textContent=calc.baseReg>0
+        ? (calc.capApplied
+          ? `Estimación bruta antes de IRPF · el cálculo teórico (${eur0.format(calc.theoreticalMonthly14)}) supera el tope máximo proyectado y se limita a ${eur0.format(calc.maxMonthly14)} por paga.`
+          : 'Estimacion bruta antes de IRPF. Puedes guardar este escenario y crear otro para comparar supuestos.')
+        : 'Introduce al menos una base de cotizacion para obtener una cuantia.';
+    }
+    renderPensionBases(calc);
+    renderPensionHistory();
+    persistPensionSettingsLocal();
+    autoSaveActivePensionCase();
+    updatePensionViewLabels();
+    if(pensionViewMode==='layoff')renderPensionLayoffScenario();
+  }
+
+  function renderPensionCases(){
+    const list=$('#pensionCaseList'),count=$('#pensionCaseCount');if(!list||!count)return;
+    updatePensionViewLabels();
+    const items=[...pensionCases].sort((a,b)=>String(b.updatedAt).localeCompare(String(a.updatedAt)));
+    count.textContent=String(items.length);list.innerHTML='';
+    const active=items.find(x=>x.id===activePensionCaseId);
+    if($('#pensionCaseName') && document.activeElement!==$('#pensionCaseName'))$('#pensionCaseName').value=active?.name||'';
+    if(!items.length){const empty=document.createElement('div');empty.className='payroll-case-empty';empty.textContent='Sin escenarios guardados';list.appendChild(empty);return}
+    items.forEach(c=>{
+      const row=document.createElement('div');row.className='payroll-case-item'+(c.id===activePensionCaseId?' active':'');
+      const load=document.createElement('button');load.type='button';load.className='payroll-case-load';load.title=c.name;
+      const strong=document.createElement('strong');strong.textContent=c.name;load.appendChild(strong);load.addEventListener('click',()=>loadPensionCase(c.id));
+      const del=document.createElement('button');del.type='button';del.className='payroll-case-delete';del.title='Eliminar escenario';del.setAttribute('aria-label',`Eliminar ${c.name}`);del.textContent='x';
+      del.addEventListener('click',e=>{e.stopPropagation();deletePensionCase(c.id)});
+      row.append(load,del);list.appendChild(row);
+    });
+  }
+
+  function loadPensionCase(id){
+    const c=pensionCases.find(x=>x.id===id);if(!c)return;
+    isLoadingPensionCase=true;activePensionCaseId=c.id;pensionSettings=normalizePensionSettings(c.state);persistPensionSettingsLocal();pensionApplyUI();pensionRecalc();isLoadingPensionCase=false;
+    $('#pensionCaseName').value=c.name;renderPensionCases();setPensionCaseStatus('Escenario cargado','ok');
+  }
+
+  async function savePensionCase(){
+    const input=$('#pensionCaseName'),name=input.value.trim();
+    if(!name){setPensionCaseStatus('Pon un nombre al escenario','error');input.focus();return}
+    pensionRecalc();const now=new Date().toISOString();
+    let existing=activePensionCaseId?pensionCases.find(c=>c.id===activePensionCaseId):null;
+    if(!existing)existing=pensionCases.find(c=>c.name.trim().toLocaleLowerCase('es-ES')===name.toLocaleLowerCase('es-ES'));
+    if(existing){existing.name=name;existing.state=normalizePensionSettings(pensionSettings);existing.updatedAt=now;activePensionCaseId=existing.id}
+    else{const id=newId();pensionCases.push({id,name,state:normalizePensionSettings(pensionSettings),createdAt:now,updatedAt:now});activePensionCaseId=id}
+    persistPensionCasesLocal();renderPensionCases();setPensionCaseStatus('Guardado · autosave activo','ok');
+    const token=$('#gistToken')?.value.trim();if(token){try{await syncCasesToGist(true);setPensionCaseStatus('Guardado + Gist','ok')}catch(e){setPensionCaseStatus('Guardado local; Gist con error','error')}}
+  }
+
+  async function deletePensionCase(id){
+    const c=pensionCases.find(x=>x.id===id);if(!c)return;
+    if(!confirm(`Seguro que quieres eliminar "${c.name}"?`))return;
+    pensionCases=pensionCases.filter(x=>x.id!==id);if(activePensionCaseId===id)activePensionCaseId=null;
+    persistPensionCasesLocal();renderPensionCases();setPensionCaseStatus('Escenario eliminado','ok');
+    const token=$('#gistToken')?.value.trim();if(token){try{await syncCasesToGist(true)}catch(e){}}
+  }
+
+  function newPensionCase(){
+    isLoadingPensionCase=true;activePensionCaseId=null;pensionSettings=normalizePensionSettings(PENSION_DEFAULTS);persistPensionSettingsLocal();pensionApplyUI();pensionRecalc();isLoadingPensionCase=false;
+    $('#pensionCaseName').value='';renderPensionCases();setPensionCaseStatus('Nuevo escenario');
+  }
+
+  function autoSaveActivePensionCase(){
+    if(isLoadingPensionCase || !activePensionCaseId)return;
+    const c=pensionCases.find(x=>x.id===activePensionCaseId);if(!c)return;
+    c.state=normalizePensionSettings(pensionSettings);c.updatedAt=new Date().toISOString();persistPensionCasesLocal();renderPensionCases();setPensionCaseStatus('Guardado automaticamente','ok');scheduleGistAutoSync();
+  }
+
   function setCaseStatus(text,type=''){
     const el=$('#caseStatus');
     if(!el)return;
@@ -2438,7 +4146,7 @@
 
   function scheduleGistAutoSync(){
     const token=$('#gistToken')?.value.trim();
-    if(!token || gistBootstrapping || !gistRemoteReadyThisSession)return;
+    if(!token)return;
     clearTimeout(gistAutoSyncTimer);
     gistAutoSyncTimer=setTimeout(()=>{
       syncCasesToGist(true).catch(e=>setGistStatus(e.message || 'No se pudo sincronizar','error'));
@@ -2696,144 +4404,27 @@ No se borrará hasta que confirmes este mensaje.`))return;
     return h;
   }
 
-  function readRememberedGistRemoteState(){
-    try{
-      const raw=safeStorageGet(localStorage,GIST_REMOTE_STATE_STORAGE_KEY);
-      if(!raw)return null;
-      const data=JSON.parse(raw);
-      if(!data || !data.id)return null;
-      return {id:String(data.id),updatedAt:String(data.updatedAt||'')};
-    }catch(e){
-      return null;
-    }
-  }
-
-  function rememberGistRemoteState(gist){
-    if(!gist?.id)return;
-    safeStorageSet(localStorage,GIST_REMOTE_STATE_STORAGE_KEY,JSON.stringify({
-      id:String(gist.id),
-      updatedAt:String(gist.updated_at||'')
-    }));
-  }
-
-  function clearRememberedGistRemoteState(){
-    try{localStorage.removeItem(GIST_REMOTE_STATE_STORAGE_KEY);}catch(e){}
+  function pensionSettingsForGist(){
+    const p=normalizePensionSettings(pensionSettings);
+    // El histórico personal y las bases reales viven solo dentro de pensionCases.
+    // Así el escenario (p. ej. "Javi Real") es la única copia sincronizada al Gist.
+    return {...p,annualBases:{},lifeSummary:null,lifeHistory:[]};
   }
 
   function gistDocument(){
     return {
-      schemaVersion:1,
+      schemaVersion:4,
       app:'Dashboard financiero',
       updatedAt:new Date().toISOString(),
       cases:savedCases,
       projectionSettings,
       payrollSettings,
-      payrollCases
+      payrollCases,
+      pensionSettings:pensionSettingsForGist(),
+      pensionCases,
+      pensionLayoffSettings,
+      layoffCashSettings
     };
-  }
-
-  function dashboardBackupDocument(){
-    const doc=gistDocument();
-    return {
-      ...doc,
-      backupType:'dashboard-financiero-json-backup',
-      backupCreatedAt:new Date().toISOString()
-    };
-  }
-
-  function downloadDashboardBackupJson(){
-    try{
-      const payload=dashboardBackupDocument();
-      const json=JSON.stringify(payload,null,2);
-      const blob=new Blob([json],{type:'application/json;charset=utf-8'});
-      const url=URL.createObjectURL(blob);
-      const a=document.createElement('a');
-      const d=new Date();
-      const stamp=[
-        d.getFullYear(),
-        String(d.getMonth()+1).padStart(2,'0'),
-        String(d.getDate()).padStart(2,'0')
-      ].join('-');
-      a.href=url;
-      a.download=`dashboard-financiero-backup-${stamp}.json`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(()=>URL.revokeObjectURL(url),0);
-      setGistStatus('JSON descargado · copia local creada','ok');
-    }catch(e){
-      setGistStatus(e.message || 'No se pudo descargar el JSON','error');
-    }
-  }
-
-  function applyDashboardBackupDocument(parsed,{confirmReplace=true}={}){
-    const incoming=Array.isArray(parsed)
-      ? parsed
-      : (Array.isArray(parsed?.cases)?parsed.cases:null);
-
-    if(!incoming) throw new Error('Formato de JSON no reconocido');
-
-    if(confirmReplace){
-      if(!confirm(
-        'Esto sustituirá los datos locales del Dashboard por los del JSON seleccionado.\\n\\nEl token de GitHub NO se modificará. ¿Continuar?'
-      )){
-        return false;
-      }
-    }
-
-    savedCases=incoming
-      .filter(c=>c && c.id && c.name && (c.calculatorId==='mortgage'||c.calculatorId==='personal'))
-      .map(c=>({
-        id:String(c.id),
-        name:String(c.name).slice(0,80),
-        calculatorId:c.calculatorId,
-        state:normalizeCaseState(c.state,c.calculatorId),
-        createdAt:c.createdAt || new Date().toISOString(),
-        updatedAt:c.updatedAt || c.createdAt || new Date().toISOString()
-      }));
-
-    if(parsed && !Array.isArray(parsed) && parsed.projectionSettings){
-      projectionSettings=normalizeProjectionSettings(parsed.projectionSettings);
-      persistProjectionSettingsLocal();
-    }
-
-    if(parsed && !Array.isArray(parsed) && parsed.payrollSettings){
-      payrollSettings=normalizePayrollSettings(parsed.payrollSettings);
-      persistPayrollSettingsLocal();
-      payrollApplyUI();
-      payrollRecalc();
-    }
-
-    if(parsed && !Array.isArray(parsed) && Array.isArray(parsed.payrollCases)){
-      payrollCases=parsed.payrollCases.map(normalizePayrollCase).filter(Boolean);
-      activePayrollCaseId=null;
-      persistPayrollCasesLocal();
-      renderPayrollCases();
-    }
-
-    activeSavedCaseIds.mortgage=null;
-    activeSavedCaseIds.personal=null;
-    allCasesView.mortgage=canUseAllCases('mortgage');
-    allCasesView.personal=canUseAllCases('personal');
-    persistSavedCasesLocal();
-    loadCalculatorState(activeCalculatorId);
-    return true;
-  }
-
-  async function importDashboardBackupJson(file){
-    if(!file)return;
-    try{
-      const text=await file.text();
-      const parsed=JSON.parse(text);
-      const applied=applyDashboardBackupDocument(parsed,{confirmReplace:true});
-      if(!applied){
-        setGistStatus('Importación JSON cancelada');
-        return;
-      }
-      setGistStatus('JSON importado · datos restaurados localmente','ok');
-    }catch(e){
-      setGistStatus(e.message || 'No se pudo importar el JSON','error');
-    }
   }
 
   async function githubFetch(url,options={}){
@@ -2899,7 +4490,7 @@ No se borrará hasta que confirmes este mensaje.`))return;
     }
 
     isSyncingGist=true;
-    safeStorageSet(localStorage,GIST_TOKEN_STORAGE_KEY,token);
+    safeStorageSet(sessionStorage,GIST_TOKEN_SESSION_KEY,token);
 
     try{
       const content=JSON.stringify(gistDocument(),null,2);
@@ -2911,24 +4502,7 @@ No se borrará hasta que confirmes este mensaje.`))return;
       let data;
 
       if(existing?.id){
-        const seen=readRememberedGistRemoteState();
-
-        if(!gistRemoteReadyThisSession){
-          setGistStatus('Protección activa: primero hay que cargar el Gist remoto en esta sesión. No se ha escrito nada.','error');
-          throw new Error('Primero carga el Gist remoto');
-        }
-
-        if(!seen || seen.id!==String(existing.id)){
-          setGistStatus('Este navegador aún no ha validado el Gist remoto. No se ha escrito nada.','error');
-          throw new Error('Primero carga el Gist remoto');
-        }
-
-        if(existing.updated_at && seen.updatedAt && String(existing.updated_at)!==String(seen.updatedAt)){
-          setGistStatus('El Gist ha cambiado desde otro navegador o dispositivo. Cárgalo primero para no sobrescribir esos cambios.','error');
-          throw new Error('El Gist remoto tiene cambios más recientes');
-        }
-
-        setGistStatus('Guardando en Gist…');
+        setGistStatus('Sincronizando…');
         const res=await githubFetch(`https://api.github.com/gists/${encodeURIComponent(existing.id)}`,{
           method:'PATCH',
           headers:gistHeaders(token,true),
@@ -2952,12 +4526,9 @@ No se borrará hasta que confirmes este mensaje.`))return;
         data=await res.json();
       }
 
-      if(data?.id){
-        safeStorageSet(localStorage,GIST_ID_STORAGE_KEY,data.id);
-        rememberGistRemoteState(data);
-        gistRemoteReadyThisSession=true;
-      }
-      setGistStatus(`Guardado en Gist · ${savedCases.length} caso${savedCases.length===1?'':'s'}`,'ok');
+      if(data?.id) safeStorageSet(localStorage,GIST_ID_STORAGE_KEY,data.id);
+      const totalItems=savedCases.length+payrollCases.length+pensionCases.length;
+      setGistStatus(`Sincronizado · ${totalItems} escenario${totalItems===1?'':'s'}`,'ok');
       return data;
     }finally{
       isSyncingGist=false;
@@ -2971,53 +4542,39 @@ No se borrará hasta que confirmes este mensaje.`))return;
     }
   }
 
-  async function pullCasesFromGist(options={}){
-    const {
-      confirmReplace=true,
-      startup=false,
-      quietMissing=false
-    }=options;
-
+  async function pullCasesFromGist(){
     const token=$('#gistToken').value.trim();
     if(!token){
-      if(!startup){
-        setGistStatus('Falta el token de GitHub','error');
-        $('#gistToken').focus();
-      }
-      return false;
+      setGistStatus('Falta el token de GitHub','error');
+      $('#gistToken').focus();
+      return;
     }
 
-    safeStorageSet(localStorage,GIST_TOKEN_STORAGE_KEY,token);
-    setGistStatus(startup ? 'Cargando datos del Gist…' : 'Buscando Gist…');
+    safeStorageSet(sessionStorage,GIST_TOKEN_SESSION_KEY,token);
+    setGistStatus('Buscando Gist…');
 
     try{
-      const discovered=await findDashboardGist(token);
-      if(!discovered?.id){
-        gistRemoteReadyThisSession=false;
-        if(!quietMissing){
-          setGistStatus('No existe todavía un Gist del dashboard con este token.','error');
-        }
-        return false;
+      const gist=await findDashboardGist(token);
+      if(!gist?.id){
+        setGistStatus('Todavía no existe un Gist del dashboard. Guarda o sincroniza un caso primero.','error');
+        return;
       }
 
-      safeStorageSet(localStorage,GIST_ID_STORAGE_KEY,discovered.id);
+      safeStorageSet(localStorage,GIST_ID_STORAGE_KEY,gist.id);
 
-      // La lista de Gists sirve para localizar el ID.
-      // Para leer el JSON pedimos SIEMPRE el Gist completo por ID.
-      const fullResponse=await githubFetch(
-        `https://api.github.com/gists/${encodeURIComponent(discovered.id)}`,
-        {
+      let file=gist?.files?.[GIST_FILE_NAME];
+      if(!file){
+        const res=await githubFetch(`https://api.github.com/gists/${encodeURIComponent(gist.id)}`,{
           method:'GET',
           headers:gistHeaders(token,false)
-        }
-      );
-      const gist=await fullResponse.json();
-
-      const file=gist?.files?.[GIST_FILE_NAME];
+        });
+        const full=await res.json();
+        file=full?.files?.[GIST_FILE_NAME];
+      }
       if(!file) throw new Error(`El Gist no contiene ${GIST_FILE_NAME}`);
 
       let content=file.content;
-      if((file.truncated || typeof content!=='string') && file.raw_url){
+      if(file.truncated && file.raw_url){
         const raw=await githubFetch(file.raw_url,{
           method:'GET',
           headers:{'Authorization':'Bearer '+token}
@@ -3025,19 +4582,13 @@ No se borrará hasta que confirmes este mensaje.`))return;
         content=await raw.text();
       }
 
-      if(typeof content!=='string' || !content.trim()){
-        throw new Error('El archivo del Gist no contiene datos legibles');
-      }
-
       const parsed=JSON.parse(content);
       const incoming=Array.isArray(parsed)?parsed:(Array.isArray(parsed?.cases)?parsed.cases:null);
       if(!incoming) throw new Error('Formato de Gist no reconocido');
 
-      if(confirmReplace && savedCases.length && !confirm(
-        'Se cargarán en este navegador los datos guardados en el Gist. Los datos locales del Dashboard serán sustituidos por esa copia remota. ¿Continuar?'
-      )){
-        setGistStatus('Carga del Gist cancelada');
-        return false;
+      if((savedCases.length || payrollCases.length || pensionCases.length) && !confirm('Esto sustituirá los casos y escenarios guardados en este navegador por los del Gist. ¿Continuar?')){
+        setGistStatus('Importación cancelada');
+        return;
       }
 
       savedCases=incoming
@@ -3055,90 +4606,82 @@ No se borrará hasta que confirmes este mensaje.`))return;
         projectionSettings=normalizeProjectionSettings(parsed.projectionSettings);
         persistProjectionSettingsLocal();
       }
-
       if(parsed && !Array.isArray(parsed) && parsed.payrollSettings){
         payrollSettings=normalizePayrollSettings(parsed.payrollSettings);
         persistPayrollSettingsLocal();
         payrollApplyUI();
         payrollRecalc();
       }
-
       if(parsed && !Array.isArray(parsed) && Array.isArray(parsed.payrollCases)){
         payrollCases=parsed.payrollCases.map(normalizePayrollCase).filter(Boolean);
         activePayrollCaseId=null;
         persistPayrollCasesLocal();
         renderPayrollCases();
       }
+      if(parsed && !Array.isArray(parsed) && parsed.pensionSettings){
+        pensionSettings=normalizePensionSettings(parsed.pensionSettings);
+        persistPensionSettingsLocal();
+        pensionApplyUI();
+        pensionRecalc();
+      }
+      if(parsed && !Array.isArray(parsed) && Array.isArray(parsed.pensionCases)){
+        pensionCases=parsed.pensionCases.map(normalizePensionCase).filter(Boolean);
+        activePensionCaseId=null;
+        persistPensionCasesLocal();
+        renderPensionCases();
+      }
+      if(parsed && !Array.isArray(parsed) && parsed.pensionLayoffSettings){
+        pensionLayoffSettings={subsidy52:!!parsed.pensionLayoffSettings.subsidy52};
+        persistPensionLayoffSettingsLocal();
+      }
+      if(parsed && !Array.isArray(parsed) && parsed.layoffCashSettings){
+        layoffCashSettings=normalizeLayoffCashSettings(parsed.layoffCashSettings);
+        persistLayoffCashSettingsLocal();
+        layoffCashApplyUI();
+        layoffCashRecalc();
+      }
 
       activeSavedCaseIds.mortgage=null;
       activeSavedCaseIds.personal=null;
       allCasesView.mortgage=canUseAllCases('mortgage');
       allCasesView.personal=canUseAllCases('personal');
-
       persistSavedCasesLocal();
-      rememberGistRemoteState(gist);
-      gistRemoteReadyThisSession=true;
-
-      renderSavedCases();
-      renderPayrollCases();
-      loadCalculatorState(activeCalculatorId);
-
-      const parts=[];
-      parts.push(`${savedCases.length} caso${savedCases.length===1?'':'s'}`);
-      if(payrollCases.length) parts.push(`${payrollCases.length} nómina${payrollCases.length===1?'':'s'}`);
-      setGistStatus(
-        `${startup?'Gist cargado al iniciar':'Gist cargado'} · ${parts.join(' · ')}`,
-        'ok'
-      );
-      return true;
-    }catch(e){
-      gistRemoteReadyThisSession=false;
-      setGistStatus(
-        `No se pudo cargar el Gist · ${e.message || 'error desconocido'}`,
-        'error'
-      );
-      return false;
-    }
-  }
-
-  async function autoLoadGistOnStartup(){
-    const token=$('#gistToken')?.value.trim();
-    if(!token){
-      gistRemoteReadyThisSession=false;
-      return false;
-    }
-
-    gistBootstrapping=true;
-    const btn=$('#globalGistBtn');
-    const label=$('#globalGistBtnText');
-
-    if(btn){
-      btn.classList.remove('connected','error');
-      btn.classList.add('syncing');
-    }
-    if(label) label.textContent='Cargando Gist…';
-
-    try{
-      const ok=await pullCasesFromGist({
-        confirmReplace:false,
-        startup:true,
-        quietMissing:true
-      });
-
-      if(btn){
-        btn.classList.remove('syncing','error');
-        btn.classList.add(ok?'connected':'error');
+      if(activeCalculatorId==='payroll'){
+        payrollApplyUI();payrollRecalc();renderPayrollCases();
+      }else if(activeCalculatorId==='pension'){
+        pensionApplyUI();pensionRecalc();renderPensionCases();
+      }else if(activeCalculatorId==='layoff'){
+        layoffCashApplyUI();layoffCashRecalc();
+      }else{
+        loadCalculatorState(activeCalculatorId);
       }
-      if(label) label.textContent=ok?'Gist cargado':'Revisar Gist';
-      return ok;
-    }finally{
-      gistBootstrapping=false;
+      const loadedTotal=savedCases.length+payrollCases.length+pensionCases.length;
+      setGistStatus(`Cargados ${loadedTotal} escenario${loadedTotal===1?'':'s'} desde Gist`,'ok');
+    }catch(e){
+      setGistStatus(e.message || 'No se pudo cargar el Gist','error');
     }
   }
 
 
+
+  function monthValueFromDateInput(value,fallback=''){
+    const s=String(value||'');
+    if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s.slice(0,7);
+    if(/^\d{4}-\d{2}$/.test(s))return s;
+    return fallback;
+  }
+  function dateValueFromMonthKey(value,preferredDay=1){
+    const s=String(value||'');
+    if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;
+    if(!/^\d{4}-\d{2}$/.test(s))return dateKey(todayLocal());
+    const [y,m]=s.split('-').map(Number);
+    const last=new Date(y,m,0).getDate();
+    const day=Math.max(1,Math.min(last,Math.round(Number(preferredDay)||1)));
+    return `${s}-${String(day).padStart(2,'0')}`;
+  }
   function parseMonth(s){
-    const [y,m] = String(s||'').split('-').map(Number);
+    const month=monthValueFromDateInput(s);
+    const [y,m] = String(month||'').split('-').map(Number);
     return new Date(y,m-1,1);
   }
   function parseExactDate(s){
@@ -3180,7 +4723,7 @@ No se borrará hasta que confirmes este mensaje.`))return;
 
     const loanStart = personal
       ? parseExactDate($('#firstPaymentDate').value)
-      : parseMonth($('#start').value || d.start);
+      : parseExactDate($('#start').value || d.startDate || dateValueFromMonthKey(d.start));
 
     const minDate = loanStart > currentYearStart ? loanStart : currentYearStart;
     const n0 = termMonthsFromUI();
@@ -3453,7 +4996,7 @@ No se borrará hasta que confirmes este mensaje.`))return;
 
     const firstPaymentDate = personal
       ? parseExactDate($('#firstPaymentDate').value)
-      : parseMonth($('#start').value || d.start);
+      : parseExactDate($('#start').value || d.startDate || dateValueFromMonthKey(d.start));
 
     const start = firstPaymentDate;
     const openingFee = openingFeeAmountFromUI(principal);
@@ -3588,7 +5131,7 @@ No se borrará hasta que confirmes este mensaje.`))return;
     const annualInflation=Number(state.inflation||0)/100;
     const r=annualRate/12;
     const inflM=Math.pow(1+annualInflation,1/12)-1;
-    const firstPaymentDate=personal ? parseExactDate(state.firstPaymentDate) : parseMonth(state.start);
+    const firstPaymentDate=personal ? parseExactDate(state.firstPaymentDate) : parseExactDate(state.startDate || dateValueFromMonthKey(state.start));
     const start=firstPaymentDate;
     const openingFee=personal
       ? (state.openingFeeType==='fixed'
@@ -4104,101 +5647,128 @@ No se borrará hasta que confirmes este mensaje.`))return;
       return `${n>0?'+':'−'}${formatEsNumber(Math.abs(n),0)} €`;
     };
 
-    const rowsByYear=new Map();
-    periods.forEach(row=>{
-      if(!rowsByYear.has(row.year)) rowsByYear.set(row.year,[]);
-      rowsByYear.get(row.year).push(row);
-    });
+    const renderProjectionRow=row=>{
+      const isClosed=row.status==='cerrado';
+      const isFuture=row.status==='futuro';
 
-    [...rowsByYear.entries()].forEach(([year,rows])=>{
-      const yearCard=document.createElement('article');
-      yearCard.className='projection-year';
-
-      const rowsHtml=rows.map(row=>{
-        const isClosed=row.status==='cerrado';
-        const isFuture=row.status==='futuro';
-
-        let realSavingsHtml='';
-        if(row.hasRealSavings && isClosed){
-          realSavingsHtml=`
-            <strong>${eur0.format(row.realSavings)}</strong>
-            <small>cerrado</small>
-          `;
-        }else if(isFuture){
-          realSavingsHtml=`
-            <strong>—</strong>
-            <small>se introduce al cierre</small>
-          `;
-        }else{
-          realSavingsHtml=`
-            <div class="semester-edit-wrap">
-              <input
-                class="semester-real-savings-input"
-                type="text"
-                inputmode="decimal"
-                data-semester-key="${row.key}"
-                value="${row.hasRealSavings?formatEditableAmount(row.realSavings):''}"
-                placeholder="0"
-                aria-label="Ahorro real ${row.key}">
-              <span class="mini-euro">€</span>
-            </div>
-            <small>${isClosed?'pendiente · se cerrará al guardar':'editable hasta cerrar semestre'}</small>
-          `;
-        }
-
-        const capitalNote=row.capitalAdded>0
-          ? `+ ${eur0.format(row.capitalAdded)} capital · + ${eur0.format(row.savedThisPeriod)} ahorro`
-          : `+ ${eur0.format(row.savedThisPeriod)} de ahorro en el periodo`;
-
-        const diffClass=row.realDifference===null
-          ? ''
-          : (row.realDifference>0?'positive':(row.realDifference<0?'negative':''));
-
-        return `
-          <div class="semester-row" data-semester-key="${row.key}">
-            <div class="semester-label">
-              <strong>${row.semester===1?'1º semestre':'2º semestre'}</strong>
-              <span>${row.range} · ${row.monthCount} mes${row.monthCount===1?'':'es'} · ${row.status}</span>
-            </div>
-
-            <div class="semester-metric">
-              <span>Ahorro + capital</span>
-              <strong>${eur0.format(row.gross)}</strong>
-              <small>${capitalNote}</small>
-            </div>
-
-            <div class="semester-metric">
-              <span>Cuotas</span>
-              <strong>${eur0.format(row.loans)}</strong>
-              <small>suma del semestre</small>
-            </div>
-
-            <div class="semester-metric forecast">
-              <span>Previsión</span>
-              <strong>${eur0.format(row.forecastResult)}</strong>
-              <small>cerrada</small>
-            </div>
-
-            <div class="semester-metric real-savings ${isClosed&&row.hasRealSavings?'closed':''} ${isFuture?'future':''}">
-              <span>Ahorro real</span>
-              ${realSavingsHtml}
-            </div>
-
-            <div class="semester-metric result">
-              <span>Resultado real</span>
-              <strong class="${diffClass}">${signedEur0(row.realDifference)}</strong>
-              <small>${row.hasRealSavings?'diferencia vs previsión':'esperando ahorro real'}</small>
-            </div>
-          </div>
+      let realSavingsHtml='';
+      if(row.hasRealSavings && isClosed){
+        realSavingsHtml=`
+          <strong>${eur0.format(row.realSavings)}</strong>
+          <small>cerrado</small>
         `;
-      }).join('');
+      }else if(isFuture){
+        realSavingsHtml=`
+          <strong>—</strong>
+          <small>se introduce al cierre</small>
+        `;
+      }else{
+        realSavingsHtml=`
+          <div class="semester-edit-wrap">
+            <input
+              class="semester-real-savings-input"
+              type="text"
+              inputmode="decimal"
+              data-semester-key="${row.key}"
+              value="${row.hasRealSavings?formatEditableAmount(row.realSavings):''}"
+              placeholder="0"
+              aria-label="Ahorro real ${row.key}">
+            <span class="mini-euro">€</span>
+          </div>
+          <small>${isClosed?'pendiente · se cerrará al guardar':'editable hasta cerrar semestre'}</small>
+        `;
+      }
 
-      yearCard.innerHTML=`
-        <div class="projection-year-title">${year}</div>
-        ${rowsHtml}
+      const capitalNote=row.capitalAdded>0
+        ? `+ ${eur0.format(row.capitalAdded)} capital · + ${eur0.format(row.savedThisPeriod)} ahorro`
+        : `+ ${eur0.format(row.savedThisPeriod)} de ahorro en el periodo`;
+
+      const diffClass=row.realDifference===null
+        ? ''
+        : (row.realDifference>0?'positive':(row.realDifference<0?'negative':''));
+
+      return `
+        <div class="semester-row" data-semester-key="${row.key}">
+          <div class="semester-label">
+            <strong>${row.semester===1?'1º semestre':'2º semestre'}</strong>
+            <span>${row.range} · ${row.monthCount} mes${row.monthCount===1?'':'es'} · ${row.status}</span>
+          </div>
+
+          <div class="semester-metric">
+            <span>Ahorro + capital</span>
+            <strong>${eur0.format(row.gross)}</strong>
+            <small>${capitalNote}</small>
+          </div>
+
+          <div class="semester-metric">
+            <span>Cuotas</span>
+            <strong>${eur0.format(row.loans)}</strong>
+            <small>suma del semestre</small>
+          </div>
+
+          <div class="semester-metric forecast">
+            <span>Previsión</span>
+            <strong>${eur0.format(row.forecastResult)}</strong>
+            <small>cerrada</small>
+          </div>
+
+          <div class="semester-metric real-savings ${isClosed&&row.hasRealSavings?'closed':''} ${isFuture?'future':''}">
+            <span>Ahorro real</span>
+            ${realSavingsHtml}
+          </div>
+
+          <div class="semester-metric result">
+            <span>Resultado real</span>
+            <strong class="${diffClass}">${signedEur0(row.realDifference)}</strong>
+            <small>${row.hasRealSavings?'diferencia vs previsión':'esperando ahorro real'}</small>
+          </div>
+        </div>
       `;
-      container.appendChild(yearCard);
-    });
+    };
+
+    const appendProjectionYears=(rows,target,archived=false)=>{
+      const rowsByYear=new Map();
+      rows.forEach(row=>{
+        if(!rowsByYear.has(row.year)) rowsByYear.set(row.year,[]);
+        rowsByYear.get(row.year).push(row);
+      });
+
+      [...rowsByYear.entries()].forEach(([year,yearRows])=>{
+        const yearCard=document.createElement('article');
+        yearCard.className='projection-year';
+        yearCard.innerHTML=`
+          <div class="projection-year-title">${year}</div>
+          ${yearRows.map(renderProjectionRow).join('')}
+        `;
+        target.appendChild(yearCard);
+      });
+    };
+
+    // Mantener arriba solo el semestre en curso y los futuros.
+    // En cuanto un semestre termina, baja automáticamente al histórico.
+    const archiveClosedSemesters=activeCalculatorId==='personal';
+    const livePeriods=archiveClosedSemesters
+      ? periods.filter(row=>row.status!=='cerrado')
+      : periods;
+    const archivedPeriods=archiveClosedSemesters
+      ? periods.filter(row=>row.status==='cerrado').sort((a,b)=>b.periodEnd-a.periodEnd)
+      : [];
+
+    appendProjectionYears(livePeriods,container,false);
+
+    if(archivedPeriods.length){
+      const archive=document.createElement('section');
+      archive.className='projection-archive';
+      archive.innerHTML=`
+        <div class="projection-archive-head">
+          <h3>Histórico semestral</h3>
+          <p>Semestres ya cerrados · se conservan como referencia y aparecen del más reciente al más antiguo.</p>
+        </div>
+        <div class="projection-archive-years"></div>
+      `;
+      container.appendChild(archive);
+      appendProjectionYears(archivedPeriods,archive.querySelector('.projection-archive-years'),true);
+    }
 
     // Ahorro real:
     // - semestre actual: se puede ir afinando hasta que cierre;
@@ -4720,11 +6290,12 @@ No se borrará hasta que confirmes este mensaje.`))return;
     recalc();
   });
 
-  ['interest','years','inflation','altReturnCompare','start'].forEach(id=>$('#'+id).addEventListener('input',()=>{
+  ['interest','years','inflation','altReturnCompare'].forEach(id=>$('#'+id).addEventListener('input',()=>{
     if(id==='inflation') $$('.preset').forEach(b=>b.classList.remove('active'));
-    if(id==='start' || id==='years') renderAmorts();
+    if(id==='years') renderAmorts();
     recalc();
   }));
+  $('#start').addEventListener('change',()=>{renderAmorts();recalc();});
 
   $('#openingFeeType').addEventListener('change',()=>{
     updateOpeningFeeUI();
@@ -4839,6 +6410,57 @@ No se borrará hasta que confirmes este mensaje.`))return;
   });
   $('#payrollNewCaseBtn').addEventListener('click',newPayrollCase);
 
+  const pensionInputIds=['pensionBirthYear','pensionBirthMonth','pensionTargetAge','pensionContributionEnd','pensionYearsNow','pensionMonthsNow','pensionCurrentBase','pensionHistoricalBase','pensionFutureGrowth','pensionBaseCpi'];
+  pensionInputIds.forEach(id=>{
+    const el=$('#'+id);if(!el)return;
+    const evt=(el.tagName==='SELECT'||el.type==='month'||el.type==='date')?'change':'input';
+    el.addEventListener(evt,()=>{
+      const oldTarget=pensionSettings.targetAge;
+      pensionSettings=pensionReadUI();
+      if(id==='pensionTargetAge' && Number(oldTarget)!==Number(pensionSettings.targetAge)){
+        const retire=pensionRetirementMonth(pensionSettings,pensionSettings.targetAge);
+        pensionSettings.contributionEnd=pensionMonthKey(retire);
+        pensionSettings.contributionEndDate=dateKey(retire);
+        $('#pensionContributionEnd').value=pensionSettings.contributionEndDate;
+      }
+      pensionRecalc();scheduleGistAutoSync();
+    });
+  });
+  ['pensionCurrentBase','pensionHistoricalBase'].forEach(id=>{
+    const el=$('#'+id);if(!el)return;
+    el.addEventListener('blur',()=>{el.value=formatEditableAmount(el.value);pensionRecalc()});
+  });
+  $('#pensionUsePayrollBaseBtn').addEventListener('click',()=>{
+    const r=payrollCalculate(normalizePayrollSettings(payrollSettings));
+    const base=Math.max(0,r?.ss?.monthlyBase||0);
+    pensionSettings=pensionReadUI();pensionSettings.currentBase=base;
+    if(!pensionSettings.historicalBase)pensionSettings.historicalBase=base;
+    persistPensionSettingsLocal();pensionApplyUI();pensionRecalc();setPensionCaseStatus('Base tomada de la calculadora de Nomina','ok');
+  });
+  $('#pensionResetFutureBtn').addEventListener('click',()=>{
+    const current=todayLocal().getFullYear();
+    Object.keys(pensionSettings.annualBases||{}).forEach(y=>{if(Number(y)>current)delete pensionSettings.annualBases[y]});
+    persistPensionSettingsLocal();pensionRecalc();setPensionCaseStatus('Proyeccion futura restablecida','ok');
+  });
+  $('#pensionSaveCaseBtn').addEventListener('click',savePensionCase);
+  $('#pensionCaseName').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();savePensionCase()}});
+  $('#pensionNewCaseBtn').addEventListener('click',newPensionCase);
+  $('#pensionDuplicateCaseBtn').addEventListener('click',duplicatePensionCase);
+  $('#pensionImportHistoryBtn').addEventListener('click',()=>$('#pensionHistoryFile').click());
+  $('#pensionHistoryFile').addEventListener('change',e=>importPensionHistoryFile(e.target.files?.[0]));
+  $('#pensionMainViewBtn')?.addEventListener('click',()=>setPensionView('main'));
+  $('#pensionLayoffViewBtn')?.addEventListener('click',()=>setPensionView('layoff'));
+  $('#pensionLayoffSubsidy52')?.addEventListener('change',e=>{pensionLayoffSettings.subsidy52=!!e.target.checked;persistPensionLayoffSettingsLocal();renderPensionLayoffScenario();scheduleGistAutoSync()});
+  ['#layoffCashDismissalMonth','#layoffCashChildren','#layoffCashIncludeSubsidy'].forEach(sel=>$(sel)?.addEventListener('change',()=>{layoffCashSettings=layoffCashReadUI();persistLayoffCashSettingsLocal();layoffCashRecalc();scheduleGistAutoSync()}));
+  ['#layoffCashSavings','#layoffCashSeverance','#layoffCashPatrimony','#layoffCashMonthlyNeed'].forEach(sel=>{
+    const el=$(sel);if(!el)return;
+    el.addEventListener('input',()=>{layoffCashSettings=layoffCashReadUI();persistLayoffCashSettingsLocal();layoffCashRecalc();scheduleGistAutoSync()});
+    el.addEventListener('blur',()=>{el.value=formatEditableAmount(parseEsAmount(el.value));layoffCashSettings=layoffCashReadUI();persistLayoffCashSettingsLocal();layoffCashRecalc()});
+  });
+  $('#pensionLayoffModalClose')?.addEventListener('click',closePensionLayoffModal);
+  document.querySelectorAll('[data-close-layoff-modal]').forEach(el=>el.addEventListener('click',closePensionLayoffModal));
+  document.addEventListener('keydown',e=>{if(e.key==='Escape' && $('#pensionLayoffModal')?.classList.contains('open'))closePensionLayoffModal()});
+
   $('#saveCaseBtn').addEventListener('click',saveNamedCase);
   $('#caseName').addEventListener('keydown',e=>{
     if(e.key==='Enter'){e.preventDefault();saveNamedCase();}
@@ -4848,23 +6470,9 @@ No se borrará hasta que confirmes este mensaje.`))return;
     setGistStatus(e.message || 'No se pudo sincronizar','error');
   }));
   $('#gistPullBtn').addEventListener('click',pullCasesFromGist);
-  $('#backupDownloadBtn').addEventListener('click',downloadDashboardBackupJson);
-  $('#backupImportBtn').addEventListener('click',()=>$('#backupImportFile').click());
-  $('#backupImportFile').addEventListener('change',async e=>{
-    const file=e.target.files?.[0];
-    try{await importDashboardBackupJson(file);}
-    finally{e.target.value='';}
-  });
   $('#gistToken').addEventListener('input',()=>{
-    gistRemoteReadyThisSession=false;
     const token=$('#gistToken').value.trim();
-    if(token){
-      safeStorageSet(localStorage,GIST_TOKEN_STORAGE_KEY,token);
-    }else{
-      try{localStorage.removeItem(GIST_TOKEN_STORAGE_KEY);}catch(e){}
-      try{sessionStorage.removeItem(GIST_TOKEN_SESSION_KEY);}catch(e){}
-      clearRememberedGistRemoteState();
-    }
+    safeStorageSet(sessionStorage,GIST_TOKEN_SESSION_KEY,token);
     const btn=$('#globalGistBtn');
     const label=$('#globalGistBtnText');
     btn.classList.remove('connected','syncing','error');
@@ -4874,18 +6482,6 @@ No se borrará hasta que confirmes este mensaje.`))return;
     }else{
       label.textContent='GitHub Gist';
     }
-  });
-  $('#gistToken').addEventListener('change',async()=>{
-    const token=$('#gistToken').value.trim();
-    if(!token)return;
-    await autoLoadGistOnStartup();
-  });
-  $('#gistToken').addEventListener('keydown',async e=>{
-    if(e.key!=='Enter')return;
-    e.preventDefault();
-    const token=$('#gistToken').value.trim();
-    if(!token)return;
-    await autoLoadGistOnStartup();
   });
   $('#addAmort').addEventListener('click',addAmort);
   $('#csvBtn').addEventListener('click',exportCSV);
@@ -4897,29 +6493,28 @@ No se borrará hasta que confirmes este mensaje.`))return;
   loadProjectionSettingsLocal();
   loadPayrollSettingsLocal();
   loadPayrollCasesLocal();
+  loadPensionSettingsLocal();
+  loadPensionCasesLocal();
+  loadPensionLayoffSettingsLocal();
+  loadLayoffCashSettingsLocal();
   payrollApplyUI();
   payrollRecalc();
   renderPayrollCases();
+  pensionApplyUI();
+  pensionRecalc();
+  renderPensionCases();
+  setPensionView('main');
+  layoffCashApplyUI();
+  layoffCashRecalc();
   allCasesView.mortgage=canUseAllCases('mortgage');
   allCasesView.personal=canUseAllCases('personal');
   if(allCasesView.mortgage) activeSavedCaseIds.mortgage=null;
   if(allCasesView.personal) activeSavedCaseIds.personal=null;
-  {
-    const persistentToken=safeStorageGet(localStorage,GIST_TOKEN_STORAGE_KEY)||'';
-    const legacySessionToken=safeStorageGet(sessionStorage,GIST_TOKEN_SESSION_KEY)||'';
-    const initialToken=persistentToken||legacySessionToken;
-    $('#gistToken').value=initialToken;
-    if(initialToken && !persistentToken){
-      safeStorageSet(localStorage,GIST_TOKEN_STORAGE_KEY,initialToken);
-    }
+  $('#gistToken').value=safeStorageGet(sessionStorage,GIST_TOKEN_SESSION_KEY)||'';
+  if($('#gistToken').value.trim()){
+    $('#globalGistBtn').classList.add('connected');
+    $('#globalGistBtnText').textContent='Gist configurado';
   }
-  const startupToken=$('#gistToken').value.trim();
-  if(startupToken){
-    // Fuente de verdad al arrancar: el Gist remoto.
-    // El estado local queda únicamente como fallback si GitHub no responde.
-    await autoLoadGistOnStartup();
-  }
-
   renderSavedCases();
 
   const activeTab = document.querySelector('.tab-btn.active');
@@ -4935,9 +6530,7 @@ No se borrará hasta que confirmes este mensaje.`))return;
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {
-      navigator.serviceWorker.register('./service-worker.js')
-        .then(function (registration) { return registration.update(); })
-        .catch(function () {});
+      navigator.serviceWorker.register('./service-worker.js').catch(function () {});
     });
   }
 </script>
