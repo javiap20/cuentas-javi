@@ -2159,8 +2159,13 @@
     <p class="gist-modal-copy">Un único Gist guarda todo el dashboard: datos de entrada, escenarios y la última foto completa de los cálculos de Pensión y Despido. Al abrir la app se lee primero el servidor aunque no haya token; después se compara con este dispositivo y siempre gana la copia más reciente.</p>
     <div class="field">
       <label for="gistToken">Token de GitHub</label>
-      <input id="gistToken" type="password" autocomplete="off" placeholder="github_pat_…">
-      <div class="gist-note">El token solo hace falta para escribir en GitHub. Para leer tus datos desde cualquier dispositivo no es necesario: el dashboard ya conoce el Gist vinculado. El token se conserva solo durante esta sesión.</div>
+      <input id="gistTokenUser" type="text" value="Calculadoras" autocomplete="username" tabindex="-1" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none">
+      <input id="gistToken" name="gistToken" type="password" autocomplete="current-password" placeholder="github_pat_…">
+      <label style="display:flex;align-items:center;gap:7px;margin-top:8px;font-size:10px;color:#475467;font-weight:700;cursor:pointer;">
+        <input id="gistRememberToken" type="checkbox" checked style="width:auto;margin:0">
+        Recordar en este dispositivo
+      </label>
+      <div class="gist-note">El token se usa para escribir en GitHub. Con <b>Recordar en este dispositivo</b> queda guardado localmente para que no tengas que copiarlo cada vez. También está preparado para que Apple/tu gestor de contraseñas pueda ofrecerlo como credencial guardada.</div>
     </div>
     <div class="gist-buttons">
       <button id="gistPushBtn" class="btn btn-primary" type="button">Guardar en Gist</button>
@@ -2471,6 +2476,9 @@
   const CASES_STORAGE_KEY = 'dashboard_financiero_saved_cases_v1';
   const GIST_ID_STORAGE_KEY = 'dashboard_financiero_gist_id_v1';
   const GIST_TOKEN_SESSION_KEY = 'dashboard_financiero_gist_token_v1';
+  const GIST_TOKEN_LOCAL_KEY = 'github_shared_token_v1';
+  const GIST_TOKEN_REMEMBER_KEY = 'dashboard_financiero_gist_token_remember_v1';
+  const GIST_TOKEN_USERNAME = 'Calculadoras';
   const GIST_LAST_SYNC_STORAGE_KEY = 'dashboard_financiero_gist_last_sync_v1';
   const GIST_DIRTY_STORAGE_KEY = 'dashboard_financiero_gist_dirty_v1';
   const DASHBOARD_LOCAL_UPDATED_AT_STORAGE_KEY = 'dashboard_financiero_local_updated_at_v1';
@@ -6837,9 +6845,8 @@ No se borrará hasta que confirmes este mensaje.`))return;
     setGistStatus(e.message || 'No se pudo sincronizar','error');
   }));
   $('#gistPullBtn').addEventListener('click',pullCasesFromGist);
-  $('#gistToken').addEventListener('input',()=>{
+  function updateGistTokenUI(){
     const token=$('#gistToken').value.trim();
-    safeStorageSet(sessionStorage,GIST_TOKEN_SESSION_KEY,token);
     const btn=$('#globalGistBtn');
     const label=$('#globalGistBtnText');
     btn.classList.remove('connected','syncing','error');
@@ -6849,6 +6856,24 @@ No se borrará hasta que confirmes este mensaje.`))return;
       if(safeStorageGet(localStorage,GIST_DIRTY_STORAGE_KEY)==='1') scheduleGistAutoSync();
     }else{
       label.textContent='GitHub Gist';
+    }
+  }
+
+  $('#gistToken').addEventListener('input',()=>{
+    const token=$('#gistToken').value.trim();
+    safeStorageSet(sessionStorage,GIST_TOKEN_SESSION_KEY,token);
+    if($('#gistRememberToken')?.checked){
+      safeStorageSet(localStorage,GIST_TOKEN_LOCAL_KEY,token);
+    }
+    updateGistTokenUI();
+  });
+  $('#gistRememberToken').addEventListener('change',e=>{
+    const remember=!!e.target.checked;
+    safeStorageSet(localStorage,GIST_TOKEN_REMEMBER_KEY,remember?'1':'0');
+    const token=$('#gistToken').value.trim();
+    if(remember && token) safeStorageSet(localStorage,GIST_TOKEN_LOCAL_KEY,token);
+    if(!remember){
+      try{localStorage.removeItem(GIST_TOKEN_LOCAL_KEY)}catch(err){}
     }
   });
   $('#addAmort').addEventListener('click',addAmort);
@@ -6869,12 +6894,16 @@ No se borrará hasta que confirmes este mensaje.`))return;
     loadLayoffCashSettingsLocal();
     loadResultSnapshotsLocal();
 
-    $('#gistToken').value=safeStorageGet(sessionStorage,GIST_TOKEN_SESSION_KEY)||'';
+    const rememberLocal=safeStorageGet(localStorage,GIST_TOKEN_REMEMBER_KEY)!=='0';
+    $('#gistRememberToken').checked=rememberLocal;
+    const rememberedToken=rememberLocal?safeStorageGet(localStorage,GIST_TOKEN_LOCAL_KEY):'';
+    const sessionToken=safeStorageGet(sessionStorage,GIST_TOKEN_SESSION_KEY)||'';
+    $('#gistToken').value=sessionToken || rememberedToken || '';
+    safeStorageSet(sessionStorage,GIST_TOKEN_SESSION_KEY,$('#gistToken').value.trim());
+    if(rememberLocal && $('#gistToken').value.trim()) safeStorageSet(localStorage,GIST_TOKEN_LOCAL_KEY,$('#gistToken').value.trim());
+    $('#gistTokenUser').value=GIST_TOKEN_USERNAME;
     safeStorageSet(localStorage,GIST_ID_STORAGE_KEY,safeStorageGet(localStorage,GIST_ID_STORAGE_KEY)||DEFAULT_GIST_ID);
-    if($('#gistToken').value.trim()){
-      $('#globalGistBtn').classList.add('connected');
-      $('#globalGistBtnText').textContent='Gist configurado';
-    }
+    updateGistTokenUI();
 
     // 2) Servidor primero. Después se compara con local y se conserva la copia más reciente.
     await reconcileStartupWithGist();
