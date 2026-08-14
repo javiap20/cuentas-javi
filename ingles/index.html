@@ -10,10 +10,11 @@
   <meta name="apple-mobile-web-app-title" content="English Daily" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="format-detection" content="telephone=no" />
+  <meta name="referrer" content="no-referrer-when-downgrade" />
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png" />
   <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png" />
-  <title>English Daily · v1.3</title>
+  <title>English Daily · v1.7</title>
   <style>
 :root {
   --bg: #f4f7fb;
@@ -641,6 +642,81 @@ body.dark .stat-card.favorite > span { background:#422532; color:#ff8fad; }
 .audio-empty span { font-size:38px; }
 .audio-empty h2 { color:var(--text); margin:8px 0 4px; }
 
+.audio-native-stage { min-height:0; padding:20px 22px 22px; background:var(--surface-2); }
+.audio-native-player { display:grid; gap:16px; }
+.audio-native-now { display:flex; align-items:center; gap:14px; padding:17px; border:1px solid var(--line); background:var(--surface); border-radius:18px; }
+.audio-native-icon { width:48px; height:48px; border-radius:15px; display:grid; place-items:center; flex:0 0 auto; background:var(--accent-soft); font-size:23px; }
+.audio-native-copy { min-width:0; flex:1; }
+.audio-native-copy .eyebrow { margin-bottom:4px; }
+.audio-native-copy h3 { margin:0; font-size:20px; letter-spacing:-.02em; overflow-wrap:anywhere; }
+.audio-native-next-note { margin:5px 0 0; color:var(--muted); font-size:11px; line-height:1.45; }
+.audio-native-player audio { display:block; width:100%; min-height:48px; }
+.audio-drive-preview-shell { border:1px solid var(--line); border-radius:16px; overflow:hidden; background:var(--surface); }
+.audio-drive-preview-shell iframe { width:100%; height:92px; border:0; display:block; background:var(--surface); }
+.audio-native-message.compat { color:var(--muted); background:var(--yellow-soft); border:1px solid var(--line); padding:10px 12px; border-radius:12px; line-height:1.5; }
+.audio-drive-auth { margin:14px 0 18px; padding:14px 16px; border:1px solid var(--line); border-radius:16px; background:var(--surface); display:grid; gap:10px; }
+.audio-drive-auth-top { display:flex; gap:12px; align-items:flex-start; justify-content:space-between; }
+.audio-drive-auth-copy { min-width:0; }
+.audio-drive-auth-copy strong { display:block; font-size:13px; margin-bottom:3px; }
+.audio-drive-auth-copy small { display:block; color:var(--muted); line-height:1.45; }
+.audio-drive-auth-status { flex:0 0 auto; font-size:10px; font-weight:800; letter-spacing:.04em; padding:7px 9px; border-radius:999px; border:1px solid var(--line); background:var(--surface-2); color:var(--muted); }
+.audio-drive-auth-status.ok { color:var(--green); background:var(--green-soft); border-color:transparent; }
+.audio-drive-auth-status.error { color:var(--red); background:var(--red-soft); border-color:transparent; }
+.audio-drive-auth-controls { display:grid; grid-template-columns:minmax(220px,1fr) auto auto; gap:8px; }
+.audio-drive-auth-controls input { width:100%; min-width:0; border:1px solid var(--line); border-radius:12px; padding:10px 12px; background:var(--surface-2); color:var(--text); font:inherit; }
+.audio-drive-auth details { border-top:1px solid var(--line); padding-top:9px; }
+.audio-drive-auth summary { cursor:pointer; color:var(--muted); font-size:11px; font-weight:700; }
+.audio-drive-auth-help { color:var(--muted); font-size:11px; line-height:1.55; padding:8px 0 0 2px; }
+.audio-drive-auth-help ol { margin:6px 0 0 18px; padding:0; }
+.audio-drive-auth-help a { color:var(--primary); }
+.audio-pwa-context { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; border:1px solid var(--line); border-radius:12px; background:var(--surface-2); }
+.audio-pwa-context-copy { min-width:0; }
+.audio-pwa-context-copy small { display:block; color:var(--muted); font-size:10px; font-weight:850; letter-spacing:.06em; text-transform:uppercase; margin-bottom:3px; }
+.audio-pwa-context-copy code { display:block; color:var(--text); font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:11px; overflow-wrap:anywhere; white-space:normal; }
+.audio-pwa-context-badge { flex:0 0 auto; padding:6px 9px; border-radius:999px; background:var(--accent-soft); color:var(--accent); font-size:10px; font-weight:900; }
+.audio-pwa-context-badge.ok { background:var(--green-soft); color:var(--green); }
+.audio-pwa-origin-actions { display:flex; gap:8px; flex-wrap:wrap; }
+.audio-pwa-origin-actions button { padding:8px 10px; font-size:10px; }
+.audio-drive-auth-help code { font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:10px; overflow-wrap:anywhere; }
+.audio-native-player audio { background:var(--surface); border-radius:12px; }
+.audio-drive-loading { display:inline-flex; align-items:center; gap:7px; color:var(--muted); }
+.audio-drive-loading::before { content:''; width:10px; height:10px; border:2px solid currentColor; border-right-color:transparent; border-radius:50%; animation:audioSpin .8s linear infinite; }
+@keyframes audioSpin { to { transform:rotate(360deg); } }
+@media (max-width:760px) { .audio-drive-auth-controls { grid-template-columns:1fr; } .audio-drive-auth-top { align-items:center; } }
+
+.audio-native-message.compat strong { color:var(--text); }
+.audio-native-message { min-height:18px; color:var(--muted); font-size:11px; }
+.audio-native-message.error { color:var(--red); }
+.audio-track-list-wrap { border:1px solid var(--line); background:var(--surface); border-radius:17px; overflow:hidden; }
+.audio-track-list-head { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 14px; border-bottom:1px solid var(--line); background:var(--surface-2); }
+.audio-track-list-head strong { font-size:12px; }
+.audio-track-list-head small { color:var(--muted); font-size:10px; }
+.audio-track-list { max-height:310px; overflow:auto; padding:6px; }
+.audio-track-row { width:100%; border:0; background:transparent; color:var(--text); display:grid; grid-template-columns:34px minmax(0,1fr) auto; align-items:center; gap:9px; text-align:left; padding:10px 9px; border-radius:11px; }
+.audio-track-row:hover { background:var(--surface-2); }
+.audio-track-row.active { background:var(--accent-soft); color:var(--accent); }
+.audio-track-row.done { color:var(--muted); }
+.audio-track-num { width:30px; height:30px; border-radius:9px; display:grid; place-items:center; background:var(--surface-2); font-size:10px; font-weight:850; color:var(--muted); }
+.audio-track-row.active .audio-track-num { background:var(--surface); color:var(--accent); }
+.audio-track-name { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px; font-weight:750; }
+.audio-track-state { font-size:10px; color:var(--muted); }
+.audio-sequence-badge { display:inline-flex; align-items:center; gap:6px; padding:7px 9px; border-radius:999px; background:var(--green-soft); color:var(--green); font-size:10px; font-weight:850; }
+.audio-level-route { display:grid; gap:8px; }
+.audio-level-route .audio-cd-title { display:flex; justify-content:space-between; gap:8px; }
+.audio-level-route .audio-cd-title span:last-child { font-weight:700; letter-spacing:0; }
+.audio-player-actions button:disabled { opacity:.45; cursor:not-allowed; }
+@media (max-width:600px) {
+  .audio-native-stage { padding:14px 12px 16px; }
+  .audio-native-now { padding:14px; align-items:flex-start; }
+  .audio-native-icon { width:42px; height:42px; font-size:20px; }
+  .audio-native-copy h3 { font-size:17px; }
+  .audio-track-list { max-height:280px; }
+  .audio-track-row { grid-template-columns:31px minmax(0,1fr); }
+  .audio-track-state { display:none; }
+  .audio-drive-auth-controls { grid-template-columns:1fr; }
+  .audio-pwa-context { align-items:flex-start; flex-direction:column; }
+}
+
 @media (max-width:900px) {
   .home-audio-grid { grid-template-columns:1fr; }
   .audio-browser-layout { grid-template-columns:1fr; }
@@ -758,7 +834,7 @@ body.dark .stat-card.favorite > span { background:#422532; color:#ff8fad; }
         <span class="brand-mark">ED</span>
         <span>
           <strong>English Daily</strong>
-          <small>v1.3 · aprende un poco cada día</small>
+          <small>v1.7 · aprende un poco cada día</small>
         </span>
       </button>
       <div class="top-actions">
@@ -959,7 +1035,7 @@ body.dark .stat-card.favorite > span { background:#422532; color:#ff8fad; }
               <div>
                 <p class="eyebrow">ENTRENA CON VAUGHAN</p>
                 <h2 id="homeAudioTitle">Tus cursos de audio</h2>
-                <p class="muted">Aquí sí respetamos la estructura de carpetas: eliges un bloque, escuchas sus pistas en Drive y vuelves exactamente a ese punto.</p>
+                <p class="muted">Reproduce los cursos directamente aquí. Las pistas avanzan solas y, al terminar una carpeta, continúa con la siguiente sin salir de English Daily.</p>
               </div>
             </div>
 
@@ -1326,6 +1402,43 @@ body.dark .stat-card.favorite > span { background:#422532; color:#ff8fad; }
           <button class="audio-collection-tab" data-audio-collection="vaughan">🎙️ VAUGHAN</button>
         </div>
 
+        <div class="audio-drive-auth" id="audioDriveAuthPanel">
+          <div class="audio-drive-auth-top">
+            <div class="audio-drive-auth-copy">
+              <strong>Audio continuo real · PWA + Google Drive</strong>
+              <small id="audioDriveAuthText">Pensado para la app instalada del iPad: autorizas Drive y English Daily controla la misma pista de audio durante todo el recorrido.</small>
+            </div>
+            <span class="audio-drive-auth-status" id="audioDriveAuthStatus">SIN CONECTAR</span>
+          </div>
+
+          <div class="audio-pwa-context">
+            <div class="audio-pwa-context-copy">
+              <small>Origen que debes autorizar en Google</small>
+              <code id="audioPwaOrigin">—</code>
+            </div>
+            <span class="audio-pwa-context-badge" id="audioPwaModeBadge">WEB</span>
+          </div>
+          <div class="audio-pwa-origin-actions">
+            <button class="secondary-btn" id="audioCopyOriginBtn" type="button">Copiar origen</button>
+          </div>
+
+          <div class="audio-drive-auth-controls">
+            <input id="audioGoogleClientId" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Client ID de Google · …apps.googleusercontent.com" />
+            <button class="primary-btn" id="audioGoogleConnectBtn" type="button">Conectar Drive</button>
+            <button class="secondary-btn hidden" id="audioGoogleDisconnectBtn" type="button">Desconectar</button>
+          </div>
+          <details>
+            <summary>Configuración de Google · solo la primera vez</summary>
+            <div class="audio-drive-auth-help">
+              Esta versión está preparada para tu PWA. En Google Cloud crea un OAuth Client ID de tipo <b>Aplicación web</b>, activa <b>Google Drive API</b> y pega como <b>Origen de JavaScript autorizado</b> exactamente el origen que aparece arriba (solo protocolo + dominio, sin <code>/ingles/</code>). Si el proyecto OAuth está en modo de prueba, añade tu cuenta de Google como usuario de prueba. No necesitas Client Secret ni URI de redirección para este modo. Después pega aquí el Client ID y pulsa “Conectar Drive”. El permiso solicitado es solo lectura.
+              <ol>
+                <li><a href="https://console.cloud.google.com/apis/library/drive.googleapis.com" target="_blank" rel="noopener">Activar Google Drive API ↗</a></li>
+                <li><a href="https://console.cloud.google.com/auth/clients" target="_blank" rel="noopener">Crear Client ID OAuth ↗</a></li>
+              </ol>
+            </div>
+          </details>
+        </div>
+
         <div class="audio-browser-layout">
           <aside class="panel audio-folder-panel">
             <p class="eyebrow">CARPETAS DE DRIVE</p>
@@ -1345,14 +1458,14 @@ body.dark .stat-card.favorite > span { background:#422532; color:#ff8fad; }
                 <small><b id="audioDoneCount">0</b> / <span id="audioTotalCount">8</span></small>
               </div>
             </div>
-            <div class="audio-drive-frame" id="audioDriveFrame"></div>
+            <div class="audio-drive-frame audio-native-stage" id="audioDriveFrame"></div>
             <div class="audio-player-foot">
-              <p class="audio-player-note">Las pistas se muestran desde la carpeta compartida de Google Drive. El progreso se guarda por carpeta/bloque para poder respetar la jerarquía original y recordar dónde te quedaste.</p>
+              <p class="audio-player-note">Con Drive conectado, la PWA usa un único reproductor de audio durante todo el recorrido: pista siguiente automática, cambio de CD/carpeta y botones Anterior/Siguiente. Sin autorización se mantiene el reproductor compatible de Drive como respaldo.</p>
               <div class="audio-player-actions">
-                <button class="secondary-btn" data-audio-prev>← Anterior</button>
+                <button class="secondary-btn" data-audio-prev>← Pista anterior</button>
                 <button class="primary-btn" data-audio-toggle-complete>✓ Marcar bloque como escuchado</button>
-                <button class="secondary-btn" data-audio-next>Siguiente →</button>
-                <a class="secondary-btn" id="audioOpenDrive" href="#" target="_blank" rel="noopener noreferrer">Abrir carpeta en Drive ↗</a>
+                <button class="secondary-btn" data-audio-next>Pista siguiente →</button>
+                <a class="secondary-btn" id="audioOpenDrive" href="#" target="_blank" rel="noopener noreferrer">Carpeta en Drive ↗</a>
               </div>
             </div>
           </section>
@@ -2122,12 +2235,13 @@ window.SEED_CONTENT = [
 (() => {
   const STORAGE_KEY = 'englishDaily_v01'; // same key as v0.1/v0.2: preserves progress
   const SYNC_CONFIG_KEY = 'englishDaily_github_v1';
+  const DRIVE_AUDIO_CONFIG_KEY = 'englishDaily_drive_audio_v1';
   const GIST_FILENAME = 'english-daily-progress.json';
   const GIST_DESCRIPTION = 'English Daily · progreso automático';
   const GITHUB_API = 'https://api.github.com';
   const GITHUB_API_VERSION = '2026-03-10';
   const AUTO_SYNC_DELAY = 2200;
-  const APP_VERSION = '1.3';
+  const APP_VERSION = '1.7';
   const DEFAULT_GOAL = 12;
   const ALLOWED_GOALS = [5,10,12,15,20];
   const MAX_HARD_RETRY = 1;
@@ -2459,7 +2573,7 @@ window.SEED_CONTENT = [
   const AUDIO_COLLECTIONS = {
     translation: {
       key:'translation', icon:'🎧', eyebrow:'VAUGHAN TRANSLATION', title:'Vaughan Translation',
-      description:'Booklets de Translation. La app conserva el nombre original de cada carpeta de Drive y recuerda el último bloque abierto.',
+      description:'Booklets 1–8 en reproducción continua. Las pistas avanzan solas y al terminar un Booklet comienza el siguiente.',
       sourceUrl:'https://drive.google.com/drive/folders/1MXBQOHPBRlWcvnXk4ToGJycFssvGH9pU?usp=sharing',
       groups:[
         {id:'1Tj5atR8RIlRoZka4omb0Y840nJHGc_Yi', title:'Traslation Booklet1', url:'https://drive.google.com/drive/folders/1Tj5atR8RIlRoZka4omb0Y840nJHGc_Yi'},
@@ -2474,7 +2588,7 @@ window.SEED_CONTENT = [
     },
     vaughan: {
       key:'vaughan', icon:'🎙️', eyebrow:'VAUGHAN', title:'Vaughan',
-      description:'Curso organizado por CD y nivel. Se conservan CD01–CD10 y las carpetas Principiante, Intermedio y Avanzado.',
+      description:'Ruta continua: Principiante 1–10, después Intermedio 1–10 y por último Avanzado 1–10. Las pistas avanzan automáticamente.',
       sourceUrl:'https://drive.google.com/drive/folders/152ENJexZ22KKc1aNW9eFw73S4hawXxy2?usp=sharing',
       cds:[
         {id:'15F4ZzDsp6RN_3vF_bkKljOThO-vm5M0k', title:'CD01', levels:[
@@ -2531,6 +2645,49 @@ window.SEED_CONTENT = [
     }
   };
 
+  const makeAudioTrackSpec = (start, ids, introId=null) => ({start, ids:ids.trim().split(/\s+/).filter(Boolean), introId});
+  const AUDIO_TRACK_SPECS = {
+    '1Tj5atR8RIlRoZka4omb0Y840nJHGc_Yi': makeAudioTrackSpec(1, `1dpSg-QzCSEeXuqUS7zya2g7AoeoipVnG 1dmYKNkzrMReZQDy82jCjqavOAf54HTd1 1e-JH_94NXXTTHkPcBtxradS7RpERIcpD 1e-Dd8XFNJvGIy3-EJT-F-OF08OsuseDt 1dzMdMKlYCY0ygcHcegaEBFV8OB0SGUKF 1e6CSAKrisylrlGUXEOH4bqVXsWnOoNsz 1e54JaI_NY4PY2y784rEgwJU16CiKHEdX 1e-aeHlHP4_kxfcgL92yBU6pjLWrKY_2f 1eERqsn9uadbKWD-Mna0r_MUL8RsWJIIf 1eE560NHeMCpU8_Ahi5hT8fWhKCNsWeF8 1e6XAkyHbff3gqTSP254JVmCFitM2ZKsc 1eWsz_Hl3TtjxjuIdKZ3eD_jLNfUz4eIU 1eUssMDkeKNrNPsGvfjAcdtg3LqpkEnR7 1eO8cGM7n-bWyEJTxEs_2_kXKNp7hukjs 1e_F0O9e3zPKjU3m-K5TXPxYva4x72-Fb 1eZbmqi7avmmu-aN7nmiGz2vjwhwUtozr 1eYeLjDKgVkFTOui5dAEiVCTaH90N3Lgi 1eiJEfdXT_XLwIEWGpF-xRxIBFloWRhDp 1ecIY_TDZYz8vW4bDC5QfKGdFg6mw91Ia 1eaiucqFGhkNaA2xCWlSVij_UZYzG2Aw5 1eokrS9ld5vRjs623Y3W3rMowe9Ji9KPG 1eoAroDbJZvmgbrMdsOaFz1cMtFWTKPSC 1emGgSKmXFKeo21WFsg8YSpnZeQQo5JYD 1eshHZl9YbCGCNh3dsnxEbgxKpnXjU3z- 1esHKD-qQtoL1JGbPd5ze9ID5pjaEmu9q 1erTFLSispnqr-3bqFp_hY8eK1lqVYyDo 1ex11bc-2YRDrPxgAvU92_f6vGuoWwb-K 1ewmBTpf2eaE-wCmb7Hg_Ep4vmuY6MA-s 1ewQTdRWijUDfkPS6EayLnp_bGJ3VFZBJ 1f-jLTLQJbm2r_D79GJ5MkmNqsU1XLyUd`, '1dsA015kj5yEJ6-M9OUc99NWRRT87SilA'),
+    '1U7dbvtfBbAUdc9KnnLBjasheogrKVdqy': makeAudioTrackSpec(1, `1XqPbOvBw6nTYfuusGU4TVRQ9KANVYJru 1Xnxwr1XBoHIVcM1n85aabb8t_tFuVdfL 1XxzkysCTM6cElgUZyixrv5l6UYDiUz-T 1XvI0Bak8wW1pd3TAFInfKmpia4j6q-bX 1XurdEmCiwwxH0tziHYalaU6blSI0CjQk 1Y4NT8dVXMQPFVSYqcmlkdZYPvfrwBFjc 1Y0-fJSn1s6TfFUEGrrdi7c5_k-LFj__d 1Y-Pzy_Kjsbw4SuDq5pT8dsIhZ83_zJMp 1Y9GWLA84Om6IwCVWq6PrlBBDsfWecyGw 1Y55A_6SIWozA0ORcoAeeRGrcX4ZP-S_4 1Y4WwHFyPUPngwg284dE8a_3WF_zp0ImT 1YL_Zl9PZUE7lSl5Xxfzdv-kdsU4oVEKI 1YFxZ8oQpJUjPkdBjkB8n1c9VBymqDsYR 1YCaY2YiJHxjf3iARXyDN2iuhKLAxog_Z 1YWEXpyUqwMQurd2EH6YmSCiaNEFaM2px 1YW71zcFbMqDAwMRNFFsryLy2z25iS-C6 1YO5gj88vp4efwOdVtRMYmgVN9fJjh9E2 1YZRQS9rMXPe4PlS78522Ex3a4QnQ5EJB 1YYFUs2vsQhtDGUn7SNI_pTcXoHefLsyt 1YXkbNTFtKF8q9vusP7ylEkXNVeJCOG2j 1Ykl6aQvghoKGhzPQ7RUqTuhaQKIygXJ8 1YgYBXEdl_QEoLpod7J8zpk7RVxil1PjN 1YgDIpTnf1UC1JuyG-yTi0XBmPpkMde8J 1Z01hcYeNfEIpS2F_v8lGQ-vZ_FslmdoS 1Yy96Yo8FCDtvBlfKkUeH3r24Ssik25qI 1YxBEw3MLuIST3Bk4Vekq-xhqt2SNL20_ 1ZGilI_wNd-7DvG4CkopSAwj5QaidcQsZ 1ZFuCVochp-_X8dlpRqqPOG9VV6_Hi7a1 1Z4nz_WMF21uyvsxv992IFT-_pcU95Sry 1ZXPEhUWBd-c1hc6aYJ0ys6xqjAQSaIj9`),
+    '1TgyL0M7IwxEfEHzE_2n-Hkoxj_rmUiIk': makeAudioTrackSpec(1, `1eyU7DZTtX19mr2ul4tctEBXO5xMQml6i 1exSlVmcF7zQ8bYFnc_zZ4Kfsw_EuV4-_ 1fBXjYHxDowrSYLIwn2qLOBuVZIY7jTFo 1f8ofammOPEv1mV6Td0RNKINTDxSuDpgk 1f0EuyCjrusdhkKoYNbG0BcTPhgitJEIR 1fFZz0rxU9B-DPLcf_KKwnGtPESgkIGjA 1fFZZ0pPlVFotMTU6BMuoOIZIo0Xunmsk 1fCHmHNWmlV5QpH91jNvvEzQF5S1XllFm 1fR7Kjc0aN9fGh_CpXTd8udhZ2ldvAAp3 1fQuPWRtZcadlEJwrupoNQSMJT9QLIMdz 1fOOQxtVnbHDE7RtYomiLT4ze156kMegQ 1fl3MV5jSxIYh5Aa-yA8Cx-Q6GGGBwdtB 1fcL11IMgywGbbjcKYsddOn9MrzU6_sWR 1falKqKOFpt4eOl9qbcrUiXPblUsTy6RN 1fuUSxZJ0JFpNyxAIIWJ19HumRjMpYU_9 1ftuX7GA1a3AfA2_iXSqJZ3oKXoqlTyeO 1frE3Asqu1CoyhGcKP6ugYVWhIUdZeZMn 1g6l-wDNgoDiEcaa753U_MaU64diGC9Ss 1g4I3O7HHqmiuok_i7UOyAPvRdUX4F9jd 1g1ULmXfyYdeGE0PZoHpGzYq1QvuOAsWE 1gJLVpFPJa4mGGcr_k5beLWEcGW18IOWa 1gG102zHffBlOfnWy65AtV5ywpcP0BIK2 1g7OkwHhP8fALPYo96k3FU0kPk4Y75uaJ 1gPhzbkAfyXd6mhf587QIqgNgbDjJxNTN 1gN-jsDaj4uYjIopBakq1cb4uoVtNsHzP 1gKewwdBg8ND3-F7qDKPGqxuaaxfo3yeA 1gYeadyR5xtWzaIf_BMJggqK1i-YnutE- 1gRfEVkaguNJLTzWvPtIEa0PXtEhwScEj 1gQSW3HPM3xVZKoIl3fDdSQiilpY_gMbv 1gx1IrQheNSAv93bF9E4JP03J0HUuzakF`),
+    '1iPvYb5NLPkdeT4rI2M2MfwgncA8QUi8N': makeAudioTrackSpec(1, `1ieeFeVr6muuv7NC3bbM-p-ES2T4vcziD 1iZhTnrAirtreRydd_rmdW9UlxpQvwBWa 1iYGjfcrDazgbmiFTBdCtapY2WcbtMim6 1j-INOIQrWEsq0viFunPjrzkWS-XRFgAv 1in6_SHYPYegEPfpgM2xyUfpe0ndBjjm- 1ilQSKB_h8y8MhHi1Fnh7p8aJcmRVTTmm 1jhcS3vuKKF7tTol9JOzvJJXLDE_sGQpG 1jgA-dkGukrjUN8R3duXbM--mhXZO0pry 1jetsTOtEusBtQfGH7TfMvSySXTuYTHXO 1k0gaOM9_pCAwZL5Em-rLuQ0LYzLYOql9 1jwgjhSLl8fHXAjLeka7Ldxfn8rLO0xve 1jvN7JhrRW3xLDpBUW9N38aXC7xGrs4nS 1k65GS47X0O9yokP_2VZ2qu_jJgenoR5M 1k5Fu9g2rx2mqbfo2w8GeNswOHuBD_Wc9 1k3oFs6AYYqGMARoXNhfBEanHcg8JcBBd 1kJTL-2EbLXuvAiyRlUVaOkxuX79rZsmc 1kE-ec0CeRnwkgwduOXV0T88EGElo8ldu 1k8g6Ld7bNMDCZ6zWNTZoYs96684RZOHH 1kUfSb1cDeRydgyvWvAe48YtvvimmIW37 1kRzlDmv66AlLvo3Drdlw0oIv4B2SKiZU 1kK0HFH1hB8kVcQArA_W7dZ7pMX4ljpSG 1koLypdZnW5GjGSY0qnjBYCO1ILh0_Js1 1knMP_fM-wuiUdAR_1pf8EGEjIQiIwSZm 1kZ7fgNArjph4D_yX-FHIxixUs4qiYjW7 1kya4zgFAoyQRpklbdUMCB3HUAAmmqqd- 1kxOG0veJxzYyoKm_XZ-QIGMtBGQkRnjD 1kwHADteIY0pctGC0DBIbDQF6ADZZHGIp 1l9KQQQmgjsPmKfgle70fOYdVwkEj-jWS 1l5ewhHYYcjCUBkZKluVCP2f4FESmN6ih 1l0Wid5g8gbvnCnzEjU44-PnV5N1vU1OR`),
+    '1TllJeo14Z1Ybh4RV-2QJL-yVh631il7f': makeAudioTrackSpec(1, `1cElRlVFPHgkS2iE7fdvxdOQ_Ah-sfk7y 1cAGR2FMTh9oAjJvhDPUGIJcikcZz8Ajh 1cM423ejkK2oxqbyXkmeJYCT59S1gVgVw 1cLLwUHySGtoFK6ZDzb8UM3NlGPwhz4Uz 1cLHa83Jq-6YdUtcUDzmhxg5qh9fh6Qaf 1cXtXhBD4Bv1gqpfc9iz4Zp6hGtGn_W-l 1cXtCJCZqfYVPgaLQiBceQV2xs07Huc14 1cNSmepv0uJXZzQiY8Esw_X9xTBgvQPNT 1ceQWTEEde7yvoo8tYUcSh2u96PXoaGYX 1ccRrYQfqSnLhCwgH7VWw3S4N5Rr5l0jv 1cYxrCJMDseumIU0sV32TyBf6GBRChQLR 1ch0Tzam_t79KTO5jlIIHolI1VScgaHtB 1cgLfa_GmjNpyF6sPwHHSHRw6yGSLfX0F 1cg6mh7egvX5jKk8F5e-jp7Tu3KEV9ZRp 1coXhRnhlvp7SseGVQom9p1WwnI5vzHzP 1ckQm0tDe-s2LQJthfSr4rOchV2F1K3xQ 1cin3CVIVO91SzQ_Uz8DpYqebA-j2DN1X 1dI5FcIN2jeDU2JGt7GNbEzTFNQ0qpTnS 1dEusbJ8XRw9GemOf8YFjk5JzmfxnP_wR 1d6AabpgfQG6jinNq5FJES7eXdXnTfaR5 1dSUOn7DOUopy78L4fTGfx6G_f9SsIMiQ 1dRmq070o2StNX6V1FuhPFaJzMqTiqFfC 1dOftyHpoA1YLsfwgXNmLmkOlYQsdgzqy 1deG_7PHpidCLV0v5nrAoBgTixuvdWOcg 1ddvG-Xoogg22bM3b5pybK_z1x4nciw7f 1dWCC5UTo0NKJYeqNkdpXOQH3nsTffdbf 1diAXcPYqSPlFqkQe5jGDwykx6d24LO6q 1dhbV0MeCrdSfwDTOuOtJNRg4WyA4tHck 1dgdZb9DIRnQxuf703GLDPo5j0SKxwLHJ 1duYA2Jq2Fiv0Yv8AlkyQcvdaBOhG41V7`),
+    '1Tg8OaMwjhAwsPv9jjhhFBld3W5MwWuee': makeAudioTrackSpec(1, `1gvLwVAT44Y7XLtJ7zbdccCTGzvrfHmrp 1gmAqRIxRQcpmWKmje0AKEnOLwELwrrgE 1gzLNsTd87NEeWi9_lq13xWa4VFfV429y 1gyvVQXobatsH5xEl9mSLCTQqZpRfEQay 1gykkrIXgfllapoVtosOlmplBXB_jKZs- 1hEv161OQaW7KkPl6rRkiiApb4Qci4gAD 1hAlupHF7gj4T-iBH3z3ioZ_kygZPpaug 1h7VpcfKAxDilg_mg_wrF0WQFQXhEbtYB 1hQUozjVrjdWBSTlupVH2x22WwEs07EG- 1hLQuwD4ptd8Bx4Nv7AoUDSVJMULy8Ur4 1hKNOP7jq15N0ripRk3sEF2v5SQ8PIwyP 1hdsQc5h-zCeKpuVLPGSaRgy340T_nFUY 1hRmPLQJc8IwM2FSgcgAhYp7ONoN9ICyU 1hQzgjoxu195Bhrhj-Jg2cJm0ueSipZri 1houXiOjWLxd05JHv26SpPYyqI5zexNed 1hkxXQNmprHfpF-ZeGBpWzimH2mkYwiR0 1hfkvUf2l-1g5kNGZ_p4NABRA-jaVi0ga 1i-OmlufMDpbEj-IXitlujrgqZ-7Rd7eE 1hutOx9GZj4u_RZ3P_nuVN60S5zFw_Gwx 1huqV_2xEG0l6s0lR05ooNwfJOVSrPh0f 1iDOteeaFqHDTpEz4sr5GKFkLUD0CoeK3 1i3cWyM4VJNbqTEGKYFEGi10sVik7DQt1 1i1eDZ-CtRUgknMQ_zL6Aix_PGgaZVTUm 1iGqwlxw3bpTMQTLoL3dcllUFN2Esm03N 1iFsSwKwkjZ9ykxy2uwB7ML-AaTW9q9qT 1iF--3oX59EfebkVo3-xo9ooLLJvXZB5o 1iPdfpHDCiVhvOXKSzkz4vU3uiz8YB6fS 1iN16RIoeyzUbrwabAF-7W7-umRta7F5_ 1iKl5X5FuK6t_Y5NLaD8gwf_0tFqP6DTB 1iUeDEnzksiCRrODHwiCiP0xgzjQdDo5O`),
+    '1TrScliW4oUn0dnkkESMzogsDjcqFJv1W': makeAudioTrackSpec(1, `1a1Nic3_jHAdDwlLwenAJGGJaBkwJJ-se 1a1BmqaUi3FAvcgxb2Ie-0P6fia4j3tLW 1aHj4wjde70MGSFoLjz0XO9Z1c8B97-Dz 1aAHdxye7eIWgmRY54gUtwUdZDJlU7JpF 1a7sy3t2OfbqDJIluB0IC7-R5uReEDciK 1aVRs2IwcQ8Kdlp8h1uoQ5by4LHsIl3Tu 1aUc13K5eIYwkwiov5l9_S2QTQ8toLY49 1aRnbuxDEfQiik17Xpx03Uenq-75imcRY 1ak-Kxy0FeaubNx40pJ_ggWOfPr7pvcCH 1aiw0iHSK2iTA-eUBclyWNiNocmtSGJ6p 1aZpxlf0XJ9-J5m_KyHyIIQKRw0taOOF7 1b73FyqdeJ65qqoNCdOCJlhSY39Kr8kaR 1b6N3oejr4wT5_79sbAjwvNEOM8NmBwSS 1aoR9BRK4pGE2lbliZ4EyWVA6HhmlWpiP 1bIGZQ2xcCwTfMO0eSJhjQQdb6BYySSgK 1bBJaIgPTNIFbUn3SJf_nB6YMS8o9v01a 1b8ARB9saSnAjKo0YeZTDNRoFBdYQ_3r6 1bct7Jh_LrOTBw9b_Z5gWrFlTpJkoOwbt 1bTsfxe_UJQXj7o6qSog7sli3fixtA3hY 1bQ6WvBlGUaaOqrDAC3sQ1xW_8XzdWteF 1bh0zZrGBSwWqxZnhc1napDWQiXZKHdLs 1bgcqfXDPvH2yf-GkKE7iHfqLuTD6fZ4g 1bdNu7bwwPXbvQ7tkl2IeDVZacBIsMQbB 1bxzBOna0ZYlsNX-L5zKRPwoL9LwToay9 1brqTO25aj-Z6vOfrZiFf8QE0EWxycojC 1bpjOLv6hhouOz4FmnNX_d5BOmWZyfDWo 1c9l7uco9_aYdlO0uD04ibPsBnfv3xwKJ 1c2X3EkIXaU87OJhFbleAI8LIxSWA3yQV 1bzeZ1PVdir7rayQLfco-4CGrDOs8623n 1cH_3v33PhFE9YQxYvDa_9sJ8Uty1j5Sl`),
+    '1TwObkOkWgNzH3RR_Gq2evz4_kDDJ0sSl': makeAudioTrackSpec(1, `1ZKRhhZqheyPozZeHgeTutB6nwlUCa7yI 1ZK2fdzfHHpX1QuUIJdci9xZEk6meb0-r 1ZhkLsByahfQDzmCzqaWm0mYoTGfMqX-D 1ZgRDNYMkQ-x64YX_sw2OAi8IhKKzjmEH 1ZeCOy_DE2SFzPJnTbfUaTnfEAnRSZgSl 1ZzKN4BVUnLOj60edxfRnBdvLzhYvf-L8 1ZzB1kvufyzKsxbSZ4nSpiaOayoptESXf 1Zovz3FsCKPRJas_K1Q2Om98iaMQtnt8t 1_5jzVMJ7GmDuFWVrffWnxKYyCmDYUqut 1_2nh-pnS93HYFOy27h9eT-jUAH44vECK 1_1K9HTf9peb-Zgija0FJOHNdhEpJNh49 1_EGq3xWKchNtigr0_7hYEieCHa-3hrnK 1_CWbg4WTaKzxzk3NvUG6JZD7IIuIXQiJ 1_7hYeJJc22OrZx_DvmAH2x9iL8cjghcq 1_RIZliDLi8GO-_nDgg-IPdKSLmfZz2c7 1_LPXhGcZ-oVUre5c6EDR3qnG6E8LAQg- 1_Kw-2xjopPyXQUgOzLqhJoKVk2oSFf9c 1_ZQweOLjnCzf_8p4-ZHhCpdH2jpv5nG0 1_V2-nlnYosCIkio8-bSA23v0tBvdUSPa 1_RaaNQ0vXZmBIdjf3lSqdd1DqfgroVUw 1_g2HIBipLLgBtZSYb99G69MMRP4mVTDO 1_ffnYSpIkPmDO7K3KBtIpp8ATM7lI7ek 1_cPHAO-AqONosm1fJ9gHl4RRFGDk8s8E 1_mxnvIjw09C9F-Zh72mVSNXZCowyUHPt 1_lLN8dyidJYTY1xz6QKqLJMdTpJJ4arS 1_h_vMcrqrXF7m2ZkwtLL__ZQZcQhx2bb 1a-etYkjwz30AshWAAgw73v8zSyMoctg6 1_tzhwYrdegezrV--dg9M1OOngOAHdUZt 1_qlCuzr1gVGySylNbQDHWi1teK4Sxz7e 1a3ozwoyW5if4MaavyXP38Ui-abPli2d3`),
+    '160Z66TKva8AjzRGNPxWdskb6s1yjXQZO': makeAudioTrackSpec(1, `17mriCOfif5hHE4Dv-WQtr1fJ_7ztXobg 17lkltxXdD6pRlm5JeWGWQp60cFOgpXHR 18c_h1k168h-VWDi6VeU4HySsCJ1qeZFX 18_VdlSm8X8wFBs55fm1mBu-Gu8O9FjS0 18_P0eQ2tK_sZYEk8sUeYkbEejAaL_MlU 18U8F4mtCJOsyoEGGkY0R0WAE0Kl8XizH 18M8MQ_l8sioEA1CNQ_tkqYtBVl45l2p_ 18riqgfBe_J2bSWwDtC8HSiHMzMbYuKeJ 18rdNgLxYSQHobMwBs_JsSqOyqEJFmT-v 18mlC1p5lhPMoeDcCE3gjJP9FxAe-HiA1 18gmtIOD2DzefgAreqrGpjbzp6Rf0Ywrs 18dDBKozptMNtHcu8rZfnjb8Za6qy1Zr8 19CmcysB1PAKhWX8RXzSlFdn-5bGDYl3d`),
+    '17CtSY75CqPElXy1dLKjvBOPwM29-sxxq': makeAudioTrackSpec(1, `17J_KZ4xRNhElrXgn1xBFW6_i_SuCAst5 17FLlBY9lprkKIG4amMk1H3J3zoKW6o5q 19W_DZzIUO0pzG8fgagXP5GRs62QIoWBH 1AdtoNmga3In_FlWiB7mFCebdij22vkUI 1AdYnivHj3dRDYSR2iWkFmSCQPiB5Timm 1AzCuGzKrBtJaHJX8jVKvT_ERVhDoB7rY 1AwaGHyXEz1hSOCxX7_dBPr7pGppWkkhF 1AtMnoF3751zkDOo6IPViI3B__hgbjEc2 1AnM94fn5H3dKL0virSsygMiS49Oh-F1h 1BF8AfJL86wvdHQXcMcp_68CBC5jZ7hRT`),
+    '1BTyo8I-NAjhJqsigN7U-reQ9uHawbmzj': makeAudioTrackSpec(1, `1HhzAThvgakWwtKLtrCmtlnwEeL5gHV7n 1HeF0DGJ0aDF8tyO5em4Nc8PMPT7qO-Z5 1Hby1eBW5ZwwdUMGUTdd1xVJCQ05WSxTR 1IKqfO4e__6Fe6i8o-dpTGwX_0sv_4Y1k 1I9aGcwYb0CVSuOZzRGaDPId7T7kUHtfW 1I7WKV7RWAAdiLFeJcT97a0y9veAnxqzR 1HyhvV2YiJJkedG13UA4mpqE6inqsq04P 1InHldfMlGOhLuvPPYJC7gIEEQq2irYbT 1IjMmdU8qIkUhAgDRjJe6RkZY45xH804Z`),
+    '1BiZ3Tzny2njj0392Bds-UbELIq28iHDJ': makeAudioTrackSpec(1, `1EWUqtjTzCi5y3gAYr-nx4idiJKNnUEjH 1EOAcXh_YLotw-Ks0PNFeDSUulWod294L 1ENXV3RGZPa1ntNC5qIqQ-CDzdwhyBVjJ 1EfHFpRpw-dk1yGlVnFR_6kQtTBdv79bm 1E_tvEHxSZUsjbp7sRl6iQS_H-78rLxKs 1E_9VYWWjLeXen0QjVpyK-krqbfL4fvfX 1Eq5HOcPmPZN6ZXvvAL-heKATWAurNaq9 1EpnFHxiIpbT4GJLEZOTMpZwWp2Fx9Ny2 1Em6r7S4uXgS6EHtYlQMsCT2PxRlBNXaG`),
+    '1BziAPdsMw3HZGPgbznB_FEF1iaQvVFU-': makeAudioTrackSpec(1, `1CDal9wHshY7NzzEGUlS9GfpRiR3uDzgJ 1CGzLwM27YGUDs08BhtpiM8US0XGuZ1B3 1CEuPqNFpgDV6ZL1MZ366Xbf3oQXRNCuN 1CVTpL7ihDG1iHtDJMarGjVmG9bGKWffv 1CJBjHE3F9AvOuoprg7RIujKKLJ9QludV 1CIH-TQ95nC36KyqJboA6ogBC01u094pf 1CZtsD0nqVpZGBhHoiOPvsDGA_gqp4B3G 1Clck6193xIUXu4WJiVpWS9rqI2SUBpoZ 1CcNNvWICiWoU8XZ0dCgONT8pLoAQnA4Z`),
+    '1GmsumCRFOtp-WkjIZi87dbCWrKCUpib_': makeAudioTrackSpec(1, `1H-vQ_yUr0Bg3hcqBaqeDTAiLEahSExe5 1H-BPltUb0pOUFJq0nVgtRzxvWeFqURfE 1Gxta-oVR1fmg0v1pLQ-hn0EyBEJ1tjlk 1H0imGIkXH6R2xXxo6e-Yofk0mQe4grc3 1H0f1xFVHWScsxsLOt_LNCf5AipkdN5Oo 1HbC-dy60XeYn1sw-nPQhx-BLz4rlNdKx 1H_vnJjAahhHx6KCAlPaetV46SdQRR1eS 1H_bMN4VKuHMKjuIxSU6M-PqWHAmPE2fP`),
+    '1MJUTILLV776DYkoG3GNlrHCENGfySRy8': makeAudioTrackSpec(1, `1S7qE0HD4kEy0nKN76STcDysoFZP9UZBA 1S3k7Baz_cR1mVYYxnA3JatJC6uzDXENg 1S3CvMZI98EQ6HO67KZTHyOZko6zLjziO 1SJSq8-HM5giLVbej4QzUcMUWNHFu1e2E 1SFU6RyOpqJzpo_TtJY29dQqnmpypjYGr 1SEpXn-vC_4sbJg1XBkVowrVQJc2VUi8N 1SS52V_2CngepVNV-b6yU1mAqoZoKiV82 1SRSltXO_fnTMdtcKLAJG3ILw2bgEmKXT 1SNw1CLn4MjZQSo9osbzmCuqii2c0izRb`),
+    '1Mv-F5gIEclanLNQDpzOCDaZRlZp8mlz2': makeAudioTrackSpec(1, `1N0R3VQEeFsPfqNyEPKcj0RhiWN_N_kS_ 1Myjl8kpDv1zx7gyhnp0dHkiUbxkjs538 1MyUGiQjVEM0zEoEtDF_fwt1Fp3z-5liN 1N7BAQjS6IpnmGwulhRjD0e6Y2W7tGXI9 1N4IdtTipn86CMAoypsMvMUL1JUmirzpA 1N2tLnrTVr3-RcwJB1VQ4AyLcO8rLf7fS 1N2DLiDE2yvTS62soqal13tHL37g8F9Zv 1NVxuUMGzX3YtQOgVgNSX4EdzTTYtZRxb 1NTCtKA4jcyVo4h69fH3F3SFZ0jReQR8P`),
+    '1MbQK4szntdmNX8q7a2SMHs19snNSLgvR': makeAudioTrackSpec(1, `1T7F9fUCsXRRSHYuPJOoY4Dl1p_6PTH46 1T78bqRry8JnDXxGaRCmebSqQiQVQzCPY 1T3tIHZ4gNGAeETJxC3tExrYVHqT6zlaC 1TKtf9kn6LDfjDYb5VqAh_Pq9jZPy5paG 1TE_6fXtDJN2TRxW0bOPsp5pCoPL-ULRS 1TByAiyAq4I_hUG4jm1StyDZnGlMinMhY 1TaXjQRlQg1bsgoIVxy39vYyVPLnnU9mW 1TWmm_gM6s0zJEPGTj4h6ZgcIxbi1Id2s 1TRnlT--DOJyCllZZsa-4G90VldBdckE_`),
+    '1UZJLop6xYd9m-mfat8wFwpe8986p68S-': makeAudioTrackSpec(1, `1Uwm192yXl3aoNU92ubp9XSpYs3FmVQ8K 1UtgHPFF2v2jV46PWdQJmsi93ZMu7bAzd 1Ubgs2kvxS09TIchP_yjRx_YRBxJnNdnS 1V8auXDZtlUhOvJZ5PbjZqOKsifITGJ0s 1V-uj1NVcPkdyzVbsSY2-ZQN6ZOB5Av1F 1V-bDiNfJAqSfhPWB8Od6bEZ2kjE1iMXG 1VmT8RzzqUCeobxcFp921mxD8LpXHzUnu 1VkesZ-BrPx5JnYKlJAy7hnR0KO_v-H66 1VgENUW3m6UxctVPz34cnql1NQgp_Lrxm`),
+    '161fGImlRk2Ywf7a20b9855m25oJJaiEe': makeAudioTrackSpec(14, `17StC8GeCXtln0s1yX97R6joWYdqBfmfE 17Rz-xrKTvVwEawTSD7scm0EDGs-pm6rM 17NMm6GQmXYYinscJqnwuWkakdQtYjvIT 17g5olqOOKxH9FNZPEV7pBRaQYH3dHDgo 17_5Xi57ogz7m72egyFXehg1KvH2ZGCM3 17ZQW9jyG9w9VcosSBL26ixi6Sk3LKVI2 18KY5IwzQjTGNZ-0wwZjEUa7F3sG667-E 18GBpNI1uzNbXw4bhcz1X1CvsAJZ7YT0_ 18AavkfzbkdM4UxE5jTgRX32TH7W3IbLn 17rGwBK3UTrOfdivEFEUVgGfFJYCtJRCJ`),
+    '172TPc3n6w8FEBO7jSSzmuUUpoKIzbkJF': makeAudioTrackSpec(11, `1AHn0hlZayhXq5MxT-JKoGP2IZEMHLh-P 1A6zs-iOOrP4vk6548n3pgPAGOVPfHrTl 1ARX3NtCO5KrDhdzKmUaV5PaKVzzeV8NO 1APGxVj3N3BDdnE36LjSiVb3KmB3donAs 1AMx6hP_qH4H7ylxn3S2EEJH1RnX-zXmi 1ALS4nBwhnMkgYviasBh4RFn-ONo0Hs0f 1AKOxwXHhqrMdiekXLM-H2-c1kZpOYcCC 1AdISrSBHrtJxHN5m53X0a1W7XuHyXfXa 1AXfC5WJGQjPWqu04JhKw5tpbOqiUEaVM 1A7ITfMm9_5tWIjoKFzY1EERqPtVT5xF1 1AHlwo72U-uJ17dRutj3D64mg2__YaCu4 1AVhT2spAX0q1Fu0FSMuI5D4Hopm6pbTh 1ATuGAkdLEUMgHPz_akBRSdIt7lwV80Zw 1AhoaUaC0VqnwdlbDZhJ_bJBqhVgV-Uk2`),
+    '1BTlJAVXy76OdHwVxqIt3Ue_XAjIM1T4Z': makeAudioTrackSpec(10, `1IhL5fAv4vaaPwDOgDRF845_t4L6PgKdl 1IaOU4pDgaFVs216L5zyfqPCFvYqwXOOx 1J39L7l8ONKW53PeKP7DeW_tr_YSrzjnN 1J1igFBKYNeea7vd28i7HPzxSQBV5p9vH 1Ig376XmfHpX0onImaBVKZR-RyQN_OhN- 1IyfCpPMAE47bBYzPi7hLdRLX9gU8Nk2T 1It37gmJMZ6Ue6R-e4hkYi5TuflK2C46J 1Jcfu-1kT8my93dwGZhqTsMrX-Gen4eYz 1JWH0e6EWJ_Vw2I-MEb4eNMPyxFUgq9QW 1Icc54Y2Qi4NetWJ2hD1lf9m1JwGglhCz 1IcNHccgMJXva_Ujhm6xL_Evqei9t6fnm 1JRqwlDYecx8VP2dZQ0xxxHjTPRTmjNX6 1JAou6eIl9RlE0HFGsx4hmbEWGhiQBXO5 1J9j1vnMK-EMh4UlPXm2yfO5WS32lNTAu`),
+    '1Bj_ccc6p56-KHDGR7dTcGMGXoGr5v-pa': makeAudioTrackSpec(10, `1DcVh9n1QTPtVYpOsZ5kfEnF-kBPKs5kw 1DHgf4SpjEweoVyBgZORqhjM0Qmzlk24c 1E09_YJetamGIF7YhFq9Wg6op-_hcB144 1Dz7kPbdk6LHNaDwM5ws31w8DTqlvx-Iz 1Dw-8UngRBbQ2HEb4huRhIi3vY8hD6bV3 1Dl-YIGixIIJC43sjsqQOwEr5x4guupOD 1DjBTfpgIU6xWrXwr0U-BUc8-PVOUHnBl 1ENPGMzlfWv7cb-uzvHc9HWe1hQiwyu0I 1EJgrIdLLuMoGxcImi8rR3hwfCLm8KTY7 1DVrGiBHYo4Tglkt7aw0I470X1IDuGg52 1DLKMz88o90laxABc7SEBhJnr77FCXbz8 1EHyK6Ut499lmk2IRBv4DbLxzWoFw5Vu0 1E1xyD0XCxAmX7uFt9cMkoPy1XNbUQ9sp 1EWsMVfhmcvtj_gCKOYM9F1H4sqTW9zTJ`),
+    '1BVL4tGl0D2Sda7ZAHY2_Sg5gk9NevOGN': makeAudioTrackSpec(10, `1Fgg3zhA65s2qqTjKQlLulDrXUJwCPo1D 1FeQQID-D4mkSxO8_xKPY4rviXYP90kRw 1G-oi5L2vfSWLk_pH-1PLQHkmojhuOmC5 1Ftytj-or3QbEJcZkJ4iosAFAmEuHCcHY 1Fk4p_HdQog1VGmmYlbY59IiFG96c9Ja6 1Fjxb4XgY2CmR768uK-0HwSxMhVO0V3lc 1Fi-gOAdEIAOOkrJvfrqtresxPcxtfbw8 1GOCh8U1L3zNsMqVt8-3oUy1PrAbTjcnx 1GD51b4EZ1QpRvkho5rAhnNacTMw8aK6O 1FgZlLflcQ_fGyc3yRpeLFIM8TRwVQvNv 1Ff-NHbbq-LSRcmwSTmDYsXX2KSrRyjhZ 1GBaSVs8DjgULCG2pIO-pt0ZBixTdG9og 1G5HyeSZMi91Zdn0qNGtnsclzANs8Tw97 1GRLNSfWihMEGRx2dVypzapYtypJDD2hh`),
+    '1GfsmSH_t4vw_KeFW0XhyGAk5NHa3-E7u': makeAudioTrackSpec(9, `1H72_XeCgE4ok5T0Qo7gmhoi5pnng4WXu 1KLJ_j8KUHzOEvwiBPRVpZU4udH_4jyM1 1KlK8ciFV7mQUVtMrE-rzw4kxxx--Vt00 1KeokBCkJWOtX5UAO_yRPkk0Cm6ebmOEY 1KbjMyL83O1tNqcMfsihMRkl0KPqmjf8P 1KTnKoFE7-CnBD4XupHol6yOaBK1fMNph 1KS0NO_VmkO6WwH_FYfsClYN63GiZNOdD 1Kv_Yp6ol02pTVBXI-OAbaCKAzSA-Dqj9 1KrtT2R-aigluh89_UZtUQYVDvWndW-Up 1HYpNHlg_XV8CdeOErNsNmj7bZa-udE9j 1H25vfVqL0DJfukYfOLNA6Bcz6yu5we2A 1KrReeohtqiDSWlSPa7wHW8sm7huZel3a 1KmC7NMeG3oJfoHITA3489iTUFr9QdfNC 1L5nAwVuNcqP9zmXWqLuXIzWaRqAWqFhH`),
+    '1MRJj184Drp7rEXyNAqQNUdfkeVRWraeY': makeAudioTrackSpec(10, `1QBpm2uO2uf-VusBvrzBGqKJxy2fB1MBf 1Q3zjJRg04rM5t5Q4AF2ggdzHccJsoQoF 1PzhdhMhBWzIdKWWsAg56GHT5Lic91Bli 1QV8nN_zdg0-a-L_afLd_NojwtPek90qQ 1QT5SDedPDyvF9XZUQkYGHCctJYtfMk3Q 1QMP0xCxsy9xhyZkpQsyqIFIVjvE0t6iU 1QGykXby4mcgZzFQQ1zUfxWRRjo1CH97t 1QosZZn3e1nOtgghelatGYrdjsAo17h0f 1QgGfh6WN_TLPZ3XeJXnLZfjfPQIqQyGf 1QG0lnQ50TjRAg3Qw6tfDhyfZ8qhx6Xtj 1Q9jaCJQnnYVjDIUT3o7ZaezYd9N6_zT8 1QXQhNvG8A1xzHHMuwDshxRz5oBvFRTRY 1QXGZFXJDgvyt00jhSoFRuGakY4MWxkfH 1R0_TfLa6NiRDIssTUc--xYoyjmTvzIaD`),
+    '1MugUadaS3USc5ORRf3y2XjmAd9H0sTKg': makeAudioTrackSpec(10, `1NFs7kedzuEy7kxQ401DlWAxV-PLGtAYt 1NCnYYEtz6TbJVEAW_B2xRm_nrL_n3y6E 1Nm2w98niphQcoXrJSwrxNPS74hgMD0MC 1NlOSyEw0_TyIQv30iSK7-GUZp49gpE_S 1NhvHcRW8tyjxT-a8CjS4Mh_oRoCPTiUZ 1NfN3Q0ldMOayKRnCmdOD6otta2XNj4wd 1NZaxLxDYkEr-AL9ZdJNLU3X_UY5Rahqc 1NtcQ5X1_-wi7rUAuhriIismx5pkd7Zi1 1NqMi6vtlTUDCB7q716qeUZoMSTt2v84R 1NQD97bo5w77ysYNdKkhJCkis50KivcUi 1NE6WFW_nARsHcwFnrWr9-CpNqAjLMtsf 1Nn3viZV4JTDPonHsP98Jji1qLnZtfeI7 1Nmf2CQDCYttabL-htHxxY49CJJ-BfGYY 1O7eQ_jHdnApcjZPBqhHq1VayTFE7S-__`),
+    '1Mc6Mnva1uFDI2zWVUQY2gFZA7wdl_aMz': makeAudioTrackSpec(10, `1PYMas-xY12C-V0O17kcdThOLAMUVaxS2 1PVHNz1g5aGzo1TBuZ3ywT5YS9pbBuaUy 1Pqj1wywm_gAX0Eka96cwF4tKM7Sh-wYk 1PmmrmoRgsutgwfKDVBrBu7KZvdEK-DxD 1PeznwIWOfxLbB7bq1qnWWJ_7tKuPvqxL 1P_WJX_Jwf2l-WbNFeDMGf5-uisNb2o-a 1SNSDjGbWodG06G2Ce7fi6qmSksJuVEB4 1Sx59EAPtqMzg6qLzWlUXf0W_bCILGn6I 1Ss0x0l22L4GHGPSLuD0j-L3ffLXRHhBH 1PVSBPNlnp39N7MxvyzBNSFfFrSxhct3s 1SkJ2u4F3SYM3TLQ5LIMQybUAhnfTJ5Ln 1SXupbsiU7XlryrFVNcwbUZ0SPg9WDWdn 1SUdp7i4iVry-gNcTGa6kGvzcZocOzeZb 1T7w8G3bgt38ThdKNtd4BQ36yU3Xy0wB0`),
+    '1UGUmOTpNCbqJ8C-rXj-EOEmFC-wPB6DW': makeAudioTrackSpec(10, `1Wz16O-TVbf6OBLtFb49BimLOVJ5WHM9Q 1WfJ5wQrAfDu7fwOBWYhU5c1zetDtfNYf 1XXX1Zvp_frZYqRTEtm_3x4ZDRFT2bbvc 1XVd5Gb0mgnskhNr_wZUSa1gytivUMCFI 1XOJiKN40HnDb7FA0EneftC4JBwKYu105 1XIeUFnxS27wGNWDDODMt8w7s1HFe9mgZ 1XHSRoWnuerdU5MEjAV8U4OA4UE_WAX2z 1Xcqdm1HPzl2UX46hN8yJbeZkdVRFGYMl 1XZniCjY_fQLa9s8u6XFnDvAG5LvZaQ1u 1Ww5yyeEj5zH3irm5EfjsSe5N1-HMrnZo 1XBJSaTJoBfg3qIRV0KV9pl0PIsEgMKP7 1XZUGQztRmvqFneJu6Q3UYImdAiGitSBg 1XZ6c03I1-j7IQoj7ILcFK_eXsgBrDF0X 1XsQWj3eh_Lgvkyns1qrrNEEf0QB5TV0d`),
+    '15vrTrSJsrxDfPbMBg_LE_M1lNbb6TKEB': makeAudioTrackSpec(24, `197fO63R0W_0m4kCszIX0ma2_kNpsXb0t 197D-DzE2KMWfcX4A0yyWIi8VLnt8ieTn 18wK6HyZ0PJYHQhHqoavvLVwI7Xhdbwm9 19Ilm3h_OkDsT8_rOPyGan8XqKI2iGVOf 19Gb2hEvotyUkaI1D62UufnXj3rrmvazw 19FOvgm-uTQJmwl6_Ie0KVyf_JQTOuWW2 19VGVMu6hyuaSZq0FgKDmDxD4oAbOeaYu 19TwRvG45Kn8BmaXyCTiTkmtFW6IUvjSK 19TemAbfBOIJA-E8MS4sJ3dnHq9VWnK7N 19T0O17ts0MlRf91szBzjB2ViWQZnq4cb 19MPr6gbKSii7SgyDwDtP_jdG0Xr0nyE6 1A18VYi2tFsuYHe23Y6Im4b9uhJZLu8lC 19rwxQ_bymyWf-LZjSMpbiRwbMGnxRX9d 19iRnLWRiohJKXzQ5_AjQjamJwt-_gDOt`),
+    '163gZ-uOL1nSYubEgVtNmfRyJYOm5z57n': makeAudioTrackSpec(25, `16ICKGhzlIL2vtWJLYVb86pnObkFyjUtE 16EXZp9AH-kf3TSbTVwV8Rnzb3-fx-ygi 165a0MtmCfkcVEN7j40Dl-9XvHMMuBpjy 16iaK6qFpxX3Z6UKAaOHalb08GZuu73YA 16czZBaCS1ijwkvcuQrgehc9-dcCapnrx 16YizXFMol8sAznB8G4-TXtaDavMt-yzF 16YaMStsZKI4FXNUZp2Y-of5Sm3C9HVC- 16NPwAv0mj06M5abCFLLux_-4UMDuNEk3 16uKYRyy0voHT5rldGFGyKuW_G-OQUOpQ 16rL0qCmLldCaXurqmwIM8oRvtNvvWV3H 16KMe24EH7hL1z8_obHJLr63l31KPLp9O 16qyIxIlMHFU9Y5ngUB3JL1tg0ifqZvtx 16q3xicJ_htl-q1Vi6K4cGsrBp5M7iMza 17Ce5LsAl8C-Mg8zH4RNynqf-4usIIXXq 1791_W_n-UiMEKJ87MS70sDabJqblNU-U`),
+    '1BTgYgnq4dMKDLrFk6B9i9Qx1cRS66P9T': makeAudioTrackSpec(24, `1JniMY72AC7QXiFRQxlmMll_r84KnabBN 1Ji3mu5z7k7pPCMi-7ouGZNmNxkc0v3V1 1Ji1_MktPq0iRT7f0aNYHk33y3oQC_stR 1JfAhLR66NHDkQ9Jbck0jFmxeRu9-sgIT 1JtoOqHQHbCx8P8aWUr9agN2Ip6NdBDtg 1JtNPkIGG6ABi1UyFWGhir7aP-Tz7LzG5 1JqD-G3Bf73JgG7vAGk_to6QAYiWY1vyZ 1K7PNDIeWjVsl9c3OCHN52lzjWen1D3i- 1K39sgYAw2LTir84pN9yKsiVuBpi7vGtW 1JohmiONhTfCyZ0fHNrejHg6-RlZVdcB0 1K2-QT4r3waWdEVaqis3yp2l7Xn1Ehnnj 1JybznmN4idcJyXwJwQ7blHB5phgqdY-F 1JxBmXY_DVPskTqe9tzjN7nv_vtFwIUXW 1KP6uiPgwsPWhXZH5WRtaaIjMUYCfsa09`),
+    '1BrdUkUHATzM7wlziXTEBv6ALRxJLQkOL': makeAudioTrackSpec(24, `1CsAyGhHGQv8SoX2yDHnXB8a4y8K9k1sF 1Cs1LZVTOE9DY6VW3qEtlt78H62MJ8iBT 1CnD13_teK70SyuxMKlygkKRgUy5k3OhP 1D5FtgbP6eauRHerwtDXEdtJetm0khOGi 1CxHNsWm74zemssK0RYX-MgPMr-UxtlqQ 1CvmF4xFXxqN3a0C4_t3hhOfnDH3UAEpn 1Cu5J3GgTPFhFba4lqqxIatyrxaxIncgJ 1DHOa5G8zhamli6Kqpie-dc8lAObV4Rsu 1DDWSY10VNq53Io2yvlMfbwFCP163u4uA 1Ct9kneVG9TKc5VCkHUw50_9P0PqlqCLO 1D79rVOUMjaOCp_ucWAcOCrBS25J_cfhG 1D62eKXbiKKJWucL5JUyat0dDmaG_7A6D 1DiaVymgVOfVsNW1vFbeT5kLqchOargne 1DhzzAXMsGoYMs0AozObDJmCeYxIfVBM-`),
+    '1BVeuAIYU7WyTxhZ0W5DJAJ4SOcuk2Slz': makeAudioTrackSpec(24, `1EiEw5hcV9YTEQs_WdszxYQFX0nFKrd0q 1Efdrv046exNEA7FIb3ZsCVP02wmh46x5 1FOqJYuis9WgK6blWNEJzZC5_byIgpPoC 1FDK6hUZ1SJfgauQWsestIleWCwqb6b-H 1F7khhQSYYEkrE4snRlmPxpy5x2bQJQoX 1Ez8eVKyoyKj_U5AC3Bc7WBKfvx4WvWwu 1EqqmMJZF5eW4gB6aUBjerMVi5wzEYibf 1Fa4JySqWb2p7QrVLn39sVrxsVzPaWwQG 1FYrFnnh4f8dxToAxGQFjCxy0NN0781Dz 1ElqSAmSO7TDe_l2Fnl4lu-xl4o7s_Ukr 1FUfIiISXxqYNWyN1wiai0aYn2LQk7Ipw 1FS-VUNcolw6RytRhg4RqAzmu3bCPLFhN 1FOzD_EhqeHBDbZQHehJ9NeObkSUJlqgr 1Fht0h7Zeu_n5-6UwZNWR-OcEW13gIVKG`),
+    '1GfQTEM_o4RboSeO7hH7dMJALIUPrjm7f': makeAudioTrackSpec(23, `1L4HiaD4DbFvvWUyLXwG1N94QisHO6tSW 1KwrIshmrvJiEniEdlmp6eZ_vEwA7X8I_ 1LN5_V8BEGrdC7BLsr9jsMpbcqhfYkfns 1LLDuMxRZrZc1vYGL3Txby4ZWdqnRYlPw 1LGZYXcX_E-86O2otonjAPsj2BOzyj4qv 1L8i5OjH5sMwbvepKrp1FnBUKL9lE9UOm 1L_PHcg7Pz-rIcwb77ZYBLsfLlXgad98q 1LZzEo9FF0tC_t8jFAI7JJADlPikqFYFQ 1LPeDjom_EXj3TrDjDucA60g1Ttoly65Q 1L4-bupJky5rCm8goajkW0Wbi8bmCqK0n 1MGuPskdV2zfcGWmOKyftlh2ubSyoaIbg 1M1Jwh92sTWwjlaEbgY-nEI-_85h5-bDv 1LrSs8KcX9VrPaxsbCbHzbpe9p7ZMnGLt 1LmhmFbai_wQUeWV8wdXmxk_M_LXMIQ-A`),
+    '1MMEyof0oh2EU8S3Q6ewMCzq4bQTm7r1K': makeAudioTrackSpec(24, `1QzViXNFZQI8KMBxnV9QVVNbU84pqD6BK 1Qq8i_s7DyfBW6KkgRNSqV89t62qsn64M 1RcWUD5H4wfRt3KVnhCTNKgAucBU7681_ 1RTgm1V7711ekem5FJ35eeayifsEXNX5G 1RSOnFi6RSMKedTKlXZ3i13S8M1jCebQs 1R2p5sHxgv92duLyVSgbquF1xkbLXIUEX 1RoQ0SiUrwxp0VQ4JfwpOyxckMHlNv6Dj 1RjwCGs03XNi3Sa8IsS_v7e85B67ITI4Y 1RhlBrcVJYSgxtT0UQ3O_WzJitOx9LKRH 1QuVcCOtbTXxuzQ5hYNbqHY_FTCCCe1Kd 1S0Fe0NaxtVqBTQWnIuEG2eL45JbQjAT4 1Rx4VixQ58vBJvZAtxyjqpnVy-L3oZRfw 1RsxzTkDUmx0GjozSxTd-WU6lKc30WPV4 1RsS9FL6qA2-IKNa0uMbc3d37wkGcNO0j`),
+    '1MiB6UOqbx8-bTZKqEGM9PFgoJeeQ67XQ': makeAudioTrackSpec(24, `1O-nfDBn1apc0Yr0rVa_F_96UVAlZbNZp 1NwcYqyxm3oR5tZ6CG0Ka-MxWwXfzYBnc 1OWE-tfFqb6XEho1XmuBupueKimvSVPvo 1OVAng49NfRLR0x15OBV_IfjNU1422xNQ 1OPAdbfxjRkYU6JDsMXfbV_OUeIR4xTj2 1OEe6BVY7zyPnYcKHSK4xS5TtfqBu2aoG 1OAqKuf42Ej4IELRxRkpES5yIzcqDasb4 1Ob0x_gjgFftIxkb2jtTrbXpz2amOjsd5 1Oaflig9fdaAheCXGVv2iJEL0z594lBzh 1O2QTS-dbuuUUclZiYQSxRdFnGtq5I63t 1Oa0nGOWj5OKfBar6YBz9PGrA7BzWTBn1 1OXV17wl00IcvOGMtwvl5MAOlDP-u604t 1Ov7WCvWpDzeXoL75RPpwGRj4MIOP-6ge 1OtxAzGRDo6IbvjGX60FQQxEmbM-MQz0i`),
+    '1MeUciiY2LkEHwtxaMbfEGMaWeQ1J6Bbx': makeAudioTrackSpec(24, `1OoldHpe5Kh8A3PVAvSjZh_3Y8W19YKTo 1Okyd772xTdz8aCHe0vS4jRp1skrL__Do 1PBWKKYj8Y2pgGSLGb4vIFuB_DKBsj53O 1P5NYZGlyMM66_iXjx2zY6UxZF9ft2Jg1 1P4kMNnXCbUHGp0ogGC3bp5Hn5W0FR8KL 1P2o-uNezKIhU1tdjXzkttTsyq_xXrn0c 1OwScb699zpGbhUNoMlbGCeA2tjphSRv3 1PSnLEeOX6n-TVYBfxWfiZkxjkEGyhYBw 1PMAQaiMcwSSp727jL_7Uu-gscYPTBCQf 1Oq_SiWejxKAVW7GeKtcTL9fZI4J4MCKr 1PM4TS8nYkr5Oa-_QuzZ0peJRiAFkgojH 1PGJguHRM1eqbEdPJNBKFpSceWcIyhRJa 1PDdV7-PSavoDaGBaFzCltFPFfM9JUxkc 1PZBMfSZKGkS0Zsx0xy9E2Oyj_rWbabZK`),
+    '1UQxoQulEjM4F6obQkw2WsHlCOsGA3xxA': makeAudioTrackSpec(24, `1VWmtH6sOHJGUTZTWioUv8p56Wo9s_1Fg 1V9OPkc7L4ujObLT6jvdEetqaut1fnbLO 1W9mdtBmjGM8imKC93Fi3743azUjXwhWK 1W8NtgUyzCbZ9RicVZfQ5IN5pEbbN2Io4 1VAHfG04BTjjVurGkMq3TNcUeVrCIgIff 1W6PJjxyiCtmz99bTTQfi5FwAXQn8sD0E 1VoSoVc8h09zVGckhQ77awcRjdWKwkIfQ 1Wb74zTBAFezuJeWYz2_1UVZqm99Ej3sn 1W_3BxILrYI4q1V0t1iEombcEOQ0b9fOS 1VBiwhgKVYm35XG2efsRX67iroLT7jIHo 1WHaD-GiAbjLqC-e1gIDFIcQJtF7lLlTQ 1WDe0QdliAk12LcTjvlpjOhg7jnMsB1R9 1W9wUPwWd49IWPZp7fYuiZgj3ZV2i6BPM 1XC3kNAJPP9GLfe9AGrKoUwApruStXKgu`),
+  };
+
+
   const DIVERBO_PAGES = [{"id":"1-1UOusTwPzOMPaITvQq66Gfa2IjXX3Br","title":"Foto 6-5-19 23 26 04.jpg"},{"id":"1-9O_IqjFNToNLbmlwy8AVWgxX-HSPbD4","title":"Foto 6-5-19 23 26 24.jpg"},{"id":"1-7YnqPFyyUze_8rj1AP4QXuTjic0yVYS","title":"Foto 6-5-19 23 26 33.jpg"},{"id":"1-6ts6hHTHrI8mZW2k4TWL79NLmYjvX9s","title":"Foto 6-5-19 23 26 46.jpg"},{"id":"1-44gJBg1hzIkWn3atNYywpMdOiZkerfG","title":"Foto 6-5-19 23 26 57.jpg"},{"id":"1-2dfakmTPMuu1VLrMs7pTxAn93TX-WAq","title":"Foto 6-5-19 23 27 08.jpg"},{"id":"1-2OHwVQACje4zgk_LNagZlKviaKXWZ-B","title":"Foto 6-5-19 23 27 16.jpg"},{"id":"1-UWSWxk91noZ7K7F29M0ykMDoMnq6hnJ","title":"Foto 6-5-19 23 27 26.jpg"},{"id":"1-KW-apHrQAW7Jj6fEOkS80Z6WGZkTOt5","title":"Foto 6-5-19 23 27 37.jpg"},{"id":"1-E9-oB3-W9GemtlgdsgMnUNF0yIa1j5U","title":"Foto 6-5-19 23 27 49.jpg"},{"id":"1-CPFFpjGal6qelAFcnYawQG6MxmOy7TM","title":"Foto 6-5-19 23 27 58.jpg"},{"id":"1-Bt8yTdAzOHASszABZdys7q6trST5DIe","title":"Foto 6-5-19 23 28 09.jpg"},{"id":"1-9jTvmhTX8di_J5N0vRUdR6D7qeNy-T6","title":"Foto 6-5-19 23 28 17.jpg"},{"id":"101msPdoPr2geE7PRMzt7i3DFM9vCzaiS","title":"Foto 6-5-19 23 28 28.jpg"},{"id":"1-rFJkYCnl2BH2nKWPK2F6KDsCYP_DNcb","title":"Foto 6-5-19 23 28 38.jpg"},{"id":"1-ohdT4Q31FZ1TqtxVesl7XpfCndWlWWt","title":"Foto 6-5-19 23 28 50.jpg"},{"id":"1-miS5RZeLJXG1fMAWWvOEas_ONBH8_Ps","title":"Foto 6-5-19 23 28 58.jpg"},{"id":"1-lhtaJtQv566z51SDBHUXLZL02A80yLT","title":"Foto 6-5-19 23 29 08.jpg"},{"id":"1-ayy5oYeSOMu9kpxaisAnzyQ3iMmpjX4","title":"Foto 6-5-19 23 29 18.jpg"},{"id":"1-WLilKEB1AJhhDhHRLswOOQULKbnpD82","title":"Foto 6-5-19 23 29 30.jpg"},{"id":"10ZMJV0k14l3Xh2Y8G-XzAEgA0GZp-7uX","title":"Foto 6-5-19 23 29 38.jpg"},{"id":"10W4PfadjZkKgdinRdcOgfXm3jyMkCWQA","title":"Foto 6-5-19 23 29 50.jpg"},{"id":"10LZ4YVipwedy5P8xwLacv63AjY4zjyXA","title":"Foto 6-5-19 23 29 59.jpg"},{"id":"10FtyAFeeiP2NWPY9XixthPLIrSdeebNN","title":"Foto 6-5-19 23 30 21.jpg"},{"id":"10DK8cx84RRS_RsbYrnxHgYv8YKyd2WFp","title":"Foto 6-5-19 23 30 32.jpg"},{"id":"10ALq4pXic39-_CVvPLrgDTdyc-vqK6rk","title":"Foto 6-5-19 23 30 43.jpg"},{"id":"10s-Ofx43N19BWzdPYXbzfBqoeuj4TJgR","title":"Foto 6-5-19 23 30 52.jpg"},{"id":"10q1N_UZWWR1HlXawoe2GArBqqXBH4Gl_","title":"Foto 6-5-19 23 31 03.jpg"},{"id":"10iNKOOusRCt8y-Bim5ClPVoJoxf8TWOH","title":"Foto 6-5-19 23 31 10.jpg"},{"id":"10ducqNapBdnZBq28tFxDMfGGyoyyFjVD","title":"Foto 6-5-19 23 31 21.jpg"},{"id":"10cDikjv1BjYSu1jpCl3ULMwnpV6jj0kU","title":"Foto 6-5-19 23 31 28.jpg"},{"id":"10ZlTmBHYNincBGy05BbGIy4Vkp78TaKd","title":"Foto 6-5-19 23 31 39.jpg"},{"id":"114mkUtU9mOWtx6HSZ-4MDdfgNi03bM9D","title":"Foto 6-5-19 23 31 47.jpg"},{"id":"10ungnAqc-sJ0xhSmJR8OLJUWocSuvZRb","title":"Foto 6-5-19 23 31 58.jpg"},{"id":"10ueh-w5LJjLUs9ibutvGk1gvqvf9UZyw","title":"Foto 6-5-19 23 32 07.jpg"},{"id":"11GFOMa-TRcHi0DsP5JrmEqkKYgA2AuM6","title":"Foto 6-5-19 23 32 17.jpg"},{"id":"11DIZg3jlv5qLV53yMnv6wXB7AUEYXpVe","title":"Foto 6-5-19 23 32 25.jpg"},{"id":"11B9N2SZbHjKie8wJUk-0Hep-myRDMkur","title":"Foto 6-5-19 23 32 36.jpg"},{"id":"115wDYiHyOCwnQe2X4ixtXBVXg93XpsuK","title":"Foto 6-5-19 23 32 42.jpg"},{"id":"114z7zqnpP1UCVSB2YfBVzM-iRXD1rVvQ","title":"Foto 6-5-19 23 32 53.jpg"},{"id":"11ihTPTuK27Cp8p3yrzPcvYYgPyfcPvjU","title":"Foto 6-5-19 23 32 59.jpg"},{"id":"11fWW6r7FWcDOXtQ4xF4j_rLC0thJ-vks","title":"Foto 6-5-19 23 33 09.jpg"},{"id":"11cp3KZEVPiRpZWGROpn2PLiNSr1lJwwH","title":"Foto 6-5-19 23 33 17.jpg"},{"id":"11Yk-C_lB9H_xi9yffjNtCt-yun7W4eDl","title":"Foto 6-5-19 23 33 29.jpg"},{"id":"11MhIQrHw4YmN_WVQrCXYRc9lI8DATds4","title":"Foto 6-5-19 23 33 36.jpg"},{"id":"11HIzphSM5L5oqEI_ZACrNtZpBLah779U","title":"Foto 6-5-19 23 33 47.jpg"},{"id":"12-hdUBbWQvA752-TC8oycANx0cFZ5ecG","title":"Foto 6-5-19 23 33 57.jpg"},{"id":"11zZpsB1Kh5ZiADus-7xJDszQYSu5lAi5","title":"Foto 6-5-19 23 34 08.jpg"},{"id":"11xlzDMHIrs1Xkk6sz0LdcjQVPCE4vRt4","title":"Foto 6-5-19 23 34 15.jpg"},{"id":"11kJWfSKT_ZoJ2cjkMZYFcG_AyUfK6cJv","title":"Foto 6-5-19 23 34 24.jpg"},{"id":"12AN2Ch_D4VUYoik5ZEQBzugmmY66GPr9","title":"Foto 6-5-19 23 34 32.jpg"},{"id":"1298AVLa4ikWm4gtPdYcg7y4CvyyAOXs7","title":"Foto 6-5-19 23 34 46.jpg"},{"id":"128vll0Z_Sk2Lb5QFkomyi2yaf8US9mfo","title":"Foto 6-5-19 23 34 57.jpg"},{"id":"12o3PUC6vU068gzGWtFlC1QIW4N5mB6oE","title":"Foto 6-5-19 23 35 07.jpg"},{"id":"12gCDuJEBQ3y8DcrCNCIYy1SxSy6ut24e","title":"Foto 6-5-19 23 35 12.jpg"},{"id":"12d1ln_x2IAVQp7K240PJrQRTamnWsBhx","title":"Foto 6-5-19 23 35 23.jpg"},{"id":"12cMS2jW29W-AnkHzQ9JAepEe-5HxNJvI","title":"Foto 6-5-19 23 35 27.jpg"},{"id":"12KQ30iyjcLEutR_YHo_BQxWWqGdsOlrg","title":"Foto 6-5-19 23 35 35.jpg"},{"id":"12KNkMx71QLJPOCbwtEGlPbk3uD9gRZfs","title":"Foto 6-5-19 23 35 39.jpg"},{"id":"12JJU6JNKLiG2_kqo0_jioKs60WvJiKer","title":"Foto 6-5-19 23 35 49.jpg"},{"id":"12JI-hJMo-nOO4HXHdAAo9p7rWUYbjPeU","title":"Foto 6-5-19 23 35 54.jpg"},{"id":"1356xTZM9aXFmSpk5z0UO1T9Y9QXfOKzl","title":"Foto 6-5-19 23 36 00.jpg"},{"id":"131Sxl99SY1PfFtv1A64JVSTTS12EF2tn","title":"Foto 6-5-19 23 36 06.jpg"},{"id":"12u7JY7CTHIkmOQUw7d0rVKiN1tDzPWfG","title":"Foto 6-5-19 23 36 12.jpg"},{"id":"12ryz9VM8MsyV2mLqUnUKrAAXBTKEdaiz","title":"Foto 6-5-19 23 36 16.jpg"},{"id":"12qUp4H2ATaSurV_OBS_rVblVBJpE2pQw","title":"Foto 6-5-19 23 36 22.jpg"},{"id":"13heJ0WvLFyDtc44zaHlqbO6AUk_OkLQ6","title":"Foto 6-5-19 23 36 44.jpg"},{"id":"13dktIity2rgDnANre6VmL2VbNR7s50Zw","title":"Foto 6-5-19 23 36 51.jpg"},{"id":"13ZtkF_6rj5U_Pvq1nUOBdhAjquW73CNS","title":"Foto 6-5-19 23 36 55.jpg"},{"id":"13YaXkvPPK25zDQBLa8IhpSeiBQtyahKy","title":"Foto 6-5-19 23 37 01.jpg"},{"id":"148Y9ekMFVr-QfO_oeHyaqpTeYjUA5mos","title":"Foto 6-5-19 23 37 05.jpg"},{"id":"1436RQSWwf_IqddWxxfTyagpzK88psNhf","title":"Foto 6-5-19 23 37 11.jpg"},{"id":"142st9o9Ak-WR4L3JWKtQNGQ_5i28VJGh","title":"Foto 6-5-19 23 37 15.jpg"},{"id":"13s9kwaaix81fScsQDXClUJtAWI4uzUJB","title":"Foto 6-5-19 23 37 22.jpg"},{"id":"13qTf_-ww9ddM6ro7ZNEXgmkT8CpK_R4X","title":"Foto 6-5-19 23 37 28.jpg"},{"id":"13psHDmw8tzUgO2-faxIHVFLNWoABzHfV","title":"Foto 6-5-19 23 37 34.jpg"},{"id":"13lyT87QfbnL-HVo3syu2OYEFn8K-z5At","title":"Foto 6-5-19 23 37 40.jpg"},{"id":"13hnJvfIWEyH4iT9AhUDXEzlVH-Ak7goV","title":"Foto 6-5-19 23 37 46.jpg"},{"id":"14jwxUtm707w5GfvnOYCqSnywzq8jGLnQ","title":"Foto 6-5-19 23 37 50.jpg"},{"id":"14jWWOCc6IGqd85xoUyXcDw9nll6ysbV6","title":"Foto 6-5-19 23 37 57.jpg"},{"id":"14jG0Ird-Cuwst4gRzCTtQLN2Mhw4D7tk","title":"Foto 6-5-19 23 38 02.jpg"},{"id":"14S6OYiW4W3RpRgZ9wBMajytexCwekmgm","title":"Foto 6-5-19 23 38 08.jpg"},{"id":"14QLXC2XOQEkfge4r_LV5hTcI-SWuMivp","title":"Foto 6-5-19 23 38 12.jpg"},{"id":"14K8x3d1PTsiChPmzCmR4RMGscMm7vRAR","title":"Foto 6-5-19 23 38 19.jpg"},{"id":"14GLodFU3NaT8axGxq-NULxuVekv1kIVN","title":"Foto 6-5-19 23 38 22.jpg"},{"id":"14E8pfHC-s52VNiMnJxt7poDq4KKkGDEq","title":"Foto 6-5-19 23 38 29.jpg"},{"id":"15-uvD72hSFKB5H-kelF9vSGr10lL8g3K","title":"Foto 6-5-19 23 38 33.jpg"},{"id":"14vN7DQWY7fihZOkrSDV2r7osWe2w9oA9","title":"Foto 6-5-19 23 38 40.jpg"},{"id":"14v6MU6v6lb_CSE3lI2ojiAKblaC7rGNO","title":"Foto 6-5-19 23 38 45.jpg"},{"id":"14n_Bm1DQUJDRrNHcvDPddgcLrHfJ9E-d","title":"Foto 6-5-19 23 38 51.jpg"},{"id":"156PvfpjvTsW9xTFMaQ81kaBejOOMaGcs","title":"Foto 6-5-19 23 38 55.jpg"}];
   const DIVERBO_FOLDER_URL = 'https://drive.google.com/drive/folders/1Bo9-iLLUB0tVNzNRHQRTzy2YducgFh6Z?usp=sharing';
 
@@ -2540,7 +2697,8 @@ window.SEED_CONTENT = [
   const dateKeyFrom = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
   const todayKey = () => dateKeyFrom(new Date());
 
-  const freshState = () => ({ progress: {}, custom: [], activity: {}, theme: 'light', favorites: [], dailyGoal: DEFAULT_GOAL, watchedVideos: [], currentVideoId: null, videoProgress: { conversations:{watched:[],currentId:null}, peldanos:{watched:[],currentId:null} }, activeVideoCollection: null, audioProgress: { translation:{completed:[],currentFolderId:null}, vaughan:{completed:[],currentFolderId:null} }, activeAudioCollection: null, bookProgress: { diverboPage: 0 }, updatedAt: null });
+  const freshAudioProgress = () => ({completed:[], currentFolderId:null, currentTrackId:null, trackPositions:{}});
+  const freshState = () => ({ progress: {}, custom: [], activity: {}, theme: 'light', favorites: [], dailyGoal: DEFAULT_GOAL, watchedVideos: [], currentVideoId: null, videoProgress: { conversations:{watched:[],currentId:null}, peldanos:{watched:[],currentId:null} }, activeVideoCollection: null, audioProgress: { translation:freshAudioProgress(), vaughan:freshAudioProgress() }, activeAudioCollection: null, bookProgress: { diverboPage: 0 }, updatedAt: null });
   let state = loadState();
   let session = [];
   let sessionIndex = 0;
@@ -2580,6 +2738,8 @@ window.SEED_CONTENT = [
       (candidate.videoProgress?.peldanos?.watched || []).length ||
       (candidate.audioProgress?.translation?.completed || []).length ||
       (candidate.audioProgress?.vaughan?.completed || []).length ||
+      Object.keys(candidate.audioProgress?.translation?.trackPositions || {}).length ||
+      Object.keys(candidate.audioProgress?.vaughan?.trackPositions || {}).length ||
       Number(candidate.bookProgress?.diverboPage || 0) > 0
     );
   }
@@ -2604,8 +2764,15 @@ window.SEED_CONTENT = [
     if (!merged.audioProgress || typeof merged.audioProgress !== 'object') merged.audioProgress = {};
     ['translation','vaughan'].forEach(key => {
       if (!merged.audioProgress[key] || typeof merged.audioProgress[key] !== 'object') merged.audioProgress[key] = {};
-      if (!Array.isArray(merged.audioProgress[key].completed)) merged.audioProgress[key].completed = [];
-      if (typeof merged.audioProgress[key].currentFolderId !== 'string') merged.audioProgress[key].currentFolderId = null;
+      const ap = merged.audioProgress[key];
+      if (!Array.isArray(ap.completed)) ap.completed = [];
+      if (typeof ap.currentFolderId !== 'string') ap.currentFolderId = null;
+      if (typeof ap.currentTrackId !== 'string') ap.currentTrackId = null;
+      if (!ap.trackPositions || typeof ap.trackPositions !== 'object' || Array.isArray(ap.trackPositions)) ap.trackPositions = {};
+      Object.keys(ap.trackPositions).forEach(id => {
+        const n = Number(ap.trackPositions[id]);
+        if (!Number.isFinite(n) || n < 0) delete ap.trackPositions[id]; else ap.trackPositions[id] = n;
+      });
     });
     if (!AUDIO_COLLECTIONS[merged.activeAudioCollection]) merged.activeAudioCollection = null;
     if (!merged.bookProgress || typeof merged.bookProgress !== 'object') merged.bookProgress = {};
@@ -3128,6 +3295,7 @@ window.SEED_CONTENT = [
   }
 
   function showScreen(name) {
+    if (name !== 'vaughan' && els('screen-vaughan')?.classList.contains('active')) pauseAudioPlayback({sync:true});
     if (name !== 'videos') manualVideoId = null;
     document.body.classList.toggle('book-mode', name === 'book');
     document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === `screen-${name}`));
@@ -3732,25 +3900,55 @@ window.SEED_CONTENT = [
   function audioFolders(key) {
     const collection = audioCollectionByKey(key);
     if (!collection) return [];
-    if (key === 'translation') return collection.groups.map(folder => ({...folder, parentTitle:null}));
-    return collection.cds.flatMap(cd => cd.levels.map(folder => ({...folder, parentId:cd.id, parentTitle:cd.title})));
+    if (key === 'translation') return collection.groups.map(folder => ({...folder, parentTitle:null, levelIndex:null}));
+    // Playback route requested: all Principiante CDs, then all Intermedio CDs, then all Avanzado CDs.
+    return [0,1,2].flatMap(levelIndex => collection.cds.map(cd => {
+      const folder = cd.levels[levelIndex];
+      return folder ? {...folder, parentId:cd.id, parentTitle:cd.title, levelIndex} : null;
+    }).filter(Boolean));
   }
 
   function audioFolderById(key, id) { return audioFolders(key).find(folder => folder.id === id) || null; }
 
+  function audioTracks(folder) {
+    if (!folder) return [];
+    const spec = AUDIO_TRACK_SPECS[folder.id];
+    if (!spec) return [];
+    const translationFolder = AUDIO_COLLECTIONS.translation.groups.some(item => item.id === folder.id);
+    const bookletNumber = translationFolder ? Number((folder.title.match(/\d+/) || [1])[0]) : null;
+    const tracks = spec.ids.map((driveId, index) => {
+      const number = spec.start + index;
+      const title = translationFolder ? `TB${bookletNumber}_LIST${pad(number)}.mp3` : `${pad(number)}_PISTA.MP3`;
+      return {id:driveId, driveId, number, title, folderId:folder.id};
+    });
+    if (spec.introId) tracks.unshift({id:spec.introId, driveId:spec.introId, number:0, title:`TB${bookletNumber}_AUDIO.mp3`, folderId:folder.id, intro:true});
+    return tracks;
+  }
+
+  function audioTrackChain(key) {
+    return audioFolders(key).flatMap(folder => audioTracks(folder).map(track => ({folder, track})));
+  }
+
   function ensureAudioProgress(key) {
     if (!state.audioProgress || typeof state.audioProgress !== 'object') state.audioProgress = {};
-    if (!state.audioProgress[key] || typeof state.audioProgress[key] !== 'object') state.audioProgress[key] = {completed:[],currentFolderId:null};
+    if (!state.audioProgress[key] || typeof state.audioProgress[key] !== 'object') state.audioProgress[key] = freshAudioProgress();
     const progress = state.audioProgress[key];
     if (!Array.isArray(progress.completed)) progress.completed = [];
-    const valid = new Set(audioFolders(key).map(folder => folder.id));
-    progress.completed = progress.completed.filter(id => valid.has(id));
-    const current = audioFolderById(key, progress.currentFolderId);
+    if (typeof progress.currentFolderId !== 'string') progress.currentFolderId = null;
+    if (typeof progress.currentTrackId !== 'string') progress.currentTrackId = null;
+    if (!progress.trackPositions || typeof progress.trackPositions !== 'object' || Array.isArray(progress.trackPositions)) progress.trackPositions = {};
+
+    const folders = audioFolders(key);
+    const validFolders = new Set(folders.map(folder => folder.id));
+    progress.completed = progress.completed.filter(id => validFolders.has(id));
+    let current = audioFolderById(key, progress.currentFolderId);
     if (!current) {
       const completed = new Set(progress.completed);
-      const next = audioFolders(key).find(folder => !completed.has(folder.id)) || audioFolders(key)[0] || null;
-      progress.currentFolderId = next ? next.id : null;
+      current = folders.find(folder => !completed.has(folder.id)) || folders[0] || null;
+      progress.currentFolderId = current ? current.id : null;
     }
+    const tracks = audioTracks(current);
+    if (!tracks.some(track => track.id === progress.currentTrackId)) progress.currentTrackId = tracks[0]?.id || null;
     return progress;
   }
 
@@ -3766,26 +3964,480 @@ window.SEED_CONTENT = [
     return audioFolderById(key, progress.currentFolderId);
   }
 
+  function currentAudioTrack(key) {
+    const progress = ensureAudioProgress(key);
+    const folder = currentAudioFolder(key);
+    const tracks = audioTracks(folder);
+    return tracks.find(track => track.id === progress.currentTrackId) || tracks[0] || null;
+  }
+
+  function audioStreamCandidates(driveId) {
+    const id = encodeURIComponent(driveId);
+    return [
+      `https://drive.google.com/uc?export=preview&id=${id}`,
+      `https://drive.google.com/uc?export=download&id=${id}`,
+      `https://drive.usercontent.google.com/download?id=${id}&export=download`,
+      `https://drive.usercontent.google.com/download?id=${id}&export=download&confirm=t`
+    ];
+  }
+
+  function audioDriveFileUrl(driveId) {
+    return `https://drive.google.com/file/d/${encodeURIComponent(driveId)}/view?usp=sharing`;
+  }
+
+  function audioDrivePreviewUrl(driveId) {
+    return `https://drive.google.com/file/d/${encodeURIComponent(driveId)}/preview?usp=drivesdk`;
+  }
+
+  function loadDriveAudioConfig() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(DRIVE_AUDIO_CONFIG_KEY) || '{}');
+      return {clientId: typeof parsed.clientId === 'string' ? parsed.clientId.trim() : ''};
+    } catch (_) { return {clientId:''}; }
+  }
+
+  let driveAudioConfig = loadDriveAudioConfig();
+  let driveAudioAuth = {accessToken:'', expiresAt:0, tokenClient:null, clientId:'', busy:false, error:''};
+  const driveAudioBlobCache = new Map();
+  const driveAudioFetches = new Map();
+  let driveAudioLoadSerial = 0;
+  let googleIdentityPromise = null;
+
+  let persistentAudioElement = null;
+
+  function isStandalonePwa() {
+    return !!(window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true);
+  }
+
+  function getPersistentAudioElement() {
+    if (persistentAudioElement) return persistentAudioElement;
+    const audio = document.createElement('audio');
+    audio.id = 'audioNativeElement';
+    audio.controls = true;
+    audio.preload = 'metadata';
+    audio.setAttribute('playsinline', '');
+    audio.setAttribute('webkit-playsinline', '');
+    audio.dataset.trackId = '';
+    persistentAudioElement = audio;
+    return audio;
+  }
+
+  function detachPersistentAudioElement() {
+    const audio = persistentAudioElement;
+    if (audio?.parentNode) audio.parentNode.removeChild(audio);
+    return audio;
+  }
+
+  function renderAudioPwaContext() {
+    const originEl = els('audioPwaOrigin');
+    const badge = els('audioPwaModeBadge');
+    if (originEl) originEl.textContent = location.origin && location.origin !== 'null' ? location.origin : 'Necesita una dirección HTTPS';
+    if (badge) {
+      const standalone = isStandalonePwa();
+      badge.textContent = standalone ? '✓ PWA IPAD' : 'WEB';
+      badge.classList.toggle('ok', standalone);
+    }
+  }
+
+  async function copyAudioPwaOrigin() {
+    const origin = location.origin && location.origin !== 'null' ? location.origin : '';
+    if (!origin) return showToast('Abre English Daily desde su dirección HTTPS para copiar el origen.');
+    try {
+      await navigator.clipboard.writeText(origin);
+      showToast('✓ Origen copiado: ' + origin);
+    } catch (_) {
+      const input = document.createElement('textarea');
+      input.value = origin;
+      input.style.position = 'fixed';
+      input.style.opacity = '0';
+      document.body.appendChild(input);
+      input.select();
+      try { document.execCommand('copy'); showToast('✓ Origen copiado: ' + origin); }
+      catch (_) { showToast('Origen: ' + origin); }
+      input.remove();
+    }
+  }
+
+  function updateAudioMediaSession(key, folder, track) {
+    if (!('mediaSession' in navigator) || !track) return;
+    try {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: track.title,
+        artist: key === 'vaughan' ? 'VAUGHAN · English Daily' : 'VAUGHAN Translation · English Daily',
+        album: audioPathLabel(key, folder)
+      });
+      navigator.mediaSession.setActionHandler('nexttrack', () => moveAudioTrack(1, {autoplay:true}));
+      navigator.mediaSession.setActionHandler('previoustrack', () => moveAudioTrack(-1, {autoplay:true}));
+      navigator.mediaSession.setActionHandler('play', () => playCurrentAudio());
+      navigator.mediaSession.setActionHandler('pause', () => pauseAudioPlayback({sync:true}));
+    } catch (_) {}
+  }
+
+  function saveDriveAudioConfig() {
+    try { localStorage.setItem(DRIVE_AUDIO_CONFIG_KEY, JSON.stringify({clientId:driveAudioConfig.clientId || ''})); } catch (_) {}
+  }
+
+  function driveAudioOriginSupported() {
+    return location.protocol === 'http:' || location.protocol === 'https:';
+  }
+
+  function driveAudioTokenValid() {
+    return !!(driveAudioAuth.accessToken && driveAudioAuth.expiresAt > Date.now() + 15000);
+  }
+
+  function clearDriveAudioBlobCache() {
+    driveAudioFetches.clear();
+    for (const entry of driveAudioBlobCache.values()) {
+      try { URL.revokeObjectURL(entry.url); } catch (_) {}
+    }
+    driveAudioBlobCache.clear();
+  }
+
+  function trimDriveAudioBlobCache(maxEntries=4) {
+    if (driveAudioBlobCache.size <= maxEntries) return;
+    const currentSrc = (persistentAudioElement || els('audioNativeElement'))?.src || '';
+    for (const [id, entry] of driveAudioBlobCache) {
+      if (driveAudioBlobCache.size <= maxEntries) break;
+      if (entry.url === currentSrc) continue;
+      driveAudioBlobCache.delete(id);
+      try { URL.revokeObjectURL(entry.url); } catch (_) {}
+    }
+  }
+
+  function ensureGoogleIdentityLibrary() {
+    if (window.google?.accounts?.oauth2) return Promise.resolve(window.google);
+    if (googleIdentityPromise) return googleIdentityPromise;
+    googleIdentityPromise = new Promise((resolve, reject) => {
+      let script = document.querySelector('script[data-english-google-identity]');
+      const finish = () => window.google?.accounts?.oauth2 ? resolve(window.google) : reject(new Error('No se pudo cargar Google Identity Services.'));
+      if (!script) {
+        script = document.createElement('script');
+        script.src = 'https://accounts.google.com/gsi/client';
+        script.async = true;
+        script.defer = true;
+        script.referrerPolicy = 'no-referrer-when-downgrade';
+        script.dataset.englishGoogleIdentity = '1';
+        document.head.appendChild(script);
+      }
+      script.addEventListener('load', finish, {once:true});
+      script.addEventListener('error', () => reject(new Error('No se pudo cargar Google Identity Services.')), {once:true});
+      setTimeout(() => {
+        if (window.google?.accounts?.oauth2) resolve(window.google);
+      }, 1200);
+    });
+    return googleIdentityPromise;
+  }
+
+  function driveAudioFriendlyError(error) {
+    const raw = String(error?.message || error || 'Error desconocido');
+    if (/401|token|credencial|unauthor/i.test(raw)) return 'La autorización de Drive ha caducado. Pulsa “Conectar Drive” otra vez.';
+    if (/403|permission|forbidden|accessNotConfigured|SERVICE_DISABLED/i.test(raw)) return 'Google ha rechazado la lectura. Comprueba que Drive API esté activada, que uses la cuenta que puede abrir estos audios y que tu app OAuth permita este origen.';
+    if (/origin|redirect|client/i.test(raw)) return `Revisa el Client ID y el origen de JavaScript autorizado en Google Cloud. Debe ser exactamente ${location.origin}.`;
+    return raw;
+  }
+
+  function renderDriveAudioAuth() {
+    renderAudioPwaContext();
+    const input = els('audioGoogleClientId');
+    const status = els('audioDriveAuthStatus');
+    const textEl = els('audioDriveAuthText');
+    const connectBtn = els('audioGoogleConnectBtn');
+    const disconnectBtn = els('audioGoogleDisconnectBtn');
+    if (!input || !status || !textEl || !connectBtn || !disconnectBtn) return;
+
+    if (document.activeElement !== input && input.value !== (driveAudioConfig.clientId || '')) input.value = driveAudioConfig.clientId || '';
+    status.classList.remove('ok','error');
+    disconnectBtn.classList.toggle('hidden', !driveAudioTokenValid());
+    connectBtn.disabled = driveAudioAuth.busy;
+
+    if (!driveAudioOriginSupported()) {
+      status.textContent = 'NECESITA HTTPS';
+      status.classList.add('error');
+      textEl.innerHTML = 'La autorización de Drive necesita que English Daily esté publicada como web/PWA. Abre la app instalada o su dirección HTTPS, no un archivo <b>index.html</b> suelto.';
+      connectBtn.textContent = 'Conectar Drive';
+      return;
+    }
+    if (driveAudioAuth.busy) {
+      status.textContent = 'CONECTANDO…';
+      textEl.textContent = 'Abriendo la autorización de Google. El permiso solicitado es solo lectura.';
+      connectBtn.textContent = 'Conectando…';
+      return;
+    }
+    if (driveAudioTokenValid()) {
+      status.textContent = '✓ CONTINUO ACTIVO';
+      status.classList.add('ok');
+      textEl.textContent = isStandalonePwa() ? 'PWA conectada a Drive. Pulsa ▶ una vez si hace falta; después el mismo reproductor pasa solo por pistas y CDs/carpetas.' : 'Drive está autorizado para esta sesión. English Daily controla cuándo termina cada pista y salta automáticamente a la siguiente.';
+      connectBtn.textContent = 'Renovar acceso';
+      return;
+    }
+    if (driveAudioAuth.error) {
+      status.textContent = 'REVISAR CONFIGURACIÓN';
+      status.classList.add('error');
+      textEl.textContent = driveAudioFriendlyError(driveAudioAuth.error);
+    } else if (driveAudioConfig.clientId) {
+      status.textContent = 'LISTO PARA CONECTAR';
+      textEl.textContent = `Client ID guardado. Pulsa “Conectar Drive”. En Google Cloud debe estar autorizado el origen ${location.origin}.`;
+    } else {
+      status.textContent = 'SIN CONECTAR';
+      textEl.textContent = `Pega una vez tu Client ID web de Google. Origen que debes autorizar: ${location.origin}.`;
+    }
+    connectBtn.textContent = 'Conectar Drive';
+  }
+
+  async function connectDriveAudio() {
+    const input = els('audioGoogleClientId');
+    const typed = (input?.value || '').trim();
+    if (typed) {
+      if (!/\.apps\.googleusercontent\.com$/i.test(typed)) {
+        driveAudioAuth.error = 'Ese valor no parece un Client ID web de Google.';
+        renderDriveAudioAuth();
+        return;
+      }
+      if (typed !== driveAudioConfig.clientId) {
+        driveAudioConfig.clientId = typed;
+        saveDriveAudioConfig();
+        driveAudioAuth.tokenClient = null;
+        driveAudioAuth.clientId = '';
+        driveAudioAuth.accessToken = '';
+        driveAudioAuth.expiresAt = 0;
+        clearDriveAudioBlobCache();
+      }
+    }
+    if (!driveAudioConfig.clientId) {
+      driveAudioAuth.error = 'Pega primero el Client ID de Google.';
+      renderDriveAudioAuth();
+      return;
+    }
+    if (!driveAudioOriginSupported()) {
+      driveAudioAuth.error = 'Google OAuth necesita que English Daily se abra desde su PWA o desde una dirección HTTPS autorizada.';
+      renderDriveAudioAuth();
+      return;
+    }
+
+    driveAudioAuth.busy = true;
+    driveAudioAuth.error = '';
+    renderDriveAudioAuth();
+    try {
+      await ensureGoogleIdentityLibrary();
+      if (!driveAudioAuth.tokenClient || driveAudioAuth.clientId !== driveAudioConfig.clientId) {
+        driveAudioAuth.clientId = driveAudioConfig.clientId;
+        driveAudioAuth.tokenClient = google.accounts.oauth2.initTokenClient({
+          client_id: driveAudioConfig.clientId,
+          scope: 'https://www.googleapis.com/auth/drive.readonly',
+          callback: (response) => {
+            driveAudioAuth.busy = false;
+            if (!response || response.error || !response.access_token) {
+              driveAudioAuth.error = response?.error_description || response?.error || 'Google no devolvió un token de acceso.';
+              renderDriveAudioAuth();
+              return;
+            }
+            driveAudioAuth.accessToken = response.access_token;
+            driveAudioAuth.expiresAt = Date.now() + Math.max(60, Number(response.expires_in || 3600)) * 1000;
+            driveAudioAuth.error = '';
+            clearDriveAudioBlobCache();
+            renderDriveAudioAuth();
+            renderAudioBrowser();
+            showToast('✓ Google Drive conectado · audio continuo activado.');
+            setTimeout(playCurrentAudio, 30);
+          },
+          error_callback: (err) => {
+            driveAudioAuth.busy = false;
+            const detail = err?.message || err?.type || 'No se pudo completar la autorización de Google.';
+            driveAudioAuth.error = /popup_failed_to_open|popup_closed/i.test(String(detail)) ? 'El iPad no pudo mantener abierta la ventana de autorización de Google. Pulsa Conectar Drive de nuevo desde la PWA.' : detail;
+            renderDriveAudioAuth();
+          }
+        });
+      }
+      driveAudioAuth.busy = false;
+      renderDriveAudioAuth();
+      driveAudioAuth.tokenClient.requestAccessToken({prompt: driveAudioTokenValid() ? '' : 'consent'});
+    } catch (err) {
+      driveAudioAuth.busy = false;
+      driveAudioAuth.error = err?.message || String(err);
+      renderDriveAudioAuth();
+    }
+  }
+
+  function disconnectDriveAudio() {
+    const token = driveAudioAuth.accessToken;
+    driveAudioAuth.accessToken = '';
+    driveAudioAuth.expiresAt = 0;
+    driveAudioAuth.error = '';
+    clearDriveAudioBlobCache();
+    try {
+      if (token && window.google?.accounts?.oauth2?.revoke) google.accounts.oauth2.revoke(token, () => {});
+    } catch (_) {}
+    renderDriveAudioAuth();
+    renderAudioBrowser();
+    showToast('Drive desconectado de esta sesión.');
+  }
+
+  async function driveAudioBlobUrl(driveId) {
+    if (!driveAudioTokenValid()) throw new Error('La autorización de Drive ha caducado.');
+    const cached = driveAudioBlobCache.get(driveId);
+    if (cached) {
+      driveAudioBlobCache.delete(driveId);
+      driveAudioBlobCache.set(driveId, cached);
+      return cached.url;
+    }
+    if (driveAudioFetches.has(driveId)) return driveAudioFetches.get(driveId);
+
+    const promise = (async () => {
+      const response = await fetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(driveId)}?alt=media&supportsAllDrives=true`, {
+        method:'GET',
+        headers:{'Authorization':`Bearer ${driveAudioAuth.accessToken}`}
+      });
+      if (response.status === 401) {
+        driveAudioAuth.accessToken = '';
+        driveAudioAuth.expiresAt = 0;
+        renderDriveAudioAuth();
+        throw new Error('La autorización de Drive ha caducado.');
+      }
+      if (!response.ok) {
+        let detail = '';
+        try { detail = await response.text(); } catch (_) {}
+        throw new Error(`Drive API ${response.status}${detail ? ' · ' + detail.slice(0,180) : ''}`);
+      }
+      const blob = await response.blob();
+      if (!blob || blob.size < 1) throw new Error('Drive devolvió una pista vacía.');
+      const url = URL.createObjectURL(blob);
+      driveAudioBlobCache.set(driveId, {url, bytes:blob.size});
+      trimDriveAudioBlobCache(4);
+      return url;
+    })();
+    driveAudioFetches.set(driveId, promise);
+    try { return await promise; }
+    finally { driveAudioFetches.delete(driveId); }
+  }
+
+  async function prefetchNextDriveAudio(track) {
+    if (!driveAudioTokenValid() || !track) return;
+    const key = state.activeAudioCollection;
+    const folder = currentAudioFolder(key);
+    const chain = audioTrackChain(key);
+    const index = chain.findIndex(item => item.folder.id === folder?.id && item.track.id === track.id);
+    const next = index >= 0 ? chain[index + 1] : null;
+    if (!next || driveAudioBlobCache.has(next.track.driveId)) return;
+    try { await driveAudioBlobUrl(next.track.driveId); } catch (_) {}
+  }
+
+  async function loadDriveApiAudioSource(audio, track) {
+    const serial = ++driveAudioLoadSerial;
+    audio.dataset.loading = '1';
+    audio.dataset.sourceMode = 'drive-api';
+    const msg = els('audioNativeMessage');
+    if (msg) msg.innerHTML = '<span class="audio-drive-loading">Cargando pista desde Google Drive…</span>';
+    try {
+      const url = await driveAudioBlobUrl(track.driveId);
+      if (serial !== driveAudioLoadSerial || !audio.isConnected) return;
+      audio.src = url;
+      audio.dataset.loading = '';
+      audio.load();
+      const badge = document.querySelector('.audio-sequence-badge');
+      if (badge) badge.textContent = isStandalonePwa() ? '📱 PWA CONTINUO' : '⚡ CONTINUO';
+      if (msg) msg.textContent = 'Modo continuo activo: al terminar esta pista empieza automáticamente la siguiente.';
+      if (audio.dataset.autoplayRequested === '1') {
+        audio.dataset.autoplayRequested = '';
+        const p = audio.play();
+        if (p && typeof p.catch === 'function') p.catch(() => {});
+      }
+    } catch (err) {
+      if (serial !== driveAudioLoadSerial || !audio.isConnected) return;
+      audio.dataset.loading = '';
+      driveAudioAuth.error = err?.message || String(err);
+      renderDriveAudioAuth();
+      activateDriveAudioFallback(track, driveAudioFriendlyError(err));
+    }
+  }
+
+  function activateDriveAudioFallback(track, reason='') {
+    const audio = persistentAudioElement || els('audioNativeElement');
+    if (!audio || !track) return;
+    audio.dataset.sourceMode = 'fallback';
+    try { audio.pause(); } catch (_) {}
+    const shell = document.createElement('div');
+    shell.className = 'audio-drive-preview-shell';
+    shell.innerHTML = `<iframe title="${escapeHtml(track.title)}" src="${audioDrivePreviewUrl(track.driveId)}" allow="autoplay"></iframe>`;
+    if (audio.parentNode) audio.parentNode.replaceChild(shell, audio);
+    else els('audioNativeMount')?.replaceChildren(shell);
+    const msg = els('audioNativeMessage');
+    if (msg) {
+      msg.classList.remove('error');
+      msg.classList.add('compat');
+      const extra = reason ? ` <span>${escapeHtml(reason)}</span>` : '';
+      msg.innerHTML = `<strong>Modo compatible de Drive.</strong> La pista se reproduce aquí mismo. Para que salte sola a la siguiente, conecta Drive en el bloque de arriba.${extra}`;
+    }
+    const badge = document.querySelector('.audio-sequence-badge');
+    if (badge) badge.textContent = '▶ DRIVE';
+  }
+
+  let audioLastLocalSave = 0;
+
+  function persistAudioPlaybackTime({sync=false}={}) {
+    const key = state.activeAudioCollection;
+    if (!audioCollectionByKey(key)) return;
+    const audio = persistentAudioElement || els('audioNativeElement');
+    const track = currentAudioTrack(key);
+    if (!audio || !track || audio.dataset.trackId !== track.id) return;
+    const seconds = Number(audio.currentTime);
+    if (Number.isFinite(seconds) && seconds >= 0) {
+      ensureAudioProgress(key).trackPositions[track.id] = seconds;
+      if (sync) saveState();
+      else saveState({scheduleSync:false});
+    }
+  }
+
+  function pauseAudioPlayback({sync=false}={}) {
+    const audio = persistentAudioElement || els('audioNativeElement');
+    if (!audio) return;
+    audio.dataset.ignorePause = '1';
+    persistAudioPlaybackTime({sync});
+    try { audio.pause(); } catch (_) {}
+  }
+
+  function playCurrentAudio() {
+    const audio = persistentAudioElement || els('audioNativeElement');
+    if (!audio || !audio.isConnected) return;
+    audio.dataset.ignorePause = '';
+    if (audio.dataset.loading === '1') {
+      audio.dataset.autoplayRequested = '1';
+      return;
+    }
+    const p = audio.play();
+    if (p && typeof p.catch === 'function') {
+      p.catch(() => {
+        const msg = els('audioNativeMessage');
+        if (msg && driveAudioTokenValid()) msg.textContent = 'Pulsa ▶ para empezar. Después las pistas continuarán automáticamente.';
+      });
+    }
+  }
+
   function renderHomeAudio() {
+    let changed = false;
     document.querySelectorAll('[data-home-audio-card]').forEach(card => {
       const key = card.dataset.homeAudioCard;
       const folders = audioFolders(key);
       const progress = ensureAudioProgress(key);
       const completed = audioCompletedSet(key);
       let folder = audioFolderById(key, progress.currentFolderId);
-      if (folder && completed.has(folder.id)) {
+      if (folder && completed.has(folder.id) && completed.size < folders.length) {
         folder = folders.find(item => !completed.has(item.id)) || folder;
-        progress.currentFolderId = folder ? folder.id : null;
+        if (folder && progress.currentFolderId !== folder.id) {
+          progress.currentFolderId = folder.id;
+          progress.currentTrackId = audioTracks(folder)[0]?.id || null;
+          changed = true;
+        }
       }
       const done = folders.filter(item => completed.has(item.id)).length;
       const total = folders.length;
-      const path = folder ? audioPathLabel(key, folder) : 'Colección completada';
+      const track = folder ? audioTracks(folder).find(item => item.id === progress.currentTrackId) || audioTracks(folder)[0] : null;
+      const path = folder ? `${audioPathLabel(key, folder)}${track ? ' · ' + track.title : ''}` : 'Colección completada';
       card.querySelector('[data-home-audio-done]').textContent = done;
       card.querySelector('[data-home-audio-total]').textContent = total;
       card.querySelector('[data-home-audio-path]').textContent = done >= total && total ? '✓ Todos los bloques completados' : path;
       card.querySelector('[data-home-audio-progress]').style.width = `${total ? (done/total)*100 : 0}%`;
     });
-    saveState();
+    if (changed) saveState({scheduleSync:false});
   }
 
   function openAudioCollection(key, explore=false) {
@@ -3794,11 +4446,13 @@ window.SEED_CONTENT = [
     ensureAudioProgress(key);
     saveState();
     showScreen('vaughan');
+    if (!explore) playCurrentAudio();
     if (explore) setTimeout(() => els('audioFolderList')?.scrollIntoView({behavior:'smooth', block:'start'}), 40);
   }
 
   function selectAudioCollection(key) {
     if (!audioCollectionByKey(key)) return;
+    pauseAudioPlayback({sync:true});
     state.activeAudioCollection = key;
     ensureAudioProgress(key);
     saveState();
@@ -3806,50 +4460,115 @@ window.SEED_CONTENT = [
   }
 
   function selectAudioFolder(key, folderId) {
-    if (!audioFolderById(key, folderId)) return;
+    const folder = audioFolderById(key, folderId);
+    if (!folder) return;
+    pauseAudioPlayback({sync:true});
     state.activeAudioCollection = key;
     const progress = ensureAudioProgress(key);
     progress.currentFolderId = folderId;
+    const tracks = audioTracks(folder);
+    if (!tracks.some(track => track.id === progress.currentTrackId)) progress.currentTrackId = tracks[0]?.id || null;
     saveState();
     renderAudioBrowser();
+    playCurrentAudio();
   }
 
-  function audioEmbeddedFolderUrl(folderId) {
-    return `https://drive.google.com/embeddedfolderview?id=${encodeURIComponent(folderId)}#list`;
-  }
-
-  function adjacentAudioFolder(direction) {
+  function selectAudioTrack(folderId, trackId) {
     const key = state.activeAudioCollection;
-    const folders = audioFolders(key);
-    const current = currentAudioFolder(key);
-    if (!current || !folders.length) return;
-    const index = folders.findIndex(folder => folder.id === current.id);
-    const nextIndex = clamp(index + direction, 0, folders.length - 1);
-    if (nextIndex === index) return;
-    ensureAudioProgress(key).currentFolderId = folders[nextIndex].id;
+    const folder = audioFolderById(key, folderId);
+    if (!folder || !audioTracks(folder).some(track => track.id === trackId)) return;
+    pauseAudioPlayback({sync:true});
+    const progress = ensureAudioProgress(key);
+    progress.currentFolderId = folderId;
+    progress.currentTrackId = trackId;
     saveState();
     renderAudioBrowser();
+    playCurrentAudio();
+  }
+
+  function moveAudioTrack(direction, {autoplay=true, natural=false}={}) {
+    const key = state.activeAudioCollection;
+    if (!audioCollectionByKey(key)) return false;
+    const progress = ensureAudioProgress(key);
+    const currentFolder = currentAudioFolder(key);
+    const currentTrack = currentAudioTrack(key);
+    if (!currentFolder || !currentTrack) return false;
+    persistAudioPlaybackTime({sync:false});
+    const chain = audioTrackChain(key);
+    const index = chain.findIndex(item => item.folder.id === currentFolder.id && item.track.id === currentTrack.id);
+    if (index < 0) return false;
+    const nextIndex = index + direction;
+
+    if (nextIndex < 0 || nextIndex >= chain.length) {
+      if (natural && direction > 0) {
+        const completed = new Set(progress.completed);
+        completed.add(currentFolder.id);
+        progress.completed = [...completed];
+        delete progress.trackPositions[currentTrack.id];
+        saveState();
+        renderHomeAudio();
+        renderAudioBrowser();
+        showToast('🎉 Curso de audio completado.');
+      }
+      return false;
+    }
+
+    const next = chain[nextIndex];
+    const changedFolder = next.folder.id !== currentFolder.id;
+    if (natural && direction > 0) {
+      delete progress.trackPositions[currentTrack.id];
+      if (changedFolder) {
+        const completed = new Set(progress.completed);
+        completed.add(currentFolder.id);
+        progress.completed = [...completed];
+      }
+    }
+    progress.currentFolderId = next.folder.id;
+    progress.currentTrackId = next.track.id;
+    saveState();
+    renderHomeAudio();
+    renderAudioBrowser();
+    if (changedFolder) showToast(`${natural ? '✓ ' + currentFolder.title + ' completado · ' : ''}Continúa ${next.folder.title}.`);
+    if (autoplay) playCurrentAudio();
+    return true;
+  }
+
+  function handleAudioEnded() {
+    moveAudioTrack(1, {autoplay:true, natural:true});
   }
 
   function toggleAudioComplete() {
     const key = state.activeAudioCollection;
     const folder = currentAudioFolder(key);
     if (!key || !folder) return;
+    pauseAudioPlayback({sync:false});
     const progress = ensureAudioProgress(key);
     const completed = new Set(progress.completed);
     const wasComplete = completed.has(folder.id);
-    if (wasComplete) completed.delete(folder.id); else completed.add(folder.id);
+    if (wasComplete) {
+      completed.delete(folder.id);
+      progress.completed = [...completed];
+      saveState();
+      renderHomeAudio();
+      renderAudioBrowser();
+      showToast('Bloque devuelto a pendiente.');
+      return;
+    }
+
+    completed.add(folder.id);
     progress.completed = [...completed];
-    if (!wasComplete) {
-      const folders = audioFolders(key);
-      const index = folders.findIndex(item => item.id === folder.id);
-      const next = folders.slice(index + 1).find(item => !completed.has(item.id)) || folders.find(item => !completed.has(item.id));
-      if (next) progress.currentFolderId = next.id;
+    const folders = audioFolders(key);
+    const index = folders.findIndex(item => item.id === folder.id);
+    const next = index >= 0 && index < folders.length - 1 ? folders[index + 1] : null;
+    if (next) {
+      progress.currentFolderId = next.id;
+      progress.currentTrackId = audioTracks(next)[0]?.id || null;
     }
     saveState();
     renderHomeAudio();
     renderAudioBrowser();
-    showToast(wasComplete ? 'Bloque devuelto a pendiente.' : '✓ Bloque marcado como escuchado.');
+    showToast(next ? `✓ ${folder.title} escuchado · continúa ${next.title}.` : '✓ Último bloque marcado como escuchado.');
+    if (next) playCurrentAudio();
   }
 
   function renderAudioFolderList(key, current) {
@@ -3857,49 +4576,66 @@ window.SEED_CONTENT = [
     if (!list) return;
     list.innerHTML = '';
     const completed = audioCompletedSet(key);
+
+    const makeFolderButton = (folder, label=null) => {
+      const btn = document.createElement('button');
+      const trackCount = audioTracks(folder).length;
+      btn.className = `audio-folder-btn ${folder.id === current?.id ? 'active' : ''} ${completed.has(folder.id) ? 'complete' : ''}`;
+      btn.dataset.audioFolder = folder.id;
+      btn.dataset.audioFolderCollection = key;
+      btn.innerHTML = `<span>${completed.has(folder.id) ? '✓ ' : '🎧 '}${escapeHtml(label || folder.title)}</span><small>${completed.has(folder.id) ? 'HECHO' : trackCount + ' PISTAS'}</small>`;
+      return btn;
+    };
+
     if (key === 'translation') {
-      AUDIO_COLLECTIONS.translation.groups.forEach(folder => {
-        const btn = document.createElement('button');
-        btn.className = `audio-folder-btn ${folder.id === current?.id ? 'active' : ''} ${completed.has(folder.id) ? 'complete' : ''}`;
-        btn.dataset.audioFolder = folder.id;
-        btn.dataset.audioFolderCollection = key;
-        btn.innerHTML = `<span>${completed.has(folder.id) ? '✓ ' : '🎧 '}${escapeHtml(folder.title)}</span><small>${completed.has(folder.id) ? 'HECHO' : 'ABRIR'}</small>`;
-        list.appendChild(btn);
-      });
+      AUDIO_COLLECTIONS.translation.groups.forEach(folder => list.appendChild(makeFolderButton(folder)));
       return;
     }
-    AUDIO_COLLECTIONS.vaughan.cds.forEach(cd => {
+
+    const routeLabels = ['PRINCIPIANTE','INTERMEDIO','AVANZADO'];
+    routeLabels.forEach((label, levelIndex) => {
       const block = document.createElement('div');
-      block.className = 'audio-cd-block';
+      block.className = 'audio-cd-block audio-level-route';
       const title = document.createElement('div');
       title.className = 'audio-cd-title';
-      title.textContent = cd.title;
+      title.innerHTML = `<span>${label}</span><span>CD01 → CD10</span>`;
       block.appendChild(title);
       const levels = document.createElement('div');
       levels.className = 'audio-cd-levels';
-      cd.levels.forEach(folder => {
-        const btn = document.createElement('button');
-        btn.className = `audio-folder-btn ${folder.id === current?.id ? 'active' : ''} ${completed.has(folder.id) ? 'complete' : ''}`;
-        btn.dataset.audioFolder = folder.id;
-        btn.dataset.audioFolderCollection = key;
-        btn.innerHTML = `<span>${completed.has(folder.id) ? '✓ ' : '🎧 '}${escapeHtml(folder.title)}</span><small>${completed.has(folder.id) ? 'HECHO' : 'ABRIR'}</small>`;
-        levels.appendChild(btn);
+      AUDIO_COLLECTIONS.vaughan.cds.forEach(cd => {
+        const folder = cd.levels[levelIndex];
+        if (folder) levels.appendChild(makeFolderButton({...folder, parentTitle:cd.title, levelIndex}, `${cd.title} · ${folder.title}`));
       });
-      if (cd.pdf) {
-        const link = document.createElement('a');
-        link.className = 'audio-resource-link';
-        link.href = cd.pdf.url;
-        link.target = '_blank';
-        link.rel = 'noopener noreferrer';
-        link.innerHTML = `<span>📘 ${escapeHtml(cd.pdf.title)}</span><small>PDF ↗</small>`;
-        levels.appendChild(link);
-      }
       block.appendChild(levels);
       list.appendChild(block);
     });
+
+    const books = document.createElement('div');
+    books.className = 'audio-cd-block';
+    const booksTitle = document.createElement('div');
+    booksTitle.className = 'audio-cd-title';
+    booksTitle.textContent = 'LIBROS PDF';
+    books.appendChild(booksTitle);
+    const bookLinks = document.createElement('div');
+    bookLinks.className = 'audio-cd-levels';
+    AUDIO_COLLECTIONS.vaughan.cds.forEach(cd => {
+      if (!cd.pdf) return;
+      const link = document.createElement('a');
+      link.className = 'audio-resource-link';
+      link.href = cd.pdf.url;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.innerHTML = `<span>📘 ${escapeHtml(cd.title)} · ${escapeHtml(cd.pdf.title)}</span><small>PDF ↗</small>`;
+      bookLinks.appendChild(link);
+    });
+    books.appendChild(bookLinks);
+    list.appendChild(books);
   }
 
   function renderAudioBrowser() {
+    const persistentAudio = getPersistentAudioElement();
+    detachPersistentAudioElement();
+    renderDriveAudioAuth();
     const key = audioCollectionByKey(state.activeAudioCollection) ? state.activeAudioCollection : 'translation';
     state.activeAudioCollection = key;
     const collection = audioCollectionByKey(key);
@@ -3914,7 +4650,7 @@ window.SEED_CONTENT = [
     els('audioPageEyebrow').textContent = collection.eyebrow;
     els('audioPageTitle').textContent = collection.title;
     els('audioPageDescription').textContent = collection.description;
-    els('audioFolderPanelTitle').textContent = key === 'translation' ? 'Booklets' : 'CD01–CD10';
+    els('audioFolderPanelTitle').textContent = key === 'translation' ? 'Booklets 1–8' : 'Ruta completa';
     renderAudioFolderList(key, folder);
 
     els('audioDoneCount').textContent = done;
@@ -3926,10 +4662,14 @@ window.SEED_CONTENT = [
       els('audioFolderTitle').textContent = 'Sin carpetas disponibles';
       els('audioBlockStatus').textContent = '—';
       els('audioBlockStatus').classList.remove('complete');
-      els('audioDriveFrame').innerHTML = `<div class="audio-empty"><div><span>🎧</span><h2>No hay contenido</h2><p>No encontramos una carpeta reproducible.</p></div></div>`;
+      try { persistentAudio.pause(); } catch (_) {}
+      els('audioDriveFrame').innerHTML = `<div class="audio-empty"><div><span>🎧</span><h2>No hay contenido</h2><p>No encontramos pistas reproducibles.</p></div></div>`;
       return;
     }
 
+    const tracks = audioTracks(folder);
+    const track = tracks.find(item => item.id === progress.currentTrackId) || tracks[0] || null;
+    if (track && progress.currentTrackId !== track.id) progress.currentTrackId = track.id;
     const isDone = completed.has(folder.id);
     const breadcrumb = key === 'vaughan' ? `${collection.title} / ${folder.parentTitle} / ${folder.title}` : `${collection.title} / ${folder.title}`;
     els('audioBreadcrumb').textContent = breadcrumb;
@@ -3939,14 +4679,112 @@ window.SEED_CONTENT = [
     els('audioOpenDrive').href = folder.url;
     const toggle = document.querySelector('[data-audio-toggle-complete]');
     toggle.textContent = isDone ? '↩ Marcar bloque como pendiente' : '✓ Marcar bloque como escuchado';
-    els('audioDriveFrame').innerHTML = `<iframe src="${audioEmbeddedFolderUrl(folder.id)}" title="${escapeHtml(folder.title)}" loading="eager" allow="autoplay"></iframe>`;
 
-    const index = folders.findIndex(item => item.id === folder.id);
+    if (!track) {
+      try { persistentAudio.pause(); } catch (_) {}
+      els('audioDriveFrame').innerHTML = `<div class="audio-empty"><div><span>🎧</span><h2>Sin pistas</h2><p>Esta carpeta no contiene audios incluidos en el reproductor.</p></div></div>`;
+      return;
+    }
+
+    const chain = audioTrackChain(key);
+    const chainIndex = chain.findIndex(item => item.folder.id === folder.id && item.track.id === track.id);
+    const nextItem = chainIndex >= 0 ? chain[chainIndex + 1] : null;
+    const trackIndex = tracks.findIndex(item => item.id === track.id);
+    let nextNote = 'Última pista del recorrido.';
+    if (nextItem) {
+      nextNote = nextItem.folder.id === folder.id
+        ? `Al terminar continúa automáticamente con ${nextItem.track.title}.`
+        : `Al terminar continúa automáticamente con ${nextItem.folder.title} · ${nextItem.track.title}.`;
+    }
+    const rows = tracks.map((item, index) => {
+      const active = item.id === track.id;
+      const seconds = Number(progress.trackPositions[item.id] || 0);
+      const resumed = seconds > 2 && !active;
+      return `<button class="audio-track-row ${active ? 'active' : ''} ${resumed ? 'done' : ''}" data-audio-track="${escapeHtml(item.id)}" data-audio-track-folder="${escapeHtml(folder.id)}" type="button"><span class="audio-track-num">${item.intro ? 'A' : pad(item.number)}</span><span class="audio-track-name">${escapeHtml(item.title)}</span><span class="audio-track-state">${active ? 'SONANDO' : resumed ? 'EN CURSO' : '▶'}</span></button>`;
+    }).join('');
+
+    els('audioDriveFrame').innerHTML = `
+      <div class="audio-native-player">
+        <div class="audio-native-now">
+          <span class="audio-native-icon">🎧</span>
+          <div class="audio-native-copy">
+            <p class="eyebrow">${track.intro ? 'AUDIO PRINCIPAL' : `PISTA ${trackIndex + 1} DE ${tracks.length}`}</p>
+            <h3>${escapeHtml(track.title)}</h3>
+            <p class="audio-native-next-note">${escapeHtml(nextNote)}</p>
+          </div>
+          <span class="audio-sequence-badge">${driveAudioTokenValid() ? (isStandalonePwa() ? '📱 PWA CONTINUO' : '⚡ CONTINUO') : '▶ INTENTO DIRECTO'}</span>
+        </div>
+        <div id="audioNativeMount"></div>
+        <div class="audio-native-message" id="audioNativeMessage">${driveAudioTokenValid() ? 'Drive conectado: la PWA conserva el mismo reproductor entre pistas para que el salto automático sea compatible con iPad.' : 'Sin Drive conectado intentaré el audio directo. Para el continuo real dentro de la PWA, conecta Google Drive arriba.'}</div>
+        <div class="audio-track-list-wrap">
+          <div class="audio-track-list-head"><strong>Pistas de ${escapeHtml(folder.title)}</strong><small>${tracks.length} audios · puedes saltar a cualquiera</small></div>
+          <div class="audio-track-list">${rows}</div>
+        </div>
+      </div>`;
+
+    const audio = persistentAudio;
+    const mount = els('audioNativeMount');
+    if (mount) mount.appendChild(audio);
+    const previousTrackId = audio.dataset.trackId || '';
+    const sameTrack = previousTrackId === track.id && !!audio.src;
+    audio.dataset.trackId = track.id;
+    const candidates = audioStreamCandidates(track.driveId);
+    if (!sameTrack) audio.dataset.streamAttempt = '0';
+    if (!sameTrack) audio.dataset.sourceMode = driveAudioTokenValid() ? 'drive-api' : 'direct';
+    audio.onloadedmetadata = () => {
+      const saved = Number(ensureAudioProgress(key).trackPositions[track.id] || 0);
+      if (saved > 1 && Number.isFinite(audio.duration) && saved < audio.duration - 2) {
+        try { audio.currentTime = saved; } catch (_) {}
+      }
+      if (driveAudioTokenValid()) prefetchNextDriveAudio(track);
+    };
+    audio.ontimeupdate = () => {
+      const now = Date.now();
+      if (now - audioLastLocalSave < 8000) return;
+      audioLastLocalSave = now;
+      persistAudioPlaybackTime({sync:false});
+    };
+    audio.onpause = () => {
+      if (audio.dataset.ignorePause === '1' || audio.ended) return;
+      persistAudioPlaybackTime({sync:true});
+    };
+    audio.onended = handleAudioEnded;
+    updateAudioMediaSession(key, folder, track);
+    audio.onerror = () => {
+      if (audio.dataset.sourceMode === 'drive-api') {
+        activateDriveAudioFallback(track, 'El navegador no pudo reproducir el MP3 descargado por la API.');
+        return;
+      }
+      const attempt = Number(audio.dataset.streamAttempt || 0);
+      if (attempt + 1 < candidates.length) {
+        audio.dataset.streamAttempt = String(attempt + 1);
+        audio.src = candidates[attempt + 1];
+        audio.load();
+        return;
+      }
+      activateDriveAudioFallback(track);
+    };
+
+    if (driveAudioTokenValid()) {
+      if (!sameTrack || audio.dataset.sourceMode !== 'drive-api') loadDriveApiAudioSource(audio, track);
+      else if (audio.readyState >= 1) prefetchNextDriveAudio(track);
+    } else if (!sameTrack || audio.dataset.sourceMode !== 'direct') {
+      audio.dataset.sourceMode = 'direct';
+      audio.dataset.streamAttempt = '0';
+      audio.src = candidates[0];
+      audio.load();
+    }
+
     const prev = document.querySelector('[data-audio-prev]');
     const next = document.querySelector('[data-audio-next]');
-    prev.disabled = index <= 0;
-    next.disabled = index < 0 || index >= folders.length - 1;
-    saveState();
+    prev.disabled = chainIndex <= 0;
+    next.disabled = chainIndex < 0 || chainIndex >= chain.length - 1;
+    saveState({scheduleSync:false});
+
+    requestAnimationFrame(() => {
+      const activeRow = els('audioDriveFrame')?.querySelector('.audio-track-row.active');
+      activeRow?.scrollIntoView({block:'nearest'});
+    });
   }
 
   function collectionByKey(key) { return VIDEO_COLLECTIONS[key] || null; }
@@ -4395,7 +5233,7 @@ window.SEED_CONTENT = [
 
   function resetProgress() {
     if (!confirm('¿Reiniciar todo el progreso? Tus palabras añadidas se conservarán.')) return;
-    state.progress = {}; state.activity = {}; state.watchedVideos = []; state.currentVideoId = null; state.videoProgress = { conversations:{watched:[],currentId:null}, peldanos:{watched:[],currentId:null} }; state.activeVideoCollection = null; state.audioProgress = { translation:{completed:[],currentFolderId:null}, vaughan:{completed:[],currentFolderId:null} }; state.activeAudioCollection = null; state.bookProgress = {diverboPage:0}; manualVideoId = null; videoLibraryOpen = false; saveState(); session = []; renderHome();
+    state.progress = {}; state.activity = {}; state.watchedVideos = []; state.currentVideoId = null; state.videoProgress = { conversations:{watched:[],currentId:null}, peldanos:{watched:[],currentId:null} }; state.activeVideoCollection = null; state.audioProgress = { translation:freshAudioProgress(), vaughan:freshAudioProgress() }; state.activeAudioCollection = null; state.bookProgress = {diverboPage:0}; manualVideoId = null; videoLibraryOpen = false; saveState(); session = []; renderHome();
   }
 
   function toggleTheme() { state.theme = state.theme === 'dark' ? 'light' : 'dark'; saveState(); applyTheme(); }
@@ -4416,8 +5254,9 @@ window.SEED_CONTENT = [
     const homeAudioExplore = e.target.closest('[data-home-audio-explore]'); if (homeAudioExplore) openAudioCollection(homeAudioExplore.dataset.homeAudioExplore, true);
     const audioCollection = e.target.closest('[data-audio-collection]'); if (audioCollection) selectAudioCollection(audioCollection.dataset.audioCollection);
     const audioFolder = e.target.closest('[data-audio-folder]'); if (audioFolder) selectAudioFolder(audioFolder.dataset.audioFolderCollection, audioFolder.dataset.audioFolder);
-    const audioPrev = e.target.closest('[data-audio-prev]'); if (audioPrev && !audioPrev.disabled) adjacentAudioFolder(-1);
-    const audioNext = e.target.closest('[data-audio-next]'); if (audioNext && !audioNext.disabled) adjacentAudioFolder(1);
+    const audioTrack = e.target.closest('[data-audio-track]'); if (audioTrack) selectAudioTrack(audioTrack.dataset.audioTrackFolder, audioTrack.dataset.audioTrack);
+    const audioPrev = e.target.closest('[data-audio-prev]'); if (audioPrev && !audioPrev.disabled) moveAudioTrack(-1, {autoplay:true});
+    const audioNext = e.target.closest('[data-audio-next]'); if (audioNext && !audioNext.disabled) moveAudioTrack(1, {autoplay:true});
     const audioToggle = e.target.closest('[data-audio-toggle-complete]'); if (audioToggle) toggleAudioComplete();
     const videoCollection = e.target.closest('[data-video-collection]'); if (videoCollection) selectVideoCollection(videoCollection.dataset.videoCollection);
     const videoCollectionBack = e.target.closest('[data-video-collection-back]'); if (videoCollectionBack) showVideoCollections();
@@ -4428,6 +5267,21 @@ window.SEED_CONTENT = [
     const videoToggle = e.target.closest('[data-video-toggle]'); if (videoToggle) toggleVideoWatchedFromLibrary(videoToggle.dataset.videoToggle);
     const videoReset = e.target.closest('[data-video-reset]'); if (videoReset) resetVideos();
   });
+
+  els('audioCopyOriginBtn')?.addEventListener('click', copyAudioPwaOrigin);
+  els('audioGoogleConnectBtn')?.addEventListener('click', connectDriveAudio);
+  els('audioGoogleDisconnectBtn')?.addEventListener('click', disconnectDriveAudio);
+  els('audioGoogleClientId')?.addEventListener('change', (event) => {
+    const value = String(event.target.value || '').trim();
+    if (value && /\.apps\.googleusercontent\.com$/i.test(value)) {
+      driveAudioConfig.clientId = value;
+      saveDriveAudioConfig();
+      driveAudioAuth.error = '';
+    }
+    renderDriveAudioAuth();
+  });
+  renderDriveAudioAuth();
+  renderAudioPwaContext();
 
   els('githubConnectBtn').addEventListener('click', connectGithub);
   els('githubReconnectBtn').addEventListener('click', () => { els('githubTokenInput').value = ''; els('githubTokenInput').focus(); setSyncMessage('Pega el nuevo token y pulsa Reconectar.', ''); });
@@ -4453,6 +5307,8 @@ window.SEED_CONTENT = [
     renderStudy();
   });
   els('typeArea').addEventListener('submit', submitTyped);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) persistAudioPlaybackTime({sync:true}); });
+  window.addEventListener('beforeunload', () => persistAudioPlaybackTime({sync:false}));
   els('reviewHardBtn').addEventListener('click', reviewHard);
   els('librarySearch').addEventListener('input', renderLibrary);
   els('libraryFilter').addEventListener('change', renderLibrary);
@@ -4498,7 +5354,7 @@ window.SEED_CONTENT = [
   (() => {
     if (!('serviceWorker' in navigator)) return;
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).catch(() => {});
+      navigator.serviceWorker.register('./sw.js?v=1.7', { scope:'./', updateViaCache: 'none' }).catch(() => {});
     });
   })();
   </script>

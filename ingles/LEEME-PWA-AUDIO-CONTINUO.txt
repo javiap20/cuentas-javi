@@ -1,0 +1,38 @@
+ENGLISH DAILY v1.7 · PWA iPad + AUDIO CONTINUO
+==================================================
+
+Esta versión sustituye la v1.6 local. Está pensada para la PWA que ya tienes instalada en el iPad.
+
+ARCHIVOS DEL ZIP
+- index.html
+- manifest.webmanifest
+- sw.js
+- iconos PWA
+
+CÓMO ACTUALIZAR TU PWA
+1) Sube/reemplaza estos archivos en la MISMA carpeta web donde ya vive English Daily (la carpeta /ingles/ de tu Javi Apps).
+2) No hace falta cambiar el icono instalado ni crear una segunda app si mantienes la misma URL/scope.
+3) Abre English Daily desde el icono del iPad. El service worker v1.7 usa navegación network-first para coger la versión nueva cuando hay conexión.
+
+AUDIO CONTINUO · CONFIGURACIÓN DE GOOGLE (UNA VEZ)
+1) En English Daily abre cualquiera de los dos cursos de audio.
+2) Copia el valor que aparece en “Origen que debes autorizar en Google”. Será algo como https://tudominio.com (SIN /ingles/).
+3) En Google Cloud:
+   - Activa Google Drive API.
+   - Configura la pantalla de consentimiento OAuth. Si está en modo Testing, añade tu cuenta de Google como usuario de prueba.
+   - Crea OAuth Client ID > Aplicación web.
+   - Añade el origen copiado en “Orígenes de JavaScript autorizados”.
+   - No hace falta Client Secret ni URI de redirección para el modelo usado por esta PWA.
+4) Copia el Client ID que termina en .apps.googleusercontent.com, pégalo en English Daily y pulsa “Conectar Drive”.
+5) Pulsa Play una vez. Después la misma etiqueta <audio> se conserva durante todo el recorrido para favorecer el salto automático en iPad.
+
+ORDEN PROGRAMADO
+VAUGHAN: Principiante 1→10, Intermedio 1→10, Avanzado 1→10.
+Translation: Booklet 1→8.
+Dentro de cada carpeta: todas las pistas por orden. Al terminar la última, pasa a la primera de la carpeta siguiente.
+
+NOTAS
+- El Client ID se guarda en localStorage; el token de acceso NO se guarda de forma permanente.
+- Si Google caduca el token durante una sesión larga, la app pedirá reconectar Drive.
+- Sin Drive autorizado, queda el reproductor /preview de Google como respaldo, pero ese modo no puede detectar el final de cada pista.
+- En segundo plano o con el iPad bloqueado, iPadOS puede suspender JavaScript; el objetivo principal de esta versión es el continuo con la PWA abierta/activa.
