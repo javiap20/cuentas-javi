@@ -1,4 +1,4 @@
-const CACHE = 'english-daily-v1.9-pwa';
+const CACHE = 'english-daily-v1.9-video-continuo';
 const APP_SHELL = [
   './',
   './index.html',

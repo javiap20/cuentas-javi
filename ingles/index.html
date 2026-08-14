@@ -750,7 +750,8 @@ body.dark .stat-card.favorite > span { background:#422532; color:#ff8fad; }
 .video-status { display:inline-flex; align-items:center; gap:6px; border-radius:999px; padding:7px 10px; background:var(--surface-2); border:1px solid var(--line); color:var(--muted); font-size:11px; font-weight:800; white-space:nowrap; }
 .video-status.watched { background:var(--green-soft); border-color:transparent; color:var(--green); }
 .video-frame-wrap { aspect-ratio:16 / 9; background:#0c1020; border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
-.video-frame-wrap iframe { width:100%; height:100%; display:block; border:0; background:#0c1020; }
+.video-frame-wrap iframe, .video-frame-wrap video { width:100%; height:100%; display:block; border:0; background:#0c1020; }
+.video-frame-wrap video { object-fit:contain; }
 .video-card-foot { padding:18px 24px 22px; display:flex; justify-content:space-between; align-items:center; gap:14px; }
 .video-card-actions { display:flex; flex-wrap:wrap; gap:9px; }
 .video-card-actions a { text-decoration:none; display:inline-flex; align-items:center; justify-content:center; }
@@ -834,7 +835,7 @@ body.dark .stat-card.favorite > span { background:#422532; color:#ff8fad; }
         <span class="brand-mark">ED</span>
         <span>
           <strong>English Daily</strong>
-          <small>v1.8 · aprende un poco cada día</small>
+          <small>v1.9 · aprende un poco cada día</small>
         </span>
       </button>
       <div class="top-actions">
@@ -4991,6 +4992,7 @@ window.SEED_CONTENT = [
     if (!state.videoProgress[key] || typeof state.videoProgress[key] !== 'object') state.videoProgress[key] = {watched:[], currentId:null};
     if (!Array.isArray(state.videoProgress[key].watched)) state.videoProgress[key].watched = [];
     if (typeof state.videoProgress[key].currentId !== 'string') state.videoProgress[key].currentId = null;
+    if (!Number.isFinite(Number(state.videoProgress[key].round)) || Number(state.videoProgress[key].round) < 1) state.videoProgress[key].round = 1;
     return state.videoProgress[key];
   }
   function watchedVideoSet(key=state.activeVideoCollection) { return new Set(ensureVideoProgress(key).watched || []); }
@@ -5011,6 +5013,7 @@ window.SEED_CONTENT = [
 
   function ensureCurrentPendingVideoFor(key) {
     if (!collectionByKey(key)) return null;
+    resetVideoRoundIfComplete(key);
     const progress = ensureVideoProgress(key);
     const current = videoById(progress.currentId, key);
     if (current && !watchedVideoSet(key).has(current.id)) return current;
@@ -5279,6 +5282,73 @@ window.SEED_CONTENT = [
     });
   }
 
+  let videoNativeRunId = 0;
+  let videoNativeObjectUrl = '';
+
+  function clearNativeVideoSource() {
+    videoNativeRunId += 1;
+    if (videoNativeObjectUrl) { try { URL.revokeObjectURL(videoNativeObjectUrl); } catch (_) {} videoNativeObjectUrl = ''; }
+  }
+
+  function resetVideoRoundIfComplete(key) {
+    const collection = collectionByKey(key);
+    const progress = ensureVideoProgress(key);
+    if (!collection || !collection.videos.length) return false;
+    const watched = new Set(progress.watched || []);
+    if (collection.videos.every(v => watched.has(v.id))) {
+      progress.watched = [];
+      progress.currentId = null;
+      progress.round = Math.max(1, Number(progress.round || 1)) + 1;
+      saveState();
+      return true;
+    }
+    if (!Number.isFinite(Number(progress.round)) || Number(progress.round) < 1) progress.round = 1;
+    return false;
+  }
+
+  async function mountNativeVideo(video, collection, host) {
+    const runId = ++videoNativeRunId;
+    if (!driveAudioTokenValid()) return;
+    try {
+      const src = await driveAudioBlobUrl(video.driveId);
+      if (runId !== videoNativeRunId || !host.isConnected || displayedVideo()?.id !== video.id) return;
+      if (videoNativeObjectUrl && videoNativeObjectUrl !== src) { try { URL.revokeObjectURL(videoNativeObjectUrl); } catch (_) {} }
+      videoNativeObjectUrl = src;
+      host.innerHTML = `<video controls playsinline webkit-playsinline preload="auto" src="${src}"></video>`;
+      const player = host.querySelector('video');
+      if (!player) return;
+      player.addEventListener('ended', () => advanceVideoAutomatically(video.id, collection.key), {once:true});
+      try { await player.play(); } catch (_) { /* iPad puede exigir el primer play manual */ }
+    } catch (err) {
+      if (runId !== videoNativeRunId) return;
+      host.innerHTML = `<div style="height:100%;display:grid;place-items:center;padding:24px;color:#fff;text-align:center">No he podido cargar este vídeo desde Drive. Renueva “Conectar Drive” y vuelve a intentarlo.</div>`;
+      console.warn('Vídeo Drive API:', err);
+    }
+  }
+
+  function advanceVideoAutomatically(finishedId, key) {
+    const collection = collectionByKey(key);
+    if (!collection || state.activeVideoCollection !== key) return;
+    const progress = ensureVideoProgress(key);
+    const watched = watchedVideoSet(key);
+    watched.add(finishedId);
+    progress.watched = [...watched];
+    manualVideoId = null;
+    let completedRound = false;
+    if (collection.videos.every(v => watched.has(v.id))) {
+      completedRound = true;
+      progress.watched = [];
+      progress.round = Math.max(1, Number(progress.round || 1)) + 1;
+    }
+    const next = randomPendingVideo(finishedId, key) || randomPendingVideo(null, key);
+    progress.currentId = next ? next.id : null;
+    saveState();
+    renderHomeStats();
+    renderHomeVideos();
+    renderVideos();
+    showToast(completedRound ? `🎉 Vuelta completada · empieza la ${progress.round}.` : '✓ Vídeo visto · siguiente aleatorio.');
+  }
+
   function renderVideos() {
     renderVideoCollectionCards();
     const collection = activeVideoCollection();
@@ -5301,10 +5371,10 @@ window.SEED_CONTENT = [
     els('videoWatchedCount').textContent = watchedN;
     els('videoRemainingCount').textContent = remaining;
     els('videoCompleteTitle').textContent = `¡Has visto todos los ${collection.plural}!`;
-    els('videoCompleteText').textContent = `Ya no quedan vídeos pendientes en “${collection.title}”. Puedes consultar los vistos o reiniciar solo esta colección.`;
+    els('videoCompleteText').textContent = `Vuelta completada en “${collection.title}”. Al continuar empieza automáticamente otra vuelta aleatoria.`;
 
     const list = els('videoList');
-    const complete = remaining === 0 && !manualVideoId;
+    const complete = false;
     els('videoCompletePanel').classList.toggle('hidden', !complete);
     els('videoSwitchActions').classList.toggle('hidden', complete);
     list.innerHTML = '';
@@ -5321,21 +5391,23 @@ window.SEED_CONTENT = [
             <div>
               <p class="eyebrow">${done ? 'VÍDEO YA VISTO' : `TU ${collection.singular.toUpperCase()} AHORA`} · ALEATORIO</p>
               <h2>${escapeHtml(video.title)}</h2>
-              <p>${done ? 'Lo abriste manualmente desde la biblioteca.' : `Cuando termines, márcalo como visto y aparecerá otro ${collection.singular} pendiente al azar.`}</p>
+              <p>${done ? 'Lo abriste manualmente desde la biblioteca.' : (driveAudioTokenValid() ? `Al terminar se marca solo como visto y empieza otro ${collection.singular} aleatorio.` : 'Conecta Drive en Audio para activar reproducción continua y marcado automático.')}</p>
             </div>
             <span class="video-status ${done ? 'watched' : ''}">${done ? '✓ VISTO' : '○ PENDIENTE'}</span>
           </div>
-          <div class="video-frame-wrap">
-            <iframe src="${previewUrl}" title="${escapeHtml(video.title)}" loading="eager" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+          <div class="video-frame-wrap" data-native-video-host>
+            ${driveAudioTokenValid() ? '<div style="height:100%;display:grid;place-items:center;color:#fff">Cargando vídeo desde Drive…</div>' : `<iframe src="${previewUrl}" title="${escapeHtml(video.title)}" loading="eager" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`}
           </div>
           <div class="video-card-foot">
             <div class="video-card-actions">
-              <button class="primary-btn video-watched-btn ${done ? 'active' : ''}" data-current-video-watched>${done ? '↩ Marcar como pendiente' : '✓ Ya lo he visto'}</button>
+              <button class="primary-btn video-watched-btn ${done ? 'active' : ''}" data-current-video-watched>${done ? '↩ Marcar como pendiente' : '✓ Marcar visto ahora'}</button>
               <a class="secondary-btn" href="${escapeHtml(video.viewUrl)}" target="_blank" rel="noopener noreferrer">Abrir en Drive ↗</a>
             </div>
-            <div class="video-source-note">Google Drive · ${remaining} pendiente${remaining === 1 ? '' : 's'} · progreso independiente</div>
+            <div class="video-source-note">Google Drive · vuelta ${ensureVideoProgress(collection.key).round || 1} · ${remaining} pendiente${remaining === 1 ? '' : 's'} · continuo ${driveAudioTokenValid() ? 'activo' : 'requiere Drive'}</div>
           </div>`;
         list.appendChild(card);
+        const nativeHost = card.querySelector('[data-native-video-host]');
+        if (nativeHost && driveAudioTokenValid()) mountNativeVideo(video, collection, nativeHost);
       }
     }
 
