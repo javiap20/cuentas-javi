@@ -2670,7 +2670,12 @@
         const GIST_ID = '6eaad65a997877a68cebeb3fdc7ecf5b';
         const GIST_FILENAME = 'finanzas-datos.json';
 
-        function gistToken() { return localStorage.getItem('gistToken') || ''; }
+        // Token Gist: usamos una copia propia de esta app y, si existe, una clave compartida
+        // para que los dashboards que prepararemos puedan reutilizar el mismo token guardado.
+        const GIST_TOKEN_SHARED_KEY = 'github_shared_token_v1';
+        function gistToken() {
+            return localStorage.getItem('gistToken') || localStorage.getItem(GIST_TOKEN_SHARED_KEY) || '';
+        }
         function gistConfigurado() { return !!gistToken(); }
 
         function actualizarBtnGist() {
@@ -2854,7 +2859,7 @@
                         El token se guarda solo en este dispositivo (localStorage). Nunca se envía a ningún servidor salvo a la API de GitHub.
                     </p>
                     <label style="display:block;font-weight:700;margin-bottom:6px;color:#374151;">Personal Access Token de GitHub</label>
-                    <input id="gist-token-input" type="password" placeholder="ghp_..." style="width:100%;padding:10px;border:2px solid #d1d5db;border-radius:8px;font-size:1em;margin-bottom:12px;">
+                    <input id="gist-token-input" type="password" name="github-gist-token" autocomplete="current-password" autocapitalize="none" spellcheck="false" placeholder="ghp_..." style="width:100%;padding:10px;border:2px solid #d1d5db;border-radius:8px;font-size:1em;margin-bottom:12px;">
                     <div style="display:flex;gap:10px;margin-top:4px;align-items:center;">
                         <button onclick="guardarTokenGist()" style="flex:1;background:#4f46e5;color:white;border:none;padding:10px;border-radius:8px;cursor:pointer;font-weight:700;">Guardar token</button>
                         <button onclick="borrarTokenGist()" style="flex:0 0 auto;width:auto;background:#ef4444;color:white;border:none;padding:10px 16px;border-radius:8px;cursor:pointer;font-weight:700;font-size:0.85em;white-space:nowrap;">Borrar</button>
@@ -2876,6 +2881,7 @@
             const val = document.getElementById('gist-token-input').value.trim();
             if (!val) { mostrarNotificacion('⚠️ Introduce un token', 'error'); return; }
             localStorage.setItem('gistToken', val);
+            localStorage.setItem(GIST_TOKEN_SHARED_KEY, val);
             actualizarBtnGist();
             document.getElementById('gist-token-status').innerHTML = '<span style="color:#10b981;">✅ Token guardado</span>';
             mostrarNotificacion('✅ Token Gist guardado en este dispositivo', 'exito');
@@ -2883,6 +2889,7 @@
 
         function borrarTokenGist() {
             localStorage.removeItem('gistToken');
+            localStorage.removeItem(GIST_TOKEN_SHARED_KEY);
             document.getElementById('gist-token-input').value = '';
             document.getElementById('gist-token-status').innerHTML = '<span style="color:#f59e0b;">⚠️ Token eliminado</span>';
             actualizarBtnGist();
