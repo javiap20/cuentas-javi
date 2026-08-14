@@ -266,6 +266,13 @@ details summary::-webkit-details-marker{display:none}
 @media(max-width:620px){.shell{width:min(100% - 20px,1460px);padding-top:18px}.input-grid,.advanced,.kpis,.sync-grid,.scenario-toolbar{grid-template-columns:1fr}.scenario-panel,.scenario-library-panel{padding:15px}.summary-section{padding:15px}.summary-overview-head{padding:0 2px 13px;margin-bottom:13px}.panel{border-radius:16px}.group-cards{grid-template-columns:1fr}.footer{flex-direction:column}.money-input{font-size:23px}.sync-head{flex-direction:column}.table-header{grid-template-columns:1fr}.table-header::before{display:none}.table-header>div:first-child,.table-header>.mini-control{grid-column:1}.table-header>.mini-control{justify-self:center;margin-top:4px}.summary-right{position:static}.sync-modal-backdrop{padding:10px;align-items:flex-start}.sync-modal-card{width:100%;max-height:calc(100vh - 20px);padding:15px;border-radius:16px}.compare-modal-backdrop{padding:10px}.compare-modal-card{width:100%;max-height:calc(100vh - 20px);border-radius:16px}.compare-modal-head{padding:16px 48px 13px}.compare-modal-title{font-size:17px}.compare-modal-body{padding:12px}.compare-final-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
   <script src="../../shared/finanzas-engine.js?v=1.0.0"></script>
+  <script>
+  // Segunda ruta defensiva para GitHub Pages. Si la relativa no carga, intentamos
+  // la ruta canónica del repositorio antes de arrancar el dashboard.
+  if(!window.JaviFinanceEngine && /^https?:$/.test(location.protocol) && location.pathname.startsWith('/javi/')){
+    document.write('<script src="/javi/shared/finanzas-engine.js?v=1.0.0"><\/script>');
+  }
+  </script>
 </head>
 <body>
 <div class="shell">
@@ -543,7 +550,7 @@ details summary::-webkit-details-marker{display:none}
   </section>
 
   <footer class="footer">
-    <div>El dashboard no contiene importes del Excel: prioriza <b>../../excel/finanzas-master.xlsx</b> y lee únicamente <b>DESPIDO</b>. Si no está disponible, permite cargar el archivo manualmente. <b>v1.23</b></div>
+    <div>El dashboard no contiene importes del Excel: prioriza <b>../../excel/finanzas-master.xlsx</b> y lee únicamente <b>DESPIDO</b>. Si no está disponible, permite cargar el archivo manualmente. <b>v1.26</b></div>
     <div>Prestaciones automáticas orientativas con reglas 2026. Desde 2027 la edad ordinaria general es 67 años, o 65 con al menos 38 años y 6 meses cotizados. <a href="https://www.seg-social.es/" target="_blank" rel="noreferrer">Seguridad Social</a></div>
   </footer>
 </div>
@@ -966,8 +973,9 @@ details summary::-webkit-details-marker{display:none}
     try{
       if(!localUpdatedAt) localUpdatedAt=new Date().toISOString();
       localStorage.setItem(STORAGE_KEY,JSON.stringify({
-        stateVersion:6,
+        stateVersion:7,
         updatedAt:localUpdatedAt || new Date().toISOString(),
+        gistUpdatedAt:gistUpdatedAt || '',
         gistId:normalizeGistId(els.gistId.value),
         calculatedSnapshots:cloneJson(loadedCalculatedSnapshots)||{},
         linkedDashboardGistId:normalizeGistId(linkedDashboardGistId),
@@ -1041,6 +1049,7 @@ details summary::-webkit-details-marker{display:none}
     let data={};
     try{ data=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}')||{}; }catch(e){}
     localUpdatedAt=clean(data.updatedAt)||localUpdatedAt;
+    gistUpdatedAt=clean(data.gistUpdatedAt)||gistUpdatedAt;
     loadedCalculatedSnapshots=(data.calculatedSnapshots&&typeof data.calculatedSnapshots==='object')?cloneJson(data.calculatedSnapshots):loadedCalculatedSnapshots;
     els.gistId.value=DEFAULT_GIST_ID;
     linkedDashboardGistId=normalizeGistId(data.linkedDashboardGistId||linkedDashboardGistId);
@@ -1578,15 +1587,17 @@ details summary::-webkit-details-marker{display:none}
     return loadedCalculatedSnapshots?.[activeScenarioId] || null;
   }
 
-  function scenarioPayload(){
+  function scenarioPayload(savedAt=new Date().toISOString()){
     const input=assumptionsFromUI();
-    const savedAt=localUpdatedAt || new Date().toISOString();
+    // updatedAt identifica CUÁNDO cambiaron los datos. savedAt identifica CUÁNDO
+    // se escribió realmente esta copia en el Gist. No deben ser la misma cosa.
+    const dataUpdatedAt=localUpdatedAt || savedAt;
     return {
       schema:'independencia-financiera',
-      version:5,
+      version:6,
       engineVersion:HAS_FIN?FIN.version:'snapshot-only',
       savedAt,
-      updatedAt:savedAt,
+      updatedAt:dataUpdatedAt,
       calculatedSnapshots:cloneJson(loadedCalculatedSnapshots)||{},
       linkedDashboardGistId:normalizeGistId(linkedDashboardGistId),
       assumptions:{earliestProjectionYear:START_YEAR,unemploymentMonths:UNEMPLOYMENT_MONTHS,defaultBirthYear:BIRTH_YEAR,excelSheet:SHEET_NAME,publicRulesReferenceYear:FIN?.rules?.referenceYear??2026,sharedEngine:'../../shared/finanzas-engine.js'},
@@ -1707,14 +1718,31 @@ details summary::-webkit-details-marker{display:none}
     return body;
   }
 
-  async function saveToGist({auto=false}={}){
-    if(syncInFlight) return false;
-    if(!HAS_FIN){
-      pendingRemoteSync=true;
-      updateGistFreshness(gistUpdatedAt||localUpdatedAt,'readonly');
-      if(!auto)setSyncStatus('warn','Modo lectura: el motor financiero no está disponible. Puedes consultar todo lo guardado en el Gist, pero no se sobrescribirá el servidor con cálculos sin actualizar.');
-      return false;
+  async function waitForCurrentGistSync(timeoutMs=25000){
+    const started=Date.now();
+    while(syncInFlight && (Date.now()-started)<timeoutMs){
+      await new Promise(resolve=>setTimeout(resolve,100));
     }
+    return !syncInFlight;
+  }
+
+  async function saveToGist({auto=false}={}){
+    // El guardado manual SIEMPRE tiene prioridad. Si el autosave arrancó justo
+    // al terminar de escribir el token, esperamos a que acabe y repetimos el
+    // guardado manual en vez de ignorar silenciosamente el clic.
+    if(syncInFlight){
+      if(auto) return false;
+      clearTimeout(syncTimer);
+      setSyncStatus('warn','Ya hay una sincronización automática en curso · esperando para guardar manualmente…');
+      const ready=await waitForCurrentGistSync();
+      if(!ready){
+        setSyncStatus('error','La sincronización anterior no ha terminado. Espera unos segundos y vuelve a pulsar Guardar en Gist.');
+        return false;
+      }
+    }
+    // El motor NO es requisito para guardar en el Gist. Si no está disponible,
+    // se guardan los datos fuente y se conservan intactas las últimas fotografías
+    // calculadas que ya vinieron del Gist. Así el servidor sigue siendo la copia central.
     const token=clean(els.githubToken.value);
     if(!token){
       pendingRemoteSync=true;
@@ -1726,7 +1754,9 @@ details summary::-webkit-details-marker{display:none}
     if(!localUpdatedAt) localUpdatedAt=new Date().toISOString();
     const gistId=DEFAULT_GIST_ID;els.gistId.value=gistId;
     syncInFlight=true;els.saveGistBtn.disabled=true;els.loadGistBtn.disabled=true;
-    setSyncStatus('warn',auto?'Preparando y sincronizando cambios…':'Preparando datos para el Gist…');
+    const saveButtonLabel=els.saveGistBtn.textContent;
+    els.saveGistBtn.textContent=auto?'☁ Sincronizando…':'☁ Guardando…';
+    setSyncStatus('warn',auto?(HAS_FIN?'Preparando y sincronizando cambios…':'Sincronizando datos · conservando la última fotografía calculada…'):(HAS_FIN?'Preparando datos para el Gist…':'Preparando datos · motor no disponible, se conservará la última fotografía calculada…'));
     updateGistFreshness(gistUpdatedAt||localUpdatedAt,'loading');
     try{
       // La fotografía completa se calcula una sola vez por escenario. La versión anterior
@@ -1734,16 +1764,18 @@ details summary::-webkit-details-marker{display:none}
       await new Promise(resolve=>setTimeout(resolve,0));
       loadedCalculatedSnapshots=await buildCalculatedSnapshotsAsync();
       persistState();
-      const payload=scenarioPayload();
+      const syncStartedAt=new Date().toISOString();
+      const payload=scenarioPayload(syncStartedAt);
       const content=JSON.stringify(payload,null,2);
       const body={description:'Escenarios · Independencia financiera',files:{[GIST_FILENAME]:{content}}};
-      setSyncStatus('warn',auto?'Sincronizando cambios automáticamente…':'Subiendo al Gist…');
+      setSyncStatus('warn',auto?'Sincronizando cambios automáticamente…':(HAS_FIN?'Subiendo al Gist…':'Subiendo datos al Gist · sin recalcular la fotografía…'));
       const res=await fetchWithTimeout(`https://api.github.com/gists/${encodeURIComponent(gistId)}`,{method:'PATCH',headers:{...githubHeaders(true),'Content-Type':'application/json'},body:JSON.stringify(body)},20000);
       const data=await parseGitHubResponse(res);
       if(data?.id) els.gistId.value=data.id;
-      gistUpdatedAt=payload.savedAt;pendingRemoteSync=false;persistState();
+      // La respuesta de GitHub es la referencia más fiable de la hora real de escritura.
+      gistUpdatedAt=clean(data?.updated_at)||payload.savedAt;pendingRemoteSync=false;persistState();
       const link=data?.html_url?` · <a href="${esc(data.html_url)}" target="_blank" rel="noreferrer">Abrir Gist</a>`:'';
-      setSyncStatus('ok',`${auto?'Gist sincronizado automáticamente':'Gist actualizado correctamente'}${link}.`);
+      setSyncStatus('ok',`${auto?'Gist sincronizado automáticamente':'Gist actualizado correctamente'}${!HAS_FIN?' · datos guardados y fotografía calculada anterior conservada':''}${link}.`);
       updateGistFreshness(gistUpdatedAt,'ok');
       return true;
     }catch(err){
@@ -1754,6 +1786,7 @@ details summary::-webkit-details-marker{display:none}
       return false;
     }finally{
       syncInFlight=false;els.saveGistBtn.disabled=false;els.loadGistBtn.disabled=false;
+      els.saveGistBtn.textContent=saveButtonLabel||'☁ Guardar en Gist';
     }
   }
 
@@ -1790,25 +1823,33 @@ details summary::-webkit-details-marker{display:none}
     try{
       // Regla central: primero se obtiene el servidor. Solo después se consulta local.
       const payload=await fetchGistPayload();
-      const remoteAt=clean(payload?.updatedAt||payload?.savedAt);
-      gistUpdatedAt=remoteAt;
+      // remoteDataAt sirve para resolver conflictos. remoteSavedAt sirve para mostrar
+      // al usuario la última escritura REAL del Gist.
+      const remoteDataAt=clean(payload?.updatedAt||payload?.savedAt);
+      const remoteSavedAt=clean(payload?.savedAt||payload?.updatedAt);
+      gistUpdatedAt=remoteSavedAt;
       const local=readLocalState();
       const localAt=clean(local?.updatedAt);
-      const localIsNewer=auto&&local&&timestampMs(localAt)>timestampMs(remoteAt);
+      const localIsNewer=auto&&local&&timestampMs(localAt)>timestampMs(remoteDataAt);
       if(localIsNewer){
         loadInputs();
+        // Conservamos la fecha de la copia remota que acabamos de leer para que el
+        // indicador no confunda 'cambio local' con 'última sincronización del Gist'.
+        gistUpdatedAt=remoteSavedAt||gistUpdatedAt;
         pendingRemoteSync=true;
-        updateGistFreshness(remoteAt,'pending');
+        persistState();
+        updateGistFreshness(gistUpdatedAt,'pending');
         setSyncStatus('warn',`El dispositivo tiene cambios más nuevos (${esc(localAt)}). Se mantienen y se subirán automáticamente cuando haya token.`);
         if(clean(els.githubToken.value)) scheduleGistSync(120);
       }else{
         isApplyingRemote=true;
-        localUpdatedAt=remoteAt||new Date().toISOString();
+        localUpdatedAt=remoteDataAt||new Date().toISOString();
         applyScenarioPayload(payload);
+        gistUpdatedAt=remoteSavedAt||remoteDataAt||gistUpdatedAt;
         isApplyingRemote=false;
         pendingRemoteSync=false;
         persistState();
-        updateGistFreshness(remoteAt,HAS_FIN?'ok':'readonly');
+        updateGistFreshness(gistUpdatedAt,HAS_FIN?'ok':'readonly');
         setSyncStatus('ok',`${auto?'Gist cargado automáticamente':'Datos cargados desde GitHub'} · <b>${esc(gistId)}</b>.`);
       }
       return true;
@@ -1816,7 +1857,7 @@ details summary::-webkit-details-marker{display:none}
       console.error(err);
       const local=readLocalState();
       if(auto){
-        if(local){loadInputs();updateGistFreshness(local?.updatedAt,'error');setSyncStatus('warn',`Gist no disponible. Muestro la copia local${local?.updatedAt?` de <b>${esc(local.updatedAt)}</b>`:''}.`);}
+        if(local){loadInputs();updateGistFreshness(local?.gistUpdatedAt||gistUpdatedAt||local?.updatedAt,'error');setSyncStatus('warn',`Gist no disponible. Muestro la copia local${local?.updatedAt?` de <b>${esc(local.updatedAt)}</b>`:''}.`);}
         else{loadInputs();updateGistFreshness(null,'error');setSyncStatus('error','No he podido leer el Gist y este dispositivo todavía no tiene copia local.');}
       }else{setSyncStatus('error',`No he podido cargar el Gist: ${esc(err.message)}`);updateGistFreshness(gistUpdatedAt,'error');}
       return false;
@@ -1980,8 +2021,17 @@ details summary::-webkit-details-marker{display:none}
     if(els.comparisonModal.classList.contains('open')) closeComparisonModal();
     else if(els.syncModal.classList.contains('open')) closeSyncModal();
   });
-  els.githubToken.addEventListener('input',()=>{if(clean(els.githubToken.value)&&pendingRemoteSync)scheduleGistSync(150);});
-  els.saveGistBtn.addEventListener('click',()=>saveToGist({auto:false}));
+  els.githubToken.addEventListener('input',()=>{
+    // Damos tiempo a terminar de escribir/pegar el token. Evita que el autosave
+    // compita con el botón Guardar en Gist justo después de introducirlo.
+    clearTimeout(syncTimer);
+    if(clean(els.githubToken.value)&&pendingRemoteSync)scheduleGistSync(1200);
+  });
+  els.saveGistBtn.addEventListener('click',e=>{
+    e.preventDefault();
+    clearTimeout(syncTimer);
+    saveToGist({auto:false});
+  });
   els.loadGistBtn.addEventListener('click',()=>loadFromGist());
   els.downloadJsonBtn.addEventListener('click',downloadJson);
   els.importJsonBtn.addEventListener('click',()=>els.importJsonInput.click());
@@ -2013,7 +2063,7 @@ details summary::-webkit-details-marker{display:none}
 <script>
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=1.23', {scope:'./'}).catch(err => console.warn('Service worker:', err));
+    navigator.serviceWorker.register('./sw.js?v=1.26', {scope:'./'}).catch(err => console.warn('Service worker:', err));
   });
 }
 </script>
