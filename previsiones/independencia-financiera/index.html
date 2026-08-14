@@ -251,7 +251,7 @@ details summary::-webkit-details-marker{display:none}
 .sync-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:11px}
 .sync-title{font-family:"Manrope",sans-serif;font-size:13px;font-weight:800;letter-spacing:-.01em}
 .sync-note{font-size:10.5px;color:var(--muted);line-height:1.45;margin-top:3px;max-width:760px}
-.sync-grid{display:grid;grid-template-columns:minmax(190px,1.25fr) minmax(160px,1fr) auto auto auto auto;gap:8px;align-items:stretch}
+.sync-grid{display:grid;grid-template-columns:minmax(120px,.7fr) minmax(190px,1.25fr) auto auto auto auto;gap:8px;align-items:stretch}
 .sync-field{background:#fafbfe;border:1px solid var(--line);border-radius:12px;padding:8px 10px;min-width:0}
 .sync-field label{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.08em;font-weight:800;color:var(--muted);margin-bottom:4px}
 .sync-input{width:100%;border:0;outline:0;background:transparent;color:var(--ink);font-size:12px;font-weight:700;min-width:0}
@@ -366,7 +366,7 @@ details summary::-webkit-details-marker{display:none}
     </div>
 
     <div class="advanced">
-      <div class="mini-copy">La <b>fecha de despido</b> marca el inicio real de toda la previsión. En automático usa <b>Javi Real</b> y el motor compartido para calcular paro, subsidio +52, cotización acumulada, edad ordinaria y pensión estimada. La tabla sigue siendo anual, pero los cálculos se hacen mes a mes.</div>
+      <div class="mini-copy">La <b>fecha de despido</b> marca el inicio real de toda la previsión. En automático usa <b>Javi Real</b> y el motor compartido para calcular paro, subsidio +52, cotización acumulada, edad ordinaria y pensión estimada. Los gastos parten del año de despido y crecen cada año con el <b>IPC de gastos</b> del escenario. La tabla sigue siendo anual, pero los cálculos se hacen mes a mes.</div>
       <div class="mini-control">
         <label>Prestaciones</label>
         <label class="benefit-check" for="autoBenefits"><input id="autoBenefits" type="checkbox" checked><span>Calcular con Javi Real</span></label>
@@ -383,6 +383,11 @@ details summary::-webkit-details-marker{display:none}
       <div class="mini-control">
         <label for="currentAge">Edad actual</label>
         <input id="currentAge" class="mini-input" type="number" min="18" max="100" step="1" placeholder="—" title="Por defecto: año actual menos 1972">
+      </div>
+      <div class="mini-control">
+        <label for="expenseInflation">IPC anual de gastos</label>
+        <input id="expenseInflation" class="mini-input" type="number" min="0" max="20" step="0.1" value="2" title="Inflación anual aplicada a los gastos desde 2027">
+        <div class="pension-auto-help">Por defecto 2 % · editable por escenario.</div>
       </div>
       <div class="mini-control">
         <label for="pension">Pensión estimada al jubilarte</label>
@@ -418,13 +423,17 @@ details summary::-webkit-details-marker{display:none}
       <div class="sync-head">
         <div>
           <div class="sync-title">Guardar y recuperar los escenarios</div>
-          <div class="sync-note">Al abrir el dashboard se lee <b>primero el Gist</b> y solo después se compara con la copia local: siempre gana la versión más nueva. Con token, cualquier cambio se sincroniza automáticamente; sin token, el Gist sigue pudiéndose leer desde cualquier dispositivo. El JSON guarda los supuestos, escenarios y también la última fotografía de los cálculos para poder consultarla aunque no esté disponible el motor compartido. El token nunca se guarda en el HTML, en localStorage ni dentro del JSON.</div>
+          <div class="sync-note">Al abrir el dashboard se lee <b>primero el Gist</b> y solo después se compara con la copia local: siempre gana la versión más nueva. Con token, cualquier cambio se sincroniza automáticamente; sin token, el Gist sigue pudiéndose leer desde cualquier dispositivo. El JSON guarda los supuestos, escenarios y también la última fotografía de los cálculos para poder consultarla aunque no esté disponible el motor compartido. El token nunca se guarda en el HTML, en localStorage ni dentro del JSON. El campo está preparado para que Safari/iPadOS pueda ofrecer Autorrellenar desde Contraseñas.</div>
         </div>
       </div>
       <div class="sync-grid">
         <div class="sync-field">
+          <label for="githubUsername">Cuenta GitHub</label>
+          <input id="githubUsername" class="sync-input" type="text" name="username" autocomplete="username" value="javiap20" readonly aria-readonly="true">
+        </div>
+        <div class="sync-field">
           <label for="githubToken">Token GitHub</label>
-          <input id="githubToken" class="sync-input" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_… / ghp_…">
+          <input id="githubToken" class="sync-input" type="password" name="password" autocomplete="current-password" inputmode="text" spellcheck="false" placeholder="github_pat_… / ghp_…">
         </div>
         <div class="sync-field">
           <label>Gist vinculado</label>
@@ -550,7 +559,7 @@ details summary::-webkit-details-marker{display:none}
   </section>
 
   <footer class="footer">
-    <div>El dashboard no contiene importes del Excel: prioriza <b>../../excel/finanzas-master.xlsx</b> y lee únicamente <b>DESPIDO</b>. Si no está disponible, permite cargar el archivo manualmente. <b>v1.26</b></div>
+    <div>El dashboard no contiene importes del Excel: prioriza <b>../../excel/finanzas-master.xlsx</b> y lee únicamente <b>DESPIDO</b>. Si no está disponible, permite cargar el archivo manualmente. <b>v1.27</b></div>
     <div>Prestaciones automáticas orientativas con reglas 2026. Desde 2027 la edad ordinaria general es 67 años, o 65 con al menos 38 años y 6 meses cotizados. <a href="https://www.seg-social.es/" target="_blank" rel="noreferrer">Seguridad Social</a></div>
   </footer>
 </div>
@@ -637,7 +646,7 @@ details summary::-webkit-details-marker{display:none}
     savings:$('savings'), severance:$('severance'), assets:$('assets'), unemployment:$('unemployment'), subsidy:$('subsidy'), dismissalDate:$('dismissalDate'), dismissalAutoBtn:$('dismissalAutoBtn'), dismissalDateHelp:$('dismissalDateHelp'),
     autoBenefits:$('autoBenefits'), children:$('children'), includeSubsidy52:$('includeSubsidy52'), benefitStatus:$('benefitStatus'), benefitSourceMini:$('benefitSourceMini'),
     unemploymentCard:$('unemploymentCard'), subsidyCard:$('subsidyCard'), unemploymentChip:$('unemploymentChip'), subsidyChip:$('subsidyChip'), unemploymentHelp:$('unemploymentHelp'), subsidyHelp:$('subsidyHelp'),
-    currentAge:$('currentAge'), pension:$('pension'), pensionHelp:$('pensionHelp'), longContribution:$('longContribution'), retirementAgeDisplay:$('retirementAgeDisplay'), retirementAutoNote:$('retirementAutoNote'), manualRetirementControl:$('manualRetirementControl'), endYear:$('endYear'),
+    currentAge:$('currentAge'), expenseInflation:$('expenseInflation'), pension:$('pension'), pensionHelp:$('pensionHelp'), longContribution:$('longContribution'), retirementAgeDisplay:$('retirementAgeDisplay'), retirementAutoNote:$('retirementAutoNote'), manualRetirementControl:$('manualRetirementControl'), endYear:$('endYear'),
     excelStatus:$('excelStatus'), errorBox:$('errorBox'), retirementNotice:$('retirementNotice'),
     forecastBody:$('forecastBody'), chart:$('chart'), chartMeta:$('chartMeta'), tableNote:$('tableNote'),
     expenseBody:$('expenseBody'), groupCards:$('groupCards'), expenseSummary:$('expenseSummary'),
@@ -920,7 +929,7 @@ details summary::-webkit-details-marker{display:none}
     const input={
       savings:num(els.savings.value),severance:num(els.severance.value),assets:num(els.assets.value),unemployment:num(els.unemployment.value),subsidy:num(els.subsidy.value),
       dismissalDate,dismissalDateAuto:dismissalAuto,autoBenefits:!!els.autoBenefits.checked,children:String(els.children.value||'0'),includeSubsidy52:!!els.includeSubsidy52.checked,
-      currentAge:els.currentAge.value===''?null:num(els.currentAge.value),pension:num(els.pension.value),longContribution:!!els.longContribution.checked,retirementAge:els.longContribution.checked?65:67,
+      currentAge:els.currentAge.value===''?null:num(els.currentAge.value),expenseInflation:Math.max(0,Math.min(20,num(els.expenseInflation.value))),pension:num(els.pension.value),longContribution:!!els.longContribution.checked,retirementAge:els.longContribution.checked?65:67,
       endYear:Math.min(2120,Math.max(normalizedDismissalDate(dismissalDate).getFullYear(),Math.trunc(num(els.endYear.value)||2075)))
     };
     const plan=benefitsPlan(input);input.retirementAge=plan.retirementAge;input.longContribution=plan.retirementAge===65;
@@ -934,7 +943,7 @@ details summary::-webkit-details-marker{display:none}
   }
 
   function defaultAssumptions(){
-    return {savings:0,severance:0,assets:0,unemployment:0,subsidy:SUBSIDY52_2026,dismissalDate:FIN.dateKey(automaticDismissalDate()),dismissalDateAuto:true,autoBenefits:true,children:'0',includeSubsidy52:true,currentAge:DEFAULT_CURRENT_AGE,currentAgeAuto:true,pension:0,longContribution:false,retirementAge:67,endYear:2075};
+    return {savings:0,severance:0,assets:0,unemployment:0,subsidy:SUBSIDY52_2026,dismissalDate:FIN.dateKey(automaticDismissalDate()),dismissalDateAuto:true,autoBenefits:true,children:'0',includeSubsidy52:true,currentAge:DEFAULT_CURRENT_AGE,currentAgeAuto:true,expenseInflation:2,pension:0,longContribution:false,retirementAge:67,endYear:2075};
   }
 
   function assumptionsFromUI(){
@@ -952,6 +961,7 @@ details summary::-webkit-details-marker{display:none}
     els.autoBenefits.checked=x.autoBenefits!==false;
     els.children.value=['0','1','2'].includes(String(x.children))?String(x.children):'0';
     els.includeSubsidy52.checked=x.includeSubsidy52!==false;
+    els.expenseInflation.value=Number.isFinite(Number(x.expenseInflation))?Number(x.expenseInflation):2;
     els.pension.value=x.pension ?? 0;
     els.endYear.value=x.endYear ?? 2075;
     if(Object.prototype.hasOwnProperty.call(x,'longContribution')) els.longContribution.checked=!!x.longContribution;
@@ -1029,7 +1039,7 @@ details summary::-webkit-details-marker{display:none}
   function legacyAssumptions(data){
     const a=defaultAssumptions();
     if(data.dismissalDate){a.dismissalDate=dismissalDateValue(data.dismissalDate);a.dismissalDateAuto=data.dismissalDateAuto!==false;}
-    ['savings','severance','assets','unemployment','subsidy','pension','endYear'].forEach(k=>{
+    ['savings','severance','assets','unemployment','subsidy','expenseInflation','pension','endYear'].forEach(k=>{
       if(data[k]!==null && data[k]!==undefined && data[k]!=='') a[k]=num(data[k]);
     });
     if(Object.prototype.hasOwnProperty.call(data,'longContribution')) a.longContribution=!!data.longContribution;
@@ -1231,13 +1241,22 @@ details summary::-webkit-details-marker{display:none}
   function activeMonthsForYear(year,input){
     const start=projectionStartDate(input);if(year<start.getFullYear())return 0;if(year>start.getFullYear())return 12;return 12-start.getMonth();
   }
-  function proratedExpense(fullAnnual,year,input){return fullAnnual*(activeMonthsForYear(year,input)/12)}
+  function expenseInflationRate(input){
+    const rate=num(input?.expenseInflation);
+    return Number.isFinite(rate)&&rate>=0?rate/100:0.02;
+  }
+  function inflatedAnnualExpense(baseAnnual,year,input){
+    const startYear=projectionStartYear(input);
+    const yearsFromStart=Math.max(0,year-startYear);
+    return baseAnnual*Math.pow(1+expenseInflationRate(input),yearsFromStart);
+  }
+  function proratedExpense(fullAnnual,year,input){return inflatedAnnualExpense(fullAnnual,year,input)*(activeMonthsForYear(year,input)/12)}
 
   function incomeFor(year,input,planOverride=null){ return benefitIncomeForYear(year,input,planOverride); }
 
   function comparisonInput(assumptions){
     const x={...defaultAssumptions(),...(assumptions||{})};
-    x.savings=num(x.savings);x.severance=num(x.severance);x.assets=num(x.assets);x.unemployment=num(x.unemployment);x.subsidy=num(x.subsidy);x.pension=num(x.pension);
+    x.savings=num(x.savings);x.severance=num(x.severance);x.assets=num(x.assets);x.unemployment=num(x.unemployment);x.subsidy=num(x.subsidy);x.expenseInflation=Math.max(0,Math.min(20,num(x.expenseInflation)));x.pension=num(x.pension);
     x.dismissalDateAuto=x.dismissalDateAuto!==false;x.dismissalDate=x.dismissalDateAuto?FIN.dateKey(automaticDismissalDate()):dismissalDateValue(x.dismissalDate);
     x.autoBenefits=x.autoBenefits!==false;x.children=['0','1','2'].includes(String(x.children))?String(x.children):'0';x.includeSubsidy52=x.includeSubsidy52!==false;
     x.currentAge=x.currentAgeAuto===false?(x.currentAge===null?null:num(x.currentAge)):DEFAULT_CURRENT_AGE;x.longContribution=!!x.longContribution;x.retirementAge=x.longContribution?65:67;
@@ -1394,7 +1413,7 @@ details summary::-webkit-details-marker{display:none}
     const retirementPlan=model.plan||benefitsPlan(model.input);
     const reachesRetirement=model.rows.some(r=>r.year>=retirementPlan.retirementDate.getFullYear());
     els.retirementNotice.classList.toggle('show', reachesRetirement && model.input.pension===0);
-    const start=projectionStartDate(model.input);els.tableNote.textContent=`Desde ${start.toLocaleDateString('es-ES',{month:'long',year:'numeric'})} hasta ${model.input.endYear}. Cálculo mensual agrupado por año · jubilación resaltada.`;
+    const start=projectionStartDate(model.input);els.tableNote.textContent=`Desde ${start.toLocaleDateString('es-ES',{month:'long',year:'numeric'})} hasta ${model.input.endYear}. Gasto con IPC ${formatNumberES(model.input.expenseInflation,1)} % anual · cálculo mensual agrupado por año · jubilación resaltada.`;
   }
 
   function renderKpis(model){
@@ -1975,6 +1994,8 @@ details summary::-webkit-details-marker{display:none}
   [els.autoBenefits,els.children,els.includeSubsidy52].forEach(el=>el.addEventListener('change',()=>{markScenarioDirty();render();}));
   els.currentAge.addEventListener('input',()=>{currentAgeAuto=false;markScenarioDirty();render();});
   els.currentAge.addEventListener('change',()=>{currentAgeAuto=false;markScenarioDirty();render();});
+  els.expenseInflation.addEventListener('input',()=>{markScenarioDirty();render();});
+  els.expenseInflation.addEventListener('change',()=>{els.expenseInflation.value=Math.max(0,Math.min(20,num(els.expenseInflation.value)));markScenarioDirty();render();});
 
   els.dismissalDate.addEventListener('change',()=>{els.dismissalAutoBtn.classList.remove('active');els.dismissalDate.value=dismissalDateValue(els.dismissalDate.value);markScenarioDirty();render();});
   els.dismissalAutoBtn.addEventListener('click',()=>{els.dismissalAutoBtn.classList.add('active');els.dismissalDate.value=FIN.dateKey(automaticDismissalDate());markScenarioDirty();render();});
@@ -2063,7 +2084,7 @@ details summary::-webkit-details-marker{display:none}
 <script>
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=1.26', {scope:'./'}).catch(err => console.warn('Service worker:', err));
+    navigator.serviceWorker.register('./sw.js?v=1.27', {scope:'./'}).catch(err => console.warn('Service worker:', err));
   });
 }
 </script>
