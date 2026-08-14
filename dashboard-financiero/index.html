@@ -44,7 +44,12 @@
   .gist-modal-close{border:0;background:#f2f4f7;color:#475467;width:32px;height:32px;border-radius:9px;font-size:20px;line-height:1;cursor:pointer}
   .gist-modal-copy{font-size:11px;color:var(--muted);line-height:1.5;margin:0 0 14px}
   .gist-auto-note{margin-top:12px;padding:10px 11px;border-radius:10px;background:#f5f8ff;border:1px solid #dbe7ff;color:#475467;font-size:10.5px;line-height:1.45}
-  .tabs-wrap{display:flex;justify-content:center;margin:4px 0 38px}
+  .tabs-wrap{display:flex;justify-content:center;margin:4px 0 0}
+  .global-gist-freshness{display:flex;align-items:center;justify-content:center;gap:8px;margin:14px 0 34px;color:#c4a7ff;font-size:12px;font-weight:850;text-align:center;letter-spacing:.01em;min-height:18px}
+  .global-gist-freshness-dot{width:7px;height:7px;border-radius:50%;background:#a78bfa;box-shadow:0 0 0 4px rgba(167,139,250,.12);flex:0 0 auto}
+  .global-gist-freshness.pending{color:#d8b4fe}.global-gist-freshness.pending .global-gist-freshness-dot{background:#c084fc}
+  .global-gist-freshness.syncing{color:#93c5fd}.global-gist-freshness.syncing .global-gist-freshness-dot{background:#60a5fa}
+  .global-gist-freshness.error{color:#fda4af}.global-gist-freshness.error .global-gist-freshness-dot{background:#fb7185}
   .tabs{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:#eef2f6;border:1px solid var(--line);padding:5px;border-radius:14px}
   .tab-btn{border:0;background:transparent;color:var(--muted);font-weight:900;padding:10px 20px;border-radius:10px;cursor:pointer;transition:.15s}
   .tab-btn.active{background:#fff;color:var(--text);box-shadow:0 1px 4px rgba(16,24,40,.10)}
@@ -1258,7 +1263,7 @@
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="./icons/icon-512.png">
 
-  <script src="../shared/finanzas-engine.js?v=1.0.0"></script>
+  <script src="../shared/finanzas-engine.js?v=1.0.1"></script>
 </head>
 <body>
 <div class="app">
@@ -1297,6 +1302,11 @@
       </button>
     </div>
   </nav>
+
+  <div id="globalGistFreshness" class="global-gist-freshness" aria-live="polite">
+    <span class="global-gist-freshness-dot"></span>
+    <span id="globalGistFreshnessText">☁ Última actualización del Gist · comprobando…</span>
+  </div>
 
   <div class="layout">
     <div id="loanTop" class="loan-top">
@@ -2146,27 +2156,52 @@
       </div>
       <button id="gistModalClose" class="gist-modal-close" type="button" aria-label="Cerrar">×</button>
     </div>
-    <p class="gist-modal-copy">Un único Gist guarda todos los casos del dashboard: hipotecas, préstamos personales y las calculadoras que añadamos más adelante.</p>
+    <p class="gist-modal-copy">Un único Gist guarda todo el dashboard. Al abrir la app se lee primero el servidor aunque no haya token; después se compara con este dispositivo y siempre gana la copia más reciente.</p>
     <div class="field">
       <label for="gistToken">Token de GitHub</label>
       <input id="gistToken" type="password" autocomplete="off" placeholder="github_pat_…">
-      <div class="gist-note">La app localiza o crea automáticamente su Gist. El token se conserva solo durante esta sesión del navegador.</div>
+      <div class="gist-note">El token solo hace falta para escribir en GitHub. Para leer tus datos desde cualquier dispositivo no es necesario: el dashboard ya conoce el Gist vinculado. El token se conserva solo durante esta sesión.</div>
     </div>
     <div class="gist-buttons">
-      <button id="gistPushBtn" class="btn btn-primary" type="button">Sincronizar ahora</button>
+      <button id="gistPushBtn" class="btn btn-primary" type="button">Guardar en Gist</button>
       <button id="gistPullBtn" class="btn btn-secondary" type="button">Traer del Gist</button>
     </div>
     <div id="gistStatus" class="gist-status"></div>
-    <div class="gist-auto-note"><strong>Guardado automático:</strong> después de guardar un caso por primera vez, cualquier cambio se guarda localmente y se sincroniza con Gist automáticamente.</div>
+    <div class="gist-auto-note"><strong>Sincronización al abrir:</strong> Gist → comparación con local → se usa la copia más reciente. Si la copia local es más nueva y hay token, se sube automáticamente; sin token puedes seguir viendo y editando, pero los cambios quedan pendientes de subir.</div>
   </section>
 </div>
 
 <div id="tooltip" class="tooltip"></div>
 
 <script>
-(() => {
-  const FIN=window.JaviFinanceEngine;
-  if(!FIN) throw new Error('No se ha cargado ../shared/finanzas-engine.js');
+(async () => {
+  let FIN=window.JaviFinanceEngine;
+  if(!FIN){
+    // Reintento con cache-busting por si el navegador/PWA conservó un 404 o una copia antigua.
+    try{
+      await new Promise((resolve,reject)=>{
+        const script=document.createElement('script');
+        script.src='../shared/finanzas-engine.js?v=1.0.1&t='+Date.now();
+        script.onload=resolve;
+        script.onerror=()=>reject(new Error('No se ha podido cargar el motor financiero compartido.'));
+        document.head.appendChild(script);
+      });
+      FIN=window.JaviFinanceEngine;
+    }catch(err){console.error('Motor financiero compartido:',err);}
+  }
+  if(!FIN){
+    const wrap=document.querySelector('#globalGistFreshness');
+    const label=document.querySelector('#globalGistFreshnessText');
+    if(wrap) wrap.classList.add('error');
+    if(label) label.textContent='⚠ Motor financiero no cargado · revisa /shared/finanzas-engine.js';
+    const btn=document.querySelector('#globalGistBtn');
+    const modal=document.querySelector('#gistModal');
+    const close=document.querySelector('#gistModalClose');
+    if(btn&&modal) btn.addEventListener('click',()=>{modal.classList.add('open');modal.setAttribute('aria-hidden','false');});
+    if(close&&modal) close.addEventListener('click',()=>{modal.classList.remove('open');modal.setAttribute('aria-hidden','true');});
+    document.querySelectorAll('[data-close-gist]').forEach(el=>el.addEventListener('click',()=>{if(modal){modal.classList.remove('open');modal.setAttribute('aria-hidden','true');}}));
+    return;
+  }
   const $ = s => document.querySelector(s);
   const $$ = s => [...document.querySelectorAll(s)];
   function formatEsNumber(value, decimals=2){
@@ -2448,7 +2483,12 @@
   const CASES_STORAGE_KEY = 'dashboard_financiero_saved_cases_v1';
   const GIST_ID_STORAGE_KEY = 'dashboard_financiero_gist_id_v1';
   const GIST_TOKEN_SESSION_KEY = 'dashboard_financiero_gist_token_v1';
+  const GIST_LAST_SYNC_STORAGE_KEY = 'dashboard_financiero_gist_last_sync_v1';
+  const GIST_DIRTY_STORAGE_KEY = 'dashboard_financiero_gist_dirty_v1';
+  const DASHBOARD_LOCAL_UPDATED_AT_STORAGE_KEY = 'dashboard_financiero_local_updated_at_v1';
   const GIST_FILE_NAME = 'dashboard-financiero-casos.json';
+  const DEFAULT_GIST_ID = 'bcb12de9d4e6b476062a8d13a676532f';
+  const GIST_OWNER = 'javiap20';
   const GITHUB_API_VERSION = '2026-03-10';
   const PROJECTION_STORAGE_KEY = 'dashboard_financiero_projection_v1';
   const PAYROLL_STORAGE_KEY = 'dashboard_financiero_payroll_v1';
@@ -3923,12 +3963,110 @@
     el.className='case-status'+(type?' '+type:'');
   }
 
+  function gistFreshnessStamp(iso){
+    const d=new Date(iso||'');
+    if(Number.isNaN(d.getTime()))return '';
+    const date=d.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'});
+    const time=d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+    return `${date} · ${time}`;
+  }
+
+  function setGlobalGistFreshness(state='ok',iso=null,extra=''){
+    const wrap=$('#globalGistFreshness'), text=$('#globalGistFreshnessText');
+    if(!wrap||!text)return;
+    wrap.classList.remove('pending','syncing','error');
+    if(state && state!=='ok')wrap.classList.add(state);
+    const known=iso || safeStorageGet(localStorage,GIST_LAST_SYNC_STORAGE_KEY) || '';
+    const stamp=gistFreshnessStamp(known);
+    let label='☁ Última actualización del Gist';
+    if(stamp)label+=` · ${stamp}`;
+    else label+=' · todavía sin fecha';
+    if(extra)label+=` · ${extra}`;
+    text.textContent=label;
+  }
+
+  function latestIso(values){
+    const valid=(values||[]).filter(Boolean).map(String).filter(x=>!Number.isNaN(new Date(x).getTime()));
+    if(!valid.length)return '';
+    return valid.sort((a,b)=>new Date(b)-new Date(a))[0];
+  }
+
+  function getLocalDashboardUpdatedAt(){
+    const candidates=[safeStorageGet(localStorage,DASHBOARD_LOCAL_UPDATED_AT_STORAGE_KEY)];
+    [CASES_STORAGE_KEY,PAYROLL_CASES_STORAGE_KEY,PENSION_CASES_STORAGE_KEY].forEach(key=>{
+      try{
+        const raw=safeStorageGet(localStorage,key);
+        const data=raw?JSON.parse(raw):null;
+        if(data?.updatedAt)candidates.push(data.updatedAt);
+        const arr=Array.isArray(data)?data:(Array.isArray(data?.cases)?data.cases:[]);
+        arr.forEach(x=>{if(x?.updatedAt)candidates.push(x.updatedAt)});
+      }catch(e){}
+    });
+    return latestIso(candidates);
+  }
+
+  function rememberLocalDashboardChange(iso){
+    const stamp=iso || new Date().toISOString();
+    safeStorageSet(localStorage,DASHBOARD_LOCAL_UPDATED_AT_STORAGE_KEY,stamp);
+    return stamp;
+  }
+
+  function rememberGistSync(iso){
+    const stamp=iso || new Date().toISOString();
+    safeStorageSet(localStorage,GIST_LAST_SYNC_STORAGE_KEY,stamp);
+    safeStorageSet(localStorage,DASHBOARD_LOCAL_UPDATED_AT_STORAGE_KEY,stamp);
+    safeStorageSet(localStorage,GIST_DIRTY_STORAGE_KEY,'0');
+    setGlobalGistFreshness('ok',stamp);
+  }
+
+  function markGistPending(){
+    rememberLocalDashboardChange();
+    safeStorageSet(localStorage,GIST_DIRTY_STORAGE_KEY,'1');
+    setGlobalGistFreshness('pending',null,'cambios locales pendientes');
+  }
+
+  async function refreshGlobalGistFreshness(){
+    const remembered=safeStorageGet(localStorage,GIST_ID_STORAGE_KEY) || DEFAULT_GIST_ID;
+    if(remembered)safeStorageSet(localStorage,GIST_ID_STORAGE_KEY,remembered);
+    const dirty=safeStorageGet(localStorage,GIST_DIRTY_STORAGE_KEY)==='1';
+    if(!remembered){
+      const known=safeStorageGet(localStorage,GIST_LAST_SYNC_STORAGE_KEY);
+      setGlobalGistFreshness(dirty?'pending':'ok',known,dirty?'cambios locales pendientes':'Gist todavía no vinculado');
+      return;
+    }
+    setGlobalGistFreshness('syncing',null,'comprobando servidor…');
+    try{
+      const res=await fetch(`https://api.github.com/gists/${encodeURIComponent(remembered)}`,{
+        method:'GET',headers:gistHeaders('',false),cache:'no-store'
+      });
+      if(!res.ok)throw new Error(`GitHub ${res.status}`);
+      const data=await res.json();
+      let file=data?.files?.[GIST_FILE_NAME];
+      if(!file)throw new Error(`Falta ${GIST_FILE_NAME}`);
+      let content=file.content;
+      if(file.truncated && file.raw_url){
+        const raw=await fetch(`${file.raw_url}${file.raw_url.includes('?')?'&':'?'}t=${Date.now()}`,{cache:'no-store'});
+        if(!raw.ok)throw new Error(`RAW ${raw.status}`);
+        content=await raw.text();
+      }
+      let updatedAt=data?.updated_at || '';
+      try{const parsed=JSON.parse(content||'{}');updatedAt=parsed?.updatedAt || updatedAt}catch(e){}
+      if(updatedAt)safeStorageSet(localStorage,GIST_LAST_SYNC_STORAGE_KEY,updatedAt);
+      setGlobalGistFreshness(dirty?'pending':'ok',updatedAt,dirty?'cambios locales pendientes':'');
+    }catch(e){
+      const known=safeStorageGet(localStorage,GIST_LAST_SYNC_STORAGE_KEY);
+      setGlobalGistFreshness(dirty?'pending':'error',known,dirty?'cambios locales pendientes':'no he podido comprobar el servidor');
+    }
+  }
+
   function setGistStatus(text,type=''){
     const el=$('#gistStatus');
     if(el){
       el.textContent=text||'';
       el.className='gist-status'+(type?' '+type:'');
     }
+    if(type==='error') setGlobalGistFreshness('error',null,'error de sincronización');
+    else if(type!=='ok' && text) setGlobalGistFreshness('syncing',null,'sincronizando…');
     const btn=$('#globalGistBtn');
     const label=$('#globalGistBtnText');
     if(!btn || !label)return;
@@ -3954,6 +4092,7 @@
   }
 
   function scheduleGistAutoSync(){
+    markGistPending();
     const token=$('#gistToken')?.value.trim();
     if(!token)return;
     clearTimeout(gistAutoSyncTimer);
@@ -4222,10 +4361,14 @@ No se borrará hasta que confirmes este mensaje.`))return;
 
   function gistDocument(){
     return {
-      schemaVersion:4,
+      schemaVersion:5,
       financeEngineVersion:FIN.version,
       app:'Dashboard financiero',
       updatedAt:new Date().toISOString(),
+      calculatorStates:{
+        mortgage:normalizeCaseState(calculatorStates.mortgage,'mortgage'),
+        personal:normalizeCaseState(calculatorStates.personal,'personal')
+      },
       cases:savedCases,
       projectionSettings,
       payrollSettings,
@@ -4252,7 +4395,7 @@ No se borrará hasta que confirmes este mensaje.`))return;
 
   async function findDashboardGist(token){
     // Fast path: use the internally remembered ID when it is still valid.
-    const remembered=safeStorageGet(localStorage,GIST_ID_STORAGE_KEY);
+    const remembered=safeStorageGet(localStorage,GIST_ID_STORAGE_KEY) || DEFAULT_GIST_ID;
     if(remembered){
       try{
         const res=await githubFetch(`https://api.github.com/gists/${encodeURIComponent(remembered)}`,{
@@ -4260,7 +4403,12 @@ No se borrará hasta que confirmes este mensaje.`))return;
           headers:gistHeaders(token,false)
         });
         const data=await res.json();
-        if(data?.files?.[GIST_FILE_NAME]) return data;
+        // El Gist compartido conocido es también el destino aunque todavía no tenga
+        // el fichero del dashboard: la primera escritura lo añadirá sin crear otro Gist.
+        if(data?.id && (data?.files?.[GIST_FILE_NAME] || remembered===DEFAULT_GIST_ID)){
+          safeStorageSet(localStorage,GIST_ID_STORAGE_KEY,data.id);
+          return data;
+        }
       }catch(e){
         // Ignore stale/deleted IDs and fall back to listing the user's Gists.
       }
@@ -4303,7 +4451,8 @@ No se borrará hasta que confirmes este mensaje.`))return;
     safeStorageSet(sessionStorage,GIST_TOKEN_SESSION_KEY,token);
 
     try{
-      const content=JSON.stringify(gistDocument(),null,2);
+      const doc=gistDocument();
+      const content=JSON.stringify(doc,null,2);
       const filePayload={};
       filePayload[GIST_FILE_NAME]={content};
       setGistStatus('Buscando Gist…');
@@ -4337,6 +4486,7 @@ No se borrará hasta que confirmes este mensaje.`))return;
       }
 
       if(data?.id) safeStorageSet(localStorage,GIST_ID_STORAGE_KEY,data.id);
+      rememberGistSync(doc.updatedAt);
       const totalItems=savedCases.length+payrollCases.length+pensionCases.length;
       setGistStatus(`Sincronizado · ${totalItems} escenario${totalItems===1?'':'s'}`,'ok');
       return data;
@@ -4352,126 +4502,221 @@ No se borrará hasta que confirmes este mensaje.`))return;
     }
   }
 
-  async function pullCasesFromGist(){
-    const token=$('#gistToken').value.trim();
-    if(!token){
-      setGistStatus('Falta el token de GitHub','error');
-      $('#gistToken').focus();
-      return;
+  async function fetchWithTimeout(url,options={},timeoutMs=7000){
+    const controller=new AbortController();
+    const timer=setTimeout(()=>controller.abort(),timeoutMs);
+    try{
+      return await fetch(url,{...options,signal:controller.signal});
+    }finally{
+      clearTimeout(timer);
+    }
+  }
+
+  async function readDashboardGist({token='',allowDiscovery=true}={}){
+    let gistId=normalizeGistId(safeStorageGet(localStorage,GIST_ID_STORAGE_KEY) || DEFAULT_GIST_ID);
+    if(gistId)safeStorageSet(localStorage,GIST_ID_STORAGE_KEY,gistId);
+    let lastError=null;
+
+    const parseContent=(content,serverUpdatedAt='')=>{
+      const parsed=JSON.parse(content||'{}');
+      if(!parsed || typeof parsed!=='object')throw new Error('Formato de Gist no reconocido');
+      return {parsed,gistId,serverUpdatedAt:parsed.updatedAt || serverUpdatedAt || ''};
+    };
+
+    // Fast path sin token: URL RAW estable. Un Gist secreto es no listado, no privado;
+    // conocer su ID/URL permite leerlo desde cualquier dispositivo.
+    if(gistId){
+      try{
+        const rawUrl=`https://gist.githubusercontent.com/${GIST_OWNER}/${encodeURIComponent(gistId)}/raw/${encodeURIComponent(GIST_FILE_NAME)}?t=${Date.now()}`;
+        const raw=await fetchWithTimeout(rawUrl,{cache:'no-store'},7000);
+        if(!raw.ok)throw new Error(`RAW ${raw.status}`);
+        return parseContent(await raw.text(),'');
+      }catch(e){lastError=e}
+
+      try{
+        const res=await fetchWithTimeout(`https://api.github.com/gists/${encodeURIComponent(gistId)}`,{
+          method:'GET',headers:gistHeaders(token,false),cache:'no-store'
+        },7000);
+        if(!res.ok)throw new Error(`GitHub ${res.status}`);
+        const gist=await res.json();
+        let file=gist?.files?.[GIST_FILE_NAME];
+        if(!file)throw new Error(`El Gist no contiene ${GIST_FILE_NAME}`);
+        let content=file.content;
+        if(file.truncated && file.raw_url){
+          const raw=await fetchWithTimeout(`${file.raw_url}${file.raw_url.includes('?')?'&':'?'}t=${Date.now()}`,{
+            method:'GET',headers:token?{'Authorization':'Bearer '+token}:{},cache:'no-store'
+          },7000);
+          if(!raw.ok)throw new Error(`RAW ${raw.status}`);
+          content=await raw.text();
+        }
+        if(gist?.id){gistId=gist.id;safeStorageSet(localStorage,GIST_ID_STORAGE_KEY,gist.id)}
+        return parseContent(content,gist?.updated_at || '');
+      }catch(e){lastError=e}
     }
 
-    safeStorageSet(sessionStorage,GIST_TOKEN_SESSION_KEY,token);
-    setGistStatus('Buscando Gist…');
+    // Solo para recuperación/migración: con token podemos localizar un Gist antiguo
+    // que aún no estuviera en el ID compartido.
+    if(token && allowDiscovery){
+      try{
+        const gist=await findDashboardGist(token);
+        if(gist?.id){
+          gistId=gist.id;safeStorageSet(localStorage,GIST_ID_STORAGE_KEY,gist.id);
+          let file=gist?.files?.[GIST_FILE_NAME];
+          if(file){
+            let content=file.content;
+            if(file.truncated && file.raw_url){
+              const raw=await githubFetch(file.raw_url,{method:'GET',headers:{'Authorization':'Bearer '+token}});
+              content=await raw.text();
+            }
+            return parseContent(content,gist?.updated_at || '');
+          }
+        }
+      }catch(e){lastError=e}
+    }
+    throw lastError || new Error('No he podido leer el Gist del dashboard');
+  }
+
+  function applyDashboardGistDocument(parsed,{renderNow=true}={}){
+    const incoming=Array.isArray(parsed)?parsed:(Array.isArray(parsed?.cases)?parsed.cases:null);
+    if(!incoming) throw new Error('Formato de Gist no reconocido');
+
+    savedCases=incoming
+      .filter(c=>c && c.id && c.name && (c.calculatorId==='mortgage'||c.calculatorId==='personal'))
+      .map(c=>({
+        id:String(c.id),
+        name:String(c.name).slice(0,80),
+        calculatorId:c.calculatorId,
+        state:normalizeCaseState(c.state,c.calculatorId),
+        createdAt:c.createdAt || new Date().toISOString(),
+        updatedAt:c.updatedAt || c.createdAt || new Date().toISOString()
+      }));
+
+    if(parsed && !Array.isArray(parsed) && parsed.calculatorStates){
+      if(parsed.calculatorStates.mortgage) calculatorStates.mortgage=normalizeCaseState(parsed.calculatorStates.mortgage,'mortgage');
+      if(parsed.calculatorStates.personal) calculatorStates.personal=normalizeCaseState(parsed.calculatorStates.personal,'personal');
+    }
+    if(parsed && !Array.isArray(parsed) && parsed.projectionSettings){
+      projectionSettings=normalizeProjectionSettings(parsed.projectionSettings);
+      persistProjectionSettingsLocal();
+    }
+    if(parsed && !Array.isArray(parsed) && parsed.payrollSettings){
+      payrollSettings=normalizePayrollSettings(parsed.payrollSettings);
+      persistPayrollSettingsLocal();
+    }
+    if(parsed && !Array.isArray(parsed) && Array.isArray(parsed.payrollCases)){
+      payrollCases=parsed.payrollCases.map(normalizePayrollCase).filter(Boolean);
+      activePayrollCaseId=null;
+      persistPayrollCasesLocal();
+    }
+    if(parsed && !Array.isArray(parsed) && parsed.pensionSettings){
+      pensionSettings=normalizePensionSettings(parsed.pensionSettings);
+      persistPensionSettingsLocal();
+    }
+    if(parsed && !Array.isArray(parsed) && Array.isArray(parsed.pensionCases)){
+      pensionCases=parsed.pensionCases.map(normalizePensionCase).filter(Boolean);
+      activePensionCaseId=null;
+      persistPensionCasesLocal();
+    }
+    if(parsed && !Array.isArray(parsed) && parsed.pensionLayoffSettings){
+      pensionLayoffSettings={subsidy52:!!parsed.pensionLayoffSettings.subsidy52};
+      persistPensionLayoffSettingsLocal();
+    }
+    if(parsed && !Array.isArray(parsed) && parsed.layoffCashSettings){
+      layoffCashSettings=normalizeLayoffCashSettings(parsed.layoffCashSettings);
+      persistLayoffCashSettingsLocal();
+    }
+
+    activeSavedCaseIds.mortgage=null;
+    activeSavedCaseIds.personal=null;
+    allCasesView.mortgage=canUseAllCases('mortgage');
+    allCasesView.personal=canUseAllCases('personal');
+    persistSavedCasesLocal();
+
+    if(renderNow){
+      payrollApplyUI();payrollRecalc();renderPayrollCases();
+      pensionApplyUI();pensionRecalc();renderPensionCases();
+      layoffCashApplyUI();layoffCashRecalc();
+      if(activeCalculatorId!=='payroll' && activeCalculatorId!=='pension' && activeCalculatorId!=='layoff')loadCalculatorState(activeCalculatorId);
+      renderSavedCases();
+    }
+  }
+
+  async function reconcileStartupWithGist(){
+    const token=$('#gistToken')?.value.trim() || '';
+    const dirty=safeStorageGet(localStorage,GIST_DIRTY_STORAGE_KEY)==='1';
+    const lastSync=safeStorageGet(localStorage,GIST_LAST_SYNC_STORAGE_KEY) || '';
+    const localUpdated=getLocalDashboardUpdatedAt();
+    safeStorageSet(localStorage,GIST_ID_STORAGE_KEY,safeStorageGet(localStorage,GIST_ID_STORAGE_KEY)||DEFAULT_GIST_ID);
+    setGlobalGistFreshness('syncing',null,'cargando servidor…');
+
+    let remote;
+    try{
+      remote=await readDashboardGist({token,allowDiscovery:!!token});
+    }catch(e){
+      // Si aún no existe el fichero remoto, la copia local sigue siendo válida.
+      if(dirty){
+        setGlobalGistFreshness('pending',lastSync,'cambios locales pendientes');
+        if(token){
+          try{await syncCasesToGist(true)}catch(err){setGistStatus(err.message || 'No se pudo sincronizar','error')}
+        }
+      }else{
+        setGlobalGistFreshness('error',lastSync,'Gist no disponible; usando datos locales');
+      }
+      return {source:'local',reason:'remote-unavailable'};
+    }
+
+    const remoteUpdated=remote.serverUpdatedAt || remote.parsed?.updatedAt || '';
+    const tLocal=localUpdated?new Date(localUpdated).getTime():NaN;
+    const tRemote=remoteUpdated?new Date(remoteUpdated).getTime():NaN;
+    const tLast=lastSync?new Date(lastSync).getTime():NaN;
+
+    let localWins=false;
+    if(dirty){
+      if(Number.isFinite(tLocal) && Number.isFinite(tRemote)) localWins=tLocal>tRemote;
+      else if(Number.isFinite(tRemote) && Number.isFinite(tLast)) localWins=tRemote<=tLast;
+      else localWins=true;
+    }
+
+    if(localWins){
+      setGlobalGistFreshness('pending',remoteUpdated || lastSync,'local más reciente · pendiente de subir');
+      if(token){
+        try{
+          await syncCasesToGist(true);
+          return {source:'local',pushed:true};
+        }catch(e){
+          setGistStatus(e.message || 'No se pudo sincronizar','error');
+        }
+      }
+      return {source:'local',pushed:false};
+    }
+
+    applyDashboardGistDocument(remote.parsed,{renderNow:false});
+    if(remote.gistId)safeStorageSet(localStorage,GIST_ID_STORAGE_KEY,remote.gistId);
+    rememberGistSync(remoteUpdated || new Date().toISOString());
+    setGistStatus('Datos cargados desde el Gist','ok');
+    return {source:'gist'};
+  }
+
+  async function pullCasesFromGist(){
+    const token=$('#gistToken').value.trim();
+    if(token)safeStorageSet(sessionStorage,GIST_TOKEN_SESSION_KEY,token);
+    setGistStatus('Leyendo Gist…');
 
     try{
-      const gist=await findDashboardGist(token);
-      if(!gist?.id){
-        setGistStatus('Todavía no existe un Gist del dashboard. Guarda o sincroniza un caso primero.','error');
-        return;
-      }
-
-      safeStorageSet(localStorage,GIST_ID_STORAGE_KEY,gist.id);
-
-      let file=gist?.files?.[GIST_FILE_NAME];
-      if(!file){
-        const res=await githubFetch(`https://api.github.com/gists/${encodeURIComponent(gist.id)}`,{
-          method:'GET',
-          headers:gistHeaders(token,false)
-        });
-        const full=await res.json();
-        file=full?.files?.[GIST_FILE_NAME];
-      }
-      if(!file) throw new Error(`El Gist no contiene ${GIST_FILE_NAME}`);
-
-      let content=file.content;
-      if(file.truncated && file.raw_url){
-        const raw=await githubFetch(file.raw_url,{
-          method:'GET',
-          headers:{'Authorization':'Bearer '+token}
-        });
-        content=await raw.text();
-      }
-
-      const parsed=JSON.parse(content);
-      const incoming=Array.isArray(parsed)?parsed:(Array.isArray(parsed?.cases)?parsed.cases:null);
-      if(!incoming) throw new Error('Formato de Gist no reconocido');
-
-      if((savedCases.length || payrollCases.length || pensionCases.length) && !confirm('Esto sustituirá los casos y escenarios guardados en este navegador por los del Gist. ¿Continuar?')){
+      const remote=await readDashboardGist({token,allowDiscovery:!!token});
+      if(safeStorageGet(localStorage,GIST_DIRTY_STORAGE_KEY)==='1' && !confirm('Hay cambios locales pendientes. Traer el Gist los sustituirá en este dispositivo. ¿Continuar?')){
         setGistStatus('Importación cancelada');
         return;
       }
-
-      savedCases=incoming
-        .filter(c=>c && c.id && c.name && (c.calculatorId==='mortgage'||c.calculatorId==='personal'))
-        .map(c=>({
-          id:String(c.id),
-          name:String(c.name).slice(0,80),
-          calculatorId:c.calculatorId,
-          state:normalizeCaseState(c.state,c.calculatorId),
-          createdAt:c.createdAt || new Date().toISOString(),
-          updatedAt:c.updatedAt || c.createdAt || new Date().toISOString()
-        }));
-
-      if(parsed && !Array.isArray(parsed) && parsed.projectionSettings){
-        projectionSettings=normalizeProjectionSettings(parsed.projectionSettings);
-        persistProjectionSettingsLocal();
-      }
-      if(parsed && !Array.isArray(parsed) && parsed.payrollSettings){
-        payrollSettings=normalizePayrollSettings(parsed.payrollSettings);
-        persistPayrollSettingsLocal();
-        payrollApplyUI();
-        payrollRecalc();
-      }
-      if(parsed && !Array.isArray(parsed) && Array.isArray(parsed.payrollCases)){
-        payrollCases=parsed.payrollCases.map(normalizePayrollCase).filter(Boolean);
-        activePayrollCaseId=null;
-        persistPayrollCasesLocal();
-        renderPayrollCases();
-      }
-      if(parsed && !Array.isArray(parsed) && parsed.pensionSettings){
-        pensionSettings=normalizePensionSettings(parsed.pensionSettings);
-        persistPensionSettingsLocal();
-        pensionApplyUI();
-        pensionRecalc();
-      }
-      if(parsed && !Array.isArray(parsed) && Array.isArray(parsed.pensionCases)){
-        pensionCases=parsed.pensionCases.map(normalizePensionCase).filter(Boolean);
-        activePensionCaseId=null;
-        persistPensionCasesLocal();
-        renderPensionCases();
-      }
-      if(parsed && !Array.isArray(parsed) && parsed.pensionLayoffSettings){
-        pensionLayoffSettings={subsidy52:!!parsed.pensionLayoffSettings.subsidy52};
-        persistPensionLayoffSettingsLocal();
-      }
-      if(parsed && !Array.isArray(parsed) && parsed.layoffCashSettings){
-        layoffCashSettings=normalizeLayoffCashSettings(parsed.layoffCashSettings);
-        persistLayoffCashSettingsLocal();
-        layoffCashApplyUI();
-        layoffCashRecalc();
-      }
-
-      activeSavedCaseIds.mortgage=null;
-      activeSavedCaseIds.personal=null;
-      allCasesView.mortgage=canUseAllCases('mortgage');
-      allCasesView.personal=canUseAllCases('personal');
-      persistSavedCasesLocal();
-      if(activeCalculatorId==='payroll'){
-        payrollApplyUI();payrollRecalc();renderPayrollCases();
-      }else if(activeCalculatorId==='pension'){
-        pensionApplyUI();pensionRecalc();renderPensionCases();
-      }else if(activeCalculatorId==='layoff'){
-        layoffCashApplyUI();layoffCashRecalc();
-      }else{
-        loadCalculatorState(activeCalculatorId);
-      }
+      applyDashboardGistDocument(remote.parsed,{renderNow:true});
+      if(remote.gistId)safeStorageSet(localStorage,GIST_ID_STORAGE_KEY,remote.gistId);
+      rememberGistSync(remote.serverUpdatedAt || remote.parsed?.updatedAt || new Date().toISOString());
       const loadedTotal=savedCases.length+payrollCases.length+pensionCases.length;
       setGistStatus(`Cargados ${loadedTotal} escenario${loadedTotal===1?'':'s'} desde Gist`,'ok');
     }catch(e){
       setGistStatus(e.message || 'No se pudo cargar el Gist','error');
     }
   }
-
 
 
   function monthValueFromDateInput(value,fallback=''){
@@ -5853,6 +6098,11 @@ No se borrará hasta que confirmes este mensaje.`))return;
     drawCharts();
 
     calculatorStates[activeCalculatorId] = snapshotCurrentCalculator();
+    if(!isLoadingCalculator){
+      const activeId=activeSavedCaseIds[activeCalculatorId];
+      if(activeId) autoSaveActiveCase();
+      else scheduleGistAutoSync();
+    }
   }
 
   function renderTable(){
@@ -6289,6 +6539,7 @@ No se borrará hasta que confirmes este mensaje.`))return;
     if(token){
       btn.classList.add('connected');
       label.textContent='Gist configurado';
+      if(safeStorageGet(localStorage,GIST_DIRTY_STORAGE_KEY)==='1') scheduleGistAutoSync();
     }else{
       label.textContent='GitHub Gist';
     }
@@ -6299,48 +6550,71 @@ No se borrará hasta que confirmes este mensaje.`))return;
   window.addEventListener('resize',()=>requestAnimationFrame(drawCharts));
   attachTooltip($('#paymentChart'),'payment'); attachTooltip($('#balanceChart'),'balance');
 
-  loadSavedCasesLocal();
-  loadProjectionSettingsLocal();
-  loadPayrollSettingsLocal();
-  loadPayrollCasesLocal();
-  loadPensionSettingsLocal();
-  loadPensionCasesLocal();
-  loadPensionLayoffSettingsLocal();
-  loadLayoffCashSettingsLocal();
-  payrollApplyUI();
-  payrollRecalc();
-  renderPayrollCases();
-  pensionApplyUI();
-  pensionRecalc();
-  renderPensionCases();
-  setPensionView('main');
-  layoffCashApplyUI();
-  layoffCashRecalc();
-  allCasesView.mortgage=canUseAllCases('mortgage');
-  allCasesView.personal=canUseAllCases('personal');
-  if(allCasesView.mortgage) activeSavedCaseIds.mortgage=null;
-  if(allCasesView.personal) activeSavedCaseIds.personal=null;
-  $('#gistToken').value=safeStorageGet(sessionStorage,GIST_TOKEN_SESSION_KEY)||'';
-  if($('#gistToken').value.trim()){
-    $('#globalGistBtn').classList.add('connected');
-    $('#globalGistBtnText').textContent='Gist configurado';
-  }
-  renderSavedCases();
+  async function bootstrapDashboard(){
+    // 1) Cargamos local a memoria para poder compararlo, sin decidir todavía qué copia gana.
+    loadSavedCasesLocal();
+    loadProjectionSettingsLocal();
+    loadPayrollSettingsLocal();
+    loadPayrollCasesLocal();
+    loadPensionSettingsLocal();
+    loadPensionCasesLocal();
+    loadPensionLayoffSettingsLocal();
+    loadLayoffCashSettingsLocal();
 
-  const activeTab = document.querySelector('.tab-btn.active');
-  if(activeTab){
-    activeCalculatorId = activeTab.dataset.calculatorId || 'mortgage';
-    loadCalculatorState(activeCalculatorId);
-  }else{
-    renderAmorts();
-    recalc();
+    $('#gistToken').value=safeStorageGet(sessionStorage,GIST_TOKEN_SESSION_KEY)||'';
+    safeStorageSet(localStorage,GIST_ID_STORAGE_KEY,safeStorageGet(localStorage,GIST_ID_STORAGE_KEY)||DEFAULT_GIST_ID);
+    if($('#gistToken').value.trim()){
+      $('#globalGistBtn').classList.add('connected');
+      $('#globalGistBtnText').textContent='Gist configurado';
+    }
+
+    // 2) Servidor primero. Después se compara con local y se conserva la copia más reciente.
+    await reconcileStartupWithGist();
+
+    // 3) Pintamos una sola vez el estado ganador.
+    payrollApplyUI();
+    payrollRecalc();
+    renderPayrollCases();
+    pensionApplyUI();
+    pensionRecalc();
+    renderPensionCases();
+    setPensionView('main');
+    layoffCashApplyUI();
+    layoffCashRecalc();
+    allCasesView.mortgage=canUseAllCases('mortgage');
+    allCasesView.personal=canUseAllCases('personal');
+    if(allCasesView.mortgage) activeSavedCaseIds.mortgage=null;
+    if(allCasesView.personal) activeSavedCaseIds.personal=null;
+    renderSavedCases();
+
+    const activeTab = document.querySelector('.tab-btn.active');
+    if(activeTab){
+      activeCalculatorId = activeTab.dataset.calculatorId || 'mortgage';
+      if(activeCalculatorId==='payroll'){payrollApplyUI();payrollRecalc()}
+      else if(activeCalculatorId==='pension'){pensionApplyUI();pensionRecalc();setPensionView('main')}
+      else if(activeCalculatorId==='layoff'){layoffCashApplyUI();layoffCashRecalc()}
+      else loadCalculatorState(activeCalculatorId);
+    }else{
+      renderAmorts();
+      recalc();
+    }
   }
+
+  bootstrapDashboard().catch(err=>{
+    console.error('Arranque del dashboard:',err);
+    setGlobalGistFreshness('error',safeStorageGet(localStorage,GIST_LAST_SYNC_STORAGE_KEY),'error al iniciar · usando local');
+    payrollApplyUI();payrollRecalc();renderPayrollCases();
+    pensionApplyUI();pensionRecalc();renderPensionCases();setPensionView('main');
+    layoffCashApplyUI();layoffCashRecalc();renderSavedCases();
+    const activeTab=document.querySelector('.tab-btn.active');
+    if(activeTab){activeCalculatorId=activeTab.dataset.calculatorId||'mortgage';if(!['payroll','pension','layoff'].includes(activeCalculatorId))loadCalculatorState(activeCalculatorId)}
+  });
 })();
 </script>
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {
-      navigator.serviceWorker.register('./service-worker.js?v=1.18').catch(function () {});
+      navigator.serviceWorker.register('./service-worker.js?v=1.21').catch(function () {});
     });
   }
 </script>
