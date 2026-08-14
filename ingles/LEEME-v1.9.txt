@@ -1,0 +1,5 @@
+English Daily v1.9
+
+Drive usa una unica sesion compartida para Vaughan y Translation.
+El token temporal se conserva en sessionStorage mientras siga siendo valido, para evitar reconectar al cambiar de bloque o recargar dentro de la misma sesion de la PWA.
+Si Google caduca el token o iPadOS cierra por completo la sesion, puede ser necesario pulsar Conectar Drive de nuevo.

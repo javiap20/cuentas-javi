@@ -14,7 +14,7 @@
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png" />
   <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png" />
-  <title>English Daily · v1.8</title>
+  <title>English Daily · v1.9</title>
   <style>
 :root {
   --bg: #f4f7fb;
@@ -2236,12 +2236,13 @@ window.SEED_CONTENT = [
   const STORAGE_KEY = 'englishDaily_v01'; // same key as v0.1/v0.2: preserves progress
   const SYNC_CONFIG_KEY = 'englishDaily_github_v1';
   const DRIVE_AUDIO_CONFIG_KEY = 'englishDaily_drive_audio_v1';
+  const DRIVE_AUDIO_SESSION_KEY = 'englishDaily_drive_audio_session_v1';
   const GIST_FILENAME = 'english-daily-progress.json';
   const GIST_DESCRIPTION = 'English Daily · progreso automático';
   const GITHUB_API = 'https://api.github.com';
   const GITHUB_API_VERSION = '2026-03-10';
   const AUTO_SYNC_DELAY = 2200;
-  const APP_VERSION = '1.8';
+  const APP_VERSION = '1.9';
   const DEFAULT_GOAL = 12;
   const ALLOWED_GOALS = [5,10,12,15,20];
   const MAX_HARD_RETRY = 1;
@@ -3996,8 +3997,30 @@ window.SEED_CONTENT = [
     } catch (_) { return {clientId:''}; }
   }
 
+  function loadDriveAudioSession() {
+    try {
+      const parsed = JSON.parse(sessionStorage.getItem(DRIVE_AUDIO_SESSION_KEY) || '{}');
+      const accessToken = typeof parsed.accessToken === 'string' ? parsed.accessToken : '';
+      const expiresAt = Number(parsed.expiresAt || 0);
+      if (accessToken && expiresAt > Date.now() + 15000) return {accessToken, expiresAt};
+      sessionStorage.removeItem(DRIVE_AUDIO_SESSION_KEY);
+    } catch (_) {}
+    return {accessToken:'', expiresAt:0};
+  }
+
+  function saveDriveAudioSession() {
+    try {
+      if (driveAudioAuth.accessToken && driveAudioAuth.expiresAt > Date.now() + 15000) {
+        sessionStorage.setItem(DRIVE_AUDIO_SESSION_KEY, JSON.stringify({accessToken:driveAudioAuth.accessToken, expiresAt:driveAudioAuth.expiresAt}));
+      } else {
+        sessionStorage.removeItem(DRIVE_AUDIO_SESSION_KEY);
+      }
+    } catch (_) {}
+  }
+
+  const restoredDriveSession = loadDriveAudioSession();
   let driveAudioConfig = loadDriveAudioConfig();
-  let driveAudioAuth = {accessToken:'', expiresAt:0, tokenClient:null, clientId:'', busy:false, error:''};
+  let driveAudioAuth = {accessToken:restoredDriveSession.accessToken, expiresAt:restoredDriveSession.expiresAt, tokenClient:null, clientId:'', busy:false, error:''};
   const driveAudioBlobCache = new Map();
   const driveAudioFetches = new Map();
   let driveAudioLoadSerial = 0;
@@ -4219,7 +4242,7 @@ window.SEED_CONTENT = [
     if (driveAudioTokenValid()) {
       status.textContent = '✓ CONTINUO ACTIVO';
       status.classList.add('ok');
-      textEl.textContent = isStandalonePwa() ? 'PWA conectada a Drive. Pulsa ▶ una vez si hace falta; después el mismo reproductor pasa solo por pistas y CDs/carpetas.' : 'Drive está autorizado para esta sesión. English Daily controla cuándo termina cada pista y salta automáticamente a la siguiente.';
+      textEl.textContent = isStandalonePwa() ? 'Drive conectado una sola vez para toda English Daily: Vaughan y Translation comparten esta misma sesión. Pulsa ▶ una vez si hace falta; después continúa por pistas y CDs/carpetas.' : 'Drive está autorizado para toda English Daily en esta sesión. Vaughan y Translation comparten el mismo acceso y el reproductor salta automáticamente a la siguiente pista.';
       connectBtn.textContent = 'Renovar acceso';
       return;
     }
@@ -4253,6 +4276,7 @@ window.SEED_CONTENT = [
         driveAudioAuth.clientId = '';
         driveAudioAuth.accessToken = '';
         driveAudioAuth.expiresAt = 0;
+        saveDriveAudioSession();
         clearDriveAudioBlobCache();
       }
     }
@@ -4286,6 +4310,7 @@ window.SEED_CONTENT = [
             }
             driveAudioAuth.accessToken = response.access_token;
             driveAudioAuth.expiresAt = Date.now() + Math.max(60, Number(response.expires_in || 3600)) * 1000;
+            saveDriveAudioSession();
             driveAudioAuth.error = '';
             clearDriveAudioBlobCache();
             renderDriveAudioAuth();
@@ -4316,6 +4341,7 @@ window.SEED_CONTENT = [
     driveAudioAuth.accessToken = '';
     driveAudioAuth.expiresAt = 0;
     driveAudioAuth.error = '';
+    saveDriveAudioSession();
     clearDriveAudioBlobCache();
     try {
       if (token && window.google?.accounts?.oauth2?.revoke) google.accounts.oauth2.revoke(token, () => {});
@@ -4343,6 +4369,7 @@ window.SEED_CONTENT = [
       if (response.status === 401) {
         driveAudioAuth.accessToken = '';
         driveAudioAuth.expiresAt = 0;
+        saveDriveAudioSession();
         renderDriveAudioAuth();
         throw new Error('La autorización de Drive ha caducado.');
       }
