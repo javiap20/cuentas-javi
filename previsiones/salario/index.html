@@ -108,7 +108,7 @@ button,input{font:inherit}button{cursor:pointer}.shell{width:min(1320px,calc(100
       <div class="sync-head">
         <div>
           <div id="syncTitle" class="sync-title">Gist y copia de Salario</div>
-          <div class="sync-note">Usa el mismo Gist que las otras previsiones, en un archivo independiente: <b>salario.json</b>. La app intenta cargarlo automáticamente al abrir. El token solo se necesita para guardar cambios y no se almacena.</div>
+          <div class="sync-note">Usa el mismo Gist que las otras previsiones, en un archivo independiente: <b>salario.json</b>. Al abrir, se lee primero el Gist y después se compara con la copia local; siempre gana la versión más nueva. Con token, los cambios se sincronizan automáticamente. El token solo sirve para escribir y no se almacena.</div>
         </div>
         <button id="syncCloseBtn" class="sync-close" type="button" aria-label="Cerrar">×</button>
       </div>
@@ -121,12 +121,12 @@ button,input{font:inherit}button{cursor:pointer}.shell{width:min(1320px,calc(100
         <button id="importJsonBtn" class="sync-btn" type="button">↑ Importar</button>
         <input id="importJsonInput" type="file" accept="application/json,.json" hidden>
       </div>
-      <div id="syncStatus" class="sync-status warn"><span class="sync-status-dot"></span><span>Los cambios se guardan automáticamente en este navegador. Guarda en Gist para sincronizarlos entre dispositivos.</span></div>
+      <div id="syncStatus" class="sync-status warn"><span class="sync-status-dot"></span><span>Al abrir se comprueba primero el Gist. Los cambios se guardan en local y, si hay token, también en el Gist automáticamente.</span></div>
     </div>
   </div>
 
   <footer class="footer">
-    <div>Salario · navegador + Gist compartido · <b>v1.4</b></div>
+    <div>Salario · navegador + Gist compartido · <b>v1.5</b></div>
     <div>Referencia inicial: 2008 · años naturales</div>
   </footer>
 </div>
@@ -156,7 +156,12 @@ const DEFAULT_ANNUAL={
   2021:{annual:43000},2022:{annual:48000},2023:{annual:49025},
   2024:{annual:50811},2025:{annual:51380},2026:{annual:null}
 };
-let state={viewMode:'salary',salaries:{},annual:{},gistUpdatedAt:null};
+let state={viewMode:'salary',salaries:{},annual:{},updatedAt:null,gistUpdatedAt:null};
+let gistDirty=false;
+let autosaveTimer=null;
+let saveInFlight=false;
+const GIST_TIMEOUT_MS=12000;
+const AUTOSAVE_DELAY_MS=850;
 const $=id=>document.getElementById(id);
 const els={
   body:$('salaryBody'),head:$('salaryHead'),annualGrid:$('annualGrid'),salaryModeBtn:$('salaryModeBtn'),accumModeBtn:$('accumModeBtn'),modeNote:$('modeNote'),
@@ -169,10 +174,38 @@ function fmt(v,dec=0){const n=num(v);if(n===null)return '—';const sign=n<0?'-'
 function euro(v){const n=num(v);return n===null?'—':`${fmt(n,0)} €`;}
 function pct(v,dec=2){const n=num(v);return n===null?'—':`${n>=0?'+':''}${fmt(n,dec)} %`;}
 function esc(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
-function defaultState(){return {viewMode:'salary',salaries:clone(DEFAULT_SALARIES),annual:clone(DEFAULT_ANNUAL),gistUpdatedAt:null};}
-function normalizeState(raw){const base=defaultState();if(!raw||typeof raw!=='object')return base;base.viewMode=raw.viewMode==='accum'?'accum':'salary';if(raw.salaries&&typeof raw.salaries==='object')Object.entries(raw.salaries).forEach(([y,v])=>{base.salaries[y]={real:num(v?.real)}});if(raw.annual&&typeof raw.annual==='object')Object.entries(raw.annual).forEach(([y,v])=>{base.annual[y]={annual:num(v?.annual)}});base.gistUpdatedAt=raw.gistUpdatedAt||raw.savedAt||null;return base;}
-function persist(){localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}
-function loadLocal(){try{state=normalizeState(JSON.parse(localStorage.getItem(STORAGE_KEY)||'null'));}catch(e){state=defaultState();}}
+function defaultState(){return {viewMode:'salary',salaries:clone(DEFAULT_SALARIES),annual:clone(DEFAULT_ANNUAL),updatedAt:null,gistUpdatedAt:null};}
+function normalizeState(raw){
+  const base=defaultState();
+  if(!raw||typeof raw!=='object')return base;
+  base.viewMode=raw.viewMode==='accum'?'accum':'salary';
+  if(raw.salaries&&typeof raw.salaries==='object')Object.entries(raw.salaries).forEach(([y,v])=>{base.salaries[y]={real:num(v?.real)}});
+  if(raw.annual&&typeof raw.annual==='object')Object.entries(raw.annual).forEach(([y,v])=>{base.annual[y]={annual:num(v?.annual)}});
+  base.updatedAt=raw.updatedAt||raw.savedAt||null;
+  base.gistUpdatedAt=raw.gistUpdatedAt||raw.savedAt||null;
+  return base;
+}
+function persist(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch(e){}}
+function readLocalSnapshot(){
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    return raw?normalizeState(JSON.parse(raw)):null;
+  }catch(e){return null;}
+}
+function stampMs(value){const t=Date.parse(value||'');return Number.isFinite(t)?t:0;}
+function touchLocal(){
+  state.updatedAt=new Date().toISOString();
+  gistDirty=true;
+  persist();
+  renderGistUpdated('pending');
+  setSyncStatus('warn','Cambios guardados localmente · pendientes de sincronizar con el Gist.');
+  scheduleAutoSave();
+}
+function scheduleAutoSave(delay=AUTOSAVE_DELAY_MS){
+  clearTimeout(autosaveTimer);
+  if(!String(els.githubToken.value||'').trim())return;
+  autosaveTimer=setTimeout(()=>saveToGist({auto:true}),delay);
+}
 function twelvePayFromReal(real){const r=num(real);return r===null?null:((r*12)+((r+200)*3))/12;}
 function salaryFor(year){const row=state.salaries[year]||{real:null};const real=num(row.real);return {real,twelve:twelvePayFromReal(real)};}
 function yearsDescending(){const max=Math.max(currentYear,...Object.keys(state.salaries).map(Number).filter(Number.isFinite),REFERENCE_YEAR);const out=[];for(let y=max;y>=START_YEAR;y--)out.push(y);return out;}
@@ -206,29 +239,150 @@ function renderTable(){
 function annualYears(){const set=new Set(Object.keys(state.annual).map(Number).filter(Number.isFinite));set.add(currentYear);return [...set].sort((a,b)=>b-a);}
 function previousAnnualMonthly(year){const years=annualYears().filter(y=>y<year).sort((a,b)=>b-a);for(const y of years){const m=num(salaryFor(y).real);if(m!==null)return {year:y,value:m};}return null;}
 function formatGistUpdatedAt(value){if(!value)return '—';const d=new Date(value);if(Number.isNaN(d.getTime()))return '—';const parts=new Intl.DateTimeFormat('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(d);const get=t=>parts.find(x=>x.type===t)?.value||'';return `${get('day')}/${get('month')}/${get('year')} · ${get('hour')}:${get('minute')}`;}
-function renderGistUpdated(){const stamp=formatGistUpdatedAt(state.gistUpdatedAt);els.gistUpdatedLine.innerHTML=`<span class="gist-cloud">☁</span>Última actualización del Gist · ${stamp}`;}
+function renderGistUpdated(mode='ok'){
+  if(mode==='checking'){els.gistUpdatedLine.innerHTML='<span class="gist-cloud">☁</span>Última actualización del Gist · comprobando…';return;}
+  const stamp=formatGistUpdatedAt(state.gistUpdatedAt);
+  const suffix=mode==='pending'?' · cambios locales pendientes':mode==='syncing'?' · sincronizando…':mode==='error'?' · error de sincronización':mode==='local'?' · mostrando copia local':'';
+  els.gistUpdatedLine.innerHTML=`<span class="gist-cloud">☁</span>Última actualización del Gist · ${stamp}${suffix}`;
+}
 function renderAnnual(){els.annualGrid.innerHTML=annualYears().map(y=>{const d=state.annual[y]||{annual:null};const annual=num(d.annual),monthly=num(salaryFor(y).real);const prev=previousAnnualMonthly(y);const diff=monthly!==null&&prev?monthly-prev.value:null;const cls=y===currentYear?'current':'past';return `<article class="annual-card ${cls}"><div class="annual-year">${y}</div><label class="annual-row"><span class="annual-label">Total / año</span><input class="annual-input" data-annual-year="${y}" data-annual-key="annual" type="text" inputmode="numeric" value="${annual===null?'':esc(fmt(annual,0))}" placeholder="—"></label><div class="annual-row"><span class="annual-label">Total / mes</span><div class="annual-value" title="Tomado automáticamente de Evolución del salario · ${y}">${monthly===null?'—':fmt(monthly,0)}</div></div><div class="annual-diff">${diff===null?'—':`${diff>=0?'+':''}${euro(diff)}`}</div><div class="annual-mini">${prev?`Diferencia vs ${prev.year}`:'Primer registro con mensual'}${monthly!==null?' · automático':''}</div></article>`;}).join('')||'<div class="annual-empty">Sin datos.</div>';}
-function render(){renderSummary();renderTable();renderAnnual();renderGistUpdated();persist();}
-function setSyncStatus(type,text){els.syncStatus.className=`sync-status ${type}`;els.syncStatus.innerHTML=`<span class="sync-status-dot"></span><span>${text}</span>`;els.syncOpenBtn.className=`status-pill ${type==='error'?'error':type==='ok'?'':'pending'}`;els.topSyncText.textContent=type==='ok'?'Gist sincronizado':'☁ Gist / JSON';}
-function payload(){return {schema:'salario',version:3,savedAt:new Date().toISOString(),viewMode:state.viewMode,salaries:clone(state.salaries),annual:clone(state.annual)};}
-function applyPayload(p){if(!p||typeof p!=='object')throw new Error('JSON no válido.');state=normalizeState(p);render();}
-async function loadFromGist({auto=false}={}){setSyncStatus('warn',auto?'Cargando salario desde el Gist…':'Cargando Gist…');try{const res=await fetch(`${GIST_RAW_URL}?t=${Date.now()}`,{cache:'no-store'});if(!res.ok)throw new Error(`HTTP ${res.status}`);applyPayload(JSON.parse(await res.text()));setSyncStatus('ok',`Datos cargados desde <b>${GIST_FILENAME}</b>.`);return true;}catch(err){console.warn(err);setSyncStatus('warn',auto?'Todavía no existe salario.json en el Gist o no se ha podido leer. Uso los datos locales.':`No he podido cargar el Gist: ${esc(err.message)}`);return false;}}
-async function saveToGist(){const token=String(els.githubToken.value||'').trim();if(!token){setSyncStatus('error','Introduce el token de GitHub para guardar. No se almacena.');els.githubToken.focus();return;}els.saveGistBtn.disabled=true;try{const data=payload();const body={description:'Previsiones personales',files:{[GIST_FILENAME]:{content:JSON.stringify(data,null,2)}}};const res=await fetch(`https://api.github.com/gists/${GIST_ID}`,{method:'PATCH',headers:{'Accept':'application/vnd.github+json','X-GitHub-Api-Version':GITHUB_API_VERSION,'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify(body)});const text=await res.text();if(!res.ok){let msg=text;try{msg=JSON.parse(text)?.message||text}catch(e){}throw new Error(`${msg} (HTTP ${res.status})`);}state.gistUpdatedAt=data.savedAt;render();setSyncStatus('ok',`Gist actualizado · <b>${GIST_FILENAME}</b>.`);}catch(err){console.error(err);setSyncStatus('error',`No he podido guardar en GitHub: ${esc(err.message)}`);}finally{els.saveGistBtn.disabled=false;}}
+function render(){renderSummary();renderTable();renderAnnual();renderGistUpdated(gistDirty?'pending':'ok');}
+function setSyncStatus(type,text){
+  els.syncStatus.className=`sync-status ${type}`;
+  els.syncStatus.innerHTML=`<span class="sync-status-dot"></span><span>${text}</span>`;
+  els.syncOpenBtn.className=`status-pill ${type==='error'?'error':type==='ok'?'':'pending'}`;
+  els.topSyncText.textContent=type==='ok'?'Gist sincronizado':'☁ Gist / JSON';
+}
+function calculatedSnapshot(){
+  const latest=latestFilled();
+  const ref=salaryFor(REFERENCE_YEAR);
+  const refReal=num(ref.real),lastReal=num(latest?.real);
+  const years=latest?latest.year-REFERENCE_YEAR:0;
+  const growth=refReal&&lastReal?((lastReal/refReal)-1)*100:null;
+  const cagr=refReal&&lastReal&&years>0?(Math.pow(lastReal/refReal,1/years)-1)*100:null;
+  return {calculatedAt:new Date().toISOString(),latest:latest?{year:latest.year,real:latest.real,twelve:latest.twelve}:null,growthSince2008:growth,annualEquivalent:cagr};
+}
+function payload(savedAt=new Date().toISOString()){
+  return {schema:'salario',version:4,updatedAt:state.updatedAt||savedAt,savedAt,viewMode:state.viewMode,salaries:clone(state.salaries),annual:clone(state.annual),calculatedSnapshot:calculatedSnapshot()};
+}
+function applyPayload(p,{fromGist=false,markDirty=false}={}){
+  if(!p||typeof p!=='object')throw new Error('JSON no válido.');
+  const next=normalizeState(p);
+  if(fromGist){next.updatedAt=p.updatedAt||p.savedAt||next.updatedAt;next.gistUpdatedAt=p.savedAt||p.updatedAt||next.gistUpdatedAt;}
+  state=next;
+  gistDirty=markDirty;
+  if(markDirty)state.updatedAt=new Date().toISOString();
+  persist();
+  render();
+}
+async function fetchGistPayload(){
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),GIST_TIMEOUT_MS);
+  try{
+    const res=await fetch(`${GIST_RAW_URL}?t=${Date.now()}`,{cache:'no-store',signal:controller.signal});
+    if(res.status===404)return {missing:true,payload:null};
+    if(!res.ok)throw new Error(`HTTP ${res.status}`);
+    return {missing:false,payload:JSON.parse(await res.text())};
+  }catch(err){
+    if(err?.name==='AbortError')throw new Error('tiempo de espera agotado');
+    throw err;
+  }finally{clearTimeout(timer);}
+}
+async function loadFromGist({auto=false}={}){
+  setSyncStatus('warn',auto?'Comprobando primero el Gist…':'Comprobando el Gist…');
+  renderGistUpdated('checking');
+  try{
+    const remote=await fetchGistPayload();
+    if(remote.missing){
+      const local=readLocalSnapshot();
+      if(local){
+        state=local;
+        if(!state.updatedAt)state.updatedAt=new Date().toISOString();
+        gistDirty=true;persist();render();
+        setSyncStatus('warn','El Gist todavía no contiene salario.json · mostrando la copia local, pendiente de subir.');
+        renderGistUpdated('pending');scheduleAutoSave(150);
+      }else{
+        state=defaultState();gistDirty=false;render();
+        setSyncStatus('warn','El Gist todavía no contiene salario.json y no hay copia local previa.');
+        renderGistUpdated('local');
+      }
+      return false;
+    }
+    const remoteState=normalizeState(remote.payload);
+    const local=readLocalSnapshot();
+    const remoteTime=stampMs(remote.payload?.updatedAt||remote.payload?.savedAt);
+    const localTime=stampMs(local?.updatedAt);
+    if(local && localTime>remoteTime){
+      state=local;gistDirty=true;persist();render();
+      setSyncStatus('warn','La copia local es más nueva que el Gist · cambios locales pendientes.');
+      renderGistUpdated('pending');
+      scheduleAutoSave(150);
+      return true;
+    }
+    remoteState.updatedAt=remote.payload?.updatedAt||remote.payload?.savedAt||remoteState.updatedAt;
+    remoteState.gistUpdatedAt=remote.payload?.savedAt||remote.payload?.updatedAt||remoteState.gistUpdatedAt;
+    state=remoteState;gistDirty=false;persist();render();
+    setSyncStatus('ok',`Datos cargados desde <b>${GIST_FILENAME}</b> · el Gist es la versión más reciente.`);
+    renderGistUpdated('ok');
+    return true;
+  }catch(err){
+    console.warn(err);
+    const local=readLocalSnapshot();
+    if(local){state=local;gistDirty=stampMs(local.updatedAt)>stampMs(local.gistUpdatedAt);render();setSyncStatus('warn',`Gist no disponible (${esc(err.message)}) · mostrando copia local${gistDirty?' con cambios pendientes':''}.`);renderGistUpdated(gistDirty?'pending':'local');}
+    else{state=defaultState();render();setSyncStatus('warn',`Gist no disponible (${esc(err.message)}) · no hay copia local previa.`);renderGistUpdated('error');}
+    return false;
+  }
+}
+async function saveToGist({auto=false}={}){
+  const token=String(els.githubToken.value||'').trim();
+  if(!token){
+    if(auto){gistDirty=true;persist();renderGistUpdated('pending');return false;}
+    setSyncStatus('error','Introduce el token de GitHub para guardar. No se almacena.');els.githubToken.focus();return false;
+  }
+  if(saveInFlight){scheduleAutoSave(300);return false;}
+  saveInFlight=true;clearTimeout(autosaveTimer);
+  const updateBeingSaved=state.updatedAt||new Date().toISOString();
+  if(!state.updatedAt)state.updatedAt=updateBeingSaved;
+  const data=payload(new Date().toISOString());
+  els.saveGistBtn.disabled=true;els.loadGistBtn.disabled=true;
+  setSyncStatus('warn','Sincronizando cambios con el Gist…');renderGistUpdated('syncing');
+  try{
+    const body={description:'Previsiones personales',files:{[GIST_FILENAME]:{content:JSON.stringify(data,null,2)}}};
+    const res=await fetch(`https://api.github.com/gists/${GIST_ID}`,{method:'PATCH',headers:{'Accept':'application/vnd.github+json','X-GitHub-Api-Version':GITHUB_API_VERSION,'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const text=await res.text();
+    if(!res.ok){let msg=text;try{msg=JSON.parse(text)?.message||text}catch(e){}throw new Error(`${msg} (HTTP ${res.status})`);}
+    state.gistUpdatedAt=data.savedAt;
+    gistDirty=state.updatedAt!==updateBeingSaved;
+    persist();render();
+    if(gistDirty){setSyncStatus('warn','Se guardó una versión, pero hay cambios nuevos pendientes.');renderGistUpdated('pending');scheduleAutoSave(250);}
+    else{setSyncStatus('ok',`Gist actualizado · <b>${GIST_FILENAME}</b>.`);renderGistUpdated('ok');}
+    return true;
+  }catch(err){
+    console.error(err);gistDirty=true;persist();setSyncStatus('error',`No he podido guardar en GitHub: ${esc(err.message)} · los cambios siguen guardados localmente.`);renderGistUpdated('error');return false;
+  }finally{saveInFlight=false;els.saveGistBtn.disabled=false;els.loadGistBtn.disabled=false;}
+}
 function downloadJson(){const blob=new Blob([JSON.stringify(payload(),null,2)],{type:'application/json;charset=utf-8'});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=GIST_FILENAME;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
-async function importJson(file){if(!file)return;try{applyPayload(JSON.parse(await file.text()));setSyncStatus('ok',`Importado <b>${esc(file.name)}</b>.`);}catch(err){setSyncStatus('error',`No he podido importar el JSON: ${esc(err.message)}`);}finally{els.importJsonInput.value='';}}
+async function importJson(file){if(!file)return;try{applyPayload(JSON.parse(await file.text()),{markDirty:true});setSyncStatus('warn',`Importado <b>${esc(file.name)}</b> · cambios locales pendientes.`);scheduleAutoSave(150);}catch(err){setSyncStatus('error',`No he podido importar el JSON: ${esc(err.message)}`);}finally{els.importJsonInput.value='';}}
 function openSync(){els.syncModal.classList.add('open');els.syncModal.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';}
 function closeSync(){els.syncModal.classList.remove('open');els.syncModal.setAttribute('aria-hidden','true');document.body.style.overflow='';}
-loadLocal();render();
-els.salaryModeBtn.addEventListener('click',()=>{state.viewMode='salary';render();});
-els.accumModeBtn.addEventListener('click',()=>{state.viewMode='accum';render();});
-els.body.addEventListener('change',e=>{const el=e.target.closest('.salary-input');if(!el)return;const y=Number(el.dataset.year),key=el.dataset.key;if(!state.salaries[y])state.salaries[y]={real:null};if(key==='real')state.salaries[y].real=num(el.value);render();});
-els.annualGrid.addEventListener('change',e=>{const el=e.target.closest('.annual-input');if(!el)return;const y=Number(el.dataset.annualYear);if(!state.annual[y])state.annual[y]={annual:null};state.annual[y].annual=num(el.value);render();});
-els.syncOpenBtn.addEventListener('click',openSync);els.syncCloseBtn.addEventListener('click',closeSync);els.syncModal.addEventListener('click',e=>{if(e.target===els.syncModal)closeSync();});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&els.syncModal.classList.contains('open'))closeSync();});els.saveGistBtn.addEventListener('click',saveToGist);els.loadGistBtn.addEventListener('click',()=>loadFromGist());els.downloadJsonBtn.addEventListener('click',downloadJson);els.importJsonBtn.addEventListener('click',()=>els.importJsonInput.click());els.importJsonInput.addEventListener('change',()=>importJson(els.importJsonInput.files?.[0]));
-loadFromGist({auto:true});
+function commitUserChange(){touchLocal();render();}
+
+els.salaryModeBtn.addEventListener('click',()=>{if(state.viewMode==='salary')return;state.viewMode='salary';commitUserChange();});
+els.accumModeBtn.addEventListener('click',()=>{if(state.viewMode==='accum')return;state.viewMode='accum';commitUserChange();});
+els.body.addEventListener('change',e=>{const el=e.target.closest('.salary-input');if(!el)return;const y=Number(el.dataset.year),key=el.dataset.key;if(!state.salaries[y])state.salaries[y]={real:null};if(key==='real')state.salaries[y].real=num(el.value);commitUserChange();});
+els.annualGrid.addEventListener('change',e=>{const el=e.target.closest('.annual-input');if(!el)return;const y=Number(el.dataset.annualYear);if(!state.annual[y])state.annual[y]={annual:null};state.annual[y].annual=num(el.value);commitUserChange();});
+els.githubToken.addEventListener('input',()=>{if(gistDirty&&String(els.githubToken.value||'').trim())scheduleAutoSave(600);});
+els.syncOpenBtn.addEventListener('click',openSync);els.syncCloseBtn.addEventListener('click',closeSync);els.syncModal.addEventListener('click',e=>{if(e.target===els.syncModal)closeSync();});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&els.syncModal.classList.contains('open'))closeSync();});els.saveGistBtn.addEventListener('click',()=>saveToGist());els.loadGistBtn.addEventListener('click',()=>loadFromGist());els.downloadJsonBtn.addEventListener('click',downloadJson);els.importJsonBtn.addEventListener('click',()=>els.importJsonInput.click());els.importJsonInput.addEventListener('change',()=>importJson(els.importJsonInput.files?.[0]));
+
+async function bootstrap(){
+  setSyncStatus('warn','Comprobando primero el Gist…');renderGistUpdated('checking');
+  await loadFromGist({auto:true});
+}
+bootstrap();
 })();
 </script>
 <script>
-if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(err=>console.warn('Service worker:',err)));}
+if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=1.5',{scope:'./'}).catch(err=>console.warn('Service worker:',err)));}
 </script>
 </body>
 </html>
