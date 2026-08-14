@@ -3033,7 +3033,7 @@ function abrirModalGistConfig() {
                 Crea un Gist en <a href="https://gist.github.com" target="_blank" style="color:#4f46e5;">gist.github.com</a> con el fichero <strong>${GIST_FILENAME}</strong> y copia su ID en la constante GIST_ID del código.
             </p>
             <label style="display:block;font-weight:700;margin-bottom:6px;">Personal Access Token de GitHub</label>
-            <input id="gist-token-input" type="password" placeholder="ghp_..." 
+            <input id="gist-token-input" type="password" autocomplete="current-password" placeholder="ghp_..." 
                    style="width:100%;padding:10px;border:2px solid #d1d5db;border-radius:8px;font-size:1em;margin-bottom:12px;box-sizing:border-box;">
             <div style="display:flex;gap:10px;">
                 <button onclick="guardarTokenGist()" style="flex:1;background:#4f46e5;color:white;border:none;padding:10px;border-radius:8px;cursor:pointer;font-weight:700;">Guardar token</button>
