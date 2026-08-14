@@ -38,7 +38,7 @@ button,input{font:inherit}button{cursor:pointer}.shell{width:min(1320px,calc(100
     <div>
       <div class="brand-kicker"><span class="brand-dot"></span>Previsión personal</div>
       <h1>Salario</h1>
-      <p class="subtitle">Histórico de salario real, por meses y evolución acumulada.</p>
+      <p class="subtitle">Histórico de salario real, por meses y evolución desde 2008.</p>
     </div>
     <button id="syncOpenBtn" class="status-pill pending" type="button"><span class="status-dot"></span><span id="topSyncText">☁ Gist / JSON</span></button>
   </header>
@@ -81,7 +81,7 @@ button,input{font:inherit}button{cursor:pointer}.shell{width:min(1320px,calc(100
       <div class="salary-toolbar">
         <div class="mode-toggle" role="group" aria-label="Vista del salario">
           <button id="salaryModeBtn" class="mode-btn active" type="button">Salario</button>
-          <button id="accumModeBtn" class="mode-btn" type="button">Salario acumulado</button>
+          <button id="accumModeBtn" class="mode-btn" type="button">Evolución desde 2008</button>
         </div>
       </div>
       <div id="modeNote" class="mode-note">Salario · muestra cada año de forma independiente.</div>
@@ -93,7 +93,7 @@ button,input{font:inherit}button{cursor:pointer}.shell{width:min(1320px,calc(100
       </table>
     </div>
   </section>
-  <div class="hint">En <b>Salario acumulado</b> se suman literalmente los valores registrados desde 2008 hasta cada año. Como la tabla está ordenada al revés, los años que se suman aparecen visualmente por debajo.</div>
+  <div class="hint">En <b>Evolución desde 2008</b> cada fila compara el salario real de ese año con la referencia de 2008: diferencia en euros, subida porcentual y crecimiento anual equivalente.</div>
 
   <section class="panel annual-panel">
     <div class="section-head">
@@ -126,7 +126,7 @@ button,input{font:inherit}button{cursor:pointer}.shell{width:min(1320px,calc(100
   </div>
 
   <footer class="footer">
-    <div>Salario · navegador + Gist compartido · <b>v1.5</b></div>
+    <div>Salario · navegador + Gist compartido · <b>v1.6</b></div>
     <div>Referencia inicial: 2008 · años naturales</div>
   </footer>
 </div>
@@ -178,7 +178,7 @@ function defaultState(){return {viewMode:'salary',salaries:clone(DEFAULT_SALARIE
 function normalizeState(raw){
   const base=defaultState();
   if(!raw||typeof raw!=='object')return base;
-  base.viewMode=raw.viewMode==='accum'?'accum':'salary';
+  base.viewMode=(raw.viewMode==='evolution'||raw.viewMode==='accum')?'evolution':'salary';
   if(raw.salaries&&typeof raw.salaries==='object')Object.entries(raw.salaries).forEach(([y,v])=>{base.salaries[y]={real:num(v?.real)}});
   if(raw.annual&&typeof raw.annual==='object')Object.entries(raw.annual).forEach(([y,v])=>{base.annual[y]={annual:num(v?.annual)}});
   base.updatedAt=raw.updatedAt||raw.savedAt||null;
@@ -211,15 +211,14 @@ function salaryFor(year){const row=state.salaries[year]||{real:null};const real=
 function yearsDescending(){const max=Math.max(currentYear,...Object.keys(state.salaries).map(Number).filter(Number.isFinite),REFERENCE_YEAR);const out=[];for(let y=max;y>=START_YEAR;y--)out.push(y);return out;}
 function latestFilled(){for(const y of yearsDescending()){const s=salaryFor(y);if(num(s.real)!==null)return {year:y,...s};}return null;}
 function renderSummary(){const latest=latestFilled();const ref=salaryFor(REFERENCE_YEAR);if(!latest){els.latestReal.textContent='—';els.latestTwelve.textContent='—';els.growthSinceStart.textContent='—';els.annualEquivalent.textContent='—';return;}els.latestReal.textContent=euro(latest.real);els.latestRealSub.textContent=`Último dato registrado · ${latest.year} · edad ${latest.year-BIRTH_YEAR}`;els.latestTwelve.textContent=euro(latest.twelve);els.latestTwelveSub.textContent=`Calculado con 12 mensualidades + 3 pagas con 200 € extra.`;const refReal=num(ref.real),lastReal=num(latest.real);if(refReal&&lastReal){const growth=(lastReal/refReal-1)*100;els.growthSinceStart.textContent=pct(growth,2);els.growthSinceStartSub.textContent=`De ${euro(refReal)} en 2008 a ${euro(lastReal)} en ${latest.year}.`;const years=latest.year-REFERENCE_YEAR;if(years>0){const cagr=(Math.pow(lastReal/refReal,1/years)-1)*100;els.annualEquivalent.textContent=pct(cagr,2);els.annualEquivalentSub.textContent=`Equivalente anual compuesto durante ${years} años.`;}else{els.annualEquivalent.textContent='—';}}else{els.growthSinceStart.textContent='—';els.annualEquivalent.textContent='—';}}
-function cumulativeUntil(year,key){let sum=0,count=0;for(let y=REFERENCE_YEAR;y<=year;y++){const v=num(salaryFor(y)[key]);if(v!==null){sum+=v;count++;}}return {sum,count};}
 function renderTable(){
-  const accum=state.viewMode==='accum';
-  els.salaryModeBtn.classList.toggle('active',!accum);
-  els.accumModeBtn.classList.toggle('active',accum);
-  els.modeNote.textContent=accum
-    ?'Salario acumulado · suma los valores registrados desde 2008 hasta cada fila.'
+  const evolution=state.viewMode==='evolution';
+  els.salaryModeBtn.classList.toggle('active',!evolution);
+  els.accumModeBtn.classList.toggle('active',evolution);
+  els.modeNote.textContent=evolution
+    ?'Evolución desde 2008 · compara cada salario real con la referencia de 2008 y calcula su crecimiento anual equivalente.'
     :'Salario · “En 12 pagas” se calcula automáticamente: [(Real × 12) + ((Real + 200 €) × 3)] ÷ 12.';
-  if(!accum){
+  if(!evolution){
     els.head.innerHTML='<th>Año</th><th>Edad</th><th>Real</th><th>En 12 pagas</th><th>Diferencia año anterior</th><th>Subida real %</th><th class="reference-head">Diferencia con 2008</th>';
     els.body.innerHTML=yearsDescending().map(y=>{
       const s=salaryFor(y),real=num(s.real),twelve=num(s.twelve),prev=num(salaryFor(y-1).real),ref=num(salaryFor(REFERENCE_YEAR).real);
@@ -229,10 +228,14 @@ function renderTable(){
       return `<tr class="${y===currentYear?'current-row':''}"><td><span class="year">${y}</span></td><td><span class="age">${y-BIRTH_YEAR}</span></td><td><div class="salary-cell"><input class="salary-input" data-year="${y}" data-key="real" type="text" inputmode="decimal" value="${real===null?'':esc(fmt(real,0))}" placeholder="—"></div></td><td><span class="amount" title="[(Real × 12) + ((Real + 200 €) × 3)] ÷ 12">${twelve===null?'—':euro(twelve)}</span></td><td class="${diff===null?'neutral':diff>=0?'positive':'negative'}">${diff===null?'—':`${diff>=0?'+':''}${euro(diff)}`}</td><td class="${rise===null?'neutral':rise>=0?'positive':'negative'}">${rise===null?'—':pct(rise,2)}</td><td class="reference-col">${fromRef===null?'—':`${fromRef>=0?'+':''}${euro(fromRef)}`}</td></tr>`;
     }).join('');
   }else{
-    els.head.innerHTML='<th>Año</th><th>Edad</th><th>Real acumulado</th><th>12 pagas acumulado</th><th>Aporta este año</th><th>Años con dato</th><th class="reference-head">Media real</th>';
+    els.head.innerHTML='<th>Año</th><th>Edad</th><th>Salario real</th><th class="reference-head">Diferencia € vs 2008</th><th>Subida % vs 2008</th><th>Crecimiento anual equivalente</th>';
     els.body.innerHTML=yearsDescending().map(y=>{
-      const cr=cumulativeUntil(y,'real'),ct=cumulativeUntil(y,'twelve'),s=salaryFor(y),real=num(s.real),avg=cr.count?cr.sum/cr.count:null;
-      return `<tr class="${y===currentYear?'current-row':''}"><td><span class="year">${y}</span></td><td><span class="age">${y-BIRTH_YEAR}</span></td><td><span class="accum-pill">${cr.count?euro(cr.sum):'—'}</span></td><td><span class="accum-pill">${ct.count?euro(ct.sum):'—'}</span></td><td class="${real===null?'neutral':'positive'}">${real===null?'—':euro(real)}</td><td><span class="amount">${cr.count}</span></td><td class="reference-col">${avg===null?'—':euro(avg)}</td></tr>`;
+      const real=num(salaryFor(y).real),ref=num(salaryFor(REFERENCE_YEAR).real);
+      const diff=(real!==null&&ref!==null)?real-ref:null;
+      const rise=(real!==null&&ref!==null&&ref!==0)?((real/ref)-1)*100:null;
+      const years=y-REFERENCE_YEAR;
+      const cagr=(real!==null&&ref!==null&&real>0&&ref>0&&years>0)?(Math.pow(real/ref,1/years)-1)*100:(years===0&&real!==null&&ref!==null?0:null);
+      return `<tr class="${y===currentYear?'current-row':''}"><td><span class="year">${y}</span></td><td><span class="age">${y-BIRTH_YEAR}</span></td><td><span class="amount">${real===null?'—':euro(real)}</span></td><td class="reference-col">${diff===null?'—':`${diff>=0?'+':''}${euro(diff)}`}</td><td class="${rise===null?'neutral':rise>=0?'positive':'negative'}">${rise===null?'—':pct(rise,2)}</td><td class="${cagr===null?'neutral':cagr>=0?'positive':'negative'}">${cagr===null?'—':pct(cagr,2)}</td></tr>`;
     }).join('');
   }
 }
@@ -368,7 +371,7 @@ function closeSync(){els.syncModal.classList.remove('open');els.syncModal.setAtt
 function commitUserChange(){touchLocal();render();}
 
 els.salaryModeBtn.addEventListener('click',()=>{if(state.viewMode==='salary')return;state.viewMode='salary';commitUserChange();});
-els.accumModeBtn.addEventListener('click',()=>{if(state.viewMode==='accum')return;state.viewMode='accum';commitUserChange();});
+els.accumModeBtn.addEventListener('click',()=>{if(state.viewMode==='evolution')return;state.viewMode='evolution';commitUserChange();});
 els.body.addEventListener('change',e=>{const el=e.target.closest('.salary-input');if(!el)return;const y=Number(el.dataset.year),key=el.dataset.key;if(!state.salaries[y])state.salaries[y]={real:null};if(key==='real')state.salaries[y].real=num(el.value);commitUserChange();});
 els.annualGrid.addEventListener('change',e=>{const el=e.target.closest('.annual-input');if(!el)return;const y=Number(el.dataset.annualYear);if(!state.annual[y])state.annual[y]={annual:null};state.annual[y].annual=num(el.value);commitUserChange();});
 els.githubToken.addEventListener('input',()=>{if(gistDirty&&String(els.githubToken.value||'').trim())scheduleAutoSave(600);});
@@ -382,7 +385,7 @@ bootstrap();
 })();
 </script>
 <script>
-if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=1.5',{scope:'./'}).catch(err=>console.warn('Service worker:',err)));}
+if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=1.6',{scope:'./'}).catch(err=>console.warn('Service worker:',err)));}
 </script>
 </body>
 </html>
