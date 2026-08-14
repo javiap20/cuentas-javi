@@ -111,12 +111,15 @@ button,input{font:inherit}button{cursor:pointer}.shell{width:min(1280px,calc(100
       <div class="sync-head">
         <div>
           <div id="syncTitle" class="sync-title">Gist y copia de Alquiler Majadahonda</div>
-          <div class="sync-note">Usa el mismo Gist que Independencia financiera, pero en un archivo separado: <b>alquiler-majadahonda.json</b>. Al abrir la app se lee primero este JSON del Gist y después se compara con la copia local. Gana siempre la versión más nueva. El token solo se necesita para escribir en GitHub y no se almacena.</div>
+          <div class="sync-note">Usa el mismo Gist que Independencia financiera, pero en un archivo separado: <b>alquiler-majadahonda.json</b>. Al abrir la app se lee primero este JSON del Gist y después se compara con la copia local. Gana siempre la versión más nueva. El token solo se necesita para escribir en GitHub. Puedes guardarlo en Contraseñas de Apple mediante Autorrellenar y, si activas “Recordar en este dispositivo”, también queda en el almacenamiento local de esta PWA.</div>
         </div>
         <button id="syncCloseBtn" class="sync-close" type="button" aria-label="Cerrar">×</button>
       </div>
       <div class="sync-grid">
-        <div class="sync-field"><label for="githubToken">Token GitHub</label><input id="githubToken" class="sync-input" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_… / ghp_…"></div>
+        <div class="sync-field"><label for="githubUser">Cuenta GitHub</label><input id="githubUser" class="sync-input" type="text" value="javiap20" autocomplete="username" readonly></div>
+        <div class="sync-field"><label for="githubToken">Token GitHub</label><input id="githubToken" class="sync-input" type="password" autocomplete="current-password" spellcheck="false" placeholder="github_pat_… / ghp_…">
+          <label style="display:flex;align-items:center;gap:6px;margin-top:7px;text-transform:none;letter-spacing:0;font-size:9.5px;color:#6f7890;font-weight:700;cursor:pointer"><input id="rememberGithubToken" type="checkbox" checked style="width:14px;height:14px;accent-color:#5b63f2"><span>Recordar en este dispositivo</span></label>
+        </div>
         <div class="sync-field"><label>Gist compartido</label><div class="sync-id">bcb12de9d4e6b476062a8d13a676532f</div></div>
         <button id="saveGistBtn" class="sync-btn primary" type="button">☁ Guardar Gist</button>
         <button id="loadGistBtn" class="sync-btn" type="button">↓ Cargar Gist</button>
@@ -161,7 +164,7 @@ button,input{font:inherit}button{cursor:pointer}.shell{width:min(1280px,calc(100
   </section>
 
   <footer class="footer">
-    <div>Alquiler Majadahonda · navegador + Gist compartido · <b>v2.1</b></div>
+    <div>Alquiler Majadahonda · navegador + Gist compartido · <b>v2.2</b></div>
     <div>Alta: diciembre 2007 · ciclo de renovación anclado en 2026</div>
   </footer>
 </div>
@@ -211,7 +214,10 @@ const topSyncText=document.getElementById('topSyncText');
 const gistUpdateLine=document.getElementById('gistUpdateLine');
 const syncModal=document.getElementById('syncModal');
 const syncCloseBtn=document.getElementById('syncCloseBtn');
+const githubUser=document.getElementById('githubUser');
 const githubToken=document.getElementById('githubToken');
+const rememberGithubToken=document.getElementById('rememberGithubToken');
+const GITHUB_TOKEN_STORAGE_KEY='javi_dashboards_github_token_v1';
 const saveGistBtn=document.getElementById('saveGistBtn');
 const loadGistBtn=document.getElementById('loadGistBtn');
 const downloadJsonBtn=document.getElementById('downloadJsonBtn');
@@ -296,6 +302,18 @@ function normalizeState(source,legacyCalendar=false){
     rentMode:source?.rentMode==='fixed'?'fixed':'real',
     ipremMonthly:withIpremProjection(source?.ipremMonthly||{})
   };
+}
+function loadRememberedToken(){
+  try{
+    const saved=localStorage.getItem(GITHUB_TOKEN_STORAGE_KEY)||'';
+    if(saved){ githubToken.value=saved; rememberGithubToken.checked=true; }
+  }catch(e){}
+}
+function saveRememberedToken(){
+  try{
+    if(rememberGithubToken.checked && githubToken.value.trim()) localStorage.setItem(GITHUB_TOKEN_STORAGE_KEY,githubToken.value.trim());
+    else localStorage.removeItem(GITHUB_TOKEN_STORAGE_KEY);
+  }catch(e){}
 }
 function parseTime(value){
   const t=Date.parse(value||'');
@@ -836,7 +854,9 @@ ipremGrid.addEventListener('keydown',e=>{if(e.target.classList.contains('iprem-i
 
 syncOpenBtn.addEventListener('click',openSync);syncCloseBtn.addEventListener('click',closeSync);syncModal.addEventListener('click',e=>{if(e.target===syncModal)closeSync();});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&syncModal.classList.contains('open'))closeSync();});
 saveGistBtn.addEventListener('click',()=>saveToGist({auto:false}));loadGistBtn.addEventListener('click',()=>loadFromGist({auto:false,force:true}));downloadJsonBtn.addEventListener('click',downloadJson);importJsonBtn.addEventListener('click',()=>importJsonInput.click());importJsonInput.addEventListener('change',()=>importJson(importJsonInput.files?.[0]));
-githubToken.addEventListener('change',()=>{if(gistDirty) scheduleGistAutosave(100);});
+githubToken.addEventListener('input',()=>{if(rememberGithubToken.checked) saveRememberedToken(); if(gistDirty) scheduleGistAutosave(900);});
+rememberGithubToken.addEventListener('change',()=>{saveRememberedToken(); if(rememberGithubToken.checked && gistDirty) scheduleGistAutosave(100);});
+loadRememberedToken();
 
 updateMilestones();bootstrap();
 if('serviceWorker' in navigator && location.protocol!=='file:'){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));}
