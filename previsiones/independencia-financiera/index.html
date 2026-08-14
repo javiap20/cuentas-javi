@@ -255,6 +255,7 @@ details summary::-webkit-details-marker{display:none}
 .sync-field{background:#fafbfe;border:1px solid var(--line);border-radius:12px;padding:8px 10px;min-width:0}
 .sync-field label{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.08em;font-weight:800;color:var(--muted);margin-bottom:4px}
 .sync-input{width:100%;border:0;outline:0;background:transparent;color:var(--ink);font-size:12px;font-weight:700;min-width:0}
+.token-memory-option{display:flex;align-items:center;gap:6px;margin-top:7px;color:var(--muted);font-size:9.5px;font-weight:700}.token-memory-option input{width:14px;height:14px;accent-color:var(--accent)}
 .sync-btn{border:1px solid var(--line);background:#fff;border-radius:12px;padding:9px 11px;color:var(--ink);font-size:11px;font-weight:800;white-space:nowrap;transition:.18s}
 .sync-btn:hover{transform:translateY(-1px);border-color:#d8ddec}.sync-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}.sync-btn:disabled{opacity:.55;cursor:wait;transform:none}
 .sync-status{display:flex;align-items:center;gap:7px;margin-top:9px;color:var(--muted);font-size:10.5px;line-height:1.4}.sync-status.ok{color:var(--green)}.sync-status.error{color:var(--red)}.sync-status.warn{color:var(--amber)}
@@ -423,7 +424,7 @@ details summary::-webkit-details-marker{display:none}
       <div class="sync-head">
         <div>
           <div class="sync-title">Guardar y recuperar los escenarios</div>
-          <div class="sync-note">Al abrir el dashboard se lee <b>primero el Gist</b> y solo después se compara con la copia local: siempre gana la versión más nueva. Con token, cualquier cambio se sincroniza automáticamente; sin token, el Gist sigue pudiéndose leer desde cualquier dispositivo. El JSON guarda los supuestos, escenarios y también la última fotografía de los cálculos para poder consultarla aunque no esté disponible el motor compartido. El token nunca se guarda en el HTML, en localStorage ni dentro del JSON. El campo está preparado para que Safari/iPadOS pueda ofrecer Autorrellenar desde Contraseñas.</div>
+          <div class="sync-note">Al abrir el dashboard se lee <b>primero el Gist</b> y solo después se compara con la copia local: siempre gana la versión más nueva. Con token, cualquier cambio se sincroniza automáticamente; sin token, el Gist sigue pudiéndose leer desde cualquier dispositivo. El JSON guarda los supuestos, escenarios y también la última fotografía de los cálculos para poder consultarla aunque no esté disponible el motor compartido. El token puede recordarse localmente en este dispositivo si activas la casilla; nunca se guarda en el HTML, Gist ni JSON. El campo está preparado para que Safari/iPadOS pueda ofrecer Autorrellenar desde Contraseñas.</div>
         </div>
       </div>
       <div class="sync-grid">
@@ -434,6 +435,7 @@ details summary::-webkit-details-marker{display:none}
         <div class="sync-field">
           <label for="githubToken">Token GitHub</label>
           <input id="githubToken" class="sync-input" type="password" name="password" autocomplete="current-password" inputmode="text" spellcheck="false" placeholder="github_pat_… / ghp_…">
+          <label class="token-memory-option"><input id="rememberGithubToken" type="checkbox" checked> Recordar en este dispositivo</label>
         </div>
         <div class="sync-field">
           <label>Gist vinculado</label>
@@ -618,6 +620,7 @@ details summary::-webkit-details-marker{display:none}
   const GIST_OWNER = 'javiap20';
   const GIST_RAW_URL = `https://gist.githubusercontent.com/${GIST_OWNER}/${DEFAULT_GIST_ID}/raw/${GIST_FILENAME}`;
   const GITHUB_API_VERSION = '2026-03-10';
+  const TOKEN_STORAGE_KEY = 'github_dashboards_token_v1';
 
   let expenseRecords = [];
   let excelMeta = { loaded: false, lastModified: null };
@@ -654,7 +657,7 @@ details summary::-webkit-details-marker{display:none}
     kpiRunwayCard:$('kpiRunwayCard'), kpiRunway:$('kpiRunway'), kpiRunwaySub:$('kpiRunwaySub'),
     kpiEndCard:$('kpiEndCard'), kpiEnd:$('kpiEnd'), kpiEndSub:$('kpiEndSub'), reloadBtn:$('reloadBtn'),
     manualExcelBtn:$('manualExcelBtn'), manualExcelInput:$('manualExcelInput'),
-    githubToken:$('githubToken'), gistId:$('gistId'), saveGistBtn:$('saveGistBtn'), loadGistBtn:$('loadGistBtn'),
+    githubToken:$('githubToken'), rememberGithubToken:$('rememberGithubToken'), gistId:$('gistId'), saveGistBtn:$('saveGistBtn'), loadGistBtn:$('loadGistBtn'),
     downloadJsonBtn:$('downloadJsonBtn'), importJsonBtn:$('importJsonBtn'), importJsonInput:$('importJsonInput'), syncStatus:$('syncStatus'),
     syncOpenBtn:$('syncOpenBtn'), syncModal:$('syncModal'), syncCloseBtn:$('syncCloseBtn'),
     scenarioSelect:$('scenarioSelect'), scenarioName:$('scenarioName'), newScenarioBtn:$('newScenarioBtn'), saveScenarioBtn:$('saveScenarioBtn'),
@@ -1716,6 +1719,20 @@ details summary::-webkit-details-marker{display:none}
     }
   }
 
+  function restoreRememberedToken(){
+    try{
+      const saved=localStorage.getItem(TOKEN_STORAGE_KEY)||'';
+      if(saved){ els.githubToken.value=saved; if(els.rememberGithubToken) els.rememberGithubToken.checked=true; }
+    }catch(e){}
+  }
+  function persistRememberedToken(){
+    try{
+      const token=clean(els.githubToken.value);
+      if(els.rememberGithubToken?.checked && token) localStorage.setItem(TOKEN_STORAGE_KEY,token);
+      else if(!els.rememberGithubToken?.checked) localStorage.removeItem(TOKEN_STORAGE_KEY);
+    }catch(e){}
+  }
+
   function githubHeaders(includeAuth=true){
     const headers={
       'Accept':'application/vnd.github+json',
@@ -1763,6 +1780,7 @@ details summary::-webkit-details-marker{display:none}
     // se guardan los datos fuente y se conservan intactas las últimas fotografías
     // calculadas que ya vinieron del Gist. Así el servidor sigue siendo la copia central.
     const token=clean(els.githubToken.value);
+    if(token) persistRememberedToken();
     if(!token){
       pendingRemoteSync=true;
       updateGistFreshness(gistUpdatedAt||localUpdatedAt,'pending');
@@ -2043,11 +2061,13 @@ details summary::-webkit-details-marker{display:none}
     else if(els.syncModal.classList.contains('open')) closeSyncModal();
   });
   els.githubToken.addEventListener('input',()=>{
+    persistRememberedToken();
     // Damos tiempo a terminar de escribir/pegar el token. Evita que el autosave
     // compita con el botón Guardar en Gist justo después de introducirlo.
     clearTimeout(syncTimer);
     if(clean(els.githubToken.value)&&pendingRemoteSync)scheduleGistSync(1200);
   });
+  els.rememberGithubToken.addEventListener('change',()=>{ persistRememberedToken(); });
   els.saveGistBtn.addEventListener('click',e=>{
     e.preventDefault();
     clearTimeout(syncTimer);
@@ -2060,6 +2080,7 @@ details summary::-webkit-details-marker{display:none}
   setSyncStatus('warn','El Gist vinculado se carga automáticamente al abrir. Gist secreto = no indexado, pero <b>no privado</b>. El token nunca se guarda en el dashboard.');
 
   async function bootstrap(){
+    restoreRememberedToken();
     // Arquitectura estándar: 1) Gist, 2) comparar local, 3) cargar fuentes de cálculo.
     // El HTML nunca necesita token para leer y el motor externo nunca bloquea la lectura del Gist.
     await loadFromGist({auto:true});
