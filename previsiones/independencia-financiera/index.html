@@ -543,7 +543,7 @@ details summary::-webkit-details-marker{display:none}
   </section>
 
   <footer class="footer">
-    <div>El dashboard no contiene importes del Excel: prioriza <b>../../excel/finanzas-master.xlsx</b> y lee únicamente <b>DESPIDO</b>. Si no está disponible, permite cargar el archivo manualmente. <b>v1.22</b></div>
+    <div>El dashboard no contiene importes del Excel: prioriza <b>../../excel/finanzas-master.xlsx</b> y lee únicamente <b>DESPIDO</b>. Si no está disponible, permite cargar el archivo manualmente. <b>v1.23</b></div>
     <div>Prestaciones automáticas orientativas con reglas 2026. Desde 2027 la edad ordinaria general es 67 años, o 65 con al menos 38 años y 6 meses cotizados. <a href="https://www.seg-social.es/" target="_blank" rel="noreferrer">Seguridad Social</a></div>
   </footer>
 </div>
@@ -851,8 +851,8 @@ details summary::-webkit-details-marker{display:none}
     return {...shared,auto:true,subsidyMonthly:shared.subsidyAtStart,pensionMonthly14:shared.pension.monthly,pensionEquivalent12:shared.pension.equivalent12};
   }
 
-  function benefitIncomeForYear(year,input){
-    const plan=benefitsPlan(input),types=new Map();let amount=0;
+  function benefitIncomeForYear(year,input,planOverride=null){
+    const plan=planOverride||benefitsPlan(input),types=new Map();let amount=0;
     for(let m=0;m<12;m++){
       const date=new Date(year,m,1);let part={type:'none',label:'Sin ingreso',amount:0};
       if(date<plan.dismissalDate)continue;
@@ -870,8 +870,8 @@ details summary::-webkit-details-marker{display:none}
     return {type:parts.length===1?parts[0].type:'mixed',label:parts.map(x=>x.label).join(' + '),amount,parts};
   }
 
-  function renderBenefitsUi(input){
-    const plan=benefitsPlan(input),auto=plan.auto;
+  function renderBenefitsUi(input,planOverride=null){
+    const plan=planOverride||benefitsPlan(input),auto=plan.auto;
     els.unemployment.readOnly=auto;els.subsidy.readOnly=auto;els.pension.readOnly=auto;
     els.unemploymentCard.classList.toggle('auto-source',auto);els.subsidyCard.classList.toggle('auto-source',auto);
     els.unemploymentCard.classList.toggle('manual-source',!!input.autoBenefits&&!auto);els.subsidyCard.classList.toggle('manual-source',!!input.autoBenefits&&!auto);
@@ -1224,7 +1224,7 @@ details summary::-webkit-details-marker{display:none}
   }
   function proratedExpense(fullAnnual,year,input){return fullAnnual*(activeMonthsForYear(year,input)/12)}
 
-  function incomeFor(year,input){ return benefitIncomeForYear(year,input); }
+  function incomeFor(year,input,planOverride=null){ return benefitIncomeForYear(year,input,planOverride); }
 
   function comparisonInput(assumptions){
     const x={...defaultAssumptions(),...(assumptions||{})};
@@ -1269,12 +1269,12 @@ details summary::-webkit-details-marker{display:none}
   }
 
   function buildComparisonForecast(config){
-    const input=comparisonInput(config.assumptions),initial=input.savings+input.severance+input.assets;let opening=initial;const rows=[],startYear=projectionStartYear(input);
+    const input=comparisonInput(config.assumptions),plan=benefitsPlan(input),initial=input.savings+input.severance+input.assets;let opening=initial;const rows=[],startYear=projectionStartYear(input);
     for(let year=startYear;year<=input.endYear;year++){
-      const age=ageForYear(year,input),income=incomeFor(year,input),expenses=proratedExpense(comparisonExpensesForYear(year,config.expenseOverrides),year,input),annualDelta=income.amount-expenses,closing=opening+annualDelta;
+      const age=ageForYear(year,input),income=incomeFor(year,input,plan),expenses=proratedExpense(comparisonExpensesForYear(year,config.expenseOverrides),year,input),annualDelta=income.amount-expenses,closing=opening+annualDelta;
       rows.push({year,age,opening,income,expenses,annualDelta,closing});opening=closing;
     }
-    return {...config,input,initial,rows,startYear};
+    return {...config,input,plan,initial,rows,startYear};
   }
 
   function renderComparisonModal(){
@@ -1336,12 +1336,12 @@ details summary::-webkit-details-marker{display:none}
   }
 
   function buildForecast(){
-    const input=getInputs(),initial=input.savings+input.severance+input.assets;let opening=initial;const rows=[],startYear=projectionStartYear(input);
+    const input=getInputs(),plan=benefitsPlan(input),initial=input.savings+input.severance+input.assets;let opening=initial;const rows=[],startYear=projectionStartYear(input);
     for(let year=startYear;year<=input.endYear;year++){
-      const age=ageForYear(year,input),income=incomeFor(year,input),expenses=proratedExpense(expensesForYear(year),year,input),annualDelta=income.amount-expenses,closing=opening+annualDelta;
+      const age=ageForYear(year,input),income=incomeFor(year,input,plan),expenses=proratedExpense(expensesForYear(year),year,input),annualDelta=income.amount-expenses,closing=opening+annualDelta;
       rows.push({year,age,opening,income,expenses,annualDelta,closing});opening=closing;
     }
-    return {input,initial,rows,startYear};
+    return {input,plan,initial,rows,startYear};
   }
 
   function applyReadOnlyUi(){
@@ -1376,13 +1376,13 @@ details summary::-webkit-details-marker{display:none}
       }
     }
     const model = buildForecast();
-    renderBenefitsUi(model.input);
+    renderBenefitsUi(model.input,model.plan);
     renderKpis(model);
     renderForecastTable(model);
     renderChart(model);
     renderExpenses(model.input);
     renderScenarioControls();
-    const retirementPlan=benefitsPlan(model.input);
+    const retirementPlan=model.plan||benefitsPlan(model.input);
     const reachesRetirement=model.rows.some(r=>r.year>=retirementPlan.retirementDate.getFullYear());
     els.retirementNotice.classList.toggle('show', reachesRetirement && model.input.pension===0);
     const start=projectionStartDate(model.input);els.tableNote.textContent=`Desde ${start.toLocaleDateString('es-ES',{month:'long',year:'numeric'})} hasta ${model.input.endYear}. Cálculo mensual agrupado por año · jubilación resaltada.`;
@@ -1422,7 +1422,7 @@ details summary::-webkit-details-marker{display:none}
       els.forecastBody.innerHTML='<tr><td colspan="6" class="empty-row">Cargando finanzas-master.xlsx…</td></tr>';
       return;
     }
-    const retirementYear=benefitsPlan(model.input).retirementDate.getFullYear();
+    const retirementYear=(model.plan||benefitsPlan(model.input)).retirementDate.getFullYear();
     const retirementIndex=model.rows.findIndex(r=>r.year===retirementYear);
     els.forecastBody.innerHTML=model.rows.map((r,index)=>{
       const parts=Array.isArray(r.income.parts)&&r.income.parts.length?r.income.parts:[r.income];
@@ -1533,7 +1533,7 @@ details summary::-webkit-details-marker{display:none}
   function calculatedSnapshotFor(config){
     if(!HAS_FIN||!excelMeta.loaded) return null;
     const model=buildComparisonForecast(config);
-    const plan=benefitsPlan(model.input);
+    const plan=model.plan||benefitsPlan(model.input);
     return {
       scenarioId:config.id,
       name:config.name,
@@ -1561,12 +1561,16 @@ details summary::-webkit-details-marker{display:none}
     };
   }
 
-  function buildCalculatedSnapshots(){
+  async function buildCalculatedSnapshotsAsync(){
     if(!HAS_FIN||!excelMeta.loaded) return cloneJson(loadedCalculatedSnapshots)||{};
     const out={};
-    comparisonScenarioConfigs().forEach(config=>{
+    const configs=comparisonScenarioConfigs();
+    for(let i=0;i<configs.length;i++){
+      const config=configs[i];
+      // Cedemos el control al navegador entre escenarios para que Chrome/iPad no parezcan bloqueados.
+      if(i>0) await new Promise(resolve=>setTimeout(resolve,0));
       try{const snap=calculatedSnapshotFor(config);if(snap)out[config.id]=snap;}catch(err){console.warn('Snapshot',config.id,err);}
-    });
+    }
     return out;
   }
 
@@ -1576,7 +1580,6 @@ details summary::-webkit-details-marker{display:none}
 
   function scenarioPayload(){
     const input=assumptionsFromUI();
-    if(HAS_FIN&&excelMeta.loaded) loadedCalculatedSnapshots=buildCalculatedSnapshots();
     const savedAt=localUpdatedAt || new Date().toISOString();
     return {
       schema:'independencia-financiera',
@@ -1586,7 +1589,7 @@ details summary::-webkit-details-marker{display:none}
       updatedAt:savedAt,
       calculatedSnapshots:cloneJson(loadedCalculatedSnapshots)||{},
       linkedDashboardGistId:normalizeGistId(linkedDashboardGistId),
-      assumptions:{earliestProjectionYear:START_YEAR,unemploymentMonths:UNEMPLOYMENT_MONTHS,defaultBirthYear:BIRTH_YEAR,excelSheet:SHEET_NAME,publicRulesReferenceYear:FIN.rules.referenceYear,sharedEngine:'../../shared/finanzas-engine.js'},
+      assumptions:{earliestProjectionYear:START_YEAR,unemploymentMonths:UNEMPLOYMENT_MONTHS,defaultBirthYear:BIRTH_YEAR,excelSheet:SHEET_NAME,publicRulesReferenceYear:FIN?.rules?.referenceYear??2026,sharedEngine:'../../shared/finanzas-engine.js'},
       baseAssumptions:cloneJson(baseAssumptions||input),
       activeScenarioId,
       scenarios:scenariosForExport(),
@@ -1719,24 +1722,34 @@ details summary::-webkit-details-marker{display:none}
       if(!auto){setSyncStatus('error','Introduce un <b>token de GitHub</b> con permiso de escritura en Gists. El token no se guardará.');els.githubToken.focus();}
       return false;
     }
+    clearTimeout(syncTimer);
     if(!localUpdatedAt) localUpdatedAt=new Date().toISOString();
     const gistId=DEFAULT_GIST_ID;els.gistId.value=gistId;
-    const payload=scenarioPayload();
-    const body={description:'Escenarios · Independencia financiera',files:{[GIST_FILENAME]:{content:JSON.stringify(payload,null,2)}}};
     syncInFlight=true;els.saveGistBtn.disabled=true;els.loadGistBtn.disabled=true;
-    setSyncStatus('warn',auto?'Sincronizando cambios automáticamente…':'Actualizando Gist…');
+    setSyncStatus('warn',auto?'Preparando y sincronizando cambios…':'Preparando datos para el Gist…');
+    updateGistFreshness(gistUpdatedAt||localUpdatedAt,'loading');
     try{
-      const res=await fetch(`https://api.github.com/gists/${encodeURIComponent(gistId)}`,{method:'PATCH',headers:{...githubHeaders(true),'Content-Type':'application/json'},body:JSON.stringify(body)});
+      // La fotografía completa se calcula una sola vez por escenario. La versión anterior
+      // recalculaba el plan de pensión decenas de veces por cada año y podía bloquear Chrome.
+      await new Promise(resolve=>setTimeout(resolve,0));
+      loadedCalculatedSnapshots=await buildCalculatedSnapshotsAsync();
+      persistState();
+      const payload=scenarioPayload();
+      const content=JSON.stringify(payload,null,2);
+      const body={description:'Escenarios · Independencia financiera',files:{[GIST_FILENAME]:{content}}};
+      setSyncStatus('warn',auto?'Sincronizando cambios automáticamente…':'Subiendo al Gist…');
+      const res=await fetchWithTimeout(`https://api.github.com/gists/${encodeURIComponent(gistId)}`,{method:'PATCH',headers:{...githubHeaders(true),'Content-Type':'application/json'},body:JSON.stringify(body)},20000);
       const data=await parseGitHubResponse(res);
       if(data?.id) els.gistId.value=data.id;
       gistUpdatedAt=payload.savedAt;pendingRemoteSync=false;persistState();
       const link=data?.html_url?` · <a href="${esc(data.html_url)}" target="_blank" rel="noreferrer">Abrir Gist</a>`:'';
       setSyncStatus('ok',`${auto?'Gist sincronizado automáticamente':'Gist actualizado correctamente'}${link}.`);
-      updateGistFreshness(gistUpdatedAt,HAS_FIN?'ok':'readonly');
+      updateGistFreshness(gistUpdatedAt,'ok');
       return true;
     }catch(err){
       console.error(err);pendingRemoteSync=true;
-      setSyncStatus('error',`No he podido guardar en GitHub: ${esc(err.message)}. Los cambios siguen guardados localmente.`);
+      const detail=err?.name==='AbortError'?'GitHub no respondió en 20 segundos':err.message;
+      setSyncStatus('error',`No he podido guardar en GitHub: ${esc(detail)}. Los cambios siguen guardados localmente.`);
       updateGistFreshness(gistUpdatedAt||localUpdatedAt,'pending');
       return false;
     }finally{
@@ -2000,7 +2013,7 @@ details summary::-webkit-details-marker{display:none}
 <script>
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=1.22', {scope:'./'}).catch(err => console.warn('Service worker:', err));
+    navigator.serviceWorker.register('./sw.js?v=1.23', {scope:'./'}).catch(err => console.warn('Service worker:', err));
   });
 }
 </script>
