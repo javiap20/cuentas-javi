@@ -111,7 +111,7 @@ button,input{font:inherit}button{cursor:pointer}.shell{width:min(1280px,calc(100
       <div class="sync-head">
         <div>
           <div id="syncTitle" class="sync-title">Gist y copia de Alquiler Majadahonda</div>
-          <div class="sync-note">Usa el mismo Gist que Independencia financiera, pero en un archivo separado: <b>alquiler-majadahonda.json</b>. Al abrir la app se intenta recuperar este JSON automáticamente. El token solo se necesita para guardar cambios en GitHub y no se almacena.</div>
+          <div class="sync-note">Usa el mismo Gist que Independencia financiera, pero en un archivo separado: <b>alquiler-majadahonda.json</b>. Al abrir la app se lee primero este JSON del Gist y después se compara con la copia local. Gana siempre la versión más nueva. El token solo se necesita para escribir en GitHub y no se almacena.</div>
         </div>
         <button id="syncCloseBtn" class="sync-close" type="button" aria-label="Cerrar">×</button>
       </div>
@@ -124,7 +124,7 @@ button,input{font:inherit}button{cursor:pointer}.shell{width:min(1280px,calc(100
         <button id="importJsonBtn" class="sync-btn" type="button">↑ Importar</button>
         <input id="importJsonInput" type="file" accept="application/json,.json" hidden>
       </div>
-      <div id="syncStatus" class="sync-status warn"><span class="sync-status-dot"></span><span>Los cambios se guardan automáticamente en este navegador. Guarda en Gist para sincronizarlos entre dispositivos.</span></div>
+      <div id="syncStatus" class="sync-status warn"><span class="sync-status-dot"></span><span>Los cambios se guardan automáticamente en local y, cuando hay token en la sesión, también se sincronizan automáticamente con el Gist.</span></div>
     </div>
   </div>
 
@@ -161,7 +161,7 @@ button,input{font:inherit}button{cursor:pointer}.shell{width:min(1280px,calc(100
   </section>
 
   <footer class="footer">
-    <div>Alquiler Majadahonda · navegador + Gist compartido · <b>v2.0</b></div>
+    <div>Alquiler Majadahonda · navegador + Gist compartido · <b>v2.1</b></div>
     <div>Alta: diciembre 2007 · ciclo de renovación anclado en 2026</div>
   </footer>
 </div>
@@ -178,6 +178,8 @@ const GIST_OWNER='javiap20';
 const GIST_FILENAME='alquiler-majadahonda.json';
 const GIST_RAW_URL=`https://gist.githubusercontent.com/${GIST_OWNER}/${GIST_ID}/raw/${GIST_FILENAME}`;
 const GITHUB_API_VERSION='2026-03-10';
+const SYNC_DEBOUNCE_MS=900;
+const GIST_TIMEOUT_MS=12000;
 const now=new Date();
 const currentYear=now.getFullYear();
 const currentMonth=now.getMonth();
@@ -234,6 +236,12 @@ const rentAmountHead=document.getElementById('rentAmountHead');
 const growthHead=document.getElementById('growthHead');
 let state={rents:{...DEFAULT_RENTS},closed:{},ipc:2,fixedIpc:2,rentMode:'real',ipremMonthly:{}};
 let gistDirty=false;
+let localUpdatedAt=null;
+let serverUpdatedAt=null;
+let syncTimer=null;
+let syncInFlight=false;
+let syncAgainAfterCurrent=false;
+let bootstrapFinished=false;
 
 function setTopSync(mode,text){
   syncOpenBtn.classList.remove('pending','error');
@@ -252,9 +260,14 @@ function formatGistSavedAt(value){
 function setGistUpdate(value,status='ok'){
   if(!gistUpdateLine) return;
   if(status==='checking'){gistUpdateLine.textContent='☁ Última actualización del Gist · comprobando…';return;}
-  if(status==='missing'){gistUpdateLine.textContent='☁ Última actualización del Gist · todavía sin datos';return;}
-  if(status==='error'){gistUpdateLine.textContent='☁ Última actualización del Gist · no disponible';return;}
+  if(status==='missing'){gistUpdateLine.textContent='☁ Gist conectado · todavía sin datos guardados';return;}
+  if(status==='error'){gistUpdateLine.textContent='☁ Gist no disponible · mostrando copia local si existe';return;}
+  if(status==='syncing'){gistUpdateLine.textContent='☁ Gist · sincronizando…';return;}
   const formatted=formatGistSavedAt(value);
+  if(status==='pending'){
+    gistUpdateLine.textContent=`☁ Última actualización del Gist · ${formatted||'sin copia remota'} · cambios locales pendientes`;
+    return;
+  }
   gistUpdateLine.textContent=`☁ Última actualización del Gist · ${formatted||'—'}`;
 }
 function setSyncStatus(type,html){
@@ -284,20 +297,46 @@ function normalizeState(source,legacyCalendar=false){
     ipremMonthly:withIpremProjection(source?.ipremMonthly||{})
   };
 }
-function loadLocal(){
+function parseTime(value){
+  const t=Date.parse(value||'');
+  return Number.isFinite(t)?t:0;
+}
+function readLocalSnapshot(){
   try{
     let raw=localStorage.getItem(STORAGE_KEY);
     if(!raw){
       const old=localStorage.getItem('alquiler_majadahonda_v1');
       if(old) raw=old;
     }
-    const s=JSON.parse(raw||'{}');
-    if(s&&typeof s==='object') state=normalizeState(s,Number(s.stateVersion||0)<5);
-  }catch(e){}
+    if(!raw) return null;
+    const parsed=JSON.parse(raw||'{}');
+    if(!parsed || typeof parsed!=='object') return null;
+    const source=parsed.state&&typeof parsed.state==='object'?parsed.state:parsed;
+    return {
+      state:normalizeState(source,Number(parsed.stateVersion||source.stateVersion||0)<5),
+      updatedAt:parsed.updatedAt||parsed.savedAt||source.updatedAt||source.savedAt||null
+    };
+  }catch(e){return null;}
+}
+function persistLocal({touch=false,updatedAt=null,markDirty=false}={}){
+  if(touch) localUpdatedAt=new Date().toISOString();
+  else if(updatedAt) localUpdatedAt=updatedAt;
+  const wrapper={stateVersion:9,updatedAt:localUpdatedAt,state:{...state}};
+  try{localStorage.setItem(STORAGE_KEY,JSON.stringify(wrapper));}catch(e){}
+  if(markDirty){
+    gistDirty=true;
+    setTopSync('pending','☁ Gist · cambios locales');
+    setGistUpdate(serverUpdatedAt,'pending');
+    scheduleGistAutosave();
+  }
 }
 function saveLocal(markDirty=true){
-  try{localStorage.setItem(STORAGE_KEY,JSON.stringify({...state,stateVersion:8}));}catch(e){}
-  if(markDirty){gistDirty=true;setTopSync('pending','☁ Gist · cambios locales');}
+  persistLocal({touch:markDirty,markDirty});
+}
+function scheduleGistAutosave(delay=SYNC_DEBOUNCE_MS){
+  if(!bootstrapFinished || !gistDirty || !githubToken?.value?.trim()) return;
+  clearTimeout(syncTimer);
+  syncTimer=setTimeout(()=>saveToGist({auto:true}),delay);
 }
 function nextRenewal(year){
   if(year<=RENEWAL_ANCHOR) return RENEWAL_ANCHOR;
@@ -515,11 +554,39 @@ function render(){
   renderUpdateCards();
   renderIPREM();
 }
+function calculatedSnapshot(){
+  const currentRent=parseES(state.rents[CURRENT_PERIOD_START]);
+  const reference=parseES(state.rents[REFERENCE_YEAR]);
+  const ipc=parseES(state.ipc)??2;
+  const nextRent=currentRent===null?null:currentRent*(1+ipc/100);
+  const cumulative=(currentRent!==null&&reference!==null&&reference!==0)?((currentRent/reference)-1)*100:null;
+  const iprem={};
+  ipremYearsToShow().forEach(year=>{
+    const monthly=ipremMonthlyForYear(year);
+    if(monthly===null) return;
+    const annual=monthly*14;
+    iprem[year]={monthly,annual,objective:annual*IPREM_FACTOR/MADRID_CORRECTOR};
+  });
+  return {
+    calculatedAt:new Date().toISOString(),
+    currentPeriod:periodLabel(CURRENT_PERIOD_START),
+    currentRent,
+    nextPeriod:periodLabel(CURRENT_PERIOD_START+1),
+    nextRent,
+    cumulativeGrowthPct:cumulative,
+    averageRealAnnualGrowthPct:averageRealAnnualGrowth(),
+    nextRenewal:nextRenewal(currentYear),
+    irpfYear:nextRenewal(currentYear)-1,
+    iprem
+  };
+}
 function payload(){
+  const stamp=localUpdatedAt||new Date().toISOString();
   return {
     schema:'alquiler-majadahonda',
-    version:8,
-    savedAt:new Date().toISOString(),
+    version:9,
+    updatedAt:stamp,
+    savedAt:stamp,
     startYear:START_YEAR,
     referenceYear:REFERENCE_YEAR,
     birthYear:BIRTH_YEAR,
@@ -531,19 +598,25 @@ function payload(){
     ipc:parseES(state.ipc)??2,
     fixedIpc:parseES(state.fixedIpc)??2,
     rentMode:state.rentMode==='fixed'?'fixed':'real',
-    ipremMonthly:{...(state.ipremMonthly||{})}
+    ipremMonthly:{...(state.ipremMonthly||{})},
+    calculatedSnapshot:calculatedSnapshot()
   };
 }
-function applyPayload(data,{markDirty=false}={}){
+function applyPayload(data,{markDirty=false,remote=false}={}){
   if(!data||typeof data!=='object') throw new Error('El JSON no contiene datos válidos.');
   const source=data.state&&typeof data.state==='object'?data.state:data;
   if(!source.rents||typeof source.rents!=='object') throw new Error('No encuentro el histórico de alquileres en el JSON.');
   state=normalizeState(source,Number(data.version||source.version||0)<5);
-  saveLocal(false);
+  const sourceStamp=data.updatedAt||data.savedAt||source.updatedAt||source.savedAt||null;
+  const stamp=markDirty?new Date().toISOString():(sourceStamp||new Date().toISOString());
+  localUpdatedAt=stamp;
+  if(remote) serverUpdatedAt=stamp;
+  persistLocal({updatedAt:stamp,markDirty:false});
   gistDirty=markDirty;
   setTopSync(markDirty?'pending':'','☁ Gist · '+(markDirty?'cambios locales':'sincronizado'));
   render();
-  if(!markDirty) setGistUpdate(data.savedAt||source.savedAt||null);
+  if(markDirty){setGistUpdate(serverUpdatedAt,'pending');scheduleGistAutosave();}
+  else setGistUpdate(serverUpdatedAt||stamp);
 }
 function githubHeaders(){
   const headers={'Accept':'application/vnd.github+json','X-GitHub-Api-Version':GITHUB_API_VERSION};
@@ -551,10 +624,18 @@ function githubHeaders(){
   if(token) headers.Authorization=`Bearer ${token}`;
   return headers;
 }
-async function saveToGist(){
+async function saveToGist({auto=false}={}){
   const token=githubToken.value.trim();
-  if(!token){setSyncStatus('error','Introduce el <b>token de GitHub</b> para guardar. No se almacenará en la app.');githubToken.focus();return;}
-  saveGistBtn.disabled=true;loadGistBtn.disabled=true;setSyncStatus('warn','Guardando <b>alquiler-majadahonda.json</b> en el Gist compartido…');
+  if(!token){
+    if(!auto){setSyncStatus('error','Introduce el <b>token de GitHub</b> para guardar. No se almacenará en la app.');githubToken.focus();}
+    return false;
+  }
+  if(syncInFlight){syncAgainAfterCurrent=true;return false;}
+  syncInFlight=true;
+  clearTimeout(syncTimer);
+  saveGistBtn.disabled=true;loadGistBtn.disabled=true;
+  setTopSync('pending','☁ Gist · sincronizando');setGistUpdate(serverUpdatedAt,'syncing');
+  if(!auto) setSyncStatus('warn','Guardando <b>alquiler-majadahonda.json</b> en el Gist compartido…');
   const gistPayload=payload();
   try{
     const res=await fetch(`https://api.github.com/gists/${encodeURIComponent(GIST_ID)}`,{
@@ -563,33 +644,90 @@ async function saveToGist(){
     });
     const text=await res.text();let data=null;try{data=text?JSON.parse(text):null}catch(e){}
     if(!res.ok) throw new Error(data?.message||text||`HTTP ${res.status}`);
-    gistDirty=false;setTopSync('','☁ Gist · sincronizado');setGistUpdate(gistPayload.savedAt);
-    setSyncStatus('ok',`Guardado en el mismo Gist como <b>${GIST_FILENAME}</b>. El JSON de Independencia financiera permanece separado.`);
-  }catch(err){console.error(err);setTopSync('error','☁ Gist · error');setSyncStatus('error',`No he podido guardar: ${esc(err.message)}`);}
-  finally{saveGistBtn.disabled=false;loadGistBtn.disabled=false;}
+    serverUpdatedAt=gistPayload.updatedAt||gistPayload.savedAt;
+    const newerLocal=parseTime(localUpdatedAt)>parseTime(serverUpdatedAt);
+    gistDirty=newerLocal;
+    if(newerLocal){
+      persistLocal({updatedAt:localUpdatedAt,markDirty:false});
+      setTopSync('pending','☁ Gist · cambios locales');setGistUpdate(serverUpdatedAt,'pending');
+      setSyncStatus('warn',`Gist actualizado, pero ya hay cambios locales posteriores pendientes de sincronizar.`);
+      syncAgainAfterCurrent=true;
+    }else{
+      localUpdatedAt=serverUpdatedAt;
+      persistLocal({updatedAt:localUpdatedAt,markDirty:false});
+      setTopSync('','☁ Gist · sincronizado');setGistUpdate(serverUpdatedAt);
+      setSyncStatus('ok',`Guardado en el mismo Gist como <b>${GIST_FILENAME}</b>.`);
+    }
+    return true;
+  }catch(err){
+    console.error(err);gistDirty=true;setTopSync('error','☁ Gist · error');setGistUpdate(serverUpdatedAt,'pending');
+    setSyncStatus('error',`No he podido guardar: ${esc(err.message)}. Los cambios siguen guardados localmente.`);
+    return false;
+  }finally{
+    syncInFlight=false;saveGistBtn.disabled=false;loadGistBtn.disabled=false;
+    if(syncAgainAfterCurrent || gistDirty){syncAgainAfterCurrent=false;scheduleGistAutosave(150);}
+  }
 }
-async function loadFromGist({auto=false}={}){
-  saveGistBtn.disabled=true;loadGistBtn.disabled=true;
-  if(!auto) setSyncStatus('warn','Cargando datos desde el Gist compartido…');
+async function fetchGistPayload(){
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),GIST_TIMEOUT_MS);
   try{
     const url=`${GIST_RAW_URL}?t=${Date.now()}`;
-    const res=await fetch(url,{cache:'no-store'});
-    if(res.status===404){
-      if(!auto) setSyncStatus('warn',`Aún no existe <b>${GIST_FILENAME}</b> en este Gist. Introduce tus datos y pulsa Guardar Gist la primera vez.`);
+    const res=await fetch(url,{cache:'no-store',signal:controller.signal});
+    if(res.status===404) return {status:'missing',data:null};
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    return {status:'ok',data:JSON.parse(await res.text())};
+  }catch(err){
+    if(err?.name==='AbortError') throw new Error('tiempo de espera agotado');
+    throw err;
+  }finally{clearTimeout(timer);}
+}
+async function loadFromGist({auto=false,force=true}={}){
+  saveGistBtn.disabled=true;loadGistBtn.disabled=true;
+  if(!auto) setSyncStatus('warn','Cargando datos desde el Gist compartido…');
+  setGistUpdate(null,'checking');
+  try{
+    const result=await fetchGistPayload();
+    if(result.status==='missing'){
+      if(!auto) setSyncStatus('warn',`Aún no existe <b>${GIST_FILENAME}</b> en este Gist.`);
       setTopSync('pending','☁ Gist · solo local');setGistUpdate(null,'missing');
       return false;
     }
-    if(!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data=JSON.parse(await res.text());
-    applyPayload(data,{markDirty:false});
+    const data=result.data;
+    serverUpdatedAt=data?.updatedAt||data?.savedAt||null;
+    if(force) applyPayload(data,{markDirty:false,remote:true});
     setSyncStatus('ok',`${auto?'Datos cargados automáticamente':'Datos recuperados'} desde <b>${GIST_FILENAME}</b>.`);
-    return true;
+    return data;
   }catch(err){
-    console.error(err);
-    setTopSync('error','☁ Gist · no cargado');setGistUpdate(null,'error');
+    console.error(err);setTopSync('error','☁ Gist · no cargado');setGistUpdate(null,'error');
     if(!auto) setSyncStatus('error',`No he podido cargar el Gist: ${esc(err.message)}`);
     return false;
   }finally{saveGistBtn.disabled=false;loadGistBtn.disabled=false;}
+}
+async function bootstrap(){
+  setTopSync('pending','☁ Gist · comprobando');setGistUpdate(null,'checking');
+  const remote=await loadFromGist({auto:true,force:false});
+  const local=readLocalSnapshot();
+  if(remote && typeof remote==='object'){
+    const remoteStamp=remote.updatedAt||remote.savedAt||null;
+    serverUpdatedAt=remoteStamp;
+    if(local && parseTime(local.updatedAt)>parseTime(remoteStamp)){
+      state=local.state;localUpdatedAt=local.updatedAt;gistDirty=true;
+      persistLocal({updatedAt:localUpdatedAt,markDirty:false});
+      render();setTopSync('pending','☁ Gist · cambios locales');setGistUpdate(serverUpdatedAt,'pending');setSyncStatus('warn','La copia local es más reciente que el Gist · cambios pendientes de sincronizar.');
+    }else{
+      applyPayload(remote,{markDirty:false,remote:true});setSyncStatus('ok',`Gist cargado primero · la copia del servidor es la más reciente.`);
+    }
+  }else if(local){
+    state=local.state;localUpdatedAt=local.updatedAt;gistDirty=true;render();
+    setTopSync('pending','☁ Gist · copia local');
+    setGistUpdate(serverUpdatedAt,serverUpdatedAt?'pending':'error');
+    setSyncStatus('warn','No he podido usar el Gist al arrancar · mostrando la copia local disponible.');
+  }else{
+    localUpdatedAt=null;gistDirty=false;render();
+  }
+  bootstrapFinished=true;
+  if(gistDirty && githubToken.value.trim()) scheduleGistAutosave(100);
 }
 function downloadJson(){
   const blob=new Blob([JSON.stringify(payload(),null,2)],{type:'application/json;charset=utf-8'});
@@ -651,13 +789,13 @@ ipcInput.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();i
 realModeBtn.addEventListener('click',()=>{
   if(state.rentMode==='real') return;
   state.rentMode='real';
-  saveLocal(false);
+  saveLocal(true);
   render();
 });
 fixedModeBtn.addEventListener('click',()=>{
   if(state.rentMode==='fixed') return;
   state.rentMode='fixed';
-  saveLocal(false);
+  saveLocal(true);
   render();
 });
 fixedIpcInput.addEventListener('input',()=>{
@@ -697,9 +835,10 @@ ipremGrid.addEventListener('change',e=>{
 ipremGrid.addEventListener('keydown',e=>{if(e.target.classList.contains('iprem-input')&&e.key==='Enter'){e.preventDefault();e.target.blur();}});
 
 syncOpenBtn.addEventListener('click',openSync);syncCloseBtn.addEventListener('click',closeSync);syncModal.addEventListener('click',e=>{if(e.target===syncModal)closeSync();});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&syncModal.classList.contains('open'))closeSync();});
-saveGistBtn.addEventListener('click',saveToGist);loadGistBtn.addEventListener('click',()=>loadFromGist());downloadJsonBtn.addEventListener('click',downloadJson);importJsonBtn.addEventListener('click',()=>importJsonInput.click());importJsonInput.addEventListener('change',()=>importJson(importJsonInput.files?.[0]));
+saveGistBtn.addEventListener('click',()=>saveToGist({auto:false}));loadGistBtn.addEventListener('click',()=>loadFromGist({auto:false,force:true}));downloadJsonBtn.addEventListener('click',downloadJson);importJsonBtn.addEventListener('click',()=>importJsonInput.click());importJsonInput.addEventListener('change',()=>importJson(importJsonInput.files?.[0]));
+githubToken.addEventListener('change',()=>{if(gistDirty) scheduleGistAutosave(100);});
 
-loadLocal();updateMilestones();render();setTopSync('pending','☁ Gist · comprobando');setGistUpdate(null,'checking');loadFromGist({auto:true});
+updateMilestones();bootstrap();
 if('serviceWorker' in navigator && location.protocol!=='file:'){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));}
 })();
 </script>
