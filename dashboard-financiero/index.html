@@ -622,14 +622,6 @@
   @media(max-width:1250px){.layoff-cash-layout{grid-template-columns:1fr}.layoff-cash-input-panel{position:static}.layoff-resource-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.layoff-resource-card.total{grid-column:1/-1}.layoff-benefit-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
   @media(max-width:620px){.layoff-resource-grid,.layoff-key-grid,.layoff-benefit-grid{grid-template-columns:1fr}.layoff-resource-card.total{grid-column:auto}}
 
-  /* iPadOS/tablets: los controles nativos (date, select) se renderizan más anchos que en escritorio */
-  /* aunque sea el mismo motor WebKit, por eso solo afecta a pantallas táctiles, no a PC. */
-  @media (hover:none) and (pointer:coarse){
-    .layout{grid-template-columns:400px minmax(0,1fr)}
-    .payroll-layout{grid-template-columns:400px minmax(0,1fr)}
-    .layoff-cash-layout{grid-template-columns:350px minmax(0,1fr)}
-  }
-
   /* Pension calculator */
   #pensionPlaceholder{display:none}
   .layout.pension-mode{grid-template-columns:minmax(0,1fr)}
@@ -1082,6 +1074,14 @@
   input[type="date"]{display:block;width:100%;max-width:100%;min-width:0;box-sizing:border-box;overflow:hidden;}
   @supports (-webkit-touch-callout:none){
     input[type="date"]{width:calc(100% - 2px);max-width:calc(100% - 2px);margin-left:1px;margin-right:1px;}
+    /* iOS/iPadOS dibuja el <select> con su propio control nativo e ignora text-align:center; */
+    /* quitamos ese control y ponemos una flecha propia para poder centrar el texto de verdad. */
+    .layoff-cash-input-panel select{
+      -webkit-appearance:none;appearance:none;
+      background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23667085'><path d='M5.5 7.5l4.5 4.5 4.5-4.5' stroke='%23667085' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+      background-repeat:no-repeat;background-position:right 12px center;background-size:14px;
+      padding-right:32px;
+    }
   }
   input:focus,select:focus{border-color:#84adff;box-shadow:0 0 0 4px rgba(37,99,235,.1)}
   .suffix{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
