@@ -1913,6 +1913,7 @@
             <div class="field"><label for="layoffCashSeverance">Despido / finiquito</label><div class="input-wrap has-suffix"><input id="layoffCashSeverance" type="text" inputmode="decimal" autocomplete="off" value="0"><span class="suffix">&euro;</span></div></div>
             <div class="field"><label for="layoffCashPatrimony">Patrimonio disponible</label><div class="input-wrap has-suffix"><input id="layoffCashPatrimony" type="text" inputmode="decimal" autocomplete="off" value="0"><span class="suffix">&euro;</span></div></div>
             <div class="field"><label for="layoffCashMonthlyNeed">Dinero que necesito cada mes</label><div class="input-wrap has-suffix"><input id="layoffCashMonthlyNeed" type="text" inputmode="decimal" autocomplete="off" value="2.000"><span class="suffix">&euro;</span></div></div>
+            <div class="field"><label for="layoffCashExpenseCpi">IPC anual de gastos</label><div class="input-wrap has-suffix"><input id="layoffCashExpenseCpi" type="number" min="-10" max="30" step="0.1" value="2"><span class="suffix">%</span></div><div class="payroll-field-note">El gasto mensual parte de la cifra indicada y sube este porcentaje cada a&ntilde;o.</div></div>
             <div class="payroll-field-note" style="text-align:center">Estos importes se guardan en el JSON/Gist del dashboard. El hist&oacute;rico laboral y las bases siguen viniendo de Pensi&oacute;n &rarr; Javi Real.</div>
           </aside>
 
@@ -1948,11 +1949,11 @@
             </section>
 
             <section class="panel layoff-stage-panel">
-              <div class="layoff-benefit-head"><h3>Evoluci&oacute;n anual del patrimonio</h3><p>Saldo al cierre de cada a&ntilde;o desde el despido hasta la jubilaci&oacute;n ordinaria. La primera fila que entra en negativo queda resaltada.</p></div>
+              <div class="layoff-benefit-head"><h3>Evoluci&oacute;n anual del patrimonio</h3><p>Saldo al cierre de cada a&ntilde;o desde el despido hasta la jubilaci&oacute;n ordinaria. El gasto mensual sube cada a&ntilde;o seg&uacute;n el IPC de gastos indicado. La primera fila que entra en negativo queda resaltada.</p></div>
               <div class="layoff-stage-wrap"><table class="layoff-stage-table layoff-year-table"><thead><tr><th>A&ntilde;o</th><th>Edad</th><th>Saldo inicial</th><th>Paro / subsidio</th><th>Gasto</th><th>Saldo final</th></tr></thead><tbody id="layoffCashYearRows"></tbody></table></div>
             </section>
 
-            <section class="panel layoff-cash-note"><strong>Estimaci&oacute;n orientativa.</strong> El paro se calcula con la media aproximada de las seis bases previas, 70 % los primeros 180 d&iacute;as y 60 % despu&eacute;s, aplicando los topes oficiales vigentes en 2026. Para escenarios futuros esos topes se mantienen congelados, porque sus importes reales depender&aacute;n del IPREM que exista entonces. El subsidio +52 se muestra solo como supuesto si cumples sus requisitos, incluida la carencia de rentas. Las cifras de prestaciones son brutas: el efectivo ingresado puede ser menor por cotizaciones y, en su caso, IRPF. El horizonte usa un gasto mensual fijo y un flujo mensual simplificado.</section>
+            <section class="panel layoff-cash-note"><strong>Estimaci&oacute;n orientativa.</strong> El paro se calcula con la media aproximada de las seis bases previas, 70 % los primeros 180 d&iacute;as y 60 % despu&eacute;s, aplicando los topes oficiales vigentes en 2026. Para escenarios futuros esos topes se mantienen congelados, porque sus importes reales depender&aacute;n del IPREM que exista entonces. El subsidio +52 se muestra solo como supuesto si cumples sus requisitos, incluida la carencia de rentas. Las cifras de prestaciones son brutas: el efectivo ingresado puede ser menor por cotizaciones y, en su caso, IRPF. El horizonte usa un gasto mensual que se actualiza cada a&ntilde;o con el IPC de gastos indicado en el escenario.</section>
           </div>
         </div>
       </section>
@@ -2541,7 +2542,7 @@
   let isLoadingPayrollCase=false;
 
   const LAYOFF_CASH_STORAGE_KEY='dashboard_financiero_layoff_cash_v1';
-  const LAYOFF_CASH_DEFAULTS={dismissalMonth:'',dismissalDate:'',savings:0,severance:0,patrimony:0,monthlyNeed:2000,children:'0',includeSubsidy52:true};
+  const LAYOFF_CASH_DEFAULTS={dismissalMonth:'',dismissalDate:'',savings:0,severance:0,patrimony:0,monthlyNeed:2000,expenseCpi:2,children:'0',includeSubsidy52:true};
   const LAYOFF_IPREM_2026=FIN.rules.ipremMonthly2026;
   const LAYOFF_SUBSIDY52_2026=FIN.rules.subsidy52Monthly2026;
   const LAYOFF_UNEMPLOYMENT_MAX_2026=FIN.rules.unemploymentMax2026;
@@ -2582,6 +2583,7 @@
       severance:Math.max(0,Number(v?.severance)||0),
       patrimony:Math.max(0,Number(v?.patrimony)||0),
       monthlyNeed:Math.max(0,Number(v?.monthlyNeed)||0),
+      expenseCpi:Math.max(-10,Math.min(30,Number(v?.expenseCpi ?? 2)||0)),
       children:['0','1','2'].includes(String(v?.children))?String(v.children):'0',
       includeSubsidy52:v?.includeSubsidy52!==false
     };
@@ -2598,6 +2600,7 @@
     if($('#layoffCashSeverance'))$('#layoffCashSeverance').value=formatEditableAmount(p.severance);
     if($('#layoffCashPatrimony'))$('#layoffCashPatrimony').value=formatEditableAmount(p.patrimony);
     if($('#layoffCashMonthlyNeed'))$('#layoffCashMonthlyNeed').value=formatEditableAmount(p.monthlyNeed);
+    if($('#layoffCashExpenseCpi'))$('#layoffCashExpenseCpi').value=p.expenseCpi;
     if($('#layoffCashChildren'))$('#layoffCashChildren').value=p.children;
     if($('#layoffCashIncludeSubsidy'))$('#layoffCashIncludeSubsidy').checked=!!p.includeSubsidy52;
     if($('#layoffCashSource'))$('#layoffCashSource').textContent=`Derivado de ${layoffCashSourceName()}`;
@@ -2610,6 +2613,7 @@
       severance:parseEsAmount($('#layoffCashSeverance')?.value),
       patrimony:parseEsAmount($('#layoffCashPatrimony')?.value),
       monthlyNeed:parseEsAmount($('#layoffCashMonthlyNeed')?.value),
+      expenseCpi:Number($('#layoffCashExpenseCpi')?.value),
       children:$('#layoffCashChildren')?.value,
       includeSubsidy52:!!$('#layoffCashIncludeSubsidy')?.checked
     });
@@ -2669,15 +2673,19 @@
 
     let balance=initialCapital,exhaustDate=null;
     const yearRows=[],yearMap=new Map();
+    const expenseMonthlyForDate=(date)=>{
+      const elapsedYears=Math.max(0,date.getFullYear()-dismissal.getFullYear());
+      return Math.max(0,Number(c.monthlyNeed)||0)*Math.pow(1+(Number(c.expenseCpi)||0)/100,elapsedYears);
+    };
     for(let d=new Date(dismissal);d<retirementDate;d=FIN.addMonths(d,1)){
-      const year=d.getFullYear();
+      const year=d.getFullYear(),expense=expenseMonthlyForDate(d);
       if(!yearMap.has(year)){
         const row={year,age:year-(Number(p.birthYear)||1972),startBalance:balance,income:0,expense:0,endBalance:balance,months:0,firstNegative:false};
         yearMap.set(year,row);yearRows.push(row);
       }
       const row=yearMap.get(year),part=FIN.incomeForMonth(plan,d),income=part.amount||0;
-      row.income+=income;row.expense+=c.monthlyNeed;row.months+=1;
-      balance+=income-c.monthlyNeed;row.endBalance=balance;
+      row.income+=income;row.expense+=expense;row.months+=1;
+      balance+=income-expense;row.endBalance=balance;
       if(balance<0&&!exhaustDate){exhaustDate=new Date(d);row.firstNegative=true}
     }
     const remainingAtRetirement=exhaustDate?0:balance;
@@ -2716,7 +2724,7 @@
     if($('#layoffCashSource'))$('#layoffCashSource').textContent=`Derivado de ${layoffCashSourceName()}`;
     if(calc.error){if(status)status.innerHTML=`<strong>No se puede calcular todavia</strong><span>${calc.error}</span>`;return}
     const c=calc.settings;
-    if(status)status.innerHTML=`<strong>Despido en ${monthFmtLong.format(calc.dismissal)}</strong><span>Base reguladora aproximada del paro: ${eur0.format(calc.baseReg)}/mes &middot; tope SEPE aplicado: ${eur0.format(calc.unemploymentMax)}/mes &middot; jubilaci&oacute;n ordinaria estimada: ${monthFmtLong.format(calc.retirementDate)} &middot; ${calc.ordinaryAge} a&ntilde;os.</span>`;
+    if(status)status.innerHTML=`<strong>Despido en ${monthFmtLong.format(calc.dismissal)}</strong><span>Base reguladora aproximada del paro: ${eur0.format(calc.baseReg)}/mes &middot; tope SEPE aplicado: ${eur0.format(calc.unemploymentMax)}/mes &middot; gasto inicial: ${eur0.format(c.monthlyNeed)}/mes &middot; IPC gastos: ${formatSmartNumber(c.expenseCpi,1)} % &middot; jubilaci&oacute;n ordinaria estimada: ${monthFmtLong.format(calc.retirementDate)} &middot; ${calc.ordinaryAge} a&ntilde;os.</span>`;
     const set=(id,text)=>{const el=$(id);if(el)el.textContent=text};
     set('#layoffCashSavingsKpi',eur0.format(c.savings));set('#layoffCashSeveranceKpi',eur0.format(c.severance));set('#layoffCashPatrimonyKpi',eur0.format(c.patrimony));
     set('#layoffCashExtraKpi',eur0.format(calc.extraTotal));set('#layoffCashTotalKpi',eur0.format(calc.potentialTotal));set('#layoffCashNeedKpi',`${eur0.format(c.monthlyNeed)}/mes`);
@@ -4055,7 +4063,7 @@
     return {
       capturedAt:new Date().toISOString(),engineVersion:FIN.version,sourceName:layoffCashSourceName(),
       dismissal:dateKey(calc.dismissal),retirementDate:dateKey(calc.retirementDate),ordinaryAge:calc.ordinaryAge,baseReg:calc.baseReg,unemploymentMax:calc.unemploymentMax,
-      savings:c.savings,severance:c.severance,patrimony:c.patrimony,monthlyNeed:c.monthlyNeed,includeSubsidy52:!!c.includeSubsidy52,
+      savings:c.savings,severance:c.severance,patrimony:c.patrimony,monthlyNeed:c.monthlyNeed,expenseCpi:c.expenseCpi,includeSubsidy52:!!c.includeSubsidy52,
       extraTotal:calc.extraTotal,potentialTotal:calc.potentialTotal,remainingAtRetirement:calc.remainingAtRetirement,exhaustDate:calc.exhaustDate?dateKey(calc.exhaustDate):null,
       first6:{months:calc.first6.length,average:first6Avg,total:first6Total},rest:{months:calc.rest.length,average:restAvg,total:restTotal},
       subsidy:{months:calc.subsidy.length,average:subsidyAvg,total:calc.subsidyTotal},
@@ -4069,7 +4077,7 @@
     const d=v=>parseExactDate(v),set=(id,text)=>{const el=$(id);if(el)el.textContent=text};
     if($('#layoffCashSource'))$('#layoffCashSource').textContent=`Derivado de ${snapshot.sourceName||'Javi Real'}`;
     const status=$('#layoffCashStatus'),dismissal=d(snapshot.dismissal),retirement=d(snapshot.retirementDate),stamp=gistFreshnessStamp(snapshot.capturedAt);
-    if(status)status.innerHTML=`<strong>Despido en ${dismissal?monthFmtLong.format(dismissal):'--'} · último cálculo guardado</strong><span>Base reguladora aproximada del paro: ${eur0.format(snapshot.baseReg)}/mes · tope SEPE aplicado: ${eur0.format(snapshot.unemploymentMax)}/mes · jubilación ordinaria estimada: ${retirement?monthFmtLong.format(retirement):'--'} · ${snapshot.ordinaryAge} años${stamp?` · foto ${stamp}`:''}.</span>`;
+    if(status)status.innerHTML=`<strong>Despido en ${dismissal?monthFmtLong.format(dismissal):'--'} · último cálculo guardado</strong><span>Base reguladora aproximada del paro: ${eur0.format(snapshot.baseReg)}/mes · tope SEPE aplicado: ${eur0.format(snapshot.unemploymentMax)}/mes · gasto inicial: ${eur0.format(snapshot.monthlyNeed)}/mes · IPC gastos: ${formatSmartNumber(snapshot.expenseCpi ?? 2,1)} % · jubilación ordinaria estimada: ${retirement?monthFmtLong.format(retirement):'--'} · ${snapshot.ordinaryAge} años${stamp?` · foto ${stamp}`:''}.</span>`;
     set('#layoffCashSavingsKpi',eur0.format(snapshot.savings));set('#layoffCashSeveranceKpi',eur0.format(snapshot.severance));set('#layoffCashPatrimonyKpi',eur0.format(snapshot.patrimony));
     set('#layoffCashExtraKpi',eur0.format(snapshot.extraTotal));set('#layoffCashTotalKpi',eur0.format(snapshot.potentialTotal));set('#layoffCashNeedKpi',`${eur0.format(snapshot.monthlyNeed)}/mes`);
     set('#layoffCashExtraMeta',snapshot.includeSubsidy52?'paro + subsidio +52':'solo paro contributivo');
@@ -6827,7 +6835,7 @@ No se borrará hasta que confirmes este mensaje.`))return;
   $('#pensionLayoffViewBtn')?.addEventListener('click',()=>setPensionView('layoff'));
   $('#pensionLayoffSubsidy52')?.addEventListener('change',e=>{pensionLayoffSettings.subsidy52=!!e.target.checked;persistPensionLayoffSettingsLocal();renderPensionLayoffScenario();scheduleGistAutoSync()});
   ['#layoffCashDismissalMonth','#layoffCashChildren','#layoffCashIncludeSubsidy'].forEach(sel=>$(sel)?.addEventListener('change',()=>{layoffCashSettings=layoffCashReadUI();persistLayoffCashSettingsLocal();layoffCashRecalc();scheduleGistAutoSync()}));
-  ['#layoffCashSavings','#layoffCashSeverance','#layoffCashPatrimony','#layoffCashMonthlyNeed'].forEach(sel=>{
+  ['#layoffCashSavings','#layoffCashSeverance','#layoffCashPatrimony','#layoffCashMonthlyNeed','#layoffCashExpenseCpi'].forEach(sel=>{
     const el=$(sel);if(!el)return;
     el.addEventListener('input',()=>{layoffCashSettings=layoffCashReadUI();persistLayoffCashSettingsLocal();layoffCashRecalc();scheduleGistAutoSync()});
     el.addEventListener('blur',()=>{el.value=formatEditableAmount(parseEsAmount(el.value));layoffCashSettings=layoffCashReadUI();persistLayoffCashSettingsLocal();layoffCashRecalc()});
