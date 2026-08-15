@@ -1285,7 +1285,8 @@
 <div class="app">
   <header>
     <div>
-      <h1>Dashboard financiero <span style="font-size:12px;color:#b42318;font-weight:900;vertical-align:middle">v1</span></h1>
+      <h1>Dashboard financiero <span style="font-size:12px;color:#b42318;font-weight:900;vertical-align:middle">v1</span> <span id="__debugWidth" style="font-size:12px;color:#f79009;font-weight:900;vertical-align:middle"></span></h1>
+      <script>document.getElementById('__debugWidth').textContent='('+window.innerWidth+'px)';window.addEventListener('resize',()=>{document.getElementById('__debugWidth').textContent='('+window.innerWidth+'px)';});</script>
       <p class="subtitle">Calculadoras financieras en un mismo espacio</p>
     </div>
     <button id="globalGistBtn" class="global-gist-btn" type="button" aria-haspopup="dialog">
