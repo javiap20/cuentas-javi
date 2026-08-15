@@ -243,6 +243,8 @@
     border-color:#bfdbfe;
     box-shadow:0 0 0 2px rgba(96,165,250,.10);
   }
+  .house-huertas-btn{color:#dbeafe}
+  .house-huertas-btn:hover,.house-huertas-btn.active{background:#eef4ff;color:#1849a9;border-color:#bfdbfe}
   .all-cases-edit-note{
     margin-top:9px;
     padding:8px 9px;
@@ -647,6 +649,9 @@
   .layout.pension-mode .main > :not(#pensionPlaceholder):not(#pensionLayoffModal){display:none !important}
   .layout.pension-mode #pensionPlaceholder{display:block !important}
   #varMortgagePlaceholder{display:none}
+
+  /* Casa Huertas solo pertenece a la calculadora Hipoteca, nunca a Préstamo personal. */
+  .layout.calculator-personal #houseHuertasBtn{display:none !important}
   .layout.varmortgage-mode{grid-template-columns:minmax(0,1fr)}
   .layout.varmortgage-mode .loan-top{display:none}
   .layout.varmortgage-mode .sidebar{display:none}
@@ -697,8 +702,11 @@
     .vm-actions .btn{padding:5px 6px !important;font-size:9.5px !important}
   }
   .vm-loan-top{grid-column:1/-1;min-width:0;color:#f8fafc;padding:0 2px;margin:0 0 16px}
+  .vm-loan-top .loan-top-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
   .vm-loan-top h2{margin:2px 0 3px;font-size:24px;letter-spacing:-.025em}
   .vm-loan-top p{margin:0;color:#d6e1f3;font-size:11px;line-height:1.4}
+  .vm-back-btn{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.08);color:#f8fafc;border-radius:8px;padding:6px 9px;font-size:9px;line-height:1;font-weight:950;cursor:pointer;white-space:nowrap;flex:0 0 auto}
+  .vm-back-btn:hover{background:#eef4ff;color:#1849a9;border-color:#bfdbfe}
   .vm-loan-top .saved-case-strip{margin:9px 0 0;padding:0;min-height:28px}
   #vmKpis.kpis{grid-template-columns:repeat(4,1fr)}
   .vm-kpi-small{padding:12px 10px;min-height:92px}
@@ -1390,10 +1398,6 @@
         <span class="tab-dot"></span>Hipoteca
       </button>
       <button class="tab-btn" type="button" role="tab" aria-selected="false"
-              data-calculator-id="varmortgage" data-calculator-name="Hipoteca variable">
-        <span class="tab-dot"></span>Hipoteca variable
-      </button>
-      <button class="tab-btn" type="button" role="tab" aria-selected="false"
               data-calculator-id="payroll" data-calculator-name="Nómina">
         <span class="tab-dot"></span>Nómina
       </button>
@@ -1428,6 +1432,7 @@
           <span>Guardados</span>
           <span id="caseCount" class="case-count">0</span>
           <button id="allCasesBtn" class="all-cases-btn" type="button" disabled>TODOS</button>
+          <button id="houseHuertasBtn" class="all-cases-btn house-huertas-btn" type="button">Casa Huertas</button>
         </div>
         <div id="caseList" class="saved-case-buttons"></div>
       </div>
@@ -2025,6 +2030,11 @@
               </select>
             </div>
             <label class="layoff-cash-toggle"><input id="layoffCashIncludeSubsidy" type="checkbox"> Incluir subsidio +52 si cumplo requisitos</label>
+            <div class="field">
+              <label for="layoffCashSubsidy52Monthly">Importe mensual del subsidio +52</label>
+              <div class="input-wrap has-suffix"><input id="layoffCashSubsidy52Monthly" type="text" inputmode="decimal" autocomplete="off" value="480"><span class="suffix">&euro;</span></div>
+              <div class="payroll-field-note">Dato actual editable. No se actualiza con IPC; si cambia en el futuro, puedes modificarlo aquí.</div>
+            </div>
 
             <div class="divider"></div>
             <h3>Dinero de partida</h3>
@@ -2072,7 +2082,7 @@
               <div class="layoff-stage-wrap"><table class="layoff-stage-table"><thead><tr><th>Etapa</th><th>Desde</th><th>Hasta</th><th>Importe medio / mes</th><th>Total</th></tr></thead><tbody id="layoffCashStageRows"></tbody></table></div>
             </section>
 
-            <section class="panel layoff-cash-note"><strong>Estimaci&oacute;n orientativa.</strong> El paro se calcula con la media aproximada de las seis bases previas, 70 % los primeros 180 d&iacute;as y 60 % despu&eacute;s, aplicando los topes oficiales vigentes en 2026. Para escenarios futuros esos topes se mantienen congelados, porque sus importes reales depender&aacute;n del IPREM que exista entonces. El subsidio +52 se muestra solo como supuesto si cumples sus requisitos, incluida la carencia de rentas. Las cifras de prestaciones son brutas: el efectivo ingresado puede ser menor por cotizaciones y, en su caso, IRPF. El horizonte usa un gasto mensual que se actualiza cada a&ntilde;o con el IPC de gastos indicado en el escenario.</section>
+            <section class="panel layoff-cash-note"><strong>Estimaci&oacute;n orientativa.</strong> El paro se calcula con la media aproximada de las seis bases previas, 70 % los primeros 180 d&iacute;as y 60 % despu&eacute;s, aplicando los topes oficiales vigentes en 2026. Para escenarios futuros esos topes se mantienen congelados, porque sus importes reales depender&aacute;n del IPREM que exista entonces. El subsidio +52 se muestra solo como supuesto si cumples sus requisitos, incluida la carencia de rentas. El paro y el subsidio se muestran en bruto: el efectivo ingresado puede ser menor por cotizaciones y, en su caso, IRPF. El subsidio +52 se mantiene fijo según el importe manual indicado. El horizonte usa un gasto mensual que se actualiza cada a&ntilde;o con el IPC de gastos indicado en el escenario.</section>
           </div>
         </div>
       </section>
@@ -2093,55 +2103,15 @@
         <div class="vm-loan-top">
           <div class="loan-top-heading">
             <div>
-              <div class="loan-eyebrow">Calculadora activa</div>
-              <h2 class="active-calculator-title">Hipotecas a tipo variable</h2>
+              <div class="loan-eyebrow">Casa Huertas</div>
+              <h2 class="active-calculator-title">Hipoteca a tipo variable</h2>
               <p>EURIBOR + diferencial, revisión semestral. Metes la cuota real a mano cada vez que la revisión se cierra; con la última cuota conocida estimamos lo que falta.</p>
             </div>
-          </div>
-          <div class="saved-case-strip" aria-label="Hipotecas guardadas">
-            <div class="saved-case-strip-head">
-              <span>Guardadas</span>
-              <span id="vmMortgageCount" class="case-count">0</span>
-            </div>
+            <button id="vmBackToMortgageBtn" class="vm-back-btn" type="button">← Hipoteca</button>
           </div>
         </div>
 
-        <div id="vmMortgageTabs" class="vm-mortgage-tabs"></div>
-
-        <div id="vmNewForm" class="vm-new-form" style="display:none">
-          <div class="field">
-            <label for="vmNewName">Nombre</label>
-            <input id="vmNewName" type="text" maxlength="80" autocomplete="off" placeholder="Ej. Casa Huertas">
-          </div>
-          <div class="two">
-            <div class="field">
-              <label for="vmNewCapital">Capital inicial</label>
-              <div class="input-wrap has-suffix"><input id="vmNewCapital" type="text" inputmode="decimal" autocomplete="off" value="0"><span class="suffix">€</span></div>
-            </div>
-            <div class="field">
-              <label for="vmNewDiff">Diferencial (EURIBOR +)</label>
-              <div class="input-wrap has-suffix"><input id="vmNewDiff" type="number" min="0" step="0.05" value="0.6"><span class="suffix">%</span></div>
-            </div>
-          </div>
-          <div class="two">
-            <div class="field">
-              <label for="vmNewStart">Fecha de firma</label>
-              <input id="vmNewStart" type="date">
-            </div>
-            <div class="field">
-              <label for="vmNewEnd">Fecha de fin</label>
-              <input id="vmNewEnd" type="date">
-            </div>
-          </div>
-          <div class="vm-new-form-actions">
-            <button id="vmNewSaveBtn" class="btn btn-primary" type="button">Crear hipoteca</button>
-            <button id="vmNewCancelBtn" class="btn btn-secondary" type="button">Cancelar</button>
-          </div>
-        </div>
-
-        <div id="vmEmptyState" class="salary-history-empty" style="display:none">Todavía no has creado ninguna hipoteca variable. Usa "+ Nueva hipoteca".</div>
-
-        <div id="vmActiveMortgage">
+                <div id="vmActiveMortgage">
           <h4 class="vm-kpis-title">DATOS GENERALES</h4>
           <section id="vmKpis" class="kpis"></section>
 
@@ -2559,6 +2529,32 @@
     isLoadingCalculator=false;
   }
 
+  function setMortgageView(mode='standard') {
+    if(activeCalculatorId!=='mortgage') return;
+    const layout=document.querySelector('.layout');
+    mortgageViewMode = mode==='houseHuertas' ? 'houseHuertas' : 'standard';
+    const houseBtn=$('#houseHuertasBtn');
+    houseBtn?.classList.toggle('active',mortgageViewMode==='houseHuertas');
+
+    if(mortgageViewMode==='houseHuertas') {
+      saveCurrentCalculatorState();
+      if(layout){
+        layout.classList.remove('aggregate-mode','calculator-mortgage','calculator-personal','payroll-mode','calculator-payroll','pension-mode','calculator-pension','layoff-cash-mode','calculator-layoff');
+        layout.classList.add('varmortgage-mode','calculator-varmortgage');
+      }
+      renderVarMortgages();
+      return;
+    }
+
+    if(layout){
+      layout.classList.remove('varmortgage-mode','calculator-varmortgage','payroll-mode','calculator-payroll','pension-mode','calculator-pension','layoff-cash-mode','calculator-layoff');
+      layout.classList.add('calculator-mortgage');
+    }
+    setActiveCalculatorName('Hipoteca');
+    recalc();
+    renderSavedCases();
+  }
+
   function switchCalculator(id){
     if(!id || id===activeCalculatorId) return;
 
@@ -2682,6 +2678,7 @@
     personal: cloneDefaultCalculatorState('personal')
   };
   let activeCalculatorId = 'personal';
+  let mortgageViewMode = 'standard';
 
   const CASES_STORAGE_KEY = 'dashboard_financiero_saved_cases_v1';
   const GIST_ID_STORAGE_KEY = 'dashboard_financiero_gist_id_v1';
@@ -2760,7 +2757,7 @@
   let isLoadingPayrollCase=false;
 
   const LAYOFF_CASH_STORAGE_KEY='dashboard_financiero_layoff_cash_v1';
-  const LAYOFF_CASH_DEFAULTS={dismissalMonth:'',dismissalDate:'',savings:0,severance:0,patrimony:0,monthlyNeed:2000,expenseCpi:2,children:'0',includeSubsidy52:true};
+  const LAYOFF_CASH_DEFAULTS={dismissalMonth:'',dismissalDate:'',savings:0,severance:0,patrimony:0,monthlyNeed:2000,expenseCpi:2,children:'0',includeSubsidy52:true,subsidy52Monthly:480};
   const LAYOFF_IPREM_2026=FIN.rules.ipremMonthly2026;
   const LAYOFF_SUBSIDY52_2026=FIN.rules.subsidy52Monthly2026;
   const LAYOFF_UNEMPLOYMENT_MAX_2026=FIN.rules.unemploymentMax2026;
@@ -2803,7 +2800,8 @@
       monthlyNeed:Math.max(0,Number(v?.monthlyNeed)||0),
       expenseCpi:Math.max(-10,Math.min(30,Number(v?.expenseCpi ?? 2)||0)),
       children:['0','1','2'].includes(String(v?.children))?String(v.children):'0',
-      includeSubsidy52:v?.includeSubsidy52!==false
+      includeSubsidy52:v?.includeSubsidy52!==false,
+      subsidy52Monthly:Math.max(0,parseEsAmount(v?.subsidy52Monthly ?? 480)||0)
     };
   }
   function loadLayoffCashSettingsLocal(){
@@ -2818,6 +2816,7 @@
     if($('#layoffCashSeverance'))$('#layoffCashSeverance').value=formatEditableAmount(p.severance);
     if($('#layoffCashPatrimony'))$('#layoffCashPatrimony').value=formatEditableAmount(p.patrimony);
     if($('#layoffCashMonthlyNeed'))$('#layoffCashMonthlyNeed').value=formatEditableAmount(p.monthlyNeed);
+    if($('#layoffCashSubsidy52Monthly'))$('#layoffCashSubsidy52Monthly').value=formatEditableAmount(p.subsidy52Monthly);
     if($('#layoffCashExpenseCpi'))$('#layoffCashExpenseCpi').value=p.expenseCpi;
     if($('#layoffCashChildren'))$('#layoffCashChildren').value=p.children;
     if($('#layoffCashIncludeSubsidy'))$('#layoffCashIncludeSubsidy').checked=!!p.includeSubsidy52;
@@ -2831,6 +2830,7 @@
       severance:parseEsAmount($('#layoffCashSeverance')?.value),
       patrimony:parseEsAmount($('#layoffCashPatrimony')?.value),
       monthlyNeed:parseEsAmount($('#layoffCashMonthlyNeed')?.value),
+      subsidy52Monthly:parseEsAmount($('#layoffCashSubsidy52Monthly')?.value),
       expenseCpi:Number($('#layoffCashExpenseCpi')?.value),
       children:$('#layoffCashChildren')?.value,
       includeSubsidy52:!!$('#layoffCashIncludeSubsidy')?.checked
@@ -2856,7 +2856,8 @@
     const dismissal=FIN.monthStart(c.dismissalDate||c.dismissalMonth);
     if(!(dismissal instanceof Date)||Number.isNaN(dismissal.getTime()))return {error:'Selecciona una fecha de despido válida.'};
 
-    // Todas las reglas de prestaciones, cotización y jubilación salen del motor compartido.
+    // Todas las reglas de paro, cotización y jubilación salen del motor compartido.
+    // El importe del subsidio +52, en cambio, es manual y no se proyecta con IPC.
     const plan=FIN.calculateLayoffPlan(p,dismissal,{children:c.children,includeSubsidy52:!!c.includeSubsidy52},todayLocal());
     if(plan?.error)return {error:plan.error};
     const planWithSubsidy=c.includeSubsidy52?plan:FIN.calculateLayoffPlan(p,dismissal,{children:c.children,includeSubsidy52:true},todayLocal());
@@ -2883,7 +2884,7 @@
     }
 
     const unemploymentTotal=unemployment.reduce((sum,x)=>sum+x.amount,0);
-    const subsidyTotal=subsidy.reduce((sum,x)=>sum+x.amount,0);
+    const subsidyTotal=subsidy.length * c.subsidy52Monthly;
     const includedSubsidy=c.includeSubsidy52?subsidyTotal:0;
     const extraTotal=unemploymentTotal+includedSubsidy;
     const initialCapital=c.savings+c.severance+c.patrimony;
@@ -2901,7 +2902,8 @@
         const row={year,age:year-(Number(p.birthYear)||1972),startBalance:balance,income:0,expense:0,endBalance:balance,months:0,firstNegative:false};
         yearMap.set(year,row);yearRows.push(row);
       }
-      const row=yearMap.get(year),part=FIN.incomeForMonth(plan,d),income=part.amount||0;
+      const row=yearMap.get(year),part=FIN.incomeForMonth(plan,d);
+      const income=part.type==='subsidy'?c.subsidy52Monthly:(part.amount||0);
       row.income+=income;row.expense+=expense;row.months+=1;
       balance+=income-expense;row.endBalance=balance;
       if(balance<0&&!exhaustDate){exhaustDate=new Date(d);row.firstNegative=true}
@@ -2913,7 +2915,7 @@
     const stages=[];
     if(first6.length)stages.push({kind:'paro',label:'Paro - primeros 180 días',from:first6[0].date,to:first6[first6.length-1].date,average:layoffCashAverage(first6.map(x=>x.amount)),total:first6.reduce((a,x)=>a+x.amount,0)});
     if(rest.length)stages.push({kind:'paro',label:'Paro - resto',from:rest[0].date,to:rest[rest.length-1].date,average:layoffCashAverage(rest.map(x=>x.amount)),total:rest.reduce((a,x)=>a+x.amount,0)});
-    if(subsidy.length)stages.push({kind:c.includeSubsidy52?'subsidy':'none',label:c.includeSubsidy52?'Subsidio +52':'Subsidio +52 no incluido',from:subsidy[0].date,to:subsidy[subsidy.length-1].date,average:layoffCashAverage(subsidy.map(x=>x.amount)),total:c.includeSubsidy52?subsidyTotal:0,potentialTotal:subsidyTotal});
+    if(subsidy.length)stages.push({kind:c.includeSubsidy52?'subsidy':'none',label:c.includeSubsidy52?'Subsidio +52':'Subsidio +52 no incluido',from:subsidy[0].date,to:subsidy[subsidy.length-1].date,average:c.subsidy52Monthly,total:c.includeSubsidy52?subsidyTotal:0,potentialTotal:subsidyTotal});
     if(!c.includeSubsidy52&&unemploymentEnd<retirementDate)stages.push({kind:'none',label:'Sin prestación',from:unemploymentEnd,to:FIN.addMonths(retirementDate,-1),average:0,total:0});
 
     const unemploymentMax=FIN.rules.unemploymentMax2026[String(c.children)]??FIN.rules.unemploymentMax2026[0];
@@ -2962,7 +2964,7 @@
     const restAvg=layoffCashAverage(calc.rest.map(x=>x.amount)),restTotal=calc.rest.reduce((a,x)=>a+x.amount,0);
     set('#layoffCashParo1',calc.first6.length?`${eur0.format(first6Avg)}/mes`:'--');set('#layoffCashParo1Meta',calc.first6.length?`${calc.first6.length} meses &middot; total ${eur0.format(first6Total)} &middot; tope ${eur0.format(calc.unemploymentMax)}/mes`.replaceAll('&middot;','·'):'Sin periodo');
     set('#layoffCashParo2',calc.rest.length?`${eur0.format(restAvg)}/mes`:'--');set('#layoffCashParo2Meta',calc.rest.length?`${calc.rest.length} meses &middot; total ${eur0.format(restTotal)} &middot; tope ${eur0.format(calc.unemploymentMax)}/mes`.replaceAll('&middot;','·'):'Sin periodo');
-    const subsidyAvg=layoffCashAverage(calc.subsidy.map(x=>x.amount));
+    const subsidyAvg=calc.settings.subsidy52Monthly;
     set('#layoffCashSubsidy',calc.subsidy.length?`${eur0.format(subsidyAvg)}/mes`:'--');
     set('#layoffCashSubsidyMeta',calc.subsidy.length?`${calc.subsidy.length} meses &middot; potencial ${eur0.format(calc.subsidyTotal)}${c.includeSubsidy52?' &middot; incluido':' &middot; no incluido'}`.replaceAll('&middot;','·'):'No queda periodo hasta la jubilacion'.replace('jubilacion','jubilaci\u00f3n'));
     set('#layoffCashBenefitsTotal',eur0.format(calc.extraTotal));set('#layoffCashBenefitsTotalMeta',c.includeSubsidy52?'paro + subsidio incluido':'solo paro; subsidio no contado');
@@ -3489,26 +3491,7 @@
   }
 
   function renderVmTabs(){
-    const wrap=$('#vmMortgageTabs');
-    if(!wrap)return;
-    const countEl=$('#vmMortgageCount');
-    if(countEl) countEl.textContent=String(variableMortgages.length);
-    wrap.innerHTML=variableMortgages.map(m=>
-      `<button type="button" class="vm-mortgage-chip${m.id===activeVarMortgageId?' active':''}" data-id="${m.id}">${m.name}</button>`
-    ).join('') + `<button type="button" id="vmAddMortgageBtn" class="vm-mortgage-chip add">+ Nueva hipoteca</button>`;
-    wrap.querySelectorAll('.vm-mortgage-chip[data-id]').forEach(btn=>{
-      btn.addEventListener('click',()=>{
-        activeVarMortgageId=btn.dataset.id;
-        vmEntriesView='hipoteca';
-        $('#vmNewForm').style.display='none';
-        renderVarMortgages();
-      });
-    });
-    const addBtn=$('#vmAddMortgageBtn');
-    if(addBtn) addBtn.addEventListener('click',()=>{
-      $('#vmNewForm').style.display='block';
-      $('#vmNewName').focus();
-    });
+    // Casa Huertas es una hipoteca única; no mostramos selector ni creación de nuevas hipotecas.
   }
 
   function vmEntryRowHtml(m,entry,cumulative,mult,rentCumulative){
@@ -3658,15 +3641,15 @@
   function renderVarMortgages(){
     const emptyState=$('#vmEmptyState');
     const activeWrap=$('#vmActiveMortgage');
-    if(!emptyState||!activeWrap)return;
+    if(!activeWrap)return;
     renderVmTabs();
     const m=vmActiveMortgage();
     if(!m){
-      emptyState.style.display='block';
+      if(emptyState) emptyState.style.display='block';
       activeWrap.style.display='none';
       return;
     }
-    emptyState.style.display='none';
+    if(emptyState) emptyState.style.display='none';
     activeWrap.style.display='block';
     renderVmKpis(m);
     renderVmEntries(m);
@@ -4833,7 +4816,7 @@
     return {
       capturedAt:new Date().toISOString(),engineVersion:FIN.version,sourceName:layoffCashSourceName(),
       dismissal:dateKey(calc.dismissal),retirementDate:dateKey(calc.retirementDate),ordinaryAge:calc.ordinaryAge,baseReg:calc.baseReg,unemploymentMax:calc.unemploymentMax,
-      savings:c.savings,severance:c.severance,patrimony:c.patrimony,monthlyNeed:c.monthlyNeed,expenseCpi:c.expenseCpi,includeSubsidy52:!!c.includeSubsidy52,
+      savings:c.savings,severance:c.severance,patrimony:c.patrimony,monthlyNeed:c.monthlyNeed,expenseCpi:c.expenseCpi,includeSubsidy52:!!c.includeSubsidy52,subsidy52Monthly:c.subsidy52Monthly,
       extraTotal:calc.extraTotal,potentialTotal:calc.potentialTotal,remainingAtRetirement:calc.remainingAtRetirement,exhaustDate:calc.exhaustDate?dateKey(calc.exhaustDate):null,
       first6:{months:calc.first6.length,average:first6Avg,total:first6Total},rest:{months:calc.rest.length,average:restAvg,total:restTotal},
       subsidy:{months:calc.subsidy.length,average:subsidyAvg,total:calc.subsidyTotal},
@@ -4856,7 +4839,8 @@
     else{set('#layoffCashHorizonKpi','Llega a jubilación');set('#layoffCashHorizonMeta',`Sobraría aproximadamente ${eur0.format(snapshot.remainingAtRetirement)} al llegar a ${retirement?monthFmtLong.format(retirement):'--'} (${snapshot.ordinaryAge} años).`);hCard?.classList.remove('warn');hCard?.classList.add('good')}
     set('#layoffCashParo1',snapshot.first6?.months?`${eur0.format(snapshot.first6.average)}/mes`:'--');set('#layoffCashParo1Meta',snapshot.first6?.months?`${snapshot.first6.months} meses · total ${eur0.format(snapshot.first6.total)} · tope ${eur0.format(snapshot.unemploymentMax)}/mes`:'Sin periodo');
     set('#layoffCashParo2',snapshot.rest?.months?`${eur0.format(snapshot.rest.average)}/mes`:'--');set('#layoffCashParo2Meta',snapshot.rest?.months?`${snapshot.rest.months} meses · total ${eur0.format(snapshot.rest.total)} · tope ${eur0.format(snapshot.unemploymentMax)}/mes`:'Sin periodo');
-    set('#layoffCashSubsidy',snapshot.subsidy?.months?`${eur0.format(snapshot.subsidy.average)}/mes`:'--');set('#layoffCashSubsidyMeta',snapshot.subsidy?.months?`${snapshot.subsidy.months} meses · potencial ${eur0.format(snapshot.subsidy.total)}${snapshot.includeSubsidy52?' · incluido':' · no incluido'}`:'No queda periodo hasta la jubilación');
+    const snapshotSubsidyMonthly=Number(snapshot.subsidy52Monthly)>0?Number(snapshot.subsidy52Monthly):Number(snapshot.subsidy?.average||0);
+    set('#layoffCashSubsidy',snapshot.subsidy?.months?`${eur0.format(snapshotSubsidyMonthly)}/mes`:'--');set('#layoffCashSubsidyMeta',snapshot.subsidy?.months?`${snapshot.subsidy.months} meses · potencial ${eur0.format(snapshot.subsidy.total)}${snapshot.includeSubsidy52?' · incluido':' · no incluido'}`:'No queda periodo hasta la jubilación');
     set('#layoffCashBenefitsTotal',eur0.format(snapshot.extraTotal));set('#layoffCashBenefitsTotalMeta',snapshot.includeSubsidy52?'paro + subsidio incluido':'solo paro; subsidio no contado');
     const tbody=$('#layoffCashStageRows');if(tbody)tbody.innerHTML=(snapshot.stages||[]).map(st=>`<tr><td><span class="layoff-stage-badge ${st.kind}">${st.label}</span></td><td>${monthFmtLong.format(d(st.from))}</td><td>${monthFmtLong.format(d(st.to))}</td><td>${st.kind==='none'?eur0.format(st.average)+' potencial':eur0.format(st.average)}</td><td>${st.kind==='none'?eur0.format(st.potentialTotal||0)+' no incluido':eur0.format(st.total)}</td></tr>`).join('');
     const yearTbody=$('#layoffCashYearRows');if(yearTbody)yearTbody.innerHTML=(snapshot.yearRows||[]).map(row=>{const endClass=row.endBalance<0?'negative':'positive',partial=row.months<12?` <small style="color:#98a2b3">(${row.months} meses)</small>`:'';return `<tr class="${row.firstNegative?'first-negative':''}"><td class="year">${row.year}${partial}</td><td>${row.age}</td><td>${eur0.format(row.startBalance)}</td><td>${eur0.format(row.income)}</td><td>${eur0.format(row.expense)}</td><td class="balance ${endClass}">${eur0.format(row.endBalance)}</td></tr>`}).join('');
@@ -7634,6 +7618,13 @@ No se borrará hasta que confirmes este mensaje.`))return;
   $('#pensionLayoffViewBtn')?.addEventListener('click',()=>setPensionView('layoff'));
   $('#pensionLayoffSubsidy52')?.addEventListener('change',e=>{pensionLayoffSettings.subsidy52=!!e.target.checked;persistPensionLayoffSettingsLocal();renderPensionLayoffScenario();scheduleGistAutoSync()});
   ['#layoffCashDismissalMonth','#layoffCashChildren','#layoffCashIncludeSubsidy'].forEach(sel=>$(sel)?.addEventListener('change',()=>{layoffCashSettings=layoffCashReadUI();persistLayoffCashSettingsLocal();layoffCashRecalc();scheduleGistAutoSync()}));
+  {
+    const el=$('#layoffCashSubsidy52Monthly');
+    if(el){
+      el.addEventListener('input',()=>{layoffCashSettings=layoffCashReadUI();persistLayoffCashSettingsLocal();layoffCashRecalc();scheduleGistAutoSync()});
+      el.addEventListener('blur',()=>{el.value=formatEditableAmount(parseEsAmount(el.value));layoffCashSettings=layoffCashReadUI();persistLayoffCashSettingsLocal();layoffCashRecalc()});
+    }
+  }
   ['#layoffCashSavings','#layoffCashSeverance','#layoffCashPatrimony','#layoffCashMonthlyNeed','#layoffCashExpenseCpi'].forEach(sel=>{
     const el=$(sel);if(!el)return;
     el.addEventListener('input',()=>{layoffCashSettings=layoffCashReadUI();persistLayoffCashSettingsLocal();layoffCashRecalc();scheduleGistAutoSync()});
@@ -7642,6 +7633,14 @@ No se borrará hasta que confirmes este mensaje.`))return;
   $('#pensionLayoffModalClose')?.addEventListener('click',closePensionLayoffModal);
   document.querySelectorAll('[data-close-layoff-modal]').forEach(el=>el.addEventListener('click',closePensionLayoffModal));
   document.addEventListener('keydown',e=>{if(e.key==='Escape' && $('#pensionLayoffModal')?.classList.contains('open'))closePensionLayoffModal()});
+
+  $('#houseHuertasBtn')?.addEventListener('click',()=>{
+    if(activeCalculatorId!=='mortgage') return;
+    setMortgageView(mortgageViewMode==='houseHuertas'?'standard':'houseHuertas');
+  });
+  $('#vmBackToMortgageBtn')?.addEventListener('click',()=>{
+    if(activeCalculatorId==='mortgage') setMortgageView('standard');
+  });
 
   $('#saveCaseBtn').addEventListener('click',saveNamedCase);
   $('#caseName').addEventListener('keydown',e=>{
@@ -7685,12 +7684,6 @@ No se borrará hasta que confirmes este mensaje.`))return;
   });
   $('#addAmort').addEventListener('click',addAmort);
   $('#salaryHistoryAddBtn').addEventListener('click',addSalaryHistoryRow);
-  $('#vmNewSaveBtn').addEventListener('click',addVariableMortgage);
-  $('#vmNewCancelBtn').addEventListener('click',()=>{
-    $('#vmNewForm').style.display='none';
-    $('#vmNewName').value='';$('#vmNewCapital').value='0';$('#vmNewDiff').value='0.6';
-    $('#vmNewStart').value='';$('#vmNewEnd').value='';
-  });
   $('#vmEntriesViewToggle')?.addEventListener('click',e=>{
     const btn=e.target.closest('button');
     if(!btn)return;
@@ -7759,7 +7752,10 @@ No se borrará hasta que confirmes este mensaje.`))return;
       else if(activeCalculatorId==='pension'){pensionApplyUI();pensionRecalc();setPensionView('main')}
       else if(activeCalculatorId==='layoff'){layoffCashApplyUI();layoffCashRecalc()}
       else if(activeCalculatorId==='varmortgage'){renderVarMortgages()}
-      else loadCalculatorState(activeCalculatorId);
+      else {
+        mortgageViewMode='standard';
+        loadCalculatorState(activeCalculatorId);
+      }
     }else{
       renderAmorts();
       recalc();
