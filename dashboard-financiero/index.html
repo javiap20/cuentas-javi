@@ -55,6 +55,7 @@
   .tab-btn.active{background:#fff;color:var(--text);box-shadow:0 1px 4px rgba(16,24,40,.10)}
   .tab-btn .tab-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent);margin-right:8px;vertical-align:1px}
   .layout{display:grid;grid-template-columns:350px minmax(0,1fr);gap:16px;align-items:start}
+  .layout>.sidebar{min-width:0}
   .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
   .sidebar{
     position:sticky;
@@ -433,6 +434,7 @@
     border-radius:999px;padding:7px 10px;font-size:9.5px;font-weight:900;color:#e7efff;white-space:nowrap
   }
   .payroll-layout{display:grid;grid-template-columns:350px minmax(0,1fr);gap:16px;align-items:start}
+  .payroll-layout>.payroll-input-panel{min-width:0}
   .payroll-input-panel{
     padding:18px;background:linear-gradient(145deg,#fbfdff 0%,#f3f7ff 55%,#f7f4ff 100%);
   }
@@ -575,7 +577,7 @@
   .layout.layoff-cash-mode .main > :not(#layoffCashPlaceholder){display:none !important}
   .layout.layoff-cash-mode #layoffCashPlaceholder{display:block !important}
   .layoff-cash-layout{display:grid;grid-template-columns:300px minmax(0,1fr);gap:14px;align-items:start}
-  .layoff-cash-input-panel{padding:16px;position:sticky;top:12px}
+  .layoff-cash-input-panel{padding:16px;position:sticky;top:12px;min-width:0}
   .layoff-cash-input-panel h3{margin:0 0 10px;font-size:13px;color:#344054;text-align:center}
   .layoff-cash-input-panel .field label{text-align:center;display:block}
   .layoff-cash-input-panel input,.layoff-cash-input-panel select{text-align:center}
