@@ -556,7 +556,7 @@
   .payroll-note strong{color:#344054}
   @media(max-width:1250px){
     .payroll-layout{grid-template-columns:1fr}
-    .payroll-input-panel{position:static}
+    .payroll-input-panel{position:static;max-width:480px;margin:0 auto}
     .payroll-breakdown-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   }
   @media(max-width:700px){
@@ -619,7 +619,7 @@
   .layoff-stage-badge.paro{background:#eef4ff;color:#1849a9}.layoff-stage-badge.subsidy{background:#f3efff;color:#6941c6}.layoff-stage-badge.none{background:#f2f4f7;color:#667085}
   .layoff-year-table td{font-variant-numeric:tabular-nums}.layoff-year-table td.year{font-weight:900;color:#344054}.layoff-year-table td.balance{font-weight:900}.layoff-year-table td.balance.positive{color:#067647}.layoff-year-table td.balance.negative{color:#b42318}.layoff-year-table tr.first-negative{background:#fff4f2}.layoff-year-table tr.first-negative td.year{color:#b42318}
   .layoff-cash-note{padding:12px 15px;text-align:center;font-size:8.8px;line-height:1.5;color:#667085;background:#fbfcfe}
-  @media(max-width:1250px){.layoff-cash-layout{grid-template-columns:1fr}.layoff-cash-input-panel{position:static}.layoff-resource-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.layoff-resource-card.total{grid-column:1/-1}.layoff-benefit-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:1250px){.layoff-cash-layout{grid-template-columns:1fr}.layoff-cash-input-panel{position:static;max-width:480px;margin:0 auto}.layoff-resource-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.layoff-resource-card.total{grid-column:1/-1}.layoff-benefit-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
   @media(max-width:620px){.layoff-resource-grid,.layoff-key-grid,.layoff-benefit-grid{grid-template-columns:1fr}.layoff-resource-card.total{grid-column:auto}}
 
   /* Pension calculator */
@@ -1080,7 +1080,8 @@
       -webkit-appearance:none;appearance:none;
       background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23667085'><path d='M5.5 7.5l4.5 4.5 4.5-4.5' stroke='%23667085' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
       background-repeat:no-repeat;background-position:right 12px center;background-size:14px;
-      padding-right:32px;
+      padding-left:32px;padding-right:32px;
+      text-align:center;text-align-last:center;
     }
   }
   input:focus,select:focus{border-color:#84adff;box-shadow:0 0 0 4px rgba(37,99,235,.1)}
@@ -1243,7 +1244,7 @@
   .tooltip{position:fixed;pointer-events:none;background:#101828;color:white;border-radius:9px;padding:8px 10px;font-size:11px;box-shadow:0 10px 30px rgba(0,0,0,.2);display:none;z-index:99}
   @media(max-width:1250px){
     .layout{grid-template-columns:1fr}
-    .sidebar{position:static}
+    .sidebar{position:static;max-width:480px;margin:0 auto}
     .kpis{grid-template-columns:repeat(2,1fr)}
     .charts{grid-template-columns:1fr}
   }
