@@ -1,2160 +1,272 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Independencia Financiera</title>
-<meta name="theme-color" content="#f5f7fb">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Independencia">
-<link rel="manifest" href="./manifest.json">
-<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<style>
-:root{
-  --bg:#f5f7fb;
-  --surface:#ffffff;
-  --surface-2:#f9fafc;
-  --ink:#172033;
-  --ink-2:#4d5870;
-  --muted:#8b95aa;
-  --line:#e6eaf1;
-  --accent:#5b63f2;
-  --accent-2:#7c4dff;
-  --accent-soft:#eef0ff;
-  --green:#14966f;
-  --green-soft:#e9f8f3;
-  --red:#d54f63;
-  --red-soft:#fff0f2;
-  --amber:#b77a10;
-  --amber-soft:#fff6df;
-  --shadow:0 18px 55px rgba(32,43,74,.08);
-  --radius:20px;
-  --radius-sm:14px;
-}
-*{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{
-  margin:0;
-  min-height:100vh;
-  color:var(--ink);
-  background:
-    radial-gradient(circle at 12% -10%, rgba(91,99,242,.10), transparent 29rem),
-    radial-gradient(circle at 92% 5%, rgba(124,77,255,.08), transparent 28rem),
-    var(--bg);
-  font-family:"DM Sans",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  font-size:14px;
-}
-button,input{font:inherit}
-button{cursor:pointer}
-.shell{width:min(1460px,calc(100% - 36px));margin:0 auto;padding:26px 0 56px}
-.topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:28px}
-.brand-kicker{display:flex;align-items:center;gap:9px;color:var(--accent);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.11em;margin-bottom:8px}
-.brand-dot{width:9px;height:9px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-2));box-shadow:0 0 0 6px rgba(91,99,242,.09)}
-h1{font-family:"Manrope",sans-serif;font-size:clamp(26px,3vw,40px);line-height:1.08;letter-spacing:-.04em;margin:0;font-weight:800}
-.subtitle{margin:9px 0 0;color:var(--ink-2);font-size:14px;max-width:760px;line-height:1.6}
-.top-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end}
-.status-pill,.ghost-btn{border:1px solid var(--line);background:rgba(255,255,255,.82);backdrop-filter:blur(8px);border-radius:999px;padding:6px 9px;display:inline-flex;align-items:center;gap:6px;color:var(--ink-2);font-size:10.5px;font-weight:700;box-shadow:0 5px 14px rgba(32,43,74,.035);line-height:1.15}
-.status-dot{width:6px;height:6px;border-radius:50%;background:var(--amber);box-shadow:0 0 0 3px var(--amber-soft)}
-.status-pill.ok .status-dot{background:var(--green);box-shadow:0 0 0 3px var(--green-soft)}
-.status-pill.error .status-dot{background:var(--red);box-shadow:0 0 0 3px var(--red-soft)}
-.ghost-btn{border-radius:10px;padding:6px 9px;color:var(--ink);transition:.18s;min-height:28px}
-.ghost-btn:hover{transform:translateY(-1px);border-color:#d8ddec}
-.panel{background:rgba(255,255,255,.94);border:1px solid rgba(225,229,239,.94);border-radius:var(--radius);box-shadow:var(--shadow)}
-.scenario-panel{padding:21px;margin-bottom:18px}
-.scenario-library-panel{padding:18px 21px;margin-bottom:18px}
-.scenario-library-panel .forecast-scenarios{margin:0;padding:0;border-top:0}
-.sync-modal-backdrop{position:fixed;inset:0;z-index:1000;display:flex;align-items:flex-start;justify-content:flex-end;padding:18px;background:rgba(23,32,51,.22);backdrop-filter:blur(3px);opacity:0;visibility:hidden;pointer-events:none;transition:.18s}
-.sync-modal-backdrop.open{opacity:1;visibility:visible;pointer-events:auto}
-.sync-modal-card{width:min(900px,calc(100vw - 36px));max-height:calc(100vh - 36px);overflow:auto;background:rgba(255,255,255,.98);border:1px solid var(--line);border-radius:18px;box-shadow:0 24px 80px rgba(23,32,51,.18);padding:18px;transform:translateY(-8px) scale(.99);transition:.18s}
-.sync-modal-backdrop.open .sync-modal-card{transform:translateY(0) scale(1)}
-.sync-modal-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px}
-.sync-modal-title{font-family:"Manrope",sans-serif;font-size:15px;font-weight:800;letter-spacing:-.02em}
-.sync-modal-subtitle{font-size:10.5px;color:var(--muted);margin-top:3px}
-.sync-close-btn{width:30px;height:30px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink-2);font-size:18px;line-height:1;display:grid;place-items:center;padding:0}
-.sync-close-btn:hover{border-color:#d8ddec;transform:translateY(-1px)}
-.sync-modal-card .sync-panel{margin:0;padding:0;border-top:0}
-.section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:16px}
-.section-title{font-family:"Manrope",sans-serif;font-weight:800;font-size:17px;letter-spacing:-.02em;margin:0}
-.section-note{font-size:12px;color:var(--muted)}
-.input-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
-.input-card{position:relative;background:linear-gradient(180deg,#fff,var(--surface-2));border:1px solid var(--line);border-radius:16px;padding:15px 16px 13px;transition:.18s}
-.input-card:focus-within{border-color:rgba(91,99,242,.45);box-shadow:0 0 0 4px rgba(91,99,242,.08);transform:translateY(-1px)}
-.input-label{display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--ink-2);font-size:12px;font-weight:700;margin-bottom:8px}
-.input-label span:last-child{font-size:10px;color:var(--muted);font-weight:600;background:#f0f2f7;padding:3px 7px;border-radius:999px}
-.money-wrap{display:flex;align-items:baseline;gap:7px}
-.money-wrap .currency{font-family:"Manrope",sans-serif;font-size:19px;font-weight:700;color:var(--muted)}
-.money-input{width:100%;border:0;outline:0;background:transparent;color:var(--ink);font-family:"Manrope",sans-serif;font-size:26px;font-weight:800;letter-spacing:-.035em;padding:0;min-width:0}
-.money-input::placeholder,.mini-input::placeholder{color:#c1c7d4}
-.input-help{font-size:11px;color:var(--muted);margin-top:6px;min-height:16px}
-.advanced{margin-top:13px;padding-top:13px;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:10px;max-width:1320px;margin-left:auto;margin-right:auto}
-.advanced>.mini-copy{grid-column:1/-1;text-align:center;max-width:940px;margin:0 auto 2px;line-height:1.55}
-.advanced .mini-control{text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:92px}
-.advanced .mini-control>label:first-child{width:100%;text-align:center}
-.advanced .mini-input,.advanced .mini-select{text-align:center;text-align-last:center}
-/* En escritorio, la segunda fila (3 bloques) queda centrada bajo la primera de 4. */
-.advanced>.mini-control{grid-column:span 2}
-.advanced>.mini-control:nth-child(6){grid-column:2 / span 2}
-.advanced>.mini-control:nth-child(7){grid-column:4 / span 2}
-.advanced>.mini-control:nth-child(8){grid-column:6 / span 2}
-.advanced .benefit-check,.advanced .retirement-check-row{justify-content:center}
-.section-date-control{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;background:#fafbfe;border:1px solid var(--line);border-radius:13px;padding:8px 10px;min-width:310px}
-.section-date-control label{font-size:9px;text-transform:uppercase;letter-spacing:.08em;font-weight:800;color:var(--muted)}
-.section-date-control input[type="date"]{border:0;outline:0;background:transparent;color:var(--ink);font-weight:800;font-size:12px;text-align:center;min-width:128px}
-.date-auto-btn{border:1px solid var(--line);background:#fff;border-radius:9px;padding:5px 8px;color:var(--accent);font-size:9px;font-weight:800;white-space:nowrap}
-.date-auto-btn:hover{border-color:#cfd5e5;transform:translateY(-1px)}
-.date-auto-btn.active{background:var(--accent-soft);border-color:#dcdfff}
-.dismissal-help{width:100%;text-align:center;font-size:9px;color:var(--muted);font-weight:700;line-height:1.3}
-.pension-auto-help{font-size:9px;color:var(--muted);font-weight:700;line-height:1.3;margin-top:5px;text-align:center}
-.mini-control{background:#fafbfe;border:1px solid var(--line);border-radius:13px;padding:10px 12px}
-.mini-control label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:800;color:var(--muted);margin-bottom:5px}
-.mini-input{width:100%;border:0;background:transparent;outline:0;color:var(--ink);font-weight:800;font-size:15px;padding:0}
-.mini-copy{font-size:11px;color:var(--ink-2);line-height:1.45;padding:4px 3px}
-.gist-freshness{display:flex;align-items:center;justify-content:center;gap:7px;margin:-8px 0 22px;color:var(--accent-2);font-size:12px;font-weight:800;text-align:center;letter-spacing:.01em;min-height:20px}
-.gist-freshness-dot{width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 0 4px rgba(124,77,255,.09);flex:0 0 auto}
-.gist-freshness.pending{color:var(--amber)}.gist-freshness.error{color:var(--red)}.gist-freshness.loading{color:var(--accent-2)}.gist-freshness.readonly{color:#7459c7}
-.summary-section{margin-bottom:18px;padding:20px}
-.summary-overview-head{display:flex;align-items:center;justify-content:center;gap:18px;text-align:center;padding:2px 4px 16px;margin-bottom:16px;border-bottom:1px solid var(--line)}
-.summary-overview-head>div{width:100%}
-.summary-overview-head .section-title{font-size:19px}
-.summary-overview-head .section-note{margin:4px auto 0;max-width:760px}
-.dashboard-grid{display:grid;grid-template-columns:1.08fr .92fr;gap:14px;margin-bottom:0}
-.summary-inner{border:1px solid var(--line);background:linear-gradient(180deg,#fff,#fbfcff);border-radius:16px;overflow:hidden}
-.kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:18px}
-.kpi{border:1px solid var(--line);background:linear-gradient(180deg,#fff,#fbfcff);border-radius:16px;padding:16px;min-height:112px;position:relative;overflow:hidden}
-.kpi::after{content:"";position:absolute;width:84px;height:84px;border-radius:50%;right:-34px;top:-34px;background:rgba(91,99,242,.055)}
-.kpi-label{color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.075em;margin-bottom:8px}
-.kpi-value{font-family:"Manrope",sans-serif;font-size:26px;font-weight:800;letter-spacing:-.035em;line-height:1.1}
-.kpi-sub{margin-top:7px;color:var(--ink-2);font-size:11px;line-height:1.35}
-.kpi.good .kpi-value{color:var(--green)}
-.kpi.bad .kpi-value{color:var(--red)}
-.chart-panel{padding:18px;min-height:256px}
-.chart-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:8px}
-.chart-title{font-family:"Manrope",sans-serif;font-weight:800;font-size:15px}
-.chart-caption{font-size:11px;color:var(--muted);margin-top:3px}
-.chart-wrap{height:195px;width:100%;display:flex;align-items:center;justify-content:center;color:var(--accent)}
-.chart-empty{color:var(--muted);font-size:12px;text-align:center}
-.table-panel{overflow:hidden}
-.table-header{display:grid;grid-template-columns:minmax(118px,1fr) auto minmax(118px,1fr);align-items:center;gap:16px;padding:18px 20px;border-bottom:1px solid var(--line)}
-.table-header::before{content:"";display:block}
-.table-header>div:first-child{text-align:center;grid-column:2}
-.table-header>.mini-control{grid-column:3;justify-self:end}
-.table-wrap{overflow:auto;max-height:660px}
-table{width:100%;border-collapse:separate;border-spacing:0;min-width:930px}
-thead th{position:sticky;top:0;z-index:2;background:#f8f9fc;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-size:10px;font-weight:800;text-align:center;padding:12px 16px;border-bottom:1px solid var(--line)}
-tbody td{padding:13px 16px;border-bottom:1px solid #edf0f5;text-align:center;vertical-align:middle;font-variant-numeric:tabular-nums}
-tbody tr:hover td{background:#fbfcff}
-.year{font-family:"Manrope",sans-serif;font-weight:800;font-size:14px}
-.age{color:var(--ink-2);font-weight:600}
-.amount{font-weight:700}
-.amount.muted{color:var(--ink-2);font-weight:600}
-.income-cell{display:flex;justify-content:center;align-items:center;gap:8px;white-space:nowrap}
-.badge{display:inline-flex;align-items:center;border-radius:999px;padding:4px 8px;font-size:10px;font-weight:800;letter-spacing:.02em}
-.badge.paro{background:var(--accent-soft);color:var(--accent)}
-.badge.subsidy{background:#f4edff;color:#7c4dff}
-.badge.pension{background:var(--green-soft);color:var(--green)}
-.badge.none{background:#f0f2f6;color:var(--muted)}
-.total-main{font-family:"Manrope",sans-serif;font-weight:800;font-size:14px}
-.total-main.positive{color:var(--green)}
-.total-main.negative{color:var(--red)}
-.delta{font-size:10px;margin-top:2px;color:#a0a8b8;font-weight:700}
-.retirement-row td{background:#fff8e8!important;border-bottom-color:#f0dfb4}
-.retirement-row td:first-child{box-shadow:inset 3px 0 0 #d89a27}
-.retirement-row:hover td{background:#fff4d8!important}
-.retirement-check-row{display:flex!important;align-items:center;gap:9px;cursor:pointer;text-transform:none!important;letter-spacing:0!important;margin:0!important;color:var(--ink)!important}
-.retirement-check-row input{width:17px;height:17px;accent-color:var(--accent);flex:0 0 auto}
-.retirement-check-copy{display:flex;flex-direction:column;gap:2px;line-height:1.2}
-.retirement-check-copy strong{font-size:12px;color:var(--ink)}
-.retirement-check-copy span{font-size:10px;color:var(--muted);font-weight:700}
-.retirement-age-result{margin-top:7px;font-size:10.5px;color:var(--ink-2);font-weight:700}
-.retirement-age-result b{color:var(--accent);font-size:12px}
-.empty-row{text-align:center!important;color:var(--muted);padding:32px!important}
-.data-details{margin-top:18px;overflow:hidden}
-details summary{list-style:none;cursor:pointer;padding:17px 20px;display:flex;align-items:center;justify-content:center;gap:16px;font-family:"Manrope",sans-serif;font-weight:800;font-size:14px;position:relative;text-align:center}
-details summary::-webkit-details-marker{display:none}
-.summary-right{display:flex;align-items:center;gap:9px;color:var(--muted);font-family:"DM Sans",sans-serif;font-size:11px;font-weight:600;position:absolute;right:20px}
-.chev{transition:.2s;font-size:16px}details[open] .chev{transform:rotate(180deg)}
-.details-body{border-top:1px solid var(--line);padding:16px 20px 20px}
-.group-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:14px}
-.group-card{border:1px solid var(--line);border-radius:13px;padding:12px;background:#fbfcfe;text-align:center}
-.group-card .gname{font-size:11px;color:var(--muted);font-weight:700;margin-bottom:5px}.group-card .gval{font-family:"Manrope",sans-serif;font-size:17px;font-weight:800}
-.expense-table{max-height:340px;overflow:auto;border:1px solid var(--line);border-radius:13px}.expense-table table{min-width:760px}.expense-table thead th{top:0}.expense-table td,.expense-table th{padding:10px 12px;text-align:center!important}
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b1220">
+  <meta name="color-scheme" content="dark">
+  <title>Javi Apps</title>
+  <style>
+    :root{
+      --text:#f8fafc;
+      --muted:#b8c4d6;
+      --soft:#93a4bd;
+      --line:rgba(255,255,255,.11);
+      --section-line:rgba(255,255,255,.08);
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+    body{
+      min-height:100vh;
+      background:
+        radial-gradient(circle at 17% 13%,#273761 0,transparent 34%),
+        radial-gradient(circle at 87% 18%,#3d3474 0,transparent 31%),
+        linear-gradient(145deg,#09111f,#111a2d 52%,#0a1020);
+      color:var(--text);
+      padding:calc(34px + env(safe-area-inset-top)) max(22px,env(safe-area-inset-right)) calc(34px + env(safe-area-inset-bottom)) max(22px,env(safe-area-inset-left));
+    }
+    .wrap{width:min(1320px,100%);margin:0 auto}
+    .eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.24em;color:#a9b7cb;font-weight:850;margin-bottom:15px;text-align:center}
+    .head{display:block;text-align:center;margin-bottom:38px}
+    h1{font-size:clamp(46px,7vw,76px);line-height:.95;margin:0;letter-spacing:-.055em;font-weight:850}
 
-.benefit-status{margin-top:13px;border:1px solid #ded7ff;background:linear-gradient(135deg,#faf8ff,#f5f7ff);border-radius:14px;padding:10px 13px;display:flex;align-items:center;justify-content:center;gap:8px;text-align:center;color:#6750c9;font-size:11px;font-weight:800;line-height:1.45}
-.benefit-status.warn{border-color:#f0d9a7;background:#fff9eb;color:#8b651b}
-.benefit-status .dot{width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 0 4px rgba(124,77,255,.08);flex:0 0 auto}
-.input-card.auto-source{background:linear-gradient(180deg,#fcfbff,#f7f5ff);border-color:#e2dcff}
-.input-card.auto-source .money-input{color:var(--accent-2)}
-.input-card.manual-source{border-color:#f0d9a7}
-.mini-select{width:100%;border:0;background:transparent;outline:0;color:var(--ink);font-weight:800;font-size:13px;padding:0;cursor:pointer}
-.benefit-check{display:flex!important;align-items:center;gap:8px;cursor:pointer;text-transform:none!important;letter-spacing:0!important;color:var(--ink)!important;margin:0!important}
-.benefit-check input{width:16px;height:16px;accent-color:var(--accent);flex:0 0 auto}
-.benefit-check span{font-size:11px;font-weight:800;line-height:1.25}
-.manual-retirement.hidden{display:none}
+    .section-block{margin-top:30px}
+    .section-block:first-of-type{margin-top:0}
+    .section-head{text-align:center;margin-bottom:18px}
+    .section-kicker{font-size:10px;text-transform:uppercase;letter-spacing:.2em;color:#8999b2;font-weight:850;margin-bottom:7px}
+    .section-title{font-size:clamp(26px,3vw,34px);line-height:1;margin:0;font-weight:850;letter-spacing:-.035em}
+    .section-sub{margin:8px auto 0;max-width:650px;color:#9eacc1;font-size:13px;line-height:1.5}
+    .section-divider{height:1px;background:linear-gradient(90deg,transparent,var(--section-line),transparent);margin:34px 0 0}
 
-.notice{display:none;margin-bottom:18px;padding:13px 15px;border-radius:14px;border:1px solid #f0d9a7;background:#fff8e8;color:#7c5b18;font-size:12px;line-height:1.5}.notice.show{display:block}
-.error-box{display:none;margin-bottom:18px;padding:14px 16px;border-radius:14px;border:1px solid #f0c4ca;background:var(--red-soft);color:#953646;font-size:12px;line-height:1.55}.error-box.show{display:block}
-.forecast-scenarios{margin-top:15px;padding-top:15px;border-top:1px solid var(--line)}
-.scenario-library-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:10px}
-.scenario-library-title{font-family:"Manrope",sans-serif;font-size:13px;font-weight:800;letter-spacing:-.01em}
-.scenario-library-note{font-size:10.5px;color:var(--muted);line-height:1.45;margin-top:3px;max-width:800px}
-.scenario-toolbar{display:grid;grid-template-columns:minmax(180px,1fr) minmax(180px,1fr) auto auto auto auto;gap:8px;align-items:stretch}
-.scenario-field{background:#fafbfe;border:1px solid var(--line);border-radius:12px;padding:8px 10px;min-width:0}
-.scenario-field label{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.08em;font-weight:800;color:var(--muted);margin-bottom:4px}
-.scenario-select,.scenario-name{width:100%;border:0;outline:0;background:transparent;color:var(--ink);font-size:12px;font-weight:750;min-width:0}
-.scenario-select{cursor:pointer}
-.scenario-btn{border:1px solid var(--line);background:#fff;border-radius:12px;padding:9px 11px;color:var(--ink);font-size:10.5px;font-weight:800;white-space:nowrap;transition:.18s}
-.scenario-btn:hover:not(:disabled){transform:translateY(-1px);border-color:#d8ddec}.scenario-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}.scenario-btn.danger{color:var(--red)}.scenario-btn:disabled{opacity:.42;cursor:not-allowed;transform:none}
-.scenario-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:9px;min-height:20px}
-.scenario-chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:4px 8px;background:#f0f2f7;color:var(--ink-2);font-size:9.5px;font-weight:800}
-.scenario-chip.base{background:var(--accent-soft);color:var(--accent)}.scenario-chip.dirty{background:var(--amber-soft);color:var(--amber)}.scenario-chip.good{background:var(--green-soft);color:var(--green)}.scenario-chip.bad{background:var(--red-soft);color:var(--red)}
-.compare-scenarios-btn{align-self:flex-start;border:1px solid rgba(91,99,242,.22);background:var(--accent-soft);color:var(--accent);border-radius:12px;padding:8px 11px;font-size:10.5px;font-weight:800;white-space:nowrap;transition:.18s}
-.compare-scenarios-btn:hover:not(:disabled){transform:translateY(-1px);border-color:rgba(91,99,242,.42);box-shadow:0 6px 16px rgba(91,99,242,.08)}
-.compare-scenarios-btn:disabled{opacity:.42;cursor:not-allowed;transform:none;box-shadow:none}
-.compare-modal-backdrop{position:fixed;inset:0;z-index:1100;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(23,32,51,.32);backdrop-filter:blur(4px);opacity:0;visibility:hidden;pointer-events:none;transition:.18s}
-.compare-modal-backdrop.open{opacity:1;visibility:visible;pointer-events:auto}
-.compare-modal-card{width:min(1320px,calc(100vw - 40px));max-height:calc(100vh - 40px);display:flex;flex-direction:column;background:rgba(255,255,255,.99);border:1px solid var(--line);border-radius:20px;box-shadow:0 28px 90px rgba(23,32,51,.22);overflow:hidden;transform:translateY(8px) scale(.992);transition:.18s}
-.compare-modal-backdrop.open .compare-modal-card{transform:translateY(0) scale(1)}
-.compare-modal-head{position:relative;text-align:center;padding:20px 60px 16px;border-bottom:1px solid var(--line)}
-.compare-modal-title{font-family:"Manrope",sans-serif;font-size:20px;font-weight:800;letter-spacing:-.025em}
-.compare-modal-subtitle{font-size:11px;color:var(--muted);margin-top:4px}
-.compare-modal-head .sync-close-btn{position:absolute;right:18px;top:16px}
-.compare-modal-body{padding:16px 18px 18px;overflow:auto}
-.compare-final-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:16px}
-.compare-final-card{border:1px solid var(--line);border-radius:15px;background:linear-gradient(180deg,#fff,#fafbfe);padding:13px 12px;text-align:center;min-width:0}
-.compare-final-name{font-size:10.5px;color:var(--ink-2);font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.compare-final-label{font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:800;margin-top:7px}
-.compare-final-value{font-family:"Manrope",sans-serif;font-size:21px;font-weight:800;letter-spacing:-.03em;margin-top:3px}
-.compare-final-value.good{color:var(--green)}.compare-final-value.bad{color:var(--red)}
-.compare-final-year{font-size:9.5px;color:var(--muted);font-weight:700;margin-top:3px}
-.compare-dirty{display:inline-flex;margin-top:6px;padding:2px 6px;border-radius:999px;background:var(--amber-soft);color:var(--amber);font-size:8px;font-weight:800}
-.compare-table-wrap{overflow:auto;border:1px solid var(--line);border-radius:15px;max-height:58vh}
-.compare-table{width:100%;border-collapse:separate;border-spacing:0;min-width:760px}
-.compare-table th,.compare-table td{text-align:center!important;vertical-align:middle;padding:11px 13px;border-bottom:1px solid #edf0f5;font-variant-numeric:tabular-nums}
-.compare-table thead th{position:sticky;top:0;z-index:3;background:#f8f9fc;color:var(--muted);font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.065em}
-.compare-table tbody tr:last-child td{border-bottom:0}
-.compare-table tbody tr:hover td{background:#fbfcff}
-.compare-table .compare-year{font-family:"Manrope",sans-serif;font-weight:800;color:var(--ink)}
-.compare-table .compare-age{color:var(--ink-2);font-weight:700}
-.compare-table .compare-balance{font-weight:800;color:var(--ink-2)}
-.compare-table .compare-balance.negative{color:var(--red)}
-.compare-table .compare-active-head{color:var(--accent);background:#f3f4ff}
-.compare-empty{padding:30px;text-align:center;color:var(--muted);font-size:12px}
-.expense-table table{min-width:1120px}
-.expense-table tr.expense-modified td{background:#fafaff}.expense-table tr.expense-modified td:first-child{box-shadow:inset 3px 0 0 var(--accent)}.expense-table tr.expense-disabled td{color:#9ba4b5}
-.expense-toggle{width:16px;height:16px;accent-color:var(--accent);cursor:pointer}.expense-toggle:disabled{cursor:not-allowed}
-.expense-edit-input{width:112px;border:1px solid var(--line);background:#fff;border-radius:9px;padding:6px 8px;text-align:center;color:var(--ink);font-weight:800;font-variant-numeric:tabular-nums;outline:0}
-.expense-edit-input:focus{border-color:rgba(91,99,242,.55);box-shadow:0 0 0 3px rgba(91,99,242,.08)}.expense-edit-input:disabled{background:#f5f6f9;color:#9ca5b5;cursor:not-allowed}
-.expense-reset{border:0;background:transparent;color:var(--muted);font-size:14px;padding:4px 7px;border-radius:8px}.expense-reset:hover:not(:disabled){background:var(--accent-soft);color:var(--accent)}.expense-reset:disabled{opacity:.25;cursor:not-allowed}
-.expense-origin{font-size:9px;color:var(--muted);margin-top:2px}.expense-changed-badge{display:inline-flex;margin-left:5px;padding:2px 5px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:8px;font-weight:800;vertical-align:1px}
-.sync-panel{margin-top:15px;padding-top:15px;border-top:1px solid var(--line)}
-.sync-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:11px}
-.sync-title{font-family:"Manrope",sans-serif;font-size:13px;font-weight:800;letter-spacing:-.01em}
-.sync-note{font-size:10.5px;color:var(--muted);line-height:1.45;margin-top:3px;max-width:760px}
-.sync-grid{display:grid;grid-template-columns:minmax(120px,.7fr) minmax(190px,1.25fr) auto auto auto auto;gap:8px;align-items:stretch}
-.sync-field{background:#fafbfe;border:1px solid var(--line);border-radius:12px;padding:8px 10px;min-width:0}
-.sync-field label{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.08em;font-weight:800;color:var(--muted);margin-bottom:4px}
-.sync-input{width:100%;border:0;outline:0;background:transparent;color:var(--ink);font-size:12px;font-weight:700;min-width:0}
-.token-memory-option{display:flex;align-items:center;gap:6px;margin-top:7px;color:var(--muted);font-size:9.5px;font-weight:700}.token-memory-option input{width:14px;height:14px;accent-color:var(--accent)}
-.sync-btn{border:1px solid var(--line);background:#fff;border-radius:12px;padding:9px 11px;color:var(--ink);font-size:11px;font-weight:800;white-space:nowrap;transition:.18s}
-.sync-btn:hover{transform:translateY(-1px);border-color:#d8ddec}.sync-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}.sync-btn:disabled{opacity:.55;cursor:wait;transform:none}
-.sync-status{display:flex;align-items:center;gap:7px;margin-top:9px;color:var(--muted);font-size:10.5px;line-height:1.4}.sync-status.ok{color:var(--green)}.sync-status.error{color:var(--red)}.sync-status.warn{color:var(--amber)}
-.sync-status-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex:0 0 auto}
-.sync-status a{color:inherit;font-weight:800;text-decoration:none}.sync-status a:hover{text-decoration:underline}
-.footer{margin-top:20px;display:flex;justify-content:space-between;gap:20px;color:var(--muted);font-size:10.5px;line-height:1.55;padding:0 3px}.footer a{color:var(--ink-2);text-decoration:none}.footer a:hover{text-decoration:underline}
-@media(max-width:1120px){.sync-grid,.scenario-toolbar{grid-template-columns:repeat(2,minmax(0,1fr))}.sync-btn{white-space:normal}}
-@media(max-width:980px){.scenario-library-head{align-items:center}.input-grid{grid-template-columns:repeat(2,1fr)}.advanced{grid-template-columns:repeat(2,1fr);max-width:none}.advanced>.mini-copy{grid-column:1/-1}.section-head{align-items:flex-start}.section-date-control{min-width:280px}.dashboard-grid{grid-template-columns:1fr}.topbar{flex-direction:column}.top-actions{justify-content:flex-start}.group-cards{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:620px){.shell{width:min(100% - 20px,1460px);padding-top:18px}.input-grid,.advanced,.kpis,.sync-grid,.scenario-toolbar{grid-template-columns:1fr}.scenario-panel,.scenario-library-panel{padding:15px}.summary-section{padding:15px}.summary-overview-head{padding:0 2px 13px;margin-bottom:13px}.panel{border-radius:16px}.group-cards{grid-template-columns:1fr}.footer{flex-direction:column}.money-input{font-size:23px}.sync-head{flex-direction:column}.table-header{grid-template-columns:1fr}.table-header::before{display:none}.table-header>div:first-child,.table-header>.mini-control{grid-column:1}.table-header>.mini-control{justify-self:center;margin-top:4px}.summary-right{position:static}.sync-modal-backdrop{padding:10px;align-items:flex-start}.sync-modal-card{width:100%;max-height:calc(100vh - 20px);padding:15px;border-radius:16px}.compare-modal-backdrop{padding:10px}.compare-modal-card{width:100%;max-height:calc(100vh - 20px);border-radius:16px}.compare-modal-head{padding:16px 48px 13px}.compare-modal-title{font-size:17px}.compare-modal-body{padding:12px}.compare-final-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-</style>
-  <script src="../../shared/finanzas-engine.js?v=1.0.0"></script>
-  <script>
-  // Segunda ruta defensiva para GitHub Pages. Si la relativa no carga, intentamos
-  // la ruta canónica del repositorio antes de arrancar el dashboard.
-  if(!window.JaviFinanceEngine && /^https?:$/.test(location.protocol) && location.pathname.startsWith('/javi/')){
-    document.write('<script src="/javi/shared/finanzas-engine.js?v=1.0.0"><\/script>');
-  }
-  </script>
+    /* Flex en vez de grid: cualquier última fila incompleta queda centrada automáticamente. */
+    .grid{display:flex;flex-wrap:wrap;justify-content:center;gap:16px}
+    .card{
+      --glow:rgba(124,77,255,.22);
+      position:relative;
+      overflow:hidden;
+      display:flex;
+      min-height:252px;
+      flex:0 1 calc((100% - 32px)/3);
+      min-width:0;
+      flex-direction:column;
+      padding:22px;
+      border:1px solid var(--line);
+      border-radius:28px;
+      background:rgba(255,255,255,.07);
+      box-shadow:0 24px 70px rgba(0,0,0,.24);
+      backdrop-filter:blur(14px);
+      -webkit-backdrop-filter:blur(14px);
+      color:inherit;
+      text-decoration:none;
+      transition:transform .18s ease,border-color .18s ease,background .18s ease,box-shadow .18s ease;
+    }
+    .card::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 92% 0%,var(--glow),transparent 42%);pointer-events:none}
+    .card:hover{transform:translateY(-5px);border-color:rgba(255,255,255,.23);background:rgba(255,255,255,.095);box-shadow:0 28px 80px rgba(0,0,0,.31)}
+    .card:active{transform:scale(.985)}
+    .card.english{--glow:rgba(59,130,246,.23)}
+    .card.cuentas{--glow:rgba(139,92,246,.25)}
+    .card.valores{--glow:rgba(16,185,129,.20)}
+    .card.dashboard{--glow:rgba(56,189,248,.22)}
+    .card.mama{--glow:rgba(244,114,182,.22)}
+    .card.independencia{--glow:rgba(124,77,255,.30)}
+    .card.alquiler{--glow:rgba(251,146,60,.24)}
+    .card.salario{--glow:rgba(34,197,94,.20)}
+
+    .icon{width:68px;height:68px;border-radius:19px;display:grid;place-items:center;margin-bottom:auto;box-shadow:0 14px 34px rgba(0,0,0,.30);overflow:hidden;position:relative;z-index:1}
+    .icon svg{width:100%;height:100%;display:block}
+    .arrow{position:absolute;right:20px;top:20px;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.06);font-size:19px;z-index:1}
+    .tag{font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:#9eacc1;font-weight:850;margin:24px 0 7px;position:relative;z-index:1}
+    .card h2{font-size:24px;line-height:1.08;margin:0 0 9px;position:relative;z-index:1}
+    .card p{color:var(--muted);font-size:13px;line-height:1.55;margin:0;position:relative;z-index:1}
+
+    .note{margin-top:30px;padding:17px 20px;border-radius:19px;border:1px solid rgba(255,255,255,.09);background:rgba(0,0,0,.14);color:#aab8cc;font-size:13px;line-height:1.55;text-align:center}
+    .note strong{color:#e7edf7}
+    .footer{margin-top:25px;color:#72829b;font-size:11px;text-align:center;letter-spacing:.03em}
+
+    @media(max-width:1050px){
+      .card{flex-basis:calc((100% - 16px)/2)}
+    }
+    @media(max-width:700px){
+      body{padding-top:calc(25px + env(safe-area-inset-top))}
+      .head{margin-bottom:28px}
+      .section-block{margin-top:26px}
+      .section-divider{margin-top:28px}
+      .grid{gap:14px}
+      .card{flex-basis:100%;min-height:210px;padding:21px}
+      .icon{width:66px;height:66px;border-radius:19px}
+      .tag{margin-top:21px}
+      .card h2{font-size:24px}
+    }
+  </style>
 </head>
 <body>
-<div class="shell">
-  <header class="topbar">
-    <div>
-      <div class="brand-kicker"><span class="brand-dot"></span>Escenario personal</div>
-      <h1>Independencia Financiera</h1>
-      <p class="subtitle">Una vista sencilla de cuánto tiempo aguanta el capital disponible si desaparece la nómina: paro, subsidio +52, gastos reales del escenario <b>DESPIDO</b> y, cuando corresponda, jubilación.</p>
-    </div>
-    <div class="top-actions">
-      <div id="excelStatus" class="status-pill"><span class="status-dot"></span><span>Cargando finanzas-master.xlsx…</span></div>
-      <button id="reloadBtn" class="ghost-btn" type="button" title="Volver a leer el Excel del servidor">↻ Actualizar</button>
-      <button id="manualExcelBtn" class="ghost-btn" type="button" hidden>↑ Cargar Excel</button>
-      <button id="syncOpenBtn" class="ghost-btn" type="button" title="Guardar o recuperar escenarios">☁ Gist / JSON</button>
-      <input id="manualExcelInput" type="file" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" hidden>
-    </div>
-  </header>
+  <main class="wrap">
+    <div class="eyebrow">Tu espacio personal</div>
 
-  <div id="gistFreshness" class="gist-freshness loading" aria-live="polite"><span class="gist-freshness-dot"></span><span>&#9729; &Uacute;ltima actualizaci&oacute;n del Gist &middot; comprobando&hellip;</span></div>
-
-  <div id="errorBox" class="error-box"></div>
-  <div id="retirementNotice" class="notice">La previsión ya llega a la jubilación, pero la <b>pensión mensual estimada está a 0 €</b>. Puedes completarla cuando quieras.</div>
-
-  <section class="panel scenario-library-panel">
-    <div class="forecast-scenarios">
-      <div class="scenario-library-head">
-        <div>
-          <div class="scenario-library-title">Escenarios de previsión</div>
-          <div class="scenario-library-note">El Excel sigue siendo la base y nunca se modifica. Crea un escenario para apagar partidas o cambiar sus importes; solo se guardan las diferencias respecto a <b>DESPIDO</b>.</div>
-        </div>
-        <button id="compareScenarioBtn" class="compare-scenarios-btn" type="button" title="Comparar la evolución de todos los escenarios">↔ Comparar escenarios</button>
-      </div>
-      <div class="scenario-toolbar">
-        <div class="scenario-field">
-          <label for="scenarioSelect">Escenario</label>
-          <select id="scenarioSelect" class="scenario-select"><option value="base">Base Excel</option></select>
-        </div>
-        <div class="scenario-field">
-          <label for="scenarioName">Nombre</label>
-          <input id="scenarioName" class="scenario-name" type="text" maxlength="60" autocomplete="off" placeholder="Ej. Recorte moderado">
-        </div>
-        <button id="newScenarioBtn" class="scenario-btn" type="button">＋ Nuevo</button>
-        <button id="saveScenarioBtn" class="scenario-btn primary" type="button">Guardar</button>
-        <button id="resetScenarioBtn" class="scenario-btn" type="button">↺ Restaurar gastos</button>
-        <button id="deleteScenarioBtn" class="scenario-btn danger" type="button">Eliminar</button>
-      </div>
-      <div id="scenarioMeta" class="scenario-meta"></div>
-    </div>
-  </section>
-
-  <section class="panel scenario-panel">
-    <div class="section-head">
-      <div>
-        <h2 class="section-title">Punto de partida</h2>
-        <div class="section-note">Estos supuestos se guardan por escenario y pueden sincronizarse con el Gist.</div>
-      </div>
-      <div class="section-date-control">
-        <label for="dismissalDate">Fecha de despido</label>
-        <input id="dismissalDate" type="date" min="2027-01-01">
-        <button id="dismissalAutoBtn" class="date-auto-btn active" type="button" title="Volver a la fecha automática">↺ Automática</button>
-        <div id="dismissalDateHelp" class="dismissal-help">Por defecto: 01/01/2027; desde 2027 sigue el mes actual.</div>
-      </div>
+    <div class="head">
+      <h1>Javi Apps</h1>
     </div>
 
-    <div class="input-grid">
-      <div class="input-card">
-        <div class="input-label"><span>Ahorro</span><span>Disponible</span></div>
-        <div class="money-wrap"><span class="currency">€</span><input id="savings" class="money-input" type="text" inputmode="numeric" autocomplete="off" placeholder="0"></div>
-        <div class="input-help">Liquidez que ya tienes reservada.</div>
+    <section class="section-block" aria-labelledby="apps-title">
+      <div class="section-head">
+        <div class="section-kicker">Día a día</div>
+        <h2 id="apps-title" class="section-title">Apps</h2>
+        <div class="section-sub">Tus herramientas habituales de aprendizaje, finanzas, inversión y seguimiento.</div>
       </div>
-      <div class="input-card">
-        <div class="input-label"><span>Finiquito</span><span>Extra</span></div>
-        <div class="money-wrap"><span class="currency">€</span><input id="severance" class="money-input" type="text" inputmode="numeric" autocomplete="off" placeholder="0"></div>
-        <div class="input-help">Importe neto estimado a recibir.</div>
+
+      <div class="grid">
+        <a class="card english" href="./ingles/" aria-label="Abrir English Daily" target="_blank" rel="noopener noreferrer">
+          <span class="arrow">→</span>
+          <span class="icon" aria-hidden="true">
+            <svg viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
+              <defs><linearGradient id="engBg" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#172554"/><stop offset="1" stop-color="#2563eb"/></linearGradient></defs>
+              <rect width="192" height="192" rx="43" fill="url(#engBg)"/>
+              <path d="M43 51c0-8 7-15 15-15h54c20 0 37 17 37 37v66c-9-9-21-14-34-14H58c-8 0-15 7-15 15V51Z" fill="#fff" opacity=".96"/>
+              <path d="M58 54h48M58 73h36M58 92h44" stroke="#2563eb" stroke-width="9" stroke-linecap="round"/>
+              <circle cx="137" cy="55" r="23" fill="#ef4444"/>
+              <text x="137" y="64" text-anchor="middle" font-family="Arial,sans-serif" font-size="27" font-weight="800" fill="#fff">A</text>
+            </svg>
+          </span>
+          <div class="tag">Aprendizaje</div>
+          <h2>English Daily</h2>
+          <p>Vocabulario, frases, vídeos, Vaughan y tu progreso sincronizado.</p>
+        </a>
+
+        <a class="card cuentas" href="./cuentas/" aria-label="Abrir Cuentas Personales" target="_blank" rel="noopener noreferrer">
+          <span class="arrow">→</span>
+          <span class="icon" aria-hidden="true">
+            <svg viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
+              <defs><linearGradient id="accBg" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#111827"/><stop offset="1" stop-color="#312e81"/></linearGradient></defs>
+              <rect width="192" height="192" rx="43" fill="url(#accBg)"/>
+              <circle cx="90" cy="99" r="51" fill="none" stroke="#8b5cf6" stroke-width="15"/>
+              <text x="87" y="121" text-anchor="middle" font-family="Arial,sans-serif" font-size="70" font-weight="700" fill="#fff">€</text>
+              <path d="M116 119l29-30m0 0v20m0-20h-20" fill="none" stroke="#22c55e" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          <div class="tag">Finanzas personales</div>
+          <h2>Cuentas JaviAp</h2>
+          <p>Presupuesto, planificación y seguimiento de tus finanzas.</p>
+        </a>
+
+        <a class="card valores" href="./valores/" aria-label="Abrir Cartera JaviAp" target="_blank" rel="noopener noreferrer">
+          <span class="arrow">→</span>
+          <span class="icon" aria-hidden="true">
+            <svg viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
+              <defs><linearGradient id="valBg" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#0f172a"/><stop offset="1" stop-color="#134e4a"/></linearGradient></defs>
+              <rect width="192" height="192" rx="43" fill="url(#valBg)"/>
+              <path d="M42 140h108" stroke="#94a3b8" stroke-width="7" stroke-linecap="round" opacity=".55"/>
+              <path d="M49 126l29-27 25 14 43-53" fill="none" stroke="#34d399" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M126 60h20v20" fill="none" stroke="#34d399" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="78" cy="99" r="6" fill="#fff"/><circle cx="103" cy="113" r="6" fill="#fff"/>
+            </svg>
+          </span>
+          <div class="tag">Inversión</div>
+          <h2>Cartera JaviAp</h2>
+          <p>Valores, cripto, precios, niveles técnicos y evolución de la cartera.</p>
+        </a>
+
+        <a class="card dashboard" href="./dashboard-financiero/" aria-label="Abrir Dashboard financiero" target="_blank" rel="noopener noreferrer">
+          <span class="arrow">→</span>
+          <span class="icon" aria-hidden="true">
+            <svg viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
+              <defs><linearGradient id="dashBg" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#0f2942"/><stop offset="1" stop-color="#155e75"/></linearGradient></defs>
+              <rect width="192" height="192" rx="43" fill="url(#dashBg)"/>
+              <rect x="38" y="43" width="116" height="106" rx="18" fill="#fff" opacity=".96"/>
+              <rect x="52" y="59" width="37" height="31" rx="8" fill="#bfdbfe"/>
+              <rect x="103" y="59" width="37" height="31" rx="8" fill="#ddd6fe"/>
+              <rect x="52" y="103" width="88" height="31" rx="8" fill="#ccfbf1"/>
+              <path d="M61 119l18-11 18 7 30-22" fill="none" stroke="#0f766e" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          <div class="tag">Finanzas · app</div>
+          <h2>Calculadoras</h2>
+          <p>Préstamos, hipoteca, nómina y proyección financiera en un mismo espacio.</p>
+        </a>
+
+        <a class="card mama" href="./cuentas-mama/" aria-label="Abrir Cuentas Mamá" target="_blank" rel="noopener noreferrer">
+          <span class="arrow">→</span>
+          <span class="icon" aria-hidden="true">
+            <svg viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
+              <defs><linearGradient id="mamaBg" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#3f1d3d"/><stop offset="1" stop-color="#831843"/></linearGradient></defs>
+              <rect width="192" height="192" rx="43" fill="url(#mamaBg)"/>
+              <path d="M96 145S45 117 45 78c0-19 14-32 31-32 10 0 18 5 24 14 6-9 14-14 24-14 17 0 31 13 31 32 0 39-59 67-59 67Z" fill="#f9a8d4" opacity=".95"/>
+              <circle cx="96" cy="91" r="29" fill="#fff" opacity=".96"/>
+              <text x="96" y="104" text-anchor="middle" font-family="Arial,sans-serif" font-size="44" font-weight="800" fill="#9d174d">€</text>
+            </svg>
+          </span>
+          <div class="tag">Finanzas · app</div>
+          <h2>Cuentas Mamá</h2>
+          <p>Control de ingresos, gastos, meses y planificación financiera.</p>
+        </a>
       </div>
-      <div class="input-card">
-        <div class="input-label"><span>Patrimonio</span><span>Utilizable</span></div>
-        <div class="money-wrap"><span class="currency">€</span><input id="assets" class="money-input" type="text" inputmode="numeric" autocomplete="off" placeholder="0"></div>
-        <div class="input-help">Parte del patrimonio que quieras contar en el escenario.</div>
+
+      <div class="section-divider" aria-hidden="true"></div>
+    </section>
+
+    <section class="section-block" aria-labelledby="previsiones-title">
+      <div class="section-head">
+        <div class="section-kicker">Mirando hacia delante</div>
+        <h2 id="previsiones-title" class="section-title">Previsiones</h2>
+        <div class="section-sub">Escenarios y seguimientos personales para proyectar decisiones a medio y largo plazo.</div>
       </div>
-      <div id="unemploymentCard" class="input-card">
-        <div class="input-label"><span>Paro mensual</span><span id="unemploymentChip">24 meses</span></div>
-        <div class="money-wrap"><span class="currency">€</span><input id="unemployment" class="money-input" type="text" inputmode="numeric" autocomplete="off" placeholder="0"></div>
-        <div id="unemploymentHelp" class="input-help">Se calculará con Javi Real cuando esté disponible.</div>
+
+      <div class="grid">
+        <a class="card independencia" href="./previsiones/independencia-financiera/" aria-label="Abrir Independencia financiera" target="_blank" rel="noopener noreferrer">
+          <span class="arrow">→</span>
+          <span class="icon" aria-hidden="true">
+            <svg viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
+              <defs><linearGradient id="prevBg" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#312e81"/><stop offset="1" stop-color="#7c3aed"/></linearGradient></defs>
+              <rect width="192" height="192" rx="43" fill="url(#prevBg)"/>
+              <path d="M38 139h116" stroke="#c4b5fd" stroke-width="7" stroke-linecap="round" opacity=".52"/>
+              <path d="M45 123l29-25 25 12 46-55" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M126 55h19v19" fill="none" stroke="#fff" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="58" cy="59" r="23" fill="#ede9fe"/>
+              <text x="58" y="68" text-anchor="middle" font-family="Arial,sans-serif" font-size="29" font-weight="800" fill="#5b21b6">€</text>
+            </svg>
+          </span>
+          <div class="tag">Previsiones · app</div>
+          <h2>Independencia financiera</h2>
+          <p>Escenarios, gastos, paro, jubilación y viabilidad financiera a largo plazo.</p>
+        </a>
+
+        <a class="card alquiler" href="./previsiones/alquiler-majadahonda/" aria-label="Abrir Alquiler Majadahonda" target="_blank" rel="noopener noreferrer">
+          <span class="arrow">→</span>
+          <span class="icon" aria-hidden="true">
+            <svg viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
+              <defs><linearGradient id="rentBg" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#7c2d12"/><stop offset="1" stop-color="#ea580c"/></linearGradient></defs>
+              <rect width="192" height="192" rx="43" fill="url(#rentBg)"/>
+              <path d="M42 88 96 45l54 43v58a9 9 0 0 1-9 9H51a9 9 0 0 1-9-9Z" fill="#fff" opacity=".96"/>
+              <rect x="76" y="107" width="40" height="48" rx="6" fill="#fed7aa"/>
+              <circle cx="130" cy="66" r="24" fill="#fff7ed"/>
+              <text x="130" y="76" text-anchor="middle" font-family="Arial,sans-serif" font-size="32" font-weight="800" fill="#c2410c">€</text>
+            </svg>
+          </span>
+          <div class="tag">Previsiones · vivienda</div>
+          <h2>Alquiler Majadahonda</h2>
+          <p>Histórico de cuotas, IPC, renovaciones, evolución del alquiler e IPREM.</p>
+        </a>
+
+        <a class="card salario" href="./previsiones/salario/" aria-label="Abrir Salario" target="_blank" rel="noopener noreferrer">
+          <span class="arrow">→</span>
+          <span class="icon" aria-hidden="true">
+            <svg viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
+              <defs><linearGradient id="salaryBg" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#064e3b"/><stop offset="1" stop-color="#16a34a"/></linearGradient></defs>
+              <rect width="192" height="192" rx="43" fill="url(#salaryBg)"/>
+              <rect x="35" y="52" width="122" height="88" rx="18" fill="#fff" opacity=".96"/>
+              <circle cx="96" cy="96" r="28" fill="#dcfce7"/>
+              <text x="96" y="108" text-anchor="middle" font-family="Arial,sans-serif" font-size="42" font-weight="800" fill="#15803d">€</text>
+              <path d="M51 73h26M115 119h26" stroke="#86efac" stroke-width="8" stroke-linecap="round"/>
+            </svg>
+          </span>
+          <div class="tag">Previsiones · ingresos</div>
+          <h2>Salario</h2>
+          <p>Histórico de salario real, mensual, acumulado y seguimiento del salario anual.</p>
+        </a>
       </div>
-      <div id="subsidyCard" class="input-card">
-        <div class="input-label"><span>Subsidio +52</span><span id="subsidyChip">Manual · +52</span></div>
-        <div class="money-wrap"><span class="currency">€</span><input id="subsidy" class="money-input" type="text" inputmode="numeric" autocomplete="off" placeholder="0"></div>
-        <div id="subsidyHelp" class="input-help">Se aplica solo si activas el supuesto y cumples requisitos.</div>
-      </div>
-    </div>
-
-    <div class="advanced">
-      <div class="mini-copy">La <b>fecha de despido</b> marca el inicio real de toda la previsión. En automático usa <b>Javi Real</b> y el motor compartido para calcular paro, cotización acumulada, edad ordinaria y pensión estimada. El <b>subsidio +52</b> parte del importe actual y queda editable, sin aplicarle IPC automáticamente. Los gastos parten del año de despido y crecen cada año con el <b>IPC de gastos</b> del escenario. La tabla sigue siendo anual, pero los cálculos se hacen mes a mes.</div>
-      <div class="mini-control">
-        <label>Prestaciones</label>
-        <label class="benefit-check" for="autoBenefits"><input id="autoBenefits" type="checkbox" checked><span>Calcular con Javi Real</span></label>
-        <div id="benefitSourceMini" class="retirement-age-result">Buscando datos compartidos…</div>
-      </div>
-      <div class="mini-control">
-        <label for="currentAge">Edad actual</label>
-        <input id="currentAge" class="mini-input" type="number" min="18" max="100" step="1" placeholder="—" title="Por defecto: año actual menos 1972">
-      </div>
-      <div class="mini-control">
-        <label for="expenseInflation">IPC anual de gastos</label>
-        <input id="expenseInflation" class="mini-input" type="number" min="0" max="20" step="0.1" value="2" title="Inflación anual aplicada a los gastos desde 2027">
-        <div class="pension-auto-help">Por defecto 2 % · editable por escenario.</div>
-      </div>
-      <div class="mini-control">
-        <label for="pension">Pensión estimada al jubilarte</label>
-        <input id="pension" class="mini-input money-value-input" type="text" inputmode="numeric" autocomplete="off" placeholder="0">
-        <div id="pensionHelp" class="pension-auto-help">Por paga · 14 pagas.</div>
-      </div>
-      <div class="mini-control">
-        <label for="children">Hijos a cargo · topes paro</label>
-        <select id="children" class="mini-select"><option value="0">Sin hijos</option><option value="1">1 hijo</option><option value="2">2 o más</option></select>
-      </div>
-      <div class="mini-control">
-        <label>Jubilación ordinaria</label>
-        <div class="retirement-age-result" style="margin-top:0">Edad prevista: <b id="retirementAgeDisplay">67 años</b></div>
-        <div id="retirementAutoNote" class="retirement-check-copy" style="margin-top:5px"><span>Se calculará con la cotización acumulada.</span></div>
-        <div id="manualRetirementControl" class="manual-retirement">
-          <label class="retirement-check-row" for="longContribution" style="margin-top:7px!important">
-            <input id="longContribution" type="checkbox">
-            <span class="retirement-check-copy"><strong>38 años y 6 meses cotizados</strong><span>Respaldo manual si Javi Real no está disponible</span></span>
-          </label>
-        </div>
-      </div>
-      <div class="mini-control">
-        <label>Subsidio +52</label>
-        <label class="benefit-check" for="includeSubsidy52"><input id="includeSubsidy52" type="checkbox" checked><span>Contarlo si cumplo requisitos</span></label>
-      </div>
-    </div>
-    <div id="benefitStatus" class="benefit-status"><span class="dot"></span><span>Buscando Javi Real para calcular las prestaciones automáticamente…</span></div>
-
-  </section>
-
-  <div id="syncModal" class="sync-modal-backdrop" aria-hidden="true">
-    <div class="sync-modal-card" role="dialog" aria-modal="true" aria-labelledby="syncModalTitle">
-      <div class="sync-modal-head">
-        <div>
-          <div id="syncModalTitle" class="sync-modal-title">Gist y copia de escenarios</div>
-          <div class="sync-modal-subtitle">Guarda, recupera o exporta tus previsiones sin ocupar espacio en el dashboard.</div>
-        </div>
-        <button id="syncCloseBtn" class="sync-close-btn" type="button" aria-label="Cerrar">×</button>
-      </div>
-    <div class="sync-panel">
-      <div class="sync-head">
-        <div>
-          <div class="sync-title">Guardar y recuperar los escenarios</div>
-          <div class="sync-note">Al abrir el dashboard se lee <b>primero el Gist</b> y solo después se compara con la copia local: siempre gana la versión más nueva. Con token, cualquier cambio se sincroniza automáticamente; sin token, el Gist sigue pudiéndose leer desde cualquier dispositivo. El JSON guarda los supuestos, escenarios y también la última fotografía de los cálculos para poder consultarla aunque no esté disponible el motor compartido. El token puede recordarse localmente en este dispositivo si activas la casilla; nunca se guarda en el HTML, Gist ni JSON. El campo está preparado para que Safari/iPadOS pueda ofrecer Autorrellenar desde Contraseñas.</div>
-        </div>
-      </div>
-      <div class="sync-grid">
-        <div class="sync-field">
-          <label for="githubUsername">Cuenta GitHub</label>
-          <input id="githubUsername" class="sync-input" type="text" name="username" autocomplete="username" value="javiap20" readonly aria-readonly="true">
-        </div>
-        <div class="sync-field">
-          <label for="githubToken">Token GitHub</label>
-          <input id="githubToken" class="sync-input" type="password" name="password" autocomplete="current-password" inputmode="text" spellcheck="false" placeholder="github_pat_… / ghp_…">
-          <label class="token-memory-option"><input id="rememberGithubToken" type="checkbox" checked> Recordar en este dispositivo</label>
-        </div>
-        <div class="sync-field">
-          <label>Gist vinculado</label>
-          <div class="sync-input" style="display:flex;align-items:center;color:var(--green);font-weight:700;background:#f4fbf7;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;">✓ bcb12de9d4e6b476062a8d13a676532f</div>
-          <input id="gistId" type="hidden" value="bcb12de9d4e6b476062a8d13a676532f">
-        </div>
-        <button id="saveGistBtn" class="sync-btn primary" type="button">☁ Guardar en Gist</button>
-        <button id="loadGistBtn" class="sync-btn" type="button">↓ Cargar Gist</button>
-        <button id="downloadJsonBtn" class="sync-btn" type="button">↓ Descargar JSON</button>
-        <button id="importJsonBtn" class="sync-btn" type="button">↑ Importar JSON</button>
-        <input id="importJsonInput" type="file" accept="application/json,.json" hidden>
-      </div>
-      <div id="syncStatus" class="sync-status warn"><span class="sync-status-dot"></span><span>Los Gist secretos no aparecen en búsquedas, pero <b>no son privados</b>: cualquiera que conozca su URL puede verlos.</span></div>
-    </div>
-    </div>
-  </div>
-
-  <div id="comparisonModal" class="compare-modal-backdrop" aria-hidden="true">
-    <div class="compare-modal-card" role="dialog" aria-modal="true" aria-labelledby="comparisonModalTitle">
-      <div class="compare-modal-head">
-        <div id="comparisonModalTitle" class="compare-modal-title">Comparativa de escenarios</div>
-        <div class="compare-modal-subtitle">Saldo disponible al cierre de cada año · todos los importes ya incluyen ingresos y gastos de cada escenario.</div>
-        <button id="comparisonCloseBtn" class="sync-close-btn" type="button" aria-label="Cerrar comparativa">×</button>
-      </div>
-      <div class="compare-modal-body">
-        <div id="comparisonFinalGrid" class="compare-final-grid"></div>
-        <div id="comparisonTableWrap" class="compare-table-wrap"><div class="compare-empty">Cargando comparativa…</div></div>
-      </div>
-    </div>
-  </div>
-
-  <section class="panel summary-section">
-    <div class="summary-overview-head">
-      <div>
-        <h2 class="section-title">Resumen de viabilidad financiera</h2>
-        <div class="section-note">Capital, gasto, horizonte y saldo proyectado del escenario seleccionado.</div>
-      </div>
-    </div>
-
-    <div class="dashboard-grid">
-    <div class="summary-inner kpis">
-      <div class="kpi">
-        <div class="kpi-label">Capital inicial</div>
-        <div id="kpiInitial" class="kpi-value">0 €</div>
-        <div class="kpi-sub">Ahorro + finiquito + patrimonio.</div>
-      </div>
-      <div class="kpi">
-        <div id="kpiSpendLabel" class="kpi-label">Gasto primer año</div>
-        <div id="kpiSpend" class="kpi-value">—</div>
-        <div id="kpiSpendSub" class="kpi-sub">Esperando datos de DESPIDO.</div>
-      </div>
-      <div id="kpiRunwayCard" class="kpi">
-        <div class="kpi-label">Horizonte del capital</div>
-        <div id="kpiRunway" class="kpi-value">—</div>
-        <div id="kpiRunwaySub" class="kpi-sub">Completa el escenario.</div>
-      </div>
-      <div id="kpiEndCard" class="kpi">
-        <div class="kpi-label">Saldo al final</div>
-        <div id="kpiEnd" class="kpi-value">—</div>
-        <div id="kpiEndSub" class="kpi-sub">Año 2075.</div>
-      </div>
-    </div>
-
-    <div class="summary-inner chart-panel">
-      <div class="chart-head">
-        <div>
-          <div class="chart-title">Evolución del dinero disponible</div>
-          <div class="chart-caption">Saldo al cierre de cada año</div>
-        </div>
-        <div id="chartMeta" class="section-note"></div>
-      </div>
-      <div id="chart" class="chart-wrap"><div class="chart-empty">La gráfica aparecerá cuando cargue el Excel.</div></div>
-    </div>
-    </div>
-  </section>
-
-  <section class="panel table-panel">
-    <div class="table-header">
-      <div>
-        <h2 class="section-title">Previsión año a año</h2>
-        <div id="tableNote" class="section-note">Desde 2027 hasta 2075.</div>
-      </div>
-      <div class="mini-control" style="min-width:118px;padding:8px 11px">
-        <label for="endYear">Año final</label>
-        <input id="endYear" class="mini-input" type="number" min="2027" max="2120" step="1" value="2075">
-      </div>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Año</th>
-            <th>Edad</th>
-            <th>Dinero disponible</th>
-            <th>Paro / jubilación</th>
-            <th>Gasto real</th>
-            <th>Total</th>
-          </tr>
-        </thead>
-        <tbody id="forecastBody">
-          <tr><td colspan="6" class="empty-row">Cargando finanzas-master.xlsx…</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
-
-  <section class="panel data-details">
-    <details id="expenseDetails">
-      <summary>
-        <span>Gastos que alimentan la previsión</span>
-        <span class="summary-right"><span id="expenseSummary">DESPIDO</span><span class="chev">⌄</span></span>
-      </summary>
-      <div class="details-body">
-        <div id="groupCards" class="group-cards"></div>
-        <div class="expense-table">
-          <table>
-            <thead><tr><th>Activo</th><th>Concepto</th><th>Grupo</th><th>Frecuencia</th><th>Valor Excel</th><th>Valor escenario</th><th>Meses</th><th>Coste anual 2027</th><th></th></tr></thead>
-            <tbody id="expenseBody"><tr><td colspan="9" class="empty-row">Esperando datos.</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </details>
-  </section>
-
-  <footer class="footer">
-    <div>El dashboard no contiene importes del Excel: prioriza <b>../../excel/finanzas-master.xlsx</b> y lee únicamente <b>DESPIDO</b>. Si no está disponible, permite cargar el archivo manualmente. <b>v1.27</b></div>
-    <div>Prestaciones automáticas orientativas con reglas 2026. Desde 2027 la edad ordinaria general es 67 años, o 65 con al menos 38 años y 6 meses cotizados. <a href="https://www.seg-social.es/" target="_blank" rel="noreferrer">Seguridad Social</a></div>
-  </footer>
-</div>
-
-<script>
-(() => {
-  'use strict';
-
-  const HAS_FIN=!!window.JaviFinanceEngine;
-  function createFallbackFinanceEngine(){
-    const parseDate=value=>{
-      if(value instanceof Date && !Number.isNaN(value.getTime())) return new Date(value.getTime());
-      const m=String(value||'').match(/^(\d{4})-(\d{2})(?:-(\d{2}))?/);
-      if(!m) return null;
-      const d=new Date(Number(m[1]),Number(m[2])-1,Number(m[3]||1));
-      return Number.isNaN(d.getTime())?null:d;
-    };
-    const monthStart=value=>{const d=parseDate(value)||new Date(value);return new Date(d.getFullYear(),d.getMonth(),1)};
-    const dateKey=value=>{const d=parseDate(value)||new Date(value);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
-    const monthKey=value=>dateKey(monthStart(value)).slice(0,7);
-    const addMonths=(value,n)=>{const d=monthStart(value);return new Date(d.getFullYear(),d.getMonth()+Number(n||0),1)};
-    const monthDiff=(a,b)=>{const x=monthStart(a),y=monthStart(b);return (y.getFullYear()-x.getFullYear())*12+y.getMonth()-x.getMonth()};
-    const defaultDismissalDate=(now,minKey)=>{const min=parseDate(minKey)||new Date(2027,0,1);const n=monthStart(now||new Date());return n<min?min:n};
-    return {
-      version:'snapshot-only',
-      rules:{referenceYear:2026,unemploymentMonths:24,subsidy52Monthly2026:480,unemploymentMax2026:{'0':1225,'1':1400,'2':1575},unemploymentMin2026:{'0':560,'1':749}},
-      parseDate,monthStart,dateKey,monthKey,addMonths,monthDiff,defaultDismissalDate
-    };
-  }
-  const FIN=window.JaviFinanceEngine || createFallbackFinanceEngine();
-
-  const EXCEL_PATHS = [
-    '../../excel/finanzas-master.xlsx',
-    '../excel/finanzas-master.xlsx',
-    'excel/finanzas-master.xlsx',
-    'finanzas-master.xlsx',
-    '../finanzas-master.xlsx',
-    '../Excel/finanzas-master.xlsx',
-    'Excel/finanzas-master.xlsx'
-  ];
-  const SHEET_NAME = 'DESPIDO';
-  const START_YEAR = 2027;
-  const UNEMPLOYMENT_MONTHS = FIN.rules.unemploymentMonths;
-  const BIRTH_YEAR = 1972;
-  const SUBSIDY52_2026 = FIN.rules.subsidy52Monthly2026;
-  const UNEMPLOYMENT_MAX_2026 = FIN.rules.unemploymentMax2026;
-  const UNEMPLOYMENT_MIN_2026 = FIN.rules.unemploymentMin2026;
-  const DASHBOARD_GIST_FILE = 'dashboard-financiero-casos.json';
-  const DASHBOARD_GIST_STORAGE_KEY = 'dashboard_financiero_gist_id_v1';
-  const DASHBOARD_PENSION_CASES_STORAGE_KEY = 'dashboard_financiero_pension_cases_v1';
-  const CURRENT_YEAR = new Date().getFullYear();
-  const DEFAULT_CURRENT_AGE = CURRENT_YEAR - BIRTH_YEAR;
-  const STORAGE_KEY = 'prevision_independencia_v1';
-  const GIST_FILENAME = 'independencia-financiera.json';
-  const DEFAULT_GIST_ID = 'bcb12de9d4e6b476062a8d13a676532f';
-  const GIST_OWNER = 'javiap20';
-  const GIST_RAW_URL = `https://gist.githubusercontent.com/${GIST_OWNER}/${DEFAULT_GIST_ID}/raw/${GIST_FILENAME}`;
-  const GITHUB_API_VERSION = '2026-03-10';
-  const TOKEN_STORAGE_KEY = 'github_dashboards_token_v1';
-
-  let expenseRecords = [];
-  let excelMeta = { loaded: false, lastModified: null };
-  let currentAgeAuto = true;
-  let savedScenarios = [];
-  let activeScenarioId = 'base';
-  let expenseOverrides = {};
-  let baseAssumptions = null;
-  let scenarioDirty = false;
-  let workingScenarioName = 'Base Excel';
-  let javiRealState = null;
-  let javiRealSource = '';
-  let javiRealLoadError = '';
-  let linkedDashboardGistId = '';
-  let loadedCalculatedSnapshots = {};
-  let localUpdatedAt = '';
-  let gistUpdatedAt = '';
-  let pendingRemoteSync = false;
-  let syncTimer = null;
-  let syncInFlight = false;
-  let isApplyingRemote = false;
-  let isBootstrapping = true;
-
-  const $ = id => document.getElementById(id);
-  const els = {
-    savings:$('savings'), severance:$('severance'), assets:$('assets'), unemployment:$('unemployment'), subsidy:$('subsidy'), dismissalDate:$('dismissalDate'), dismissalAutoBtn:$('dismissalAutoBtn'), dismissalDateHelp:$('dismissalDateHelp'),
-    autoBenefits:$('autoBenefits'), children:$('children'), includeSubsidy52:$('includeSubsidy52'), benefitStatus:$('benefitStatus'), benefitSourceMini:$('benefitSourceMini'),
-    unemploymentCard:$('unemploymentCard'), subsidyCard:$('subsidyCard'), unemploymentChip:$('unemploymentChip'), subsidyChip:$('subsidyChip'), unemploymentHelp:$('unemploymentHelp'), subsidyHelp:$('subsidyHelp'),
-    currentAge:$('currentAge'), expenseInflation:$('expenseInflation'), pension:$('pension'), pensionHelp:$('pensionHelp'), longContribution:$('longContribution'), retirementAgeDisplay:$('retirementAgeDisplay'), retirementAutoNote:$('retirementAutoNote'), manualRetirementControl:$('manualRetirementControl'), endYear:$('endYear'),
-    excelStatus:$('excelStatus'), errorBox:$('errorBox'), retirementNotice:$('retirementNotice'),
-    forecastBody:$('forecastBody'), chart:$('chart'), chartMeta:$('chartMeta'), tableNote:$('tableNote'),
-    expenseBody:$('expenseBody'), groupCards:$('groupCards'), expenseSummary:$('expenseSummary'),
-    kpiInitial:$('kpiInitial'), kpiSpend:$('kpiSpend'), kpiSpendLabel:$('kpiSpendLabel'), kpiSpendSub:$('kpiSpendSub'),
-    kpiRunwayCard:$('kpiRunwayCard'), kpiRunway:$('kpiRunway'), kpiRunwaySub:$('kpiRunwaySub'),
-    kpiEndCard:$('kpiEndCard'), kpiEnd:$('kpiEnd'), kpiEndSub:$('kpiEndSub'), reloadBtn:$('reloadBtn'),
-    manualExcelBtn:$('manualExcelBtn'), manualExcelInput:$('manualExcelInput'),
-    githubToken:$('githubToken'), rememberGithubToken:$('rememberGithubToken'), gistId:$('gistId'), saveGistBtn:$('saveGistBtn'), loadGistBtn:$('loadGistBtn'),
-    downloadJsonBtn:$('downloadJsonBtn'), importJsonBtn:$('importJsonBtn'), importJsonInput:$('importJsonInput'), syncStatus:$('syncStatus'),
-    syncOpenBtn:$('syncOpenBtn'), syncModal:$('syncModal'), syncCloseBtn:$('syncCloseBtn'),
-    scenarioSelect:$('scenarioSelect'), scenarioName:$('scenarioName'), newScenarioBtn:$('newScenarioBtn'), saveScenarioBtn:$('saveScenarioBtn'),
-    resetScenarioBtn:$('resetScenarioBtn'), deleteScenarioBtn:$('deleteScenarioBtn'), compareScenarioBtn:$('compareScenarioBtn'), scenarioMeta:$('scenarioMeta'), expenseDetails:$('expenseDetails'),
-    comparisonModal:$('comparisonModal'), comparisonCloseBtn:$('comparisonCloseBtn'), comparisonFinalGrid:$('comparisonFinalGrid'), comparisonTableWrap:$('comparisonTableWrap'),
-    gistFreshness:$('gistFreshness')
-  };
-
-  // Formato numérico español forzado: punto para millares y coma para decimales.
-  // No dependemos del locale del navegador para que 12000 siempre se vea como 12.000.
-  function parseNumberES(value){
-    if(typeof value==='number') return Number.isFinite(value)?value:0;
-    let s=String(value ?? '').trim();
-    if(!s) return 0;
-    s=s.replace(/\s/g,'').replace(/€/g,'');
-    const neg=s.startsWith('-');
-    if(neg) s=s.slice(1);
-    if(s.includes(',') && s.includes('.')){
-      // Formato español completo: 12.345,67
-      s=s.replace(/\./g,'').replace(',','.');
-    }else if(s.includes(',')){
-      // Coma decimal: 12345,67
-      s=s.replace(',','.');
-    }else if(/^\d{1,3}(?:\.\d{3})+$/.test(s)){
-      // Puntos usados como separador de millares: 12.345 / 1.234.567
-      s=s.replace(/\./g,'');
-    }
-    const n=Number((neg?'-':'')+s);
-    return Number.isFinite(n)?n:0;
-  }
-
-  function groupedIntegerES(value){
-    const n=Math.round(Math.abs(parseNumberES(value)));
-    return String(n).replace(/\B(?=(\d{3})+(?!\d))/g,'.');
-  }
-
-  function formatNumberES(value,maxDecimals=0){
-    const n=parseNumberES(value);
-    const neg=n<0?'-':'';
-    const abs=Math.abs(n);
-    const fixed=abs.toFixed(maxDecimals);
-    let [integer,decimals='']=fixed.split('.');
-    integer=integer.replace(/\B(?=(\d{3})+(?!\d))/g,'.');
-    if(maxDecimals){
-      decimals=decimals.replace(/0+$/,'');
-      return `${neg}${integer}${decimals?','+decimals:''}`;
-    }
-    return `${neg}${integer}`;
-  }
-
-  const euro0 = {format:value=>`${formatNumberES(value,0)} €`};
-  const euro2 = {format:value=>`${formatNumberES(value,2)} €`};
-  const num = v => parseNumberES(v);
-  const MONEY_INPUT_IDS=['savings','severance','assets','unemployment','subsidy','pension'];
-
-  function formatMoneyInput(el){
-    if(!el || el.value==='') return;
-    const n=Math.max(0,num(el.value));
-    el.value=groupedIntegerES(n);
-  }
-
-  function formatMoneyInputLive(el){
-    if(!el) return;
-    const digits=String(el.value||'').replace(/\D/g,'').replace(/^0+(?=\d)/,'');
-    el.value=digits?digits.replace(/\B(?=(\d{3})+(?!\d))/g,'.'):'';
-  }
-
-  function formatAllMoneyInputs(){
-    MONEY_INPUT_IDS.forEach(id=>formatMoneyInput(els[id]));
-  }
-  const esc = v => String(v ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
-  const isActive = v => v === true || v === 1 || ['1','true','sí','si','yes','activo'].includes(String(v ?? '').trim().toLowerCase());
-  const clean = v => String(v ?? '').trim();
-  const frequencyLabel = f => ({mensual:'Mensual',semanal:'Semanal',anual:'Por meses'}[clean(f).toLowerCase()] || clean(f) || '—');
-  const groupLabel = g => ({gastosFijos:'Gastos fijos',gastosVacaciones:'Vacaciones'}[clean(g)] || clean(g) || 'Otros');
-
-  function monthCount(months){
-    if (months === null || months === undefined || clean(months) === '') return 1;
-    return new Set(clean(months).split('|').map(x=>x.trim()).filter(Boolean)).size || 1;
-  }
-
-  function annualize(record){
-    const value = num(record.valor_base);
-    const f = clean(record.frecuencia).toLowerCase();
-    if (f === 'mensual') return value * 12;
-    if (f === 'semanal') return value * 52;
-    if (f === 'anual') return value * monthCount(record.meses);
-    return value;
-  }
-
-  function keyFor(record, index){
-    return clean(record.id) || `${clean(record.grupo)}__${clean(record.concepto)}__${index}`;
-  }
-
-  function baseRecordsForYear(year){
-    const grouped = new Map();
-    expenseRecords.forEach((r,index)=>{
-      const y = Number(r.ano_base);
-      if (Number.isFinite(y) && y > year) return;
-      const key = keyFor(r,index);
-      const current = grouped.get(key);
-      const currentYear = current ? Number(current.ano_base) || -Infinity : -Infinity;
-      const rowYear = Number.isFinite(y) ? y : -Infinity;
-      if (!current || rowYear >= currentYear) grouped.set(key,{...r,__key:key});
-    });
-    return [...grouped.values()];
-  }
-
-  function effectiveRecord(record){
-    const key=record.__key || clean(record.id);
-    const ov=expenseOverrides[key];
-    if(!ov) return {...record};
-    return {
-      ...record,
-      valor_base:Object.prototype.hasOwnProperty.call(ov,'value') ? ov.value : record.valor_base,
-      activo:Object.prototype.hasOwnProperty.call(ov,'active') ? ov.active : record.activo
-    };
-  }
-
-  function recordsForYear(year){
-    return baseRecordsForYear(year).map(effectiveRecord).filter(r=>isActive(r.activo));
-  }
-
-  function expensesForYear(year){
-    return recordsForYear(year).reduce((sum,r)=>sum+annualize(r),0);
-  }
-
-  function baseExpensesForYear(year){
-    return baseRecordsForYear(year).filter(r=>isActive(r.activo)).reduce((sum,r)=>sum+annualize(r),0);
-  }
-
-  function normalizeGistId(value){
-    const text=clean(value).replace(/\/+$/,'');
-    if(!text) return '';
-    const tail=text.includes('/')?text.split('/').pop():text;
-    return tail.split('?')[0].split('#')[0];
-  }
-
-  function monthStart(date){return FIN.monthStart(date)}
-  function monthKey(date){return FIN.monthKey(date)}
-  function addMonths(date,n){return FIN.addMonths(date,n)}
-  function monthDiff(a,b){return FIN.monthDiff(a,b)}
-  function parseIsoDate(value){return FIN.parseDate(value)}
-  function automaticDismissalDate(){return FIN.defaultDismissalDate(new Date(),`${START_YEAR}-01-01`)}
-  function normalizedDismissalDate(value){
-    const min=FIN.parseDate(`${START_YEAR}-01-01`),d=FIN.parseDate(value)||automaticDismissalDate();
-    const m=FIN.monthStart(d);return m<min?min:m;
-  }
-  function dismissalDateValue(value){return FIN.dateKey(normalizedDismissalDate(value))}
-
-  function sharedPensionCaseFromPayload(payload){
-    const cases=Array.isArray(payload?.pensionCases)?payload.pensionCases:[];
-    const item=cases.find(c=>clean(c?.name).toLocaleLowerCase('es-ES')==='javi real') || cases[0] || null;
-    return item?.state && typeof item.state==='object' ? item.state : null;
-  }
-  function normalizeSharedPensionState(raw){return HAS_FIN&&raw&&typeof raw==='object'?FIN.normalizePensionState(raw):null}
-
-  function readJaviRealFromLocalStorage(){
-    try{
-      const raw=localStorage.getItem(DASHBOARD_PENSION_CASES_STORAGE_KEY); if(!raw) return null;
-      const parsed=JSON.parse(raw); const arr=Array.isArray(parsed)?parsed:(Array.isArray(parsed?.cases)?parsed.cases:[]);
-      const item=arr.find(c=>clean(c?.name).toLocaleLowerCase('es-ES')==='javi real') || arr[0];
-      return normalizeSharedPensionState(item?.state);
-    }catch(e){ return null; }
-  }
-  async function loadJaviRealData(){
-    javiRealLoadError='';
-    if(!HAS_FIN){javiRealState=null;javiRealSource='';javiRealLoadError='motor financiero no disponible';return false;}
-    const storedId=(()=>{try{return normalizeGistId(localStorage.getItem(DASHBOARD_GIST_STORAGE_KEY)||'')}catch(e){return ''}})();
-    const candidates=[linkedDashboardGistId,storedId,DEFAULT_GIST_ID].map(normalizeGistId).filter((v,i,a)=>v&&a.indexOf(v)===i);
-    for(const id of candidates){
-      try{
-        const url=`https://gist.githubusercontent.com/${GIST_OWNER}/${id}/raw/${DASHBOARD_GIST_FILE}?t=${Date.now()}`;
-        const res=await fetch(url,{cache:'no-store'}); if(!res.ok) throw new Error(`HTTP ${res.status}`);
-        const payload=JSON.parse(await res.text()); const state=normalizeSharedPensionState(sharedPensionCaseFromPayload(payload));
-        if(!state) throw new Error('sin escenario Javi Real');
-        javiRealState=state;javiRealSource='Gist del Dashboard';linkedDashboardGistId=id;
-        try{localStorage.setItem(DASHBOARD_GIST_STORAGE_KEY,id)}catch(e){}
-        render(); return true;
-      }catch(err){ javiRealLoadError=err?.message||String(err); }
-    }
-    const localState=readJaviRealFromLocalStorage();
-    if(localState){javiRealState=localState;javiRealSource='Dashboard local';render();return true;}
-    javiRealState=null;javiRealSource='';render();return false;
-  }
-  function monthlyBasesForYear(p,year){return FIN.monthlyBasesForYear(p,year)}
-  function annualAverageFromMonthly(p,year){return FIN.annualAverageFromMonthly(p,year)}
-  function projectedWorkBaseForMonth(p,date){return FIN.projectedWorkBaseForMonth(p,date,new Date())}
-  function unemploymentBaseFromJaviReal(p,dismissalDate){return FIN.unemploymentBase(p,dismissalDate,new Date())}
-  function unemploymentGrossForMonth(baseReg,index,children){return FIN.unemploymentGrossForMonth(baseReg,index,children)}
-  function sharedContributionAnchor(p){
-    const report=FIN.parseDate(p?.lifeSummary?.asOf),hasCurrent=(p?.lifeHistory||[]).some(x=>!x?.end);return report&&hasCurrent?FIN.monthStart(report):FIN.monthStart(new Date());
-  }
-  function contributionMonthsAtDismissal(p,dismissalDate){return FIN.contributionMonthsAtSimulationDate(p,dismissalDate,new Date())}
-  function retirementDateForAge(p,age){return FIN.retirementDate(p,age)}
-  function contributionMonthsAtDateAfterLayoff(p,dismissalDate,date,includeSubsidy){return FIN.layoffContributionMonthsAt(p,dismissalDate,date,includeSubsidy,new Date())}
-  function automaticRetirementAge(p,dismissalDate,includeSubsidy){return FIN.ordinaryAgeAfterLayoff(p,dismissalDate,includeSubsidy,new Date())}
-
-  function benefitsPlan(input){
-    const dismissalDate=normalizedDismissalDate(input.dismissalDate);
-    const auto=!!input.autoBenefits&&!!javiRealState;
-    if(!auto){
-      const retirementAge=input.longContribution?65:67;
-      const retirementDate=new Date(BIRTH_YEAR+retirementAge,0,1);
-      const pensionMonthly14=Math.max(0,num(input.pension));
-      return {auto:false,dismissalDate,retirementAge,retirementDate,unemploymentBase:null,unemploymentFirst6:input.unemployment,unemploymentRest:input.unemployment,unemploymentAverage:input.unemployment,unemploymentEnd:addMonths(dismissalDate,UNEMPLOYMENT_MONTHS),subsidyStart:addMonths(dismissalDate,UNEMPLOYMENT_MONTHS),subsidyMonthly:input.subsidy,pensionMonthly14,pensionEquivalent12:pensionMonthly14*14/12,pension:null};
-    }
-    const shared=FIN.calculateLayoffPlan(javiRealState,dismissalDate,{children:input.children,includeSubsidy52:input.includeSubsidy52},new Date());
-    if(shared?.error)return {auto:false,error:shared.error,dismissalDate,retirementAge:input.longContribution?65:67,retirementDate:new Date(BIRTH_YEAR+(input.longContribution?65:67),0,1),unemploymentBase:null,unemploymentFirst6:input.unemployment,unemploymentRest:input.unemployment,unemploymentAverage:input.unemployment,unemploymentEnd:addMonths(dismissalDate,UNEMPLOYMENT_MONTHS),subsidyStart:addMonths(dismissalDate,UNEMPLOYMENT_MONTHS),subsidyMonthly:input.subsidy,pensionMonthly14:input.pension,pensionEquivalent12:input.pension*14/12,pension:null};
-    // El subsidio +52 se mantiene como importe manual: usamos el valor introducido
-    // por el usuario y no la proyeccion del motor con IPC. Paro y pension siguen siendo automaticos.
-    return {...shared,auto:true,subsidyMonthly:Math.max(0,num(input.subsidy)),pensionMonthly14:shared.pension.monthly,pensionEquivalent12:shared.pension.equivalent12};
-  }
-
-  function benefitIncomeForYear(year,input,planOverride=null){
-    const plan=planOverride||benefitsPlan(input),types=new Map();let amount=0;
-    for(let m=0;m<12;m++){
-      const date=new Date(year,m,1);let part={type:'none',label:'Sin ingreso',amount:0};
-      if(date<plan.dismissalDate)continue;
-      if(plan.auto){
-        part=FIN.incomeForMonth(plan,date);
-        if(part?.type==='subsidy') part={...part,amount:Math.max(0,num(input.subsidy))};
-      }
-      else if(date>=plan.retirementDate){part={type:'pension',label:'Jubilación',amount:plan.pensionEquivalent12};}
-      else{
-        const idx=monthDiff(plan.dismissalDate,date);
-        if(idx>=0&&idx<UNEMPLOYMENT_MONTHS)part={type:'paro',label:'Paro',amount:input.unemployment};
-        else if(idx>=UNEMPLOYMENT_MONTHS&&input.includeSubsidy52)part={type:'subsidy',label:'Subsidio +52',amount:input.subsidy};
-      }
-      if(part.amount>0){amount+=part.amount;types.set(part.type,{type:part.type,label:part.label,amount:(types.get(part.type)?.amount||0)+part.amount});}
-    }
-    if(!types.size)return {type:'none',label:'Sin ingreso',amount:0,parts:[]};
-    const parts=[...types.values()],priority=['paro','subsidy','pension'];parts.sort((a,b)=>priority.indexOf(a.type)-priority.indexOf(b.type));
-    return {type:parts.length===1?parts[0].type:'mixed',label:parts.map(x=>x.label).join(' + '),amount,parts};
-  }
-
-  function renderBenefitsUi(input,planOverride=null){
-    const plan=planOverride||benefitsPlan(input),auto=plan.auto;
-    els.unemployment.readOnly=auto;
-    // El +52 es siempre editable: solo el paro y la pension dependen del calculo automatico.
-    els.subsidy.readOnly=false;
-    els.pension.readOnly=auto;
-    els.unemploymentCard.classList.toggle('auto-source',auto);
-    els.subsidyCard.classList.toggle('auto-source',false);
-    els.subsidyCard.classList.toggle('manual-source',true);
-    els.unemploymentCard.classList.toggle('manual-source',!!input.autoBenefits&&!auto);
-    els.dismissalAutoBtn.classList.toggle('active',input.dismissalDateAuto!==false);
-    const dismissalText=plan.dismissalDate.toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'});
-    els.dismissalDateHelp.textContent=`Cálculo mensual desde ${dismissalText}${input.dismissalDateAuto!==false?' · fecha automática':' · fecha fijada en este escenario'}.`;
-    if(auto){
-      els.unemployment.value=groupedIntegerES(plan.unemploymentAverage);
-      els.subsidy.value=groupedIntegerES(input.subsidy);
-      els.pension.value=groupedIntegerES(plan.pensionMonthly14);
-    }
-    els.unemploymentChip.textContent=auto?'Auto · 24 meses':'Manual · 24 meses';
-    els.subsidyChip.textContent='Manual · +52';
-    if(auto){
-      const max=UNEMPLOYMENT_MAX_2026[String(input.children)]??UNEMPLOYMENT_MAX_2026[0];
-      els.unemploymentHelp.textContent=`1-6: ${euro0.format(plan.unemploymentFirst6)}/mes · 7-24: ${euro0.format(plan.unemploymentRest)}/mes · tope ${euro0.format(max)}`;
-      els.subsidyHelp.textContent=input.includeSubsidy52?`${euro0.format(plan.subsidyMonthly)}/mes desde ${plan.subsidyStart.toLocaleDateString('es-ES',{month:'long',year:'numeric'})} · importe manual, sin IPC`:'No contado en este escenario.';
-      els.pensionHelp.textContent=`Por paga · 14 pagas · equiv. ${euro0.format(plan.pensionEquivalent12)}/mes en 12 · ${plan.retirementDate.toLocaleDateString('es-ES',{month:'long',year:'numeric'})}`;
-      els.benefitSourceMini.innerHTML=`<b>Javi Real</b> · ${esc(javiRealSource)} · motor ${esc(FIN.version)}`;
-      els.benefitStatus.classList.remove('warn');
-      els.benefitStatus.querySelector('span:last-child').textContent=`Automático · despido ${dismissalText} · paro con base ${euro0.format(plan.unemploymentBase)}/mes · pensión estimada ${euro0.format(plan.pensionMonthly14)}/paga · jubilación ${plan.retirementDate.toLocaleDateString('es-ES',{month:'long',year:'numeric'})} (${plan.retirementAge} años).`;
-      els.retirementAutoNote.innerHTML=`<span>Automática con cotización real + paro${input.includeSubsidy52?' + subsidio +52':''}.</span>`;
-      els.manualRetirementControl.classList.add('hidden');
-    }else{
-      els.unemploymentHelp.textContent=input.autoBenefits?'No he encontrado Javi Real: usa el importe manual guardado como respaldo.':'Importe manual para los primeros 24 meses.';
-      els.subsidyHelp.textContent=input.includeSubsidy52?'Importe manual desde el final del paro hasta la jubilación.':'No contado en este escenario.';
-      els.pensionHelp.textContent='Importe manual por paga · la previsión supone 14 pagas.';
-      els.benefitSourceMini.textContent=input.autoBenefits?'Javi Real no disponible':'Modo manual';
-      els.benefitStatus.classList.add('warn');
-      els.benefitStatus.querySelector('span:last-child').textContent=input.autoBenefits?'No he podido enlazar Javi Real automáticamente. La previsión sigue funcionando con importes manuales.':'Modo manual: tú controlas paro, subsidio, pensión y el requisito de jubilación.';
-      els.retirementAutoNote.innerHTML='<span>Respaldo manual: marca el requisito de 38 años y 6 meses.</span>';
-      els.manualRetirementControl.classList.remove('hidden');
-    }
-    els.retirementAgeDisplay.textContent=`${plan.retirementAge} años`;
-    els.longContribution.checked=plan.retirementAge===65;
-  }
-
-  function getInputs(){
-    const dismissalAuto=els.dismissalAutoBtn.classList.contains('active');
-    const dismissalDate=dismissalAuto?FIN.dateKey(automaticDismissalDate()):dismissalDateValue(els.dismissalDate.value);
-    const input={
-      savings:num(els.savings.value),severance:num(els.severance.value),assets:num(els.assets.value),unemployment:num(els.unemployment.value),subsidy:num(els.subsidy.value),
-      dismissalDate,dismissalDateAuto:dismissalAuto,autoBenefits:!!els.autoBenefits.checked,children:String(els.children.value||'0'),includeSubsidy52:!!els.includeSubsidy52.checked,
-      currentAge:els.currentAge.value===''?null:num(els.currentAge.value),expenseInflation:Math.max(0,Math.min(20,num(els.expenseInflation.value))),pension:num(els.pension.value),longContribution:!!els.longContribution.checked,retirementAge:els.longContribution.checked?65:67,
-      endYear:Math.min(2120,Math.max(normalizedDismissalDate(dismissalDate).getFullYear(),Math.trunc(num(els.endYear.value)||2075)))
-    };
-    const plan=benefitsPlan(input);input.retirementAge=plan.retirementAge;input.longContribution=plan.retirementAge===65;
-    if(plan.auto){input.unemployment=plan.unemploymentAverage;input.pension=plan.pensionMonthly14;}
-    input.subsidy=Math.max(0,num(input.subsidy));
-    input.pensionEquivalent12=plan.pensionEquivalent12;
-    return input;
-  }
-
-  function cloneJson(value){
-    return JSON.parse(JSON.stringify(value ?? null));
-  }
-
-  function defaultAssumptions(){
-    return {savings:0,severance:0,assets:0,unemployment:0,subsidy:SUBSIDY52_2026,subsidyManual:true,dismissalDate:FIN.dateKey(automaticDismissalDate()),dismissalDateAuto:true,autoBenefits:true,children:'0',includeSubsidy52:true,currentAge:DEFAULT_CURRENT_AGE,currentAgeAuto:true,expenseInflation:2,pension:0,longContribution:false,retirementAge:67,endYear:2075};
-  }
-
-  function assumptionsFromUI(){
-    return {...getInputs(),currentAgeAuto};
-  }
-
-  function applyAssumptions(a){
-    const source=a||{};
-    const x={...defaultAssumptions(),...source};
-    // Migración: versiones anteriores podían guardar el +52 ya inflado por IPC.
-    // Si el escenario no tiene la nueva marca manual, volvemos al importe actual.
-    if(!Object.prototype.hasOwnProperty.call(source,'subsidyManual')){
-      x.subsidy=SUBSIDY52_2026;
-      x.subsidyManual=true;
-    }
-    els.savings.value=x.savings ?? 0;
-    els.severance.value=x.severance ?? 0;
-    els.assets.value=x.assets ?? 0;
-    els.unemployment.value=x.unemployment ?? 0;
-    els.subsidy.value=x.subsidy ?? SUBSIDY52_2026;
-    const autoDate=x.dismissalDateAuto!==false;els.dismissalAutoBtn.classList.toggle('active',autoDate);els.dismissalDate.value=autoDate?FIN.dateKey(automaticDismissalDate()):dismissalDateValue(x.dismissalDate);
-    els.autoBenefits.checked=x.autoBenefits!==false;
-    els.children.value=['0','1','2'].includes(String(x.children))?String(x.children):'0';
-    els.includeSubsidy52.checked=x.includeSubsidy52!==false;
-    els.expenseInflation.value=Number.isFinite(Number(x.expenseInflation))?Number(x.expenseInflation):2;
-    els.pension.value=x.pension ?? 0;
-    els.endYear.value=x.endYear ?? 2075;
-    if(Object.prototype.hasOwnProperty.call(x,'longContribution')) els.longContribution.checked=!!x.longContribution;
-    else els.longContribution.checked=num(x.retirementAge)===65;
-    currentAgeAuto=x.currentAgeAuto!==false;
-    els.currentAge.value=currentAgeAuto ? DEFAULT_CURRENT_AGE : (x.currentAge ?? DEFAULT_CURRENT_AGE);
-    formatAllMoneyInputs();
-  }
-
-  function activeScenario(){
-    return savedScenarios.find(s=>s.id===activeScenarioId) || null;
-  }
-
-  function scenarioOverrideCount(){
-    return Object.keys(expenseOverrides||{}).length;
-  }
-
-  function persistState(){
-    try{
-      if(!localUpdatedAt) localUpdatedAt=new Date().toISOString();
-      localStorage.setItem(STORAGE_KEY,JSON.stringify({
-        stateVersion:7,
-        updatedAt:localUpdatedAt || new Date().toISOString(),
-        gistUpdatedAt:gistUpdatedAt || '',
-        gistId:normalizeGistId(els.gistId.value),
-        calculatedSnapshots:cloneJson(loadedCalculatedSnapshots)||{},
-        linkedDashboardGistId:normalizeGistId(linkedDashboardGistId),
-        baseAssumptions:cloneJson(baseAssumptions || assumptionsFromUI()),
-        scenarios:cloneJson(savedScenarios),
-        activeScenarioId,
-        working:{
-          activeScenarioId,
-          name:workingScenarioName,
-          assumptions:assumptionsFromUI(),
-          expenseOverrides:cloneJson(expenseOverrides),
-          dirty:scenarioDirty
-        }
-      }));
-    }catch(e){}
-  }
-
-  function saveInputs(){
-    if(activeScenarioId==='base') baseAssumptions=assumptionsFromUI();
-    persistState();
-  }
-
-  function readLocalState(){
-    try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'null')}catch(e){return null}
-  }
-
-  function timestampMs(value){
-    const t=Date.parse(value||'');return Number.isFinite(t)?t:0;
-  }
-
-  function scheduleGistSync(delay=850){
-    if(isApplyingRemote||isBootstrapping) return;
-    clearTimeout(syncTimer);
-    if(!clean(els.githubToken?.value)){
-      pendingRemoteSync=true;
-      updateGistFreshness(gistUpdatedAt||localUpdatedAt,'pending');
-      return;
-    }
-    syncTimer=setTimeout(()=>saveToGist({auto:true}),delay);
-  }
-
-  function markDataChanged(){
-    if(isApplyingRemote||isBootstrapping) return;
-    localUpdatedAt=new Date().toISOString();
-    pendingRemoteSync=true;
-    persistState();
-    updateGistFreshness(gistUpdatedAt||localUpdatedAt,'pending');
-    scheduleGistSync();
-  }
-
-  function legacyAssumptions(data){
-    const a=defaultAssumptions();
-    if(data.dismissalDate){a.dismissalDate=dismissalDateValue(data.dismissalDate);a.dismissalDateAuto=data.dismissalDateAuto!==false;}
-    ['savings','severance','assets','unemployment','subsidy','expenseInflation','pension','endYear'].forEach(k=>{
-      if(data[k]!==null && data[k]!==undefined && data[k]!=='') a[k]=num(data[k]);
-    });
-    if(Object.prototype.hasOwnProperty.call(data,'longContribution')) a.longContribution=!!data.longContribution;
-    else if(Object.prototype.hasOwnProperty.call(data,'retirementAge')) a.longContribution=num(data.retirementAge)===65;
-    a.retirementAge=a.longContribution?65:67;
-    if(data.currentAgeAuto===false && data.currentAge!==null && data.currentAge!==undefined && data.currentAge!==''){
-      a.currentAgeAuto=false;a.currentAge=num(data.currentAge);
-    }else if(data.age2027!==null && data.age2027!==undefined && data.age2027!==''){
-      a.currentAgeAuto=false;a.currentAge=Math.max(18,num(data.age2027)-(START_YEAR-CURRENT_YEAR));
-    }else{
-      a.currentAgeAuto=true;a.currentAge=DEFAULT_CURRENT_AGE;
-    }
-    return a;
-  }
-
-  function loadInputs(){
-    let data={};
-    try{ data=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}')||{}; }catch(e){}
-    localUpdatedAt=clean(data.updatedAt)||localUpdatedAt;
-    gistUpdatedAt=clean(data.gistUpdatedAt)||gistUpdatedAt;
-    loadedCalculatedSnapshots=(data.calculatedSnapshots&&typeof data.calculatedSnapshots==='object')?cloneJson(data.calculatedSnapshots):loadedCalculatedSnapshots;
-    els.gistId.value=DEFAULT_GIST_ID;
-    linkedDashboardGistId=normalizeGistId(data.linkedDashboardGistId||linkedDashboardGistId);
-
-    if(num(data.stateVersion)>=3){
-      baseAssumptions={...defaultAssumptions(),...(data.baseAssumptions||{})};
-      savedScenarios=Array.isArray(data.scenarios)?data.scenarios.filter(x=>x&&x.id&&x.name):[];
-      activeScenarioId=data.activeScenarioId==='base'||savedScenarios.some(x=>x.id===data.activeScenarioId)?data.activeScenarioId:'base';
-      const working=data.working && data.working.activeScenarioId===activeScenarioId ? data.working : null;
-      if(activeScenarioId==='base'){
-        workingScenarioName='Base Excel';
-        expenseOverrides={};
-        scenarioDirty=false;
-        applyAssumptions(working?.assumptions || baseAssumptions);
-        baseAssumptions=assumptionsFromUI();
-      }else{
-        const sc=activeScenario();
-        workingScenarioName=clean(working?.name)||sc.name;
-        expenseOverrides=cloneJson(working?.expenseOverrides ?? sc.expenseOverrides ?? {}) || {};
-        scenarioDirty=!!working?.dirty;
-        applyAssumptions(working?.assumptions || sc.assumptions || baseAssumptions);
-      }
-      renderScenarioControls();
-      return;
-    }
-
-    baseAssumptions=legacyAssumptions(data);
-    savedScenarios=[];
-    activeScenarioId='base';
-    expenseOverrides={};
-    scenarioDirty=false;
-    workingScenarioName='Base Excel';
-    applyAssumptions(baseAssumptions);
-    renderScenarioControls();
-  }
-
-  function markScenarioDirty(){
-    if(activeScenarioId!=='base') scenarioDirty=true;
-    markDataChanged();
-  }
-
-  function uniqueScenarioName(){
-    let n=1;
-    const names=new Set(savedScenarios.map(s=>clean(s.name).toLowerCase()));
-    while(names.has(`previsión ${n}`)) n++;
-    return `Previsión ${n}`;
-  }
-
-  function renderScenarioControls(){
-    if(!els.scenarioSelect) return;
-    els.scenarioSelect.innerHTML=`<option value="base">Base Excel · sin ajustes</option>`+savedScenarios.map(s=>`<option value="${esc(s.id)}">${esc(s.name)}</option>`).join('');
-    els.scenarioSelect.value=activeScenarioId;
-    const isBase=activeScenarioId==='base';
-    els.scenarioName.disabled=isBase;
-    els.scenarioName.value=isBase?'Base Excel':workingScenarioName;
-    els.saveScenarioBtn.disabled=isBase;
-    els.resetScenarioBtn.disabled=isBase || scenarioOverrideCount()===0;
-    els.deleteScenarioBtn.disabled=isBase;
-    els.compareScenarioBtn.disabled=!excelMeta.loaded || savedScenarios.length===0;
-    els.compareScenarioBtn.title=savedScenarios.length===0?'Crea al menos un escenario para comparar':'Comparar Base Excel y todos los escenarios guardados';
-    const adjustments=scenarioOverrideCount();
-    const chips=[];
-    chips.push(`<span class="scenario-chip ${isBase?'base':''}">${isBase?'BASE · Excel intacto':`${adjustments} ajuste${adjustments===1?'':'s'} de gasto`}</span>`);
-    if(!isBase && scenarioDirty) chips.push('<span class="scenario-chip dirty">Cambios sin guardar</span>');
-    if(excelMeta.loaded){
-      const ey=projectionStartYear(getInputs()),base=baseExpensesForYear(ey), current=expensesForYear(ey), saving=base-current;
-      if(!isBase && Math.abs(saving)>=.5){
-        chips.push(`<span class="scenario-chip ${saving>0?'good':'bad'}">${saving>0?'Ahorro':'Sobrecoste'} ${euro0.format(Math.abs(saving))}/año vs Excel</span>`);
-      }else if(!isBase){
-        chips.push('<span class="scenario-chip">Mismo gasto anual que Excel</span>');
-      }
-    }
-    els.scenarioMeta.innerHTML=chips.join('');
-  }
-
-  function loadScenario(id){
-    if(id==='base'){
-      activeScenarioId='base';
-      workingScenarioName='Base Excel';
-      expenseOverrides={};
-      scenarioDirty=false;
-      applyAssumptions(baseAssumptions || defaultAssumptions());
-    }else{
-      const sc=savedScenarios.find(x=>x.id===id);
-      if(!sc) return;
-      activeScenarioId=id;
-      workingScenarioName=sc.name;
-      expenseOverrides=cloneJson(sc.expenseOverrides||{}) || {};
-      scenarioDirty=false;
-      applyAssumptions(sc.assumptions || baseAssumptions || defaultAssumptions());
-    }
-    render();
-  }
-
-  function createScenario(){
-    const now=new Date().toISOString();
-    const sc={
-      id:`esc_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,6)}`,
-      name:uniqueScenarioName(),
-      assumptions:cloneJson(assumptionsFromUI()),
-      expenseOverrides:{},
-      createdAt:now,
-      updatedAt:now
-    };
-    savedScenarios.push(sc);
-    activeScenarioId=sc.id;
-    workingScenarioName=sc.name;
-    expenseOverrides={};
-    scenarioDirty=false;
-    markDataChanged();
-    render();
-    if(els.expenseDetails){els.expenseDetails.open=true;els.expenseDetails.scrollIntoView({behavior:'smooth',block:'start'});}
-  }
-
-  function saveActiveScenario(){
-    if(activeScenarioId==='base') return;
-    const sc=activeScenario();
-    if(!sc) return;
-    const name=clean(workingScenarioName)||sc.name||'Previsión';
-    workingScenarioName=name;
-    sc.name=name;
-    sc.assumptions=cloneJson(assumptionsFromUI());
-    sc.expenseOverrides=cloneJson(expenseOverrides)||{};
-    sc.updatedAt=new Date().toISOString();
-    scenarioDirty=false;
-    markDataChanged();
-    renderScenarioControls();
-  }
-
-  function deleteActiveScenario(){
-    if(activeScenarioId==='base') return;
-    const sc=activeScenario();
-    if(!sc) return;
-    if(!confirm(`¿Eliminar el escenario “${sc.name}”?`)) return;
-    savedScenarios=savedScenarios.filter(x=>x.id!==activeScenarioId);
-    activeScenarioId='base';workingScenarioName='Base Excel';expenseOverrides={};scenarioDirty=false;
-    applyAssumptions(baseAssumptions||defaultAssumptions());
-    markDataChanged();
-    render();
-  }
-
-  function resetScenarioExpenses(){
-    if(activeScenarioId==='base'||!scenarioOverrideCount()) return;
-    expenseOverrides={};
-    scenarioDirty=true;
-    markDataChanged();
-    render();
-  }
-
-  function updateExpenseOverride(key,patch){
-    if(activeScenarioId==='base') return;
-    const base=baseRecordsForYear(projectionStartYear(getInputs())).find(r=>r.__key===key);
-    if(!base) return;
-    const next={...(expenseOverrides[key]||{})};
-    Object.assign(next,patch);
-    const baseValue=num(base.valor_base), baseActive=isActive(base.activo);
-    if(Object.prototype.hasOwnProperty.call(next,'value') && Math.abs(num(next.value)-baseValue)<0.000001) delete next.value;
-    if(Object.prototype.hasOwnProperty.call(next,'active') && !!next.active===baseActive) delete next.active;
-    if(Object.keys(next).length) expenseOverrides[key]=next; else delete expenseOverrides[key];
-    scenarioDirty=true;
-    markDataChanged();
-    render();
-  }
-
-  function resetExpenseOverride(key){
-    if(activeScenarioId==='base'||!expenseOverrides[key]) return;
-    delete expenseOverrides[key];
-    scenarioDirty=true;
-    markDataChanged();
-    render();
-  }
-
-  function ageForYear(year,input){
-    return input.currentAge === null ? null : input.currentAge + (year - CURRENT_YEAR);
-  }
-
-  function projectionStartDate(input){return normalizedDismissalDate(input.dismissalDate)}
-  function projectionStartYear(input){return projectionStartDate(input).getFullYear()}
-  function activeMonthsForYear(year,input){
-    const start=projectionStartDate(input);if(year<start.getFullYear())return 0;if(year>start.getFullYear())return 12;return 12-start.getMonth();
-  }
-  function expenseInflationRate(input){
-    const rate=num(input?.expenseInflation);
-    return Number.isFinite(rate)&&rate>=0?rate/100:0.02;
-  }
-  function inflatedAnnualExpense(baseAnnual,year,input){
-    const startYear=projectionStartYear(input);
-    const yearsFromStart=Math.max(0,year-startYear);
-    return baseAnnual*Math.pow(1+expenseInflationRate(input),yearsFromStart);
-  }
-  function proratedExpense(fullAnnual,year,input){return inflatedAnnualExpense(fullAnnual,year,input)*(activeMonthsForYear(year,input)/12)}
-
-  function incomeFor(year,input,planOverride=null){ return benefitIncomeForYear(year,input,planOverride); }
-
-  function comparisonInput(assumptions){
-    const x={...defaultAssumptions(),...(assumptions||{})};
-    x.savings=num(x.savings);x.severance=num(x.severance);x.assets=num(x.assets);x.unemployment=num(x.unemployment);x.subsidy=num(x.subsidy);x.expenseInflation=Math.max(0,Math.min(20,num(x.expenseInflation)));x.pension=num(x.pension);
-    x.dismissalDateAuto=x.dismissalDateAuto!==false;x.dismissalDate=x.dismissalDateAuto?FIN.dateKey(automaticDismissalDate()):dismissalDateValue(x.dismissalDate);
-    x.autoBenefits=x.autoBenefits!==false;x.children=['0','1','2'].includes(String(x.children))?String(x.children):'0';x.includeSubsidy52=x.includeSubsidy52!==false;
-    x.currentAge=x.currentAgeAuto===false?(x.currentAge===null?null:num(x.currentAge)):DEFAULT_CURRENT_AGE;x.longContribution=!!x.longContribution;x.retirementAge=x.longContribution?65:67;
-    const plan=benefitsPlan(x);x.retirementAge=plan.retirementAge;x.longContribution=plan.retirementAge===65;if(plan.auto){x.unemployment=plan.unemploymentAverage;x.pension=plan.pensionMonthly14;}x.subsidy=Math.max(0,num(x.subsidy));x.pensionEquivalent12=plan.pensionEquivalent12;
-    x.endYear=Math.min(2120,Math.max(projectionStartYear(x),Math.trunc(num(x.endYear)||2075)));return x;
-  }
-
-  function comparisonExpenseRecordsForYear(year,overrides){
-    const ovs=overrides||{};
-    return baseRecordsForYear(year).map(record=>{
-      const ov=ovs[record.__key]||{};
-      return {
-        ...record,
-        valor_base:Object.prototype.hasOwnProperty.call(ov,'value')?ov.value:record.valor_base,
-        activo:Object.prototype.hasOwnProperty.call(ov,'active')?ov.active:record.activo
-      };
-    }).filter(r=>isActive(r.activo));
-  }
-
-  function comparisonExpensesForYear(year,overrides){
-    return comparisonExpenseRecordsForYear(year,overrides).reduce((sum,r)=>sum+annualize(r),0);
-  }
-
-  function comparisonScenarioConfigs(){
-    const baseA=activeScenarioId==='base' ? assumptionsFromUI() : (baseAssumptions||defaultAssumptions());
-    const configs=[{id:'base',name:'Base Excel',assumptions:cloneJson(baseA),expenseOverrides:{},dirty:false}];
-    savedScenarios.forEach(sc=>{
-      const active=sc.id===activeScenarioId;
-      configs.push({
-        id:sc.id,
-        name:active?(clean(workingScenarioName)||sc.name):sc.name,
-        assumptions:cloneJson(active?assumptionsFromUI():(sc.assumptions||baseA)),
-        expenseOverrides:cloneJson(active?expenseOverrides:(sc.expenseOverrides||{}))||{},
-        dirty:active&&scenarioDirty
-      });
-    });
-    return configs;
-  }
-
-  function buildComparisonForecast(config){
-    const input=comparisonInput(config.assumptions),plan=benefitsPlan(input),initial=input.savings+input.severance+input.assets;let opening=initial;const rows=[],startYear=projectionStartYear(input);
-    for(let year=startYear;year<=input.endYear;year++){
-      const age=ageForYear(year,input),income=incomeFor(year,input,plan),expenses=proratedExpense(comparisonExpensesForYear(year,config.expenseOverrides),year,input),annualDelta=income.amount-expenses,closing=opening+annualDelta;
-      rows.push({year,age,opening,income,expenses,annualDelta,closing});opening=closing;
-    }
-    return {...config,input,plan,initial,rows,startYear};
-  }
-
-  function renderComparisonModal(){
-    if(!excelMeta.loaded){
-      els.comparisonFinalGrid.innerHTML='';
-      els.comparisonTableWrap.innerHTML='<div class="compare-empty">Necesito cargar el Excel antes de comparar los escenarios.</div>';
-      return;
-    }
-    const models=comparisonScenarioConfigs().map(buildComparisonForecast);
-    if(models.length<2){
-      els.comparisonFinalGrid.innerHTML='';
-      els.comparisonTableWrap.innerHTML='<div class="compare-empty">Crea al menos un escenario además de Base Excel para poder comparar.</div>';
-      return;
-    }
-    els.comparisonFinalGrid.innerHTML=models.map(m=>{
-      const last=m.rows.at(-1);
-      const value=last?.closing??0;
-      return `<div class="compare-final-card" title="${esc(m.name)}">
-        <div class="compare-final-name">${esc(m.name)}</div>
-        <div class="compare-final-label">Saldo final</div>
-        <div class="compare-final-value ${value>=0?'good':'bad'}">${euro0.format(value)}</div>
-        <div class="compare-final-year">al cierre de ${last?.year??'—'}</div>
-        ${m.dirty?'<span class="compare-dirty">Cambios sin guardar</span>':''}
-      </div>`;
-    }).join('');
-
-    const maxEnd=Math.max(...models.map(m=>m.input.endYear));
-    const minStart=Math.min(...models.map(m=>m.startYear));
-    const rowMaps=models.map(m=>new Map(m.rows.map(r=>[r.year,r])));
-    const baseInput=models[0].input;
-    const minWidth=Math.max(760,180+models.length*190);
-    const head=`<thead><tr><th>Año</th><th>Edad</th>${models.map(m=>`<th class="${m.id===activeScenarioId?'compare-active-head':''}">${esc(m.name)}</th>`).join('')}</tr></thead>`;
-    const body=[];
-    for(let year=minStart;year<=maxEnd;year++){
-      const age=ageForYear(year,baseInput);
-      const cells=models.map((m,i)=>{
-        const r=rowMaps[i].get(year);
-        if(!r) return '<td><span class="compare-balance">—</span></td>';
-        return `<td><span class="compare-balance ${r.closing<0?'negative':''}">${euro0.format(r.closing)}</span></td>`;
-      }).join('');
-      body.push(`<tr><td><span class="compare-year">${year}</span></td><td><span class="compare-age">${age===null?'—':Math.trunc(age)+' años'}</span></td>${cells}</tr>`);
-    }
-    els.comparisonTableWrap.innerHTML=`<table class="compare-table" style="min-width:${minWidth}px">${head}<tbody>${body.join('')}</tbody></table>`;
-  }
-
-  function openComparisonModal(){
-    if(els.compareScenarioBtn.disabled) return;
-    if(els.syncModal.classList.contains('open')) closeSyncModal();
-    renderComparisonModal();
-    els.comparisonModal.classList.add('open');
-    els.comparisonModal.setAttribute('aria-hidden','false');
-    document.body.style.overflow='hidden';
-  }
-
-  function closeComparisonModal(){
-    els.comparisonModal.classList.remove('open');
-    els.comparisonModal.setAttribute('aria-hidden','true');
-    document.body.style.overflow='';
-  }
-
-  function buildForecast(){
-    const input=getInputs(),plan=benefitsPlan(input),initial=input.savings+input.severance+input.assets;let opening=initial;const rows=[],startYear=projectionStartYear(input);
-    for(let year=startYear;year<=input.endYear;year++){
-      const age=ageForYear(year,input),income=incomeFor(year,input,plan),expenses=proratedExpense(expensesForYear(year),year,input),annualDelta=income.amount-expenses,closing=opening+annualDelta;
-      rows.push({year,age,opening,income,expenses,annualDelta,closing});opening=closing;
-    }
-    return {input,plan,initial,rows,startYear};
-  }
-
-  function applyReadOnlyUi(){
-    ['savings','severance','assets','unemployment','pension','currentAge','endYear','dismissalDate'].forEach(id=>{if(els[id])els[id].readOnly=true;});
-    // El subsidio +52 sigue editable incluso en modo lectura del motor.
-    if(els.subsidy)els.subsidy.readOnly=false;
-    [els.autoBenefits,els.children,els.includeSubsidy52,els.longContribution,els.dismissalAutoBtn].forEach(el=>{if(el)el.disabled=true;});
-    [els.newScenarioBtn,els.saveScenarioBtn,els.resetScenarioBtn,els.deleteScenarioBtn].forEach(el=>{if(el)el.disabled=true;});
-    if(els.scenarioName)els.scenarioName.disabled=true;
-  }
-
-  function render(){
-    saveInputs();
-    if(!HAS_FIN){
-      const snap=activeCalculatedSnapshot();
-      if(snap&&Array.isArray(snap.rows)&&snap.rows.length){
-        const input=getInputs();
-        const model={input,initial:num(snap.initial),rows:cloneJson(snap.rows)||[],startYear:snap.rows[0].year,fromSnapshot:true,retirementDate:parseIsoDate(snap.retirementDate)};
-        renderBenefitsUi(input);
-        els.unemployment.readOnly=true;
-        els.subsidy.readOnly=false;
-        els.pension.readOnly=true;
-        if(snap.benefits){
-          if(snap.benefits.unemploymentAverage!=null)els.unemployment.value=groupedIntegerES(snap.benefits.unemploymentAverage);
-          if(snap.input?.subsidy!=null)els.subsidy.value=groupedIntegerES(snap.input.subsidy);
-          else if(snap.benefits.subsidyMonthly!=null)els.subsidy.value=groupedIntegerES(snap.benefits.subsidyMonthly);
-          if(snap.benefits.pensionMonthly14!=null)els.pension.value=groupedIntegerES(snap.benefits.pensionMonthly14);
-        }
-        els.benefitSourceMini.innerHTML='<b>Último cálculo guardado en el Gist</b> · motor no disponible';
-        els.benefitStatus.classList.add('warn');
-        els.benefitStatus.querySelector('span:last-child').textContent=`Modo lectura · mostrando la fotografía calculada el ${new Date(snap.calculatedAt||localUpdatedAt||Date.now()).toLocaleString('es-ES')}.`;
-        if(snap.retirementAge)els.retirementAgeDisplay.textContent=`${snap.retirementAge} años`;
-        renderKpis(model);renderForecastTable(model);renderChart(model);renderScenarioControls();applyReadOnlyUi();
-        els.retirementNotice.classList.remove('show');
-        els.tableNote.textContent=`Última fotografía calculada guardada en el Gist · ${snap.calculatedAt?new Date(snap.calculatedAt).toLocaleString('es-ES'):'fecha no disponible'}.`;
-        return;
-      }
-    }
-    const model = buildForecast();
-    renderBenefitsUi(model.input,model.plan);
-    renderKpis(model);
-    renderForecastTable(model);
-    renderChart(model);
-    renderExpenses(model.input);
-    renderScenarioControls();
-    const retirementPlan=model.plan||benefitsPlan(model.input);
-    const reachesRetirement=model.rows.some(r=>r.year>=retirementPlan.retirementDate.getFullYear());
-    els.retirementNotice.classList.toggle('show', reachesRetirement && model.input.pension===0);
-    const start=projectionStartDate(model.input);els.tableNote.textContent=`Desde ${start.toLocaleDateString('es-ES',{month:'long',year:'numeric'})} hasta ${model.input.endYear}. Gasto con IPC ${formatNumberES(model.input.expenseInflation,1)} % anual · cálculo mensual agrupado por año · jubilación resaltada.`;
-  }
-
-  function renderKpis(model){
-    els.kpiInitial.textContent = euro0.format(model.initial);
-    const startYear=projectionStartYear(model.input),months=activeMonthsForYear(startYear,model.input);
-    const snapshotSpend=model.fromSnapshot?(model.rows[0]?.expenses??null):null;
-    const fullSpend=model.fromSnapshot?(snapshotSpend===null?null:snapshotSpend*12/Math.max(1,months)):(excelMeta.loaded?expensesForYear(startYear):null),spend=model.fromSnapshot?snapshotSpend:(fullSpend===null?null:proratedExpense(fullSpend,startYear,model.input));
-    els.kpiSpendLabel.textContent=`Gasto ${startYear} · ${months} mes${months===1?'':'es'}`;
-    els.kpiSpend.textContent=spend===null?'—':euro0.format(spend);
-    els.kpiSpendSub.textContent=spend===null?'Esperando datos de DESPIDO.':`${euro0.format(fullSpend/12)} al mes de media · ${recordsForYear(startYear).length} partidas activas.`;
-
-    const firstNegative = model.rows.find(r=>r.closing < 0);
-    // Este KPI es informativo y permanece neutro: el único semáforo global es "Saldo al final".
-    els.kpiRunwayCard.classList.remove('good','bad');
-    if (!model.rows.length){
-      els.kpiRunway.textContent='—'; els.kpiRunwaySub.textContent='Sin previsión.';
-    } else if (firstNegative){
-      els.kpiRunway.textContent=String(firstNegative.year);
-      els.kpiRunwaySub.textContent=`El saldo pasa a negativo al cierre de ${firstNegative.year}.`;
-    } else {
-      els.kpiRunway.textContent=`>${model.input.endYear}`;
-      els.kpiRunwaySub.textContent='El capital no se agota dentro del horizonte mostrado.';
-    }
-
-    const last=model.rows.at(-1);
-    els.kpiEndCard.classList.remove('good','bad');
-    els.kpiEnd.textContent=last?euro0.format(last.closing):'—';
-    els.kpiEndSub.textContent=last?`Saldo al cierre de ${last.year}.`:'Sin previsión.';
-    if(last) els.kpiEndCard.classList.add(last.closing>=0?'good':'bad');
-  }
-
-  function renderForecastTable(model){
-    if(!excelMeta.loaded){
-      els.forecastBody.innerHTML='<tr><td colspan="6" class="empty-row">Cargando finanzas-master.xlsx…</td></tr>';
-      return;
-    }
-    const retirementYear=(model.plan||benefitsPlan(model.input)).retirementDate.getFullYear();
-    const retirementIndex=model.rows.findIndex(r=>r.year===retirementYear);
-    els.forecastBody.innerHTML=model.rows.map((r,index)=>{
-      const parts=Array.isArray(r.income.parts)&&r.income.parts.length?r.income.parts:[r.income];
-      const incomeBadge=parts.map(p=>`<span class="badge ${p.type}">${p.label}</span>`).join('');
-      const incomeAmount=r.income.amount?`<span class="amount">${euro0.format(r.income.amount)}</span>`:'<span class="amount muted">—</span>';
-      const retirementClass=index===retirementIndex?'retirement-row':'';
-      const retirementTitle=index===retirementIndex?' title="Año de jubilación ordinaria previsto"':'';
-      return `<tr class="${retirementClass}"${retirementTitle}>
-        <td><span class="year">${r.year}</span></td>
-        <td><span class="age">${r.age===null?'—':Math.trunc(r.age)+' años'}</span></td>
-        <td><span class="amount muted">${euro0.format(r.opening)}</span></td>
-        <td><div class="income-cell">${incomeBadge}${incomeAmount}</div></td>
-        <td><span class="amount">${euro0.format(r.expenses)}</span></td>
-        <td><div class="total-main ${r.closing>=0?'positive':'negative'}">${euro0.format(r.closing)}</div><div class="delta">${r.annualDelta>=0?'+':''}${euro0.format(r.annualDelta)} este año</div></td>
-      </tr>`;
-    }).join('');
-  }
-
-  function renderChart(model){
-    if((!excelMeta.loaded && !model.fromSnapshot) || !model.rows.length){ els.chart.innerHTML='<div class="chart-empty">La gráfica aparecerá cuando cargue el Excel.</div>'; return; }
-    const W=1000,H=240,PX=46,PY=28;
-    const vals=model.rows.map(r=>r.closing);
-    let min=Math.min(...vals,0), max=Math.max(...vals,0);
-    if(min===max){min-=1;max+=1}
-    const pad=(max-min)*.12; min-=pad; max+=pad;
-    const x=i=>PX+(i/(Math.max(1,model.rows.length-1)))*(W-PX*2);
-    const y=v=>PY+((max-v)/(max-min))*(H-PY*2);
-    const pts=model.rows.map((r,i)=>`${x(i).toFixed(1)},${y(r.closing).toFixed(1)}`).join(' ');
-    const area=`${PX},${H-PY} ${pts} ${W-PX},${H-PY}`;
-    const zeroY=y(0);
-    const firstNegIndex=model.rows.findIndex(r=>r.closing<0);
-    const marker=firstNegIndex>=0?`<circle cx="${x(firstNegIndex)}" cy="${y(model.rows[firstNegIndex].closing)}" r="5.5" fill="#d54f63" stroke="#fff" stroke-width="3"/>`:'';
-    const grid=[.25,.5,.75].map(t=>{const gy=PY+t*(H-PY*2);return `<line x1="${PX}" y1="${gy}" x2="${W-PX}" y2="${gy}" stroke="#e8ebf2" stroke-width="1"/>`;}).join('');
-    els.chart.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%" height="100%" role="img" aria-label="Evolución del saldo anual" preserveAspectRatio="none">
-      <defs><linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5b63f2" stop-opacity=".22"/><stop offset="1" stop-color="#5b63f2" stop-opacity=".02"/></linearGradient></defs>
-      ${grid}
-      ${zeroY>=PY&&zeroY<=H-PY?`<line x1="${PX}" y1="${zeroY}" x2="${W-PX}" y2="${zeroY}" stroke="#d6dae5" stroke-dasharray="5 6" stroke-width="1.2"/>`:''}
-      <polygon points="${area}" fill="url(#areaGrad)"/>
-      <polyline points="${pts}" fill="none" stroke="#5b63f2" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
-      ${marker}
-      <text x="${PX}" y="${H-6}" fill="#8b95aa" font-size="11">${model.rows[0].year}</text>
-      <text x="${W-PX}" y="${H-6}" text-anchor="end" fill="#8b95aa" font-size="11">${model.rows.at(-1).year}</text>
-      <text x="8" y="${PY+3}" fill="#8b95aa" font-size="11">${compactMoney(max)}</text>
-      <text x="8" y="${H-PY+3}" fill="#8b95aa" font-size="11">${compactMoney(min)}</text>
-    </svg>`;
-    const last=model.rows.at(-1);
-    els.chartMeta.textContent=`${last.year}: ${euro0.format(last.closing)}`;
-  }
-
-  function compactMoney(v){
-    const abs=Math.abs(v); const sign=v<0?'-':'';
-    if(abs>=1000000) return `${sign}${(abs/1000000).toFixed(abs>=10000000?0:1)} M€`;
-    if(abs>=1000) return `${sign}${Math.round(abs/1000)} k€`;
-    return `${sign}${Math.round(abs)} €`;
-  }
-
-  function renderExpenses(input){
-    if(!excelMeta.loaded){return}
-    const expenseYear=projectionStartYear(input);const bases=baseRecordsForYear(expenseYear);
-    const effective=recordsForYear(expenseYear);
-    const byGroup=new Map();
-    effective.forEach(r=>{const g=groupLabel(r.grupo);byGroup.set(g,(byGroup.get(g)||0)+annualize(r));});
-    const baseTotal=baseExpensesForYear(expenseYear);
-    const currentTotal=expensesForYear(expenseYear);
-    els.groupCards.innerHTML=[...byGroup.entries()].sort((a,b)=>b[1]-a[1]).map(([g,v])=>`<div class="group-card"><div class="gname">${esc(g)}</div><div class="gval">${euro0.format(v)}</div></div>`).join('');
-    const diff=currentTotal-baseTotal;
-    els.expenseSummary.textContent=`${effective.length} partidas · ${euro0.format(currentTotal)}/año${activeScenarioId!=='base'&&Math.abs(diff)>=.5?` · ${diff>0?'+':''}${euro0.format(diff)} vs Excel`:''}`;
-    const sorted=[...bases].sort((a,b)=>String(a.grupo).localeCompare(String(b.grupo),'es') || num(a.orden)-num(b.orden) || String(a.concepto).localeCompare(String(b.concepto),'es'));
-    const editable=activeScenarioId!=='base';
-    els.expenseBody.innerHTML=sorted.map(r=>{
-      const key=r.__key;
-      const ov=expenseOverrides[key]||{};
-      const hasValue=Object.prototype.hasOwnProperty.call(ov,'value');
-      const hasActive=Object.prototype.hasOwnProperty.call(ov,'active');
-      const changed=hasValue||hasActive;
-      const er=effectiveRecord(r);
-      const active=isActive(er.activo);
-      const annual=active?annualize(er):0;
-      return `<tr class="${changed?'expense-modified':''} ${active?'':'expense-disabled'}">
-        <td><input class="expense-toggle" type="checkbox" data-key="${esc(key)}" ${active?'checked':''} ${editable?'':'disabled'} aria-label="Activar o desactivar ${esc(r.concepto||'gasto')}"></td>
-        <td><b>${esc(r.concepto||'—')}</b>${changed?'<span class="expense-changed-badge">AJUSTADO</span>':''}</td>
-        <td>${esc(groupLabel(r.grupo))}</td>
-        <td>${esc(frequencyLabel(r.frecuencia))}</td>
-        <td>${euro2.format(num(r.valor_base))}<div class="expense-origin">Excel</div></td>
-        <td><input class="expense-edit-input" type="text" inputmode="decimal" data-key="${esc(key)}" value="${esc(formatNumberES(num(er.valor_base),2))}" ${editable?'':'disabled'}></td>
-        <td>${esc(r.meses||'—')}</td>
-        <td><b>${euro0.format(annual)}</b></td>
-        <td><button class="expense-reset" type="button" data-key="${esc(key)}" title="Restaurar esta partida al Excel" ${editable&&changed?'':'disabled'}>↺</button></td>
-      </tr>`;
-    }).join('') || '<tr><td colspan="9" class="empty-row">No hay gastos en DESPIDO.</td></tr>';
-  }
-
-  function scenariosForExport(){
-    const list=cloneJson(savedScenarios)||[];
-    if(activeScenarioId!=='base'){
-      const idx=list.findIndex(x=>x.id===activeScenarioId);
-      if(idx>=0){
-        list[idx]={...list[idx],name:clean(workingScenarioName)||list[idx].name,assumptions:cloneJson(assumptionsFromUI()),expenseOverrides:cloneJson(expenseOverrides)||{},updatedAt:new Date().toISOString()};
-      }
-    }
-    return list;
-  }
-
-  function safeIso(value){
-    const d=value instanceof Date?value:parseIsoDate(value);return d&&!Number.isNaN(d.getTime())?d.toISOString():null;
-  }
-
-  function calculatedSnapshotFor(config){
-    if(!HAS_FIN||!excelMeta.loaded) return null;
-    const model=buildComparisonForecast(config);
-    const plan=model.plan||benefitsPlan(model.input);
-    return {
-      scenarioId:config.id,
-      name:config.name,
-      calculatedAt:new Date().toISOString(),
-      engineVersion:FIN.version,
-      retirementDate:safeIso(plan.retirementDate),
-      retirementAge:plan.retirementAge,
-      initial:model.initial,
-      input:cloneJson(model.input),
-      benefits:{
-        unemploymentBase:plan.unemploymentBase??null,
-        unemploymentFirst6:plan.unemploymentFirst6??null,
-        unemploymentRest:plan.unemploymentRest??null,
-        unemploymentAverage:plan.unemploymentAverage??null,
-        unemploymentEnd:safeIso(plan.unemploymentEnd),
-        subsidyStart:safeIso(plan.subsidyStart),
-        subsidyMonthly:plan.subsidyMonthly??null,
-        pensionMonthly14:plan.pensionMonthly14??null,
-        pensionEquivalent12:plan.pensionEquivalent12??null
-      },
-      rows:model.rows.map(r=>({
-        year:r.year,age:r.age,opening:r.opening,expenses:r.expenses,annualDelta:r.annualDelta,closing:r.closing,
-        income:{type:r.income?.type||'none',label:r.income?.label||'Sin ingreso',amount:r.income?.amount||0,parts:(r.income?.parts||[]).map(x=>({type:x.type,label:x.label,amount:x.amount}))}
-      }))
-    };
-  }
-
-  async function buildCalculatedSnapshotsAsync(){
-    if(!HAS_FIN||!excelMeta.loaded) return cloneJson(loadedCalculatedSnapshots)||{};
-    const out={};
-    const configs=comparisonScenarioConfigs();
-    for(let i=0;i<configs.length;i++){
-      const config=configs[i];
-      // Cedemos el control al navegador entre escenarios para que Chrome/iPad no parezcan bloqueados.
-      if(i>0) await new Promise(resolve=>setTimeout(resolve,0));
-      try{const snap=calculatedSnapshotFor(config);if(snap)out[config.id]=snap;}catch(err){console.warn('Snapshot',config.id,err);}
-    }
-    return out;
-  }
-
-  function activeCalculatedSnapshot(){
-    return loadedCalculatedSnapshots?.[activeScenarioId] || null;
-  }
-
-  function scenarioPayload(savedAt=new Date().toISOString()){
-    const input=assumptionsFromUI();
-    // updatedAt identifica CUÁNDO cambiaron los datos. savedAt identifica CUÁNDO
-    // se escribió realmente esta copia en el Gist. No deben ser la misma cosa.
-    const dataUpdatedAt=localUpdatedAt || savedAt;
-    return {
-      schema:'independencia-financiera',
-      version:6,
-      engineVersion:HAS_FIN?FIN.version:'snapshot-only',
-      savedAt,
-      updatedAt:dataUpdatedAt,
-      calculatedSnapshots:cloneJson(loadedCalculatedSnapshots)||{},
-      linkedDashboardGistId:normalizeGistId(linkedDashboardGistId),
-      assumptions:{earliestProjectionYear:START_YEAR,unemploymentMonths:UNEMPLOYMENT_MONTHS,defaultBirthYear:BIRTH_YEAR,excelSheet:SHEET_NAME,publicRulesReferenceYear:FIN?.rules?.referenceYear??2026,sharedEngine:'../../shared/finanzas-engine.js'},
-      baseAssumptions:cloneJson(baseAssumptions||input),
-      activeScenarioId,
-      scenarios:scenariosForExport(),
-      scenario:{...cloneJson(input),name:workingScenarioName,expenseOverrides:cloneJson(expenseOverrides)||{}}
-    };
-  }
-
-  function applyScenarioPayload(payload){
-    if(!payload || typeof payload!=='object') throw new Error('El JSON no contiene un escenario válido.');
-    linkedDashboardGistId=normalizeGistId(payload.linkedDashboardGistId||linkedDashboardGistId);
-    if(payload.calculatedSnapshots&&typeof payload.calculatedSnapshots==='object') loadedCalculatedSnapshots=cloneJson(payload.calculatedSnapshots)||{};
-    else if(payload.calculatedSnapshot&&typeof payload.calculatedSnapshot==='object') loadedCalculatedSnapshots={base:cloneJson(payload.calculatedSnapshot)};
-
-    if(Array.isArray(payload.scenarios)){
-      savedScenarios=payload.scenarios.filter(x=>x&&x.id&&x.name).map(x=>({...x,expenseOverrides:x.expenseOverrides||{}}));
-      baseAssumptions={...defaultAssumptions(),...(payload.baseAssumptions||{})};
-      activeScenarioId=payload.activeScenarioId==='base'||savedScenarios.some(x=>x.id===payload.activeScenarioId)?payload.activeScenarioId:'base';
-      if(activeScenarioId==='base'){
-        workingScenarioName='Base Excel';expenseOverrides={};scenarioDirty=false;applyAssumptions(baseAssumptions);
-      }else{
-        const sc=activeScenario();
-        workingScenarioName=sc.name;expenseOverrides=cloneJson(sc.expenseOverrides||{})||{};scenarioDirty=false;applyAssumptions(sc.assumptions||baseAssumptions);
-      }
-      persistState();
-      render();
-      return;
-    }
-
-    // Compatibilidad con JSON v1/v2: se importa como nueva base, sin ajustes de gasto.
-    const s0=payload.scenario && typeof payload.scenario==='object' ? payload.scenario : payload;
-    const a=defaultAssumptions();
-    let applied=0;
-    ['savings','severance','assets','unemployment','subsidy','pension','endYear'].forEach(k=>{
-      if(Object.prototype.hasOwnProperty.call(s0,k)&&s0[k]!==null&&s0[k]!==undefined){a[k]=num(s0[k]);applied++;}
-    });
-    if(Object.prototype.hasOwnProperty.call(s0,'longContribution')){a.longContribution=!!s0.longContribution;applied++;}
-    else if(Object.prototype.hasOwnProperty.call(s0,'retirementAge')){a.longContribution=num(s0.retirementAge)===65;applied++;}
-    a.retirementAge=a.longContribution?65:67;
-    if(s0.currentAgeAuto===true){a.currentAgeAuto=true;a.currentAge=DEFAULT_CURRENT_AGE;applied++;}
-    else if(Object.prototype.hasOwnProperty.call(s0,'currentAge')&&s0.currentAge!==null&&s0.currentAge!==undefined){a.currentAgeAuto=false;a.currentAge=num(s0.currentAge);applied++;}
-    else if(Object.prototype.hasOwnProperty.call(s0,'age2027')){a.currentAgeAuto=false;a.currentAge=Math.max(18,num(s0.age2027)-(START_YEAR-CURRENT_YEAR));applied++;}
-    if(!applied) throw new Error('No he encontrado campos reconocibles dentro del JSON.');
-    baseAssumptions=a;savedScenarios=[];activeScenarioId='base';workingScenarioName='Base Excel';expenseOverrides={};scenarioDirty=false;
-    applyAssumptions(a);persistState();render();
-  }
-
-  function setSyncStatus(type,htmlText){
-    els.syncStatus.className=`sync-status ${type||''}`.trim();
-    els.syncStatus.innerHTML=`<span class="sync-status-dot"></span><span>${htmlText}</span>`;
-  }
-
-  function updateGistFreshness(savedAt,status='ok'){
-    if(!els.gistFreshness) return;
-    els.gistFreshness.className=`gist-freshness ${status||'ok'}`.trim();
-    const label=els.gistFreshness.querySelector('span:last-child');
-    if(!label) return;
-    if(status==='loading'){label.textContent='☁ Última actualización del Gist · comprobando…';return;}
-    if(status==='error'){label.textContent='☁ Gist no disponible · mostrando la mejor copia disponible';return;}
-    const d=new Date(savedAt||'');
-    const hasDate=savedAt&&!Number.isNaN(d.getTime());
-    const when=hasDate?`${d.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'})} · ${d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})}`:'fecha no disponible';
-    if(status==='pending'){label.textContent=`☁ Última actualización del Gist · ${when} · cambios locales pendientes`;return;}
-    if(status==='readonly'){label.textContent=`☁ Última actualización del Gist · ${when} · modo lectura`;return;}
-    label.textContent=`☁ Última actualización del Gist · ${when}`;
-  }
-
-
-  function downloadJson(){
-    const content=JSON.stringify(scenarioPayload(),null,2);
-    const blob=new Blob([content],{type:'application/json;charset=utf-8'});
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');
-    a.href=url;
-    a.download=GIST_FILENAME;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(()=>URL.revokeObjectURL(url),1000);
-    setSyncStatus('ok',`JSON descargado como <b>${GIST_FILENAME}</b>.`);
-  }
-
-  async function importJson(file){
-    if(!file) return;
-    try{
-      const payload=JSON.parse(await file.text());
-      applyScenarioPayload(payload);
-      markDataChanged();
-      setSyncStatus('ok',`Escenarios importados desde <b>${esc(file.name)}</b>.`);
-    }catch(err){
-      console.error(err);
-      setSyncStatus('error',`No he podido importar el JSON: ${esc(err.message)}`);
-    }finally{
-      els.importJsonInput.value='';
-    }
-  }
-
-  function restoreRememberedToken(){
-    try{
-      const saved=localStorage.getItem(TOKEN_STORAGE_KEY)||'';
-      if(saved){ els.githubToken.value=saved; if(els.rememberGithubToken) els.rememberGithubToken.checked=true; }
-    }catch(e){}
-  }
-  function persistRememberedToken(){
-    try{
-      const token=clean(els.githubToken.value);
-      if(els.rememberGithubToken?.checked && token) localStorage.setItem(TOKEN_STORAGE_KEY,token);
-      else if(!els.rememberGithubToken?.checked) localStorage.removeItem(TOKEN_STORAGE_KEY);
-    }catch(e){}
-  }
-
-  function githubHeaders(includeAuth=true){
-    const headers={
-      'Accept':'application/vnd.github+json',
-      'X-GitHub-Api-Version':GITHUB_API_VERSION
-    };
-    const token=clean(els.githubToken.value);
-    if(includeAuth && token) headers.Authorization=`Bearer ${token}`;
-    return headers;
-  }
-
-  async function parseGitHubResponse(res){
-    const text=await res.text();
-    let body=null;
-    try{body=text?JSON.parse(text):null}catch(e){body=text}
-    if(!res.ok){
-      const detail=body && typeof body==='object' && body.message ? body.message : (text || `HTTP ${res.status}`);
-      throw new Error(`${detail} (HTTP ${res.status})`);
-    }
-    return body;
-  }
-
-  async function waitForCurrentGistSync(timeoutMs=25000){
-    const started=Date.now();
-    while(syncInFlight && (Date.now()-started)<timeoutMs){
-      await new Promise(resolve=>setTimeout(resolve,100));
-    }
-    return !syncInFlight;
-  }
-
-  async function saveToGist({auto=false}={}){
-    // El guardado manual SIEMPRE tiene prioridad. Si el autosave arrancó justo
-    // al terminar de escribir el token, esperamos a que acabe y repetimos el
-    // guardado manual en vez de ignorar silenciosamente el clic.
-    if(syncInFlight){
-      if(auto) return false;
-      clearTimeout(syncTimer);
-      setSyncStatus('warn','Ya hay una sincronización automática en curso · esperando para guardar manualmente…');
-      const ready=await waitForCurrentGistSync();
-      if(!ready){
-        setSyncStatus('error','La sincronización anterior no ha terminado. Espera unos segundos y vuelve a pulsar Guardar en Gist.');
-        return false;
-      }
-    }
-    // El motor NO es requisito para guardar en el Gist. Si no está disponible,
-    // se guardan los datos fuente y se conservan intactas las últimas fotografías
-    // calculadas que ya vinieron del Gist. Así el servidor sigue siendo la copia central.
-    const token=clean(els.githubToken.value);
-    if(token) persistRememberedToken();
-    if(!token){
-      pendingRemoteSync=true;
-      updateGistFreshness(gistUpdatedAt||localUpdatedAt,'pending');
-      if(!auto){setSyncStatus('error','Introduce un <b>token de GitHub</b> con permiso de escritura en Gists. El token no se guardará.');els.githubToken.focus();}
-      return false;
-    }
-    clearTimeout(syncTimer);
-    if(!localUpdatedAt) localUpdatedAt=new Date().toISOString();
-    const gistId=DEFAULT_GIST_ID;els.gistId.value=gistId;
-    syncInFlight=true;els.saveGistBtn.disabled=true;els.loadGistBtn.disabled=true;
-    const saveButtonLabel=els.saveGistBtn.textContent;
-    els.saveGistBtn.textContent=auto?'☁ Sincronizando…':'☁ Guardando…';
-    setSyncStatus('warn',auto?(HAS_FIN?'Preparando y sincronizando cambios…':'Sincronizando datos · conservando la última fotografía calculada…'):(HAS_FIN?'Preparando datos para el Gist…':'Preparando datos · motor no disponible, se conservará la última fotografía calculada…'));
-    updateGistFreshness(gistUpdatedAt||localUpdatedAt,'loading');
-    try{
-      // La fotografía completa se calcula una sola vez por escenario. La versión anterior
-      // recalculaba el plan de pensión decenas de veces por cada año y podía bloquear Chrome.
-      await new Promise(resolve=>setTimeout(resolve,0));
-      loadedCalculatedSnapshots=await buildCalculatedSnapshotsAsync();
-      persistState();
-      const syncStartedAt=new Date().toISOString();
-      const payload=scenarioPayload(syncStartedAt);
-      const content=JSON.stringify(payload,null,2);
-      const body={description:'Escenarios · Independencia financiera',files:{[GIST_FILENAME]:{content}}};
-      setSyncStatus('warn',auto?'Sincronizando cambios automáticamente…':(HAS_FIN?'Subiendo al Gist…':'Subiendo datos al Gist · sin recalcular la fotografía…'));
-      const res=await fetchWithTimeout(`https://api.github.com/gists/${encodeURIComponent(gistId)}`,{method:'PATCH',headers:{...githubHeaders(true),'Content-Type':'application/json'},body:JSON.stringify(body)},20000);
-      const data=await parseGitHubResponse(res);
-      if(data?.id) els.gistId.value=data.id;
-      // La respuesta de GitHub es la referencia más fiable de la hora real de escritura.
-      gistUpdatedAt=clean(data?.updated_at)||payload.savedAt;pendingRemoteSync=false;persistState();
-      const link=data?.html_url?` · <a href="${esc(data.html_url)}" target="_blank" rel="noreferrer">Abrir Gist</a>`:'';
-      setSyncStatus('ok',`${auto?'Gist sincronizado automáticamente':'Gist actualizado correctamente'}${!HAS_FIN?' · datos guardados y fotografía calculada anterior conservada':''}${link}.`);
-      updateGistFreshness(gistUpdatedAt,'ok');
-      return true;
-    }catch(err){
-      console.error(err);pendingRemoteSync=true;
-      const detail=err?.name==='AbortError'?'GitHub no respondió en 20 segundos':err.message;
-      setSyncStatus('error',`No he podido guardar en GitHub: ${esc(detail)}. Los cambios siguen guardados localmente.`);
-      updateGistFreshness(gistUpdatedAt||localUpdatedAt,'pending');
-      return false;
-    }finally{
-      syncInFlight=false;els.saveGistBtn.disabled=false;els.loadGistBtn.disabled=false;
-      els.saveGistBtn.textContent=saveButtonLabel||'☁ Guardar en Gist';
-    }
-  }
-
-
-  async function fetchWithTimeout(url,options={},ms=12000){
-    const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),ms);
-    try{return await fetch(url,{...options,signal:controller.signal});}finally{clearTimeout(timer);}
-  }
-
-  async function fetchGistPayload(){
-    const gistId=DEFAULT_GIST_ID;
-    const rawUrl=`${GIST_RAW_URL}?t=${Date.now()}`;
-    let rawError=null;
-    try{
-      const rawRes=await fetchWithTimeout(rawUrl,{cache:'no-store'});
-      if(!rawRes.ok) throw new Error(`RAW HTTP ${rawRes.status}`);
-      return JSON.parse(await rawRes.text());
-    }catch(err){rawError=err;}
-    const token=clean(els.githubToken.value);
-    if(!token) throw new Error(`No he podido leer el JSON raw del Gist (${rawError?.name==='AbortError'?'tiempo de espera agotado':rawError?.message||'error desconocido'}).`);
-    const res=await fetchWithTimeout(`https://api.github.com/gists/${encodeURIComponent(gistId)}`,{headers:githubHeaders(true),cache:'no-store'});
-    const data=await parseGitHubResponse(res);
-    let file=data?.files?.[GIST_FILENAME];
-    if(!file&&data?.files) file=Object.values(data.files).find(f=>String(f?.filename||'').toLowerCase()===GIST_FILENAME.toLowerCase());
-    if(!file) throw new Error(`El Gist no contiene ${GIST_FILENAME}.`);
-    let content=file.content;
-    if(file.truncated&&file.raw_url){const rr=await fetchWithTimeout(`${file.raw_url}${file.raw_url.includes('?')?'&':'?'}t=${Date.now()}`,{cache:'no-store'});if(!rr.ok)throw new Error(`JSON truncado HTTP ${rr.status}`);content=await rr.text();}
-    return JSON.parse(content);
-  }
-
-  async function loadFromGist({auto=false}={}){
-    const gistId=DEFAULT_GIST_ID;els.gistId.value=gistId;els.saveGistBtn.disabled=true;els.loadGistBtn.disabled=true;
-    setSyncStatus('warn',auto?'Leyendo primero el Gist…':'Cargando Gist…');updateGistFreshness(null,'loading');
-    try{
-      // Regla central: primero se obtiene el servidor. Solo después se consulta local.
-      const payload=await fetchGistPayload();
-      // remoteDataAt sirve para resolver conflictos. remoteSavedAt sirve para mostrar
-      // al usuario la última escritura REAL del Gist.
-      const remoteDataAt=clean(payload?.updatedAt||payload?.savedAt);
-      const remoteSavedAt=clean(payload?.savedAt||payload?.updatedAt);
-      gistUpdatedAt=remoteSavedAt;
-      const local=readLocalState();
-      const localAt=clean(local?.updatedAt);
-      const localIsNewer=auto&&local&&timestampMs(localAt)>timestampMs(remoteDataAt);
-      if(localIsNewer){
-        loadInputs();
-        // Conservamos la fecha de la copia remota que acabamos de leer para que el
-        // indicador no confunda 'cambio local' con 'última sincronización del Gist'.
-        gistUpdatedAt=remoteSavedAt||gistUpdatedAt;
-        pendingRemoteSync=true;
-        persistState();
-        updateGistFreshness(gistUpdatedAt,'pending');
-        setSyncStatus('warn',`El dispositivo tiene cambios más nuevos (${esc(localAt)}). Se mantienen y se subirán automáticamente cuando haya token.`);
-        if(clean(els.githubToken.value)) scheduleGistSync(120);
-      }else{
-        isApplyingRemote=true;
-        localUpdatedAt=remoteDataAt||new Date().toISOString();
-        applyScenarioPayload(payload);
-        gistUpdatedAt=remoteSavedAt||remoteDataAt||gistUpdatedAt;
-        isApplyingRemote=false;
-        pendingRemoteSync=false;
-        persistState();
-        updateGistFreshness(gistUpdatedAt,HAS_FIN?'ok':'readonly');
-        setSyncStatus('ok',`${auto?'Gist cargado automáticamente':'Datos cargados desde GitHub'} · <b>${esc(gistId)}</b>.`);
-      }
-      return true;
-    }catch(err){
-      console.error(err);
-      const local=readLocalState();
-      if(auto){
-        if(local){loadInputs();updateGistFreshness(local?.gistUpdatedAt||gistUpdatedAt||local?.updatedAt,'error');setSyncStatus('warn',`Gist no disponible. Muestro la copia local${local?.updatedAt?` de <b>${esc(local.updatedAt)}</b>`:''}.`);}
-        else{loadInputs();updateGistFreshness(null,'error');setSyncStatus('error','No he podido leer el Gist y este dispositivo todavía no tiene copia local.');}
-      }else{setSyncStatus('error',`No he podido cargar el Gist: ${esc(err.message)}`);updateGistFreshness(gistUpdatedAt,'error');}
-      return false;
-    }finally{
-      isApplyingRemote=false;els.saveGistBtn.disabled=false;els.loadGistBtn.disabled=false;
-    }
-  }
-
-
-  function openSyncModal(){
-    els.syncModal.classList.add('open');
-    els.syncModal.setAttribute('aria-hidden','false');
-    document.body.style.overflow='hidden';
-    setTimeout(()=>els.githubToken.focus(),60);
-  }
-
-  function closeSyncModal(){
-    els.syncModal.classList.remove('open');
-    els.syncModal.setAttribute('aria-hidden','true');
-    document.body.style.overflow='';
-  }
-
-  function setStatus(type,text){
-    els.excelStatus.className=`status-pill ${type||''}`.trim();
-    els.excelStatus.querySelector('span:last-child').textContent=text;
-  }
-
-  function applyExcelBuffer(buffer, sourceLabel, lastModified=null){
-    if(typeof XLSX==='undefined') throw new Error('No se ha podido cargar el lector de Excel (SheetJS).');
-    const wb=XLSX.read(buffer,{type:'array',cellDates:true});
-    if(!wb.SheetNames.includes(SHEET_NAME)) throw new Error(`El Excel no contiene la hoja ${SHEET_NAME}.`);
-    const raw=XLSX.utils.sheet_to_json(wb.Sheets[SHEET_NAME],{defval:null,raw:true});
-    expenseRecords=raw.filter(r=>clean(r.tipo).toLowerCase()==='gasto');
-    excelMeta={loaded:true,lastModified,source:sourceLabel};
-    const active=recordsForYear(START_YEAR).length;
-    setStatus('ok',`DESPIDO · ${active} gastos activos · ${sourceLabel}`);
-    els.manualExcelBtn.hidden=true;
-    els.errorBox.classList.remove('show');
-    render();
-  }
-
-  async function loadExcel(){
-    setStatus('','Buscando finanzas-master.xlsx…');
-    els.errorBox.classList.remove('show');
-    els.manualExcelBtn.hidden=true;
-
-    if(typeof XLSX==='undefined'){
-      const err=new Error('No se ha podido cargar el lector de Excel (SheetJS).');
-      console.error(err);
-      excelMeta.loaded=false;
-      setStatus('error','Excel no disponible · carga manual');
-      els.manualExcelBtn.hidden=false;
-      els.errorBox.innerHTML=`<b>No he podido preparar el lector de Excel.</b><br>${esc(err.message)}<br><br>Pulsa <b>Cargar Excel</b> y selecciona finanzas-master.xlsx.`;
-      els.errorBox.classList.add('show');
-      render();
-      return;
-    }
-
-    const attempts=[];
-    for(const path of EXCEL_PATHS){
-      try{
-        const sep=path.includes('?')?'&':'?';
-        const res=await fetch(`${path}${sep}v=${Date.now()}`,{cache:'no-store'});
-        if(!res.ok){
-          attempts.push(`${path} → HTTP ${res.status}`);
-          continue;
-        }
-        const buffer=await res.arrayBuffer();
-        applyExcelBuffer(buffer,'Servidor',res.headers.get('last-modified'));
-        return;
-      }catch(err){
-        attempts.push(`${path} → ${err?.message || 'no accesible'}`);
-      }
-    }
-
-    excelMeta.loaded=false;
-    setStatus('error','Excel no disponible · carga manual');
-    els.manualExcelBtn.hidden=false;
-    const attempted=EXCEL_PATHS.map(p=>`<code>${esc(p)}</code>`).join(' · ');
-    els.errorBox.innerHTML=`<b>No he podido leer el Excel automáticamente.</b><br><br>He probado estas rutas: ${attempted}.<br><br>Si estás abriendo el dashboard desde <b>C:</b>, esto es normal: muchos navegadores bloquean la lectura automática de otros archivos locales. Pulsa <b>↑ Cargar Excel</b> y selecciona finanzas-master.xlsx. En GitHub prioriza <b>../../excel/finanzas-master.xlsx</b> y, en cuanto encuentre el archivo, lo cargará sin preguntarte.`;
-    els.errorBox.classList.add('show');
-    console.warn('Rutas de Excel probadas:', attempts);
-    render();
-  }
-
-  async function loadManualExcel(file){
-    if(!file) return;
-    setStatus('','Leyendo Excel seleccionado…');
-    try{
-      const buffer=await file.arrayBuffer();
-      applyExcelBuffer(buffer,'Manual',file.lastModified ? new Date(file.lastModified).toISOString() : null);
-    }catch(err){
-      console.error(err);
-      excelMeta.loaded=false;
-      setStatus('error','El Excel seleccionado no es válido');
-      els.manualExcelBtn.hidden=false;
-      els.errorBox.innerHTML=`<b>No he podido usar el Excel seleccionado.</b><br>${esc(err.message)}<br><br>Comprueba que sea <b>finanzas-master.xlsx</b> y que contenga la hoja <b>${esc(SHEET_NAME)}</b>.`;
-      els.errorBox.classList.add('show');
-      render();
-    }finally{
-      els.manualExcelInput.value='';
-    }
-  }
-
-  MONEY_INPUT_IDS.forEach(id=>{
-    els[id].addEventListener('input',()=>{formatMoneyInputLive(els[id]);markScenarioDirty();render();});
-    els[id].addEventListener('change',()=>{formatMoneyInput(els[id]);markScenarioDirty();render();});
-    els[id].addEventListener('blur',()=>{formatMoneyInput(els[id]);render();});
-  });
-  ['endYear'].forEach(id=>{
-    els[id].addEventListener('input',()=>{markScenarioDirty();render();});
-    els[id].addEventListener('change',()=>{markScenarioDirty();render();});
-  });
-  els.longContribution.addEventListener('change',()=>{markScenarioDirty();render();});
-  [els.autoBenefits,els.children,els.includeSubsidy52].forEach(el=>el.addEventListener('change',()=>{markScenarioDirty();render();}));
-  els.currentAge.addEventListener('input',()=>{currentAgeAuto=false;markScenarioDirty();render();});
-  els.currentAge.addEventListener('change',()=>{currentAgeAuto=false;markScenarioDirty();render();});
-  els.expenseInflation.addEventListener('input',()=>{markScenarioDirty();render();});
-  els.expenseInflation.addEventListener('change',()=>{els.expenseInflation.value=Math.max(0,Math.min(20,num(els.expenseInflation.value)));markScenarioDirty();render();});
-
-  els.dismissalDate.addEventListener('change',()=>{els.dismissalAutoBtn.classList.remove('active');els.dismissalDate.value=dismissalDateValue(els.dismissalDate.value);markScenarioDirty();render();});
-
-  // En iPad/iOS, un campo enfocado puede mantener el teclado abierto hasta que
-  // otro elemento focuseable recibe el foco. Si el usuario toca cualquier parte
-  // que no sea editable, quitamos el foco para cerrar el teclado.
-  document.addEventListener('pointerdown',e=>{
-    const active=document.activeElement;
-    if(!active || !['INPUT','SELECT','TEXTAREA'].includes(active.tagName)) return;
-    const target=e.target?.closest?.('input,select,textarea,[contenteditable="true"]');
-    if(target) return;
-    try{active.blur();}catch(err){}
-    setTimeout(()=>{
-      const stillActive=document.activeElement;
-      if(stillActive && ['INPUT','SELECT','TEXTAREA'].includes(stillActive.tagName)){
-        try{stillActive.blur();}catch(err){}
-      }
-    },0);
-  },{capture:true});
-  els.dismissalAutoBtn.addEventListener('click',()=>{els.dismissalAutoBtn.classList.add('active');els.dismissalDate.value=FIN.dateKey(automaticDismissalDate());markScenarioDirty();render();});
-
-  els.scenarioSelect.addEventListener('change',()=>{
-    const next=els.scenarioSelect.value;
-    if(activeScenarioId!=='base' && scenarioDirty && next!==activeScenarioId && !confirm('Hay cambios sin guardar en este escenario. ¿Cambiar de escenario y descartarlos?')){
-      els.scenarioSelect.value=activeScenarioId;return;
-    }
-    loadScenario(next);
-  });
-  els.scenarioName.addEventListener('input',()=>{if(activeScenarioId!=='base'){workingScenarioName=els.scenarioName.value;scenarioDirty=true;markDataChanged();renderScenarioControls();}});
-  els.newScenarioBtn.addEventListener('click',createScenario);
-  els.saveScenarioBtn.addEventListener('click',saveActiveScenario);
-  els.resetScenarioBtn.addEventListener('click',resetScenarioExpenses);
-  els.deleteScenarioBtn.addEventListener('click',deleteActiveScenario);
-  els.compareScenarioBtn.addEventListener('click',openComparisonModal);
-  els.comparisonCloseBtn.addEventListener('click',closeComparisonModal);
-  els.comparisonModal.addEventListener('click',e=>{if(e.target===els.comparisonModal) closeComparisonModal();});
-
-  els.expenseBody.addEventListener('change',e=>{
-    const key=e.target?.dataset?.key;
-    if(!key) return;
-    if(e.target.classList.contains('expense-toggle')) updateExpenseOverride(key,{active:!!e.target.checked});
-    if(e.target.classList.contains('expense-edit-input')){
-      const value=Math.max(0,num(e.target.value));
-      e.target.value=formatNumberES(value,2);
-      updateExpenseOverride(key,{value});
-    }
-  });
-  els.expenseBody.addEventListener('click',e=>{
-    const btn=e.target.closest?.('.expense-reset');
-    if(btn?.dataset?.key) resetExpenseOverride(btn.dataset.key);
-  });
-
-  els.reloadBtn.addEventListener('click',async()=>{await loadJaviRealData();await loadExcel();});
-  els.manualExcelBtn.addEventListener('click',()=>els.manualExcelInput.click());
-  els.manualExcelInput.addEventListener('change',()=>loadManualExcel(els.manualExcelInput.files?.[0]));
-  els.syncOpenBtn.addEventListener('click',openSyncModal);
-  els.syncCloseBtn.addEventListener('click',closeSyncModal);
-  els.syncModal.addEventListener('click',e=>{if(e.target===els.syncModal) closeSyncModal();});
-  document.addEventListener('keydown',e=>{
-    if(e.key!=='Escape') return;
-    if(els.comparisonModal.classList.contains('open')) closeComparisonModal();
-    else if(els.syncModal.classList.contains('open')) closeSyncModal();
-  });
-  els.githubToken.addEventListener('input',()=>{
-    persistRememberedToken();
-    // Damos tiempo a terminar de escribir/pegar el token. Evita que el autosave
-    // compita con el botón Guardar en Gist justo después de introducirlo.
-    clearTimeout(syncTimer);
-    if(clean(els.githubToken.value)&&pendingRemoteSync)scheduleGistSync(1200);
-  });
-  els.rememberGithubToken.addEventListener('change',()=>{ persistRememberedToken(); });
-  els.saveGistBtn.addEventListener('click',e=>{
-    e.preventDefault();
-    clearTimeout(syncTimer);
-    saveToGist({auto:false});
-  });
-  els.loadGistBtn.addEventListener('click',()=>loadFromGist());
-  els.downloadJsonBtn.addEventListener('click',downloadJson);
-  els.importJsonBtn.addEventListener('click',()=>els.importJsonInput.click());
-  els.importJsonInput.addEventListener('change',()=>importJson(els.importJsonInput.files?.[0]));
-  setSyncStatus('warn','El Gist vinculado se carga automáticamente al abrir. Gist secreto = no indexado, pero <b>no privado</b>. El token nunca se guarda en el dashboard.');
-
-  async function bootstrap(){
-    restoreRememberedToken();
-    // Arquitectura estándar: 1) Gist, 2) comparar local, 3) cargar fuentes de cálculo.
-    // El HTML nunca necesita token para leer y el motor externo nunca bloquea la lectura del Gist.
-    await loadFromGist({auto:true});
-    isBootstrapping=false;
-    if(HAS_FIN){
-      await loadJaviRealData();
-      await loadExcel();
-      // Si esta sesión ya tiene token y había cambios locales pendientes, se sincronizan al terminar de cargar.
-      if(pendingRemoteSync&&clean(els.githubToken.value))scheduleGistSync(150);
-    }else{
-      setStatus('error','Modo lectura · motor financiero no disponible');
-      els.manualExcelBtn.hidden=false;
-      render();
-      applyReadOnlyUi();
-      updateGistFreshness(gistUpdatedAt||localUpdatedAt,pendingRemoteSync?'pending':'readonly');
-    }
-  }
-  bootstrap();
-})();
-</script>
-
-<script>
-if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=1.27', {scope:'./'}).catch(err => console.warn('Service worker:', err));
-  });
-}
-</script>
+    </section>
+
+    <div class="note"><strong>Para instalar en iPhone/iPad:</strong> abre cualquiera de las apps, pulsa Compartir y elige “Añadir a pantalla de inicio”.</div>
+    <div class="footer">Javi Apps · 8 apps</div>
+  </main>
 </body>
 </html>
