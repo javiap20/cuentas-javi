@@ -2976,6 +2976,22 @@
     }).join('');
   }
 
+
+  // En iPad/iPhone, al tocar cualquier zona que no sea editable, quitamos el foco
+  // del campo activo para que Safari oculte el teclado. Al tocar otro campo editable,
+  // dejamos que el sistema cambie directamente al nuevo campo.
+  function isEditableControl(el){
+    if(!(el instanceof Element)) return false;
+    return el.matches('input:not([disabled]):not([readonly]), textarea:not([disabled]):not([readonly]), select:not([disabled]), [contenteditable="true"]');
+  }
+  function dismissKeyboardOutsideEditable(target){
+    if(isEditableControl(target)) return;
+    const active=document.activeElement;
+    if(active && isEditableControl(active) && typeof active.blur==='function') active.blur();
+  }
+  document.addEventListener('pointerdown',e=>dismissKeyboardOutsideEditable(e.target),true);
+  document.addEventListener('touchstart',e=>dismissKeyboardOutsideEditable(e.target),true);
+
   function safeStorageGet(storage,key){
     try{return storage.getItem(key)}catch(e){return null}
   }
