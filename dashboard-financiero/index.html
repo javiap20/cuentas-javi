@@ -1068,9 +1068,11 @@
   .input-wrap{position:relative}
   input,select{width:100%;min-width:0;border:1px solid #d0d5dd;background:#fff;border-radius:12px;padding:11px 12px;color:var(--text);outline:none;transition:.15s}
   /* Ajuste de campos de fecha para Safari/iPadOS: evita que el control nativo desborde el bloque. */
-  input[type="date"]{width:100%;max-width:100%;min-width:0;box-sizing:border-box;}
-  input[type="date"]::-webkit-date-and-time-value{text-align:left;}
-  input[type="date"]::-webkit-calendar-picker-indicator{margin-right:0;}
+  /* Safari/iPadOS: keep native date controls inside the same field width as selects. */
+  input[type="date"]{display:block;width:100%;max-width:100%;min-width:0;box-sizing:border-box;}
+  @supports (-webkit-touch-callout:none){
+    input[type="date"]{width:calc(100% - 2px);max-width:calc(100% - 2px);margin-left:1px;margin-right:1px;}
+  }
   input:focus,select:focus{border-color:#84adff;box-shadow:0 0 0 4px rgba(37,99,235,.1)}
   .suffix{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
   .has-suffix input{padding-right:44px}
