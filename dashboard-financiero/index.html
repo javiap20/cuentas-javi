@@ -622,6 +622,14 @@
   @media(max-width:980px){.layoff-cash-layout{grid-template-columns:1fr}.layoff-cash-input-panel{position:static}.layoff-resource-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.layoff-resource-card.total{grid-column:1/-1}.layoff-benefit-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
   @media(max-width:620px){.layoff-resource-grid,.layoff-key-grid,.layoff-benefit-grid{grid-template-columns:1fr}.layoff-resource-card.total{grid-column:auto}}
 
+  /* iPadOS/tablets: los controles nativos (date, select) se renderizan más anchos que en escritorio */
+  /* aunque sea el mismo motor WebKit, por eso solo afecta a pantallas táctiles, no a PC. */
+  @media (hover:none) and (pointer:coarse){
+    .layout{grid-template-columns:400px minmax(0,1fr)}
+    .payroll-layout{grid-template-columns:400px minmax(0,1fr)}
+    .layoff-cash-layout{grid-template-columns:350px minmax(0,1fr)}
+  }
+
   /* Pension calculator */
   #pensionPlaceholder{display:none}
   .layout.pension-mode{grid-template-columns:minmax(0,1fr)}
@@ -1071,7 +1079,7 @@
   input,select{width:100%;min-width:0;border:1px solid #d0d5dd;background:#fff;border-radius:12px;padding:11px 12px;color:var(--text);outline:none;transition:.15s}
   /* Ajuste de campos de fecha para Safari/iPadOS: evita que el control nativo desborde el bloque. */
   /* Safari/iPadOS: keep native date controls inside the same field width as selects. */
-  input[type="date"]{display:block;width:100%;max-width:100%;min-width:0;box-sizing:border-box;}
+  input[type="date"]{display:block;width:100%;max-width:100%;min-width:0;box-sizing:border-box;overflow:hidden;}
   @supports (-webkit-touch-callout:none){
     input[type="date"]{width:calc(100% - 2px);max-width:calc(100% - 2px);margin-left:1px;margin-right:1px;}
   }
