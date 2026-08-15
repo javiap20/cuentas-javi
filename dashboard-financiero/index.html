@@ -1067,6 +1067,10 @@
   label{display:block;font-size:12px;font-weight:800;color:#344054;margin-bottom:6px}
   .input-wrap{position:relative}
   input,select{width:100%;min-width:0;border:1px solid #d0d5dd;background:#fff;border-radius:12px;padding:11px 12px;color:var(--text);outline:none;transition:.15s}
+  /* Ajuste de campos de fecha para Safari/iPadOS: evita que el control nativo desborde el bloque. */
+  input[type="date"]{width:100%;max-width:100%;min-width:0;box-sizing:border-box;}
+  input[type="date"]::-webkit-date-and-time-value{text-align:left;}
+  input[type="date"]::-webkit-calendar-picker-indicator{margin-right:0;}
   input:focus,select:focus{border-color:#84adff;box-shadow:0 0 0 4px rgba(37,99,235,.1)}
   .suffix{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
   .has-suffix input{padding-right:44px}
