@@ -646,6 +646,71 @@
   .layout.pension-mode .main{grid-column:1/-1;min-width:0}
   .layout.pension-mode .main > :not(#pensionPlaceholder):not(#pensionLayoffModal){display:none !important}
   .layout.pension-mode #pensionPlaceholder{display:block !important}
+  #varMortgagePlaceholder{display:none}
+  .layout.varmortgage-mode{grid-template-columns:minmax(0,1fr)}
+  .layout.varmortgage-mode .loan-top{display:none}
+  .layout.varmortgage-mode .sidebar{display:none}
+  .layout.varmortgage-mode .main{grid-column:1/-1;min-width:0}
+  .layout.varmortgage-mode .main > :not(#varMortgagePlaceholder){display:none !important}
+  .layout.varmortgage-mode #varMortgagePlaceholder{display:block !important}
+  .vm-mortgage-tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+  .vm-mortgage-chip{padding:7px 13px;border-radius:8px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.08);font-weight:950;font-size:11px;letter-spacing:.02em;cursor:pointer;color:#f8fafc}
+  .vm-mortgage-chip:hover{background:rgba(255,255,255,.14)}
+  .vm-mortgage-chip.active{background:#eef4ff;color:#1849a9;border-color:#bfdbfe;box-shadow:0 0 0 2px rgba(96,165,250,.10)}
+  .vm-mortgage-chip.add{border-style:dashed;color:rgba(255,255,255,.7)}
+  .vm-new-form{max-width:520px;margin:0 0 20px;padding:16px;border:1px solid var(--line);border-radius:14px;background:#f8faff}
+  .vm-new-form .two{margin-bottom:0}
+  .vm-new-form-actions{display:flex;gap:8px;margin-top:6px}
+  .vm-entries-panel{max-width:none;width:100%;margin:0 auto;text-align:center}
+  .vm-entries-view-toggle{display:inline-flex;margin:2px 0 16px}
+  .vm-entries-panel .salary-history-list{max-width:100%;display:block;border-radius:12px}
+  .vm-pending-note{font-size:9.3px;color:var(--muted);margin-top:10px}
+  .sh-error{border-color:#b42318 !important}
+  .vm-table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:12.5px}
+  .vm-table th,.vm-table td{text-align:center;padding:9px 5px;border-bottom:1px solid #edf0f5;word-wrap:break-word;overflow-wrap:break-word}
+  .vm-table tr:last-child td{border-bottom:0}
+  .vm-table th{background:#faf8ff;color:#7667a5;font-size:10px;text-transform:uppercase;letter-spacing:.02em;font-weight:800;line-height:1.3}
+  .vm-table tr.closed{cursor:pointer;transition:.15s}
+  .vm-table tr.closed:hover td:not(.vm-col-rent){background:#f8faff}
+  .vm-table tr.editing td:not(.vm-col-rent){background:#f8faff}
+  .vm-table-input-wrap{max-width:120px;margin:0 auto}
+  .vm-table-input-wrap input{text-align:center}
+  .vm-actions{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;align-items:center}
+  .vm-table td.vm-col-rent{background:#fff6e6}
+  .vm-th-rent{white-space:normal}
+  .vm-rent-edit-wrap{display:inline-flex;align-items:center;gap:2px;margin-top:4px;justify-content:center}
+  .vm-rent-input{width:48px;text-align:center;font-size:11px;font-weight:800;padding:3px 4px;border:1px solid #e4d9c2;border-radius:7px;background:#fff;color:var(--text);text-transform:none;letter-spacing:0}
+  .vm-rent-suffix{font-size:10px;color:#8a7a52;font-weight:800}
+  .vm-table th:nth-child(1),.vm-table td:nth-child(1){width:20%}
+  .vm-table th:nth-child(2),.vm-table td:nth-child(2){width:10%}
+  .vm-table th:nth-child(3),.vm-table td:nth-child(3){width:15%}
+  .vm-table th:nth-child(4),.vm-table td:nth-child(4){width:15%}
+  .vm-table th:nth-child(5),.vm-table td:nth-child(5){width:12%}
+  .vm-table th:nth-child(6),.vm-table td:nth-child(6){width:15%}
+  .vm-table th:nth-child(7),.vm-table td:nth-child(7){width:13%}
+  .vm-table td.vm-col-diff{font-weight:800;color:#172b49}
+  @media (max-width:900px){
+    .vm-table{font-size:10.8px}
+    .vm-table th,.vm-table td{padding:7px 3px}
+    .vm-table th{font-size:8.6px}
+    .vm-rent-input{width:40px;font-size:10px}
+    .vm-actions .btn{padding:5px 6px !important;font-size:9.5px !important}
+  }
+  .vm-loan-top{grid-column:1/-1;min-width:0;color:#f8fafc;padding:0 2px;margin:0 0 16px}
+  .vm-loan-top h2{margin:2px 0 3px;font-size:24px;letter-spacing:-.025em}
+  .vm-loan-top p{margin:0;color:#d6e1f3;font-size:11px;line-height:1.4}
+  .vm-loan-top .saved-case-strip{margin:9px 0 0;padding:0;min-height:28px}
+  #vmKpis.kpis{grid-template-columns:repeat(4,1fr)}
+  .vm-kpi-small{padding:12px 10px;min-height:92px}
+  .vm-kpi-small .kpi-value{font-size:20px}
+  .vm-kpi-small .kpi-label{font-size:11px}
+  .vm-kpi-small .kpi-note{font-size:9.5px}
+  @media (max-width:900px){#vmKpis.kpis{grid-template-columns:repeat(2,1fr)}}
+  #vmFernandoKpis.kpis{grid-template-columns:repeat(4,1fr)}
+  @media (max-width:900px){#vmFernandoKpis.kpis{grid-template-columns:repeat(2,1fr)}}
+  .vm-divider{display:flex;align-items:center;margin:22px 0}
+  .vm-divider::before,.vm-divider::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,#dfe3ec 20%,#dfe3ec 80%,transparent)}
+  .vm-kpis-title{margin:0 0 10px 2px;font-size:10.5px;font-weight:800;letter-spacing:.08em;color:#8a93a6;text-transform:uppercase}
   .pension-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:10px 0 2px}
   .pension-actions .btn{padding:9px 8px;font-size:10.5px}
   .pension-status-card{padding:12px 14px;margin-bottom:14px;text-align:center;background:linear-gradient(145deg,#ffffff 0%,#f5f3ff 58%,#f3f8ff 100%)}
@@ -1323,6 +1388,10 @@
       <button class="tab-btn" type="button" role="tab" aria-selected="false"
               data-calculator-id="mortgage" data-calculator-name="Hipoteca">
         <span class="tab-dot"></span>Hipoteca
+      </button>
+      <button class="tab-btn" type="button" role="tab" aria-selected="false"
+              data-calculator-id="varmortgage" data-calculator-name="Hipoteca variable">
+        <span class="tab-dot"></span>Hipoteca variable
       </button>
       <button class="tab-btn" type="button" role="tab" aria-selected="false"
               data-calculator-id="payroll" data-calculator-name="Nómina">
@@ -2020,6 +2089,85 @@
         </section>
       </div>
 
+<section id="varMortgagePlaceholder" class="payroll-app">
+        <div class="vm-loan-top">
+          <div class="loan-top-heading">
+            <div>
+              <div class="loan-eyebrow">Calculadora activa</div>
+              <h2 class="active-calculator-title">Hipotecas a tipo variable</h2>
+              <p>EURIBOR + diferencial, revisión semestral. Metes la cuota real a mano cada vez que la revisión se cierra; con la última cuota conocida estimamos lo que falta.</p>
+            </div>
+          </div>
+          <div class="saved-case-strip" aria-label="Hipotecas guardadas">
+            <div class="saved-case-strip-head">
+              <span>Guardadas</span>
+              <span id="vmMortgageCount" class="case-count">0</span>
+            </div>
+          </div>
+        </div>
+
+        <div id="vmMortgageTabs" class="vm-mortgage-tabs"></div>
+
+        <div id="vmNewForm" class="vm-new-form" style="display:none">
+          <div class="field">
+            <label for="vmNewName">Nombre</label>
+            <input id="vmNewName" type="text" maxlength="80" autocomplete="off" placeholder="Ej. Casa Huertas">
+          </div>
+          <div class="two">
+            <div class="field">
+              <label for="vmNewCapital">Capital inicial</label>
+              <div class="input-wrap has-suffix"><input id="vmNewCapital" type="text" inputmode="decimal" autocomplete="off" value="0"><span class="suffix">€</span></div>
+            </div>
+            <div class="field">
+              <label for="vmNewDiff">Diferencial (EURIBOR +)</label>
+              <div class="input-wrap has-suffix"><input id="vmNewDiff" type="number" min="0" step="0.05" value="0.6"><span class="suffix">%</span></div>
+            </div>
+          </div>
+          <div class="two">
+            <div class="field">
+              <label for="vmNewStart">Fecha de firma</label>
+              <input id="vmNewStart" type="date">
+            </div>
+            <div class="field">
+              <label for="vmNewEnd">Fecha de fin</label>
+              <input id="vmNewEnd" type="date">
+            </div>
+          </div>
+          <div class="vm-new-form-actions">
+            <button id="vmNewSaveBtn" class="btn btn-primary" type="button">Crear hipoteca</button>
+            <button id="vmNewCancelBtn" class="btn btn-secondary" type="button">Cancelar</button>
+          </div>
+        </div>
+
+        <div id="vmEmptyState" class="salary-history-empty" style="display:none">Todavía no has creado ninguna hipoteca variable. Usa "+ Nueva hipoteca".</div>
+
+        <div id="vmActiveMortgage">
+          <h4 class="vm-kpis-title">DATOS GENERALES</h4>
+          <section id="vmKpis" class="kpis"></section>
+
+          <div class="vm-divider"></div>
+          <h4 class="vm-kpis-title">PAGADO POR FERNANDO</h4>
+          <section id="vmFernandoKpis" class="kpis"></section>
+          <div class="vm-divider"></div>
+
+          <section class="panel salary-history-panel vm-entries-panel">
+            <div class="payroll-section-head">
+              <div>
+                <h3 id="vmEntriesTitle">Cuotas</h3>
+                <p>Toca una cuota cerrada para corregirla. La fila abierta aparece cuando llega el mes de revisión.</p>
+              </div>
+            </div>
+            <div class="segmented vm-entries-view-toggle" id="vmEntriesViewToggle">
+              <button type="button" class="active" data-view="hipoteca">Hipoteca</button>
+              <button type="button" data-view="fernando">Fernando</button>
+            </div>
+            <div id="vmEntriesEmpty" class="salary-history-empty" style="display:none">Todavía no hay cuotas.</div>
+            <div id="vmEntriesList" class="salary-history-list"></div>
+            <div id="vmPendingNote" class="vm-pending-note"></div>
+          </section>
+        </div>
+      </section>
+
 <section id="topKpis" class="kpis">
         <div id="kpiCard1" class="panel kpi"><div id="kpi1Label" class="kpi-label">Cuota inicial</div><div id="kpiPayment" class="kpi-value">—</div><div id="kpi1Note" class="kpi-note">antes de amortizaciones</div></div>
         <div id="kpiCardPaid" class="panel kpi"><div class="kpi-label">Total pagado</div><div id="kpiPaid" class="kpi-value">—</div><div class="kpi-note">incluye apertura, extras y comisiones</div></div>
@@ -2415,7 +2563,7 @@
     if(!id || id===activeCalculatorId) return;
 
     // Nómina tendrá su propio estado; no debe intentar guardar los campos de préstamo.
-    if(activeCalculatorId!=='payroll' && activeCalculatorId!=='pension' && activeCalculatorId!=='layoff'){
+    if(activeCalculatorId!=='payroll' && activeCalculatorId!=='pension' && activeCalculatorId!=='layoff' && activeCalculatorId!=='varmortgage'){
       saveCurrentCalculatorState();
     }
 
@@ -2430,7 +2578,7 @@
     if(id==='payroll'){
       activeCalculatorId='payroll';
       if(layout){
-        layout.classList.remove('aggregate-mode','calculator-mortgage','calculator-personal','pension-mode','calculator-pension','layoff-cash-mode','calculator-layoff');
+        layout.classList.remove('aggregate-mode','calculator-mortgage','calculator-personal','pension-mode','calculator-pension','layoff-cash-mode','calculator-layoff','varmortgage-mode','calculator-varmortgage');
         layout.classList.add('payroll-mode','calculator-payroll');
       }
       setActiveCalculatorName('N\u00f3mina');
@@ -2443,7 +2591,7 @@
     if(id==='layoff'){
       activeCalculatorId='layoff';
       if(layout){
-        layout.classList.remove('aggregate-mode','calculator-mortgage','calculator-personal','payroll-mode','calculator-payroll','pension-mode','calculator-pension');
+        layout.classList.remove('aggregate-mode','calculator-mortgage','calculator-personal','payroll-mode','calculator-payroll','pension-mode','calculator-pension','varmortgage-mode','calculator-varmortgage');
         layout.classList.add('layoff-cash-mode','calculator-layoff');
       }
       setActiveCalculatorName('Despido');
@@ -2455,7 +2603,7 @@
     if(id==='pension'){
       activeCalculatorId='pension';
       if(layout){
-        layout.classList.remove('aggregate-mode','calculator-mortgage','calculator-personal','payroll-mode','calculator-payroll','layoff-cash-mode','calculator-layoff');
+        layout.classList.remove('aggregate-mode','calculator-mortgage','calculator-personal','payroll-mode','calculator-payroll','layoff-cash-mode','calculator-layoff','varmortgage-mode','calculator-varmortgage');
         layout.classList.add('pension-mode','calculator-pension');
       }
       setActiveCalculatorName('Pensi\u00f3n');
@@ -2465,7 +2613,18 @@
       return;
     }
 
-    if(layout) layout.classList.remove('payroll-mode','pension-mode','layoff-cash-mode','calculator-payroll','calculator-pension','calculator-layoff');
+    if(id==='varmortgage'){
+      activeCalculatorId='varmortgage';
+      if(layout){
+        layout.classList.remove('aggregate-mode','calculator-mortgage','calculator-personal','payroll-mode','calculator-payroll','pension-mode','calculator-pension','layoff-cash-mode','calculator-layoff');
+        layout.classList.add('varmortgage-mode','calculator-varmortgage');
+      }
+      setActiveCalculatorName('Hipoteca variable');
+      renderVarMortgages();
+      return;
+    }
+
+    if(layout) layout.classList.remove('payroll-mode','pension-mode','layoff-cash-mode','varmortgage-mode','calculator-payroll','calculator-pension','calculator-layoff','calculator-varmortgage');
 
     allCasesView[id]=canUseAllCases(id);
     if(allCasesView[id]) activeSavedCaseIds[id]=null;
@@ -2542,8 +2701,14 @@
   const PAYROLL_STORAGE_KEY = 'dashboard_financiero_payroll_v1';
   const PAYROLL_CASES_STORAGE_KEY = 'dashboard_financiero_payroll_cases_v1';
   const SALARY_HISTORY_STORAGE_KEY = 'dashboard_financiero_salary_history_v1';
+  const VARIABLE_MORTGAGE_STORAGE_KEY = 'dashboard_financiero_variable_mortgages_v1';
   let salaryHistory = [];
   const salaryHistoryOpenIds = new Set();
+  let variableMortgages = [];
+  let activeVarMortgageId = null;
+  const vmEditingEntryIds = new Set();
+  let vmEntriesView = 'hipoteca';
+  const VM_MONTH_NAMES=['','enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
   const FIXED_PROJECTION_SAVINGS = 25878;
   const PROJECTION_FORECAST_VERSION = 2;
 
@@ -3125,6 +3290,434 @@
     salaryHistoryOpenIds.delete(id);
     persistSalaryHistoryLocal();
     renderSalaryHistory();
+    scheduleGistAutoSync();
+  }
+
+  // ---- Hipotecas a tipo variable (EURIBOR + diferencial, revisión semestral) ----
+
+  function normalizeVmEntry(raw){
+    const year=parseInt(raw?.year,10);
+    const month=parseInt(raw?.month,10);
+    if(!raw || !raw.id || !year || !month) return null;
+    const amount=(raw.amount===''||raw.amount===null||raw.amount===undefined)?null:Number(raw.amount);
+    return {
+      id:String(raw.id),
+      year,
+      month,
+      amount:(Number.isFinite(amount)?amount:null),
+      closed:!!raw.closed
+    };
+  }
+
+  function normalizeVariableMortgage(raw){
+    if(!raw || !raw.id) return null;
+    return {
+      id:String(raw.id),
+      name:String(raw.name||'Hipoteca variable').slice(0,80),
+      capitalInicial:Math.max(0,Number(raw.capitalInicial)||0),
+      diferencial:Math.max(0,Number(raw.diferencial)||0),
+      fechaFirma:raw.fechaFirma||null,
+      fechaFin:raw.fechaFin||null,
+      rentAmount:(raw.rentAmount!=null && Number.isFinite(Number(raw.rentAmount)))?Math.max(0,Number(raw.rentAmount)):100,
+      entries:(Array.isArray(raw.entries)?raw.entries:[]).map(normalizeVmEntry).filter(Boolean)
+    };
+  }
+
+  function loadVariableMortgagesLocal(){
+    try{
+      const raw=safeStorageGet(localStorage,VARIABLE_MORTGAGE_STORAGE_KEY);
+      if(!raw){ seedDefaultVariableMortgage(); return; }
+      const arr=JSON.parse(raw);
+      variableMortgages=(Array.isArray(arr)?arr:[]).map(normalizeVariableMortgage).filter(Boolean);
+    }catch(e){
+      variableMortgages=[];
+    }
+    if(!activeVarMortgageId || !variableMortgages.some(m=>m.id===activeVarMortgageId)){
+      activeVarMortgageId=variableMortgages[0]?.id||null;
+    }
+  }
+
+  function persistVariableMortgagesLocal(){
+    safeStorageSet(localStorage,VARIABLE_MORTGAGE_STORAGE_KEY,JSON.stringify(variableMortgages));
+  }
+
+  // Se crea una única vez, la primera vez que se abre el dashboard tras esta actualización,
+  // con el histórico ya conocido de "Casa Huertas" (2009–2026). A partir de ahí el usuario
+  // gestiona los datos a mano y esto no vuelve a ejecutarse.
+  function seedDefaultVariableMortgage(){
+    const rows=[
+      [2009,9,906.51,true],[2009,10,793.11,true],
+      [2010,3,755.01,true],[2010,9,759.03,true],
+      [2011,3,783.50,true],[2011,9,846.27,true],
+      [2012,3,832.03,true],[2012,9,755.95,true],
+      [2013,3,695.49,true],[2013,9,691.87,true],
+      [2014,3,694.92,true],[2014,9,692.43,true],
+      [2015,3,677.56,true],[2015,9,664.58,true],
+      [2016,3,656.69,true],[2016,9,650.27,true],
+      [2017,3,646.54,true],[2017,9,641.71,true],
+      [2018,3,638.92,true],[2018,9,639.52,true],
+      [2019,3,642.90,true],[2019,9,639.03,true],
+      [2020,3,634.65,true],[2020,9,641.51,true],
+      [2021,3,621.13,true],[2021,9,621.86,true],
+      [2022,3,620.88,true],[2022,9,695.31,true],
+      [2023,3,821.76,true],[2023,9,882.05,true],
+      [2024,3,862.32,true],[2024,9,860.64,true],
+      [2025,3,793.93,true],[2025,9,775.63,true],
+      [2026,3,784.87,true]
+    ];
+    const entries=rows.map(([year,month,amount,closed])=>({id:newId(),year,month,amount,closed}));
+    const mortgage=normalizeVariableMortgage({
+      id:newId(),
+      name:'Casa Huertas',
+      capitalInicial:210000,
+      diferencial:0.6,
+      fechaFirma:'2009-07-23',
+      fechaFin:'2039-01-01',
+      entries
+    });
+    variableMortgages=[mortgage];
+    activeVarMortgageId=mortgage.id;
+    persistVariableMortgagesLocal();
+  }
+
+  function vmSortAsc(a,b){ return a.year-b.year || a.month-b.month; }
+  function vmSortDesc(a,b){ return b.year-a.year || b.month-a.month; }
+
+  // Meses transcurridos desde el inicio del periodo (día 1 de su mes) hasta hoy, entre 1 y 6.
+  // El propio periodo empieza a contar desde su primer mes (mínimo 1) y se topa en 6,
+  // que es justo cuando el siguiente bloque semestral arranca.
+  function vmElapsedMonthsInPeriod(entry){
+    const start=new Date(entry.year,entry.month-1,1);
+    const today=todayLocal();
+    const months=(today.getFullYear()-start.getFullYear())*12+(today.getMonth()-start.getMonth())+1;
+    return Math.min(6,Math.max(1,months));
+  }
+
+  // La 1ª cuota cerrada cubre solo 1 mes, la 2ª cubre 5 (para encajar en el ciclo marzo/septiembre),
+  // y a partir de la 3ª ya son semestres, pero el multiplicador de un semestre en curso sube mes a mes
+  // (hasta un máximo de 6) según los meses realmente transcurridos desde que arrancó ese bloque.
+  function vmMultiplier(ascIndex,entry){ return ascIndex===0?1:(ascIndex===1?5:vmElapsedMonthsInPeriod(entry)); }
+
+  function vmNextPeriod(year,month){
+    month+=6;
+    if(month>12){month-=12;year++;}
+    return {year,month};
+  }
+
+  // Añade en memoria la siguiente cuota pendiente si ya ha llegado su mes y todavía no existe.
+  function vmEnsurePendingEntry(m){
+    if(!m.entries.length) return false;
+    const sorted=[...m.entries].sort(vmSortDesc);
+    if(sorted.some(e=>!e.closed)) return false;
+    const last=sorted[0];
+    const next=vmNextPeriod(last.year,last.month);
+    const endDate=m.fechaFin?parseExactDate(m.fechaFin):null;
+    const periodDate=new Date(next.year,next.month-1,1);
+    if(endDate && periodDate>=endDate) return false;
+    if(periodDate>todayLocal()) return false;
+    m.entries.push({id:newId(),year:next.year,month:next.month,amount:null,closed:false});
+    return true;
+  }
+
+  function vmEstimate(m){
+    const closedSorted=[...m.entries].filter(e=>e.closed).sort(vmSortDesc);
+    const lastClosed=closedSorted[0]||null;
+    const closedAsc=[...closedSorted].sort(vmSortAsc);
+    const totalPaid=closedAsc.reduce((s,e,idx)=>s+(e.amount||0)*vmMultiplier(idx,e),0);
+    let remaining=0;
+    let estimatedRemaining=0;
+    if(lastClosed && m.fechaFin){
+      const endDate=parseExactDate(m.fechaFin);
+      // Meses que aún faltan para completar el bloque de la última cuota cerrada (si sigue en curso).
+      const monthsLeftInCurrentBlock=Math.max(0,6-vmElapsedMonthsInPeriod(lastClosed));
+      estimatedRemaining=monthsLeftInCurrentBlock*(lastClosed.amount||0);
+      let {year,month}=vmNextPeriod(lastClosed.year,lastClosed.month);
+      let guard=0;
+      while(endDate && new Date(year,month-1,1)<endDate && guard<200){
+        remaining++;
+        ({year,month}=vmNextPeriod(year,month));
+        guard++;
+      }
+      estimatedRemaining+=remaining*(lastClosed.amount||0)*6;
+    }
+    return {lastClosed,totalPaid,remaining,estimatedRemaining};
+  }
+
+  // Meses (no semestres) que quedan desde hoy hasta la fecha de fin. Baja cada mes que pasa.
+  function vmMonthsRemaining(m){
+    if(!m.fechaFin) return 0;
+    const endDate=parseExactDate(m.fechaFin);
+    const today=todayLocal();
+    let months=(endDate.getFullYear()-today.getFullYear())*12+(endDate.getMonth()-today.getMonth());
+    if(endDate.getDate()<today.getDate()) months--;
+    return Math.max(0,months);
+  }
+
+  // Total pagado según la vista "Fernando" (solo cuotas desde el corte, 1ª ×4 y resto ×6),
+  // equivalente al acumulado de la primera línea de esa tabla.
+  // Igual que la columna "Diferencia" de la tabla (vista Fernando): acumulado de cuotas - acumulado de alquiler.
+  function vmFernandoTotalPaid(m){
+    const ascClosed=[...m.entries].filter(e=>e.closed && vmIsAfterFernandoCutoff(e)).sort(vmSortAsc);
+    let running=0, runningRent=0;
+    ascClosed.forEach((e,idx)=>{
+      const mult=vmMultiplierForView('fernando',idx,e);
+      running+=(e.amount||0)*mult;
+      runningRent+=(m.rentAmount||0)*mult;
+    });
+    return running-runningRent;
+  }
+
+  function renderVmFernandoKpis(m,estimatedRemaining){
+    const wrap=$('#vmFernandoKpis');
+    if(!wrap)return;
+    const fernandoPaid=vmFernandoTotalPaid(m);
+    const debeJavi=fernandoPaid/2;
+    const debeJaviFinal=(fernandoPaid+estimatedRemaining)/2;
+    const cards=[
+      ['Fecha inicio',fullDateFmt.format(new Date(2012,4,1)),''],
+      ['Total pagado por Fernando',eur0.format(fernandoPaid),'diferencia vista Fernando'],
+      ['Dinero Debe Javi',eur0.format(debeJavi),'50% de lo pagado por Fernando'],
+      ['Dinero Final Debe Javi',eur0.format(debeJaviFinal),'50% de lo pagado + lo que resta hasta el fin']
+    ];
+    wrap.innerHTML=cards.map(([label,value,note])=>
+      `<div class="panel kpi vm-kpi-small"><div class="kpi-label">${label}</div><div class="kpi-value">${value}</div><div class="kpi-note">${note}</div></div>`
+    ).join('');
+  }
+
+  function vmActiveMortgage(){
+    return variableMortgages.find(m=>m.id===activeVarMortgageId)||null;
+  }
+
+  function renderVmTabs(){
+    const wrap=$('#vmMortgageTabs');
+    if(!wrap)return;
+    const countEl=$('#vmMortgageCount');
+    if(countEl) countEl.textContent=String(variableMortgages.length);
+    wrap.innerHTML=variableMortgages.map(m=>
+      `<button type="button" class="vm-mortgage-chip${m.id===activeVarMortgageId?' active':''}" data-id="${m.id}">${m.name}</button>`
+    ).join('') + `<button type="button" id="vmAddMortgageBtn" class="vm-mortgage-chip add">+ Nueva hipoteca</button>`;
+    wrap.querySelectorAll('.vm-mortgage-chip[data-id]').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        activeVarMortgageId=btn.dataset.id;
+        vmEntriesView='hipoteca';
+        $('#vmNewForm').style.display='none';
+        renderVarMortgages();
+      });
+    });
+    const addBtn=$('#vmAddMortgageBtn');
+    if(addBtn) addBtn.addEventListener('click',()=>{
+      $('#vmNewForm').style.display='block';
+      $('#vmNewName').focus();
+    });
+  }
+
+  function vmEntryRowHtml(m,entry,cumulative,mult,rentCumulative){
+    const label=`${VM_MONTH_NAMES[entry.month]||entry.month} ${entry.year} (${entry.year-1972})`;
+    if(!entry.closed || vmEditingEntryIds.has(entry.id)){
+      return `<tr class="editing" data-id="${entry.id}">
+        <td>${label}</td>
+        <td>
+          <div class="input-wrap has-suffix vm-table-input-wrap">
+            <input type="text" class="vm-amount-input" inputmode="decimal" placeholder="Cuota" value="${entry.amount?formatEditableAmount(entry.amount):''}">
+            <span class="suffix">€</span>
+          </div>
+        </td>
+        <td>—</td>
+        <td>—</td>
+        <td class="vm-col-rent">—</td>
+        <td class="vm-col-rent">—</td>
+        <td class="vm-col-diff vm-actions">
+          <button type="button" class="btn btn-primary vm-save-btn" style="padding:6px 9px;font-size:11px">Cerrar</button>
+          <button type="button" class="btn btn-secondary vm-delete-btn" style="padding:6px 9px;font-size:11px">✕</button>
+        </td>
+      </tr>`;
+    }
+    const rentAmount=(m.rentAmount||0)*mult;
+    const diff=cumulative-rentCumulative;
+    return `<tr class="closed" data-id="${entry.id}" tabindex="0" role="button" aria-label="Editar cuota ${label}">
+      <td>${label}</td>
+      <td>${eur0.format(entry.amount)}</td>
+      <td>${eur0.format(entry.amount*mult)}</td>
+      <td>${eur0.format(cumulative)}</td>
+      <td class="vm-col-rent">${eur0.format(rentAmount)}</td>
+      <td class="vm-col-rent">${eur0.format(rentCumulative)}</td>
+      <td class="vm-col-diff">${eur0.format(diff)}</td>
+    </tr>`;
+  }
+
+  // Vista "Fernando": la misma tabla pero solo a partir de 2012 (no cuenta lo anterior).
+  // La primera cuota incluida (marzo 2012) cubre 4 meses (×4) y el resto ya son semestres completos (×6).
+  const VM_FERNANDO_CUTOFF_YEAR=2012;
+  function vmIsAfterFernandoCutoff(e){
+    return e.year>=VM_FERNANDO_CUTOFF_YEAR;
+  }
+  function vmMultiplierForView(view,ascIndex,entry){
+    return view==='fernando' ? (ascIndex===0?4:vmElapsedMonthsInPeriod(entry)) : vmMultiplier(ascIndex,entry);
+  }
+
+  function renderVmEntries(m){
+    const list=$('#vmEntriesList');
+    const empty=$('#vmEntriesEmpty');
+    const title=$('#vmEntriesTitle');
+    if(!list||!empty)return;
+    const isFernando=vmEntriesView==='fernando';
+    if(title) title.textContent=isFernando?`Cuotas — ${m.name} · Fernando`:`Cuotas — ${m.name}`;
+    $('#vmEntriesViewToggle')?.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.view===vmEntriesView));
+    vmEnsurePendingEntry(m);
+    persistVariableMortgagesLocal();
+
+    const ascClosedAll=[...m.entries].filter(e=>e.closed).sort(vmSortAsc);
+    const ascClosed=isFernando?ascClosedAll.filter(vmIsAfterFernandoCutoff):ascClosedAll;
+    let running=0, runningRent=0;
+    const cumulativeById={}, rentCumulativeById={}, multiplierById={};
+    ascClosed.forEach((e,idx)=>{
+      const mult=vmMultiplierForView(vmEntriesView,idx,e);
+      multiplierById[e.id]=mult;
+      running+=(e.amount||0)*mult;
+      cumulativeById[e.id]=running;
+      runningRent+=(m.rentAmount||0)*mult;
+      rentCumulativeById[e.id]=runningRent;
+    });
+    const includedIds=new Set(ascClosed.map(e=>e.id));
+
+    const sorted=[...m.entries].filter(e=>!isFernando || !e.closed || includedIds.has(e.id)).sort(vmSortDesc);
+    list.innerHTML = sorted.length
+      ? `<table class="vm-table"><thead><tr>
+          <th>Periodo</th>
+          <th>Cuota</th>
+          <th>Cuota × meses</th>
+          <th>Acumulado</th>
+          <th class="vm-th-rent">Alquiler<span class="vm-rent-edit-wrap"><input type="text" id="vmRentInput" class="vm-rent-input" inputmode="decimal" value="${formatEditableAmount(m.rentAmount)}"><span class="vm-rent-suffix">€</span></span></th>
+          <th class="vm-th-rent">Acum. alquiler</th>
+          <th>Diferencia</th>
+        </tr></thead><tbody>${sorted.map(e=>vmEntryRowHtml(m,e,cumulativeById[e.id]||0,multiplierById[e.id]||6,rentCumulativeById[e.id]||0)).join('')}</tbody></table>`
+      : '';
+    empty.style.display=sorted.length?'none':'block';
+
+    list.querySelectorAll('tr.closed').forEach(row=>{
+      const open=()=>{vmEditingEntryIds.add(row.dataset.id);renderVarMortgages();};
+      row.addEventListener('click',open);
+      row.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open();}});
+    });
+    list.querySelectorAll('.vm-save-btn').forEach(btn=>{
+      btn.addEventListener('click',()=>saveVmEntryRow(btn.closest('tr').dataset.id));
+    });
+    list.querySelectorAll('.vm-delete-btn').forEach(btn=>{
+      btn.addEventListener('click',()=>deleteVmEntryRow(btn.closest('tr').dataset.id));
+    });
+    list.querySelectorAll('.vm-amount-input').forEach(el=>{
+      el.addEventListener('keydown',e=>{
+        if(e.key==='Enter'){e.preventDefault();saveVmEntryRow(el.closest('tr').dataset.id);}
+      });
+    });
+
+    const rentInput=list.querySelector('#vmRentInput');
+    if(rentInput){
+      rentInput.addEventListener('keydown',e=>{
+        if(e.key==='Enter'){e.preventDefault();rentInput.blur();}
+      });
+      rentInput.addEventListener('blur',()=>{
+        const val=parseEsAmount(rentInput.value);
+        m.rentAmount=Math.max(0,Number.isFinite(val)?val:0);
+        persistVariableMortgagesLocal();
+        renderVmEntries(m);
+        scheduleGistAutoSync();
+      });
+    }
+
+    const note=$('#vmPendingNote');
+    if(note){
+      const hasOpen=m.entries.some(e=>!e.closed);
+      note.textContent=hasOpen
+
+        ? 'Hay una cuota abierta esperando a que la cierres con el importe real.'
+        : 'Próxima revisión: cuando llegue su mes aparecerá aquí una nueva fila para cerrarla a mano.';
+    }
+  }
+
+  function renderVmKpis(m){
+    const wrap=$('#vmKpis');
+    if(!wrap)return;
+    const {lastClosed,totalPaid,remaining,estimatedRemaining}=vmEstimate(m);
+    const cards=[
+      ['Fecha de firma',m.fechaFirma?fullDateFmt.format(parseExactDate(m.fechaFirma)):'—',''],
+      ['Capital inicial',eur0.format(m.capitalInicial),'según escritura'],
+      ['Tipo','EURIBOR + '+num.format(m.diferencial)+'%','revisión semestral'],
+      ['Última cuota cerrada',lastClosed?eur0.format(lastClosed.amount):'—',lastClosed?`${VM_MONTH_NAMES[lastClosed.month]||''} ${lastClosed.year} · al mes`:''],
+      ['Fecha de fin',m.fechaFin?fullDateFmt.format(parseExactDate(m.fechaFin)):'—',''],
+      ['Total pagado',eur0.format(totalPaid),'cuotas cerradas × 6 meses'],
+      ['Cuotas restantes',String(vmMonthsRemaining(m)),'meses hasta el fin'],
+      ['Total por pagar (estimado)',eur0.format(estimatedRemaining),'extrapolando la última cuota']
+    ];
+    wrap.innerHTML=cards.map(([label,value,note])=>
+      `<div class="panel kpi vm-kpi-small"><div class="kpi-label">${label}</div><div class="kpi-value">${value}</div><div class="kpi-note">${note}</div></div>`
+    ).join('');
+    renderVmFernandoKpis(m,estimatedRemaining);
+  }
+
+  function renderVarMortgages(){
+    const emptyState=$('#vmEmptyState');
+    const activeWrap=$('#vmActiveMortgage');
+    if(!emptyState||!activeWrap)return;
+    renderVmTabs();
+    const m=vmActiveMortgage();
+    if(!m){
+      emptyState.style.display='block';
+      activeWrap.style.display='none';
+      return;
+    }
+    emptyState.style.display='none';
+    activeWrap.style.display='block';
+    renderVmKpis(m);
+    renderVmEntries(m);
+  }
+
+  function saveVmEntryRow(id){
+    const m=vmActiveMortgage();
+    if(!m)return;
+    const row=document.querySelector(`#vmEntriesList tr[data-id="${id}"]`);
+    if(!row)return;
+    const input=row.querySelector('.vm-amount-input');
+    const amount=parseEsAmount(input.value);
+    input.classList.toggle('sh-error',!amount);
+    if(!amount)return;
+    const entry=m.entries.find(e=>e.id===id);
+    if(entry){entry.amount=amount;entry.closed=true;}
+    vmEditingEntryIds.delete(id);
+    persistVariableMortgagesLocal();
+    renderVarMortgages();
+    scheduleGistAutoSync();
+  }
+
+  function deleteVmEntryRow(id){
+    const m=vmActiveMortgage();
+    if(!m)return;
+    m.entries=m.entries.filter(e=>e.id!==id);
+    vmEditingEntryIds.delete(id);
+    persistVariableMortgagesLocal();
+    renderVarMortgages();
+    scheduleGistAutoSync();
+  }
+
+  function addVariableMortgage(){
+    const name=($('#vmNewName').value||'').trim().slice(0,80)||'Hipoteca variable';
+    const capitalInicial=parseEsAmount($('#vmNewCapital').value);
+    const diferencial=Number($('#vmNewDiff').value)||0;
+    const fechaFirma=$('#vmNewStart').value||null;
+    const fechaFin=$('#vmNewEnd').value||null;
+    const entries=[];
+    if(fechaFirma){
+      const d=parseExactDate(fechaFirma);
+      if(d) entries.push({id:newId(),year:d.getFullYear(),month:d.getMonth()+1,amount:null,closed:false});
+    }
+    const mortgage=normalizeVariableMortgage({id:newId(),name,capitalInicial,diferencial,fechaFirma,fechaFin,entries});
+    variableMortgages.push(mortgage);
+    activeVarMortgageId=mortgage.id;
+    persistVariableMortgagesLocal();
+    $('#vmNewForm').style.display='none';
+    $('#vmNewName').value='';$('#vmNewCapital').value='0';$('#vmNewDiff').value='0.6';
+    $('#vmNewStart').value='';$('#vmNewEnd').value='';
+    renderVarMortgages();
     scheduleGistAutoSync();
   }
 
@@ -4848,7 +5441,8 @@ No se borrará hasta que confirmes este mensaje.`))return;
       pensionCases,
       pensionLayoffSettings,
       layoffCashSettings,
-      salaryHistory
+      salaryHistory,
+      variableMortgages
     };
   }
 
@@ -5115,6 +5709,14 @@ No se borrará hasta que confirmes este mensaje.`))return;
       salaryHistoryOpenIds.clear();
       persistSalaryHistoryLocal();
     }
+    if(parsed && !Array.isArray(parsed) && Array.isArray(parsed.variableMortgages)){
+      variableMortgages=parsed.variableMortgages.map(normalizeVariableMortgage).filter(Boolean);
+      vmEditingEntryIds.clear();
+      if(!activeVarMortgageId || !variableMortgages.some(m=>m.id===activeVarMortgageId)){
+        activeVarMortgageId=variableMortgages[0]?.id||null;
+      }
+      persistVariableMortgagesLocal();
+    }
 
     activeSavedCaseIds.mortgage=null;
     activeSavedCaseIds.personal=null;
@@ -5125,6 +5727,7 @@ No se borrará hasta que confirmes este mensaje.`))return;
     if(renderNow){
       payrollApplyUI();payrollRecalc();renderPayrollCases();
       renderSalaryHistory();
+      renderVarMortgages();
       pensionApplyUI();
       pensionRecalc();
       renderPensionCases();
@@ -7082,6 +7685,22 @@ No se borrará hasta que confirmes este mensaje.`))return;
   });
   $('#addAmort').addEventListener('click',addAmort);
   $('#salaryHistoryAddBtn').addEventListener('click',addSalaryHistoryRow);
+  $('#vmNewSaveBtn').addEventListener('click',addVariableMortgage);
+  $('#vmNewCancelBtn').addEventListener('click',()=>{
+    $('#vmNewForm').style.display='none';
+    $('#vmNewName').value='';$('#vmNewCapital').value='0';$('#vmNewDiff').value='0.6';
+    $('#vmNewStart').value='';$('#vmNewEnd').value='';
+  });
+  $('#vmEntriesViewToggle')?.addEventListener('click',e=>{
+    const btn=e.target.closest('button');
+    if(!btn)return;
+    const view=btn.dataset.view==='fernando'?'fernando':'hipoteca';
+    if(view===vmEntriesView)return;
+    vmEntriesView=view;
+    vmEditingEntryIds.clear();
+    const m=vmActiveMortgage();
+    if(m)renderVmEntries(m);
+  });
   $('#csvBtn').addEventListener('click',exportCSV);
   $('#resetBtn').addEventListener('click',reset);
   window.addEventListener('resize',()=>requestAnimationFrame(drawCharts));
@@ -7099,6 +7718,7 @@ No se borrará hasta que confirmes este mensaje.`))return;
     loadLayoffCashSettingsLocal();
     loadResultSnapshotsLocal();
     loadSalaryHistoryLocal();
+    loadVariableMortgagesLocal();
 
     const rememberLocal=safeStorageGet(localStorage,GIST_TOKEN_REMEMBER_KEY)!=='0';
     $('#gistRememberToken').checked=rememberLocal;
@@ -7119,6 +7739,7 @@ No se borrará hasta que confirmes este mensaje.`))return;
     payrollRecalc();
     renderPayrollCases();
     renderSalaryHistory();
+    renderVarMortgages();
     pensionApplyUI();
     pensionRecalc();
     renderPensionCases();
@@ -7137,6 +7758,7 @@ No se borrará hasta que confirmes este mensaje.`))return;
       if(activeCalculatorId==='payroll'){payrollApplyUI();payrollRecalc()}
       else if(activeCalculatorId==='pension'){pensionApplyUI();pensionRecalc();setPensionView('main')}
       else if(activeCalculatorId==='layoff'){layoffCashApplyUI();layoffCashRecalc()}
+      else if(activeCalculatorId==='varmortgage'){renderVarMortgages()}
       else loadCalculatorState(activeCalculatorId);
     }else{
       renderAmorts();
@@ -7149,11 +7771,12 @@ No se borrará hasta que confirmes este mensaje.`))return;
     setGlobalGistFreshness('error',safeStorageGet(localStorage,GIST_LAST_SYNC_STORAGE_KEY),'error al iniciar · usando local');
     payrollApplyUI();payrollRecalc();renderPayrollCases();
     loadSalaryHistoryLocal();renderSalaryHistory();
+    loadVariableMortgagesLocal();renderVarMortgages();
     pensionApplyUI();pensionRecalc();
     renderPensionCases();setPensionView('main');
     layoffCashApplyUI();layoffCashRecalc();renderSavedCases();
     const activeTab=document.querySelector('.tab-btn.active');
-    if(activeTab){activeCalculatorId=activeTab.dataset.calculatorId||'mortgage';if(!['payroll','pension','layoff'].includes(activeCalculatorId))loadCalculatorState(activeCalculatorId)}
+    if(activeTab){activeCalculatorId=activeTab.dataset.calculatorId||'mortgage';if(!['payroll','pension','layoff','varmortgage'].includes(activeCalculatorId))loadCalculatorState(activeCalculatorId)}
   });
 })();
 </script>
