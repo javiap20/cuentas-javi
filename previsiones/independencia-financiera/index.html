@@ -103,6 +103,11 @@ h1{font-family:"Manrope",sans-serif;font-size:clamp(26px,3vw,40px);line-height:1
 .advanced>.mini-control:nth-child(7){grid-column:4 / span 2}
 .advanced>.mini-control:nth-child(8){grid-column:6 / span 2}
 .advanced .benefit-check,.advanced .retirement-check-row{justify-content:center}
+.ipc-dual-control{min-height:92px}
+.ipc-dual{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:stretch}
+.ipc-subcontrol{background:#fff;border:1px solid var(--line);border-radius:10px;padding:7px 8px;min-width:0}
+.ipc-subcontrol label{display:block;font-size:8px!important;letter-spacing:.07em!important;margin:0 0 3px!important;color:var(--muted);font-weight:800}
+.ipc-subinput{width:100%;border:0;background:transparent;outline:0;color:var(--ink);font-weight:800;font-size:13px;padding:0;text-align:center}
 .section-date-control{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;background:#fafbfe;border:1px solid var(--line);border-radius:13px;padding:8px 10px;min-width:310px}
 .section-date-control label{font-size:9px;text-transform:uppercase;letter-spacing:.08em;font-weight:800;color:var(--muted)}
 .section-date-control input[type="date"]{border:0;outline:0;background:transparent;color:var(--ink);font-weight:800;font-size:12px;text-align:center;min-width:128px}
@@ -382,10 +387,19 @@ details summary::-webkit-details-marker{display:none}
         <label for="currentAge">Edad actual</label>
         <input id="currentAge" class="mini-input" type="number" min="18" max="100" step="1" placeholder="—" title="Por defecto: año actual menos 1972">
       </div>
-      <div class="mini-control">
-        <label for="expenseInflation">IPC anual de gastos</label>
-        <input id="expenseInflation" class="mini-input" type="number" min="0" max="20" step="0.1" value="2" title="Inflación anual aplicada a los gastos desde 2027">
-        <div class="pension-auto-help">Por defecto 2 % · editable por escenario.</div>
+      <div class="mini-control ipc-dual-control">
+        <label>IPC anual</label>
+        <div class="ipc-dual">
+          <div class="ipc-subcontrol">
+            <label for="expenseInflation">Gastos</label>
+            <input id="expenseInflation" class="ipc-subinput" type="number" min="0" max="20" step="0.1" value="2" title="Subida anual aplicada a los gastos">
+          </div>
+          <div class="ipc-subcontrol">
+            <label for="pensionInflation">Pensión</label>
+            <input id="pensionInflation" class="ipc-subinput" type="number" min="0" max="20" step="0.1" value="0.5" title="Subida anual aplicada a la pensión desde el año de jubilación">
+          </div>
+        </div>
+        <div class="pension-auto-help">2 % gastos · 0,5 % pensión · editables por escenario.</div>
       </div>
       <div class="mini-control">
         <label for="pension">Pensión estimada al jubilarte</label>
@@ -654,7 +668,7 @@ details summary::-webkit-details-marker{display:none}
     savings:$('savings'), severance:$('severance'), assets:$('assets'), unemployment:$('unemployment'), subsidy:$('subsidy'), dismissalDate:$('dismissalDate'), dismissalAutoBtn:$('dismissalAutoBtn'), dismissalDateHelp:$('dismissalDateHelp'),
     autoBenefits:$('autoBenefits'), children:$('children'), includeSubsidy52:$('includeSubsidy52'), benefitStatus:$('benefitStatus'), benefitSourceMini:$('benefitSourceMini'),
     unemploymentCard:$('unemploymentCard'), subsidyCard:$('subsidyCard'), unemploymentChip:$('unemploymentChip'), subsidyChip:$('subsidyChip'), unemploymentHelp:$('unemploymentHelp'), subsidyHelp:$('subsidyHelp'),
-    currentAge:$('currentAge'), expenseInflation:$('expenseInflation'), pension:$('pension'), pensionHelp:$('pensionHelp'), longContribution:$('longContribution'), retirementAgeDisplay:$('retirementAgeDisplay'), retirementAutoNote:$('retirementAutoNote'), manualRetirementControl:$('manualRetirementControl'), endYear:$('endYear'),
+    currentAge:$('currentAge'), expenseInflation:$('expenseInflation'), pensionInflation:$('pensionInflation'), pension:$('pension'), pensionHelp:$('pensionHelp'), longContribution:$('longContribution'), retirementAgeDisplay:$('retirementAgeDisplay'), retirementAutoNote:$('retirementAutoNote'), manualRetirementControl:$('manualRetirementControl'), endYear:$('endYear'),
     excelStatus:$('excelStatus'), errorBox:$('errorBox'), retirementNotice:$('retirementNotice'),
     forecastBody:$('forecastBody'), chart:$('chart'), chartMeta:$('chartMeta'), tableNote:$('tableNote'),
     expenseBody:$('expenseBody'), groupCards:$('groupCards'), expenseSummary:$('expenseSummary'),
@@ -877,6 +891,18 @@ details summary::-webkit-details-marker{display:none}
     return {...shared,auto:true,subsidyMonthly:Math.max(0,num(input.subsidy)),pensionMonthly14:shared.pension.monthly,pensionEquivalent12:shared.pension.equivalent12};
   }
 
+  function pensionInflationRate(input){
+    const rate=num(input?.pensionInflation);
+    return Number.isFinite(rate)&&rate>=0?rate/100:0.005;
+  }
+
+  function inflatedPensionForYear(baseAmount,year,input,plan){
+    const retirementYear=plan?.retirementDate instanceof Date?plan.retirementDate.getFullYear():Number(plan?.retirementDate?.getFullYear?.());
+    if(!Number.isFinite(retirementYear)) return Math.max(0,Number(baseAmount)||0);
+    const yearsFromRetirement=Math.max(0,Number(year)-retirementYear);
+    return Math.max(0,Number(baseAmount)||0)*Math.pow(1+pensionInflationRate(input),yearsFromRetirement);
+  }
+
   function benefitIncomeForYear(year,input,planOverride=null){
     const plan=planOverride||benefitsPlan(input),types=new Map();let amount=0;
     for(let m=0;m<12;m++){
@@ -892,6 +918,7 @@ details summary::-webkit-details-marker{display:none}
         if(idx>=0&&idx<UNEMPLOYMENT_MONTHS)part={type:'paro',label:'Paro',amount:input.unemployment};
         else if(idx>=UNEMPLOYMENT_MONTHS&&input.includeSubsidy52)part={type:'subsidy',label:'Subsidio +52',amount:input.subsidy};
       }
+      if(part?.type==='pension') part={...part,amount:inflatedPensionForYear(part.amount,year,input,plan)};
       if(part.amount>0){amount+=part.amount;types.set(part.type,{type:part.type,label:part.label,amount:(types.get(part.type)?.amount||0)+part.amount});}
     }
     if(!types.size)return {type:'none',label:'Sin ingreso',amount:0,parts:[]};
@@ -923,7 +950,7 @@ details summary::-webkit-details-marker{display:none}
       const max=UNEMPLOYMENT_MAX_2026[String(input.children)]??UNEMPLOYMENT_MAX_2026[0];
       els.unemploymentHelp.textContent=`1-6: ${euro0.format(plan.unemploymentFirst6)}/mes · 7-24: ${euro0.format(plan.unemploymentRest)}/mes · tope ${euro0.format(max)}`;
       els.subsidyHelp.textContent=input.includeSubsidy52?`${euro0.format(plan.subsidyMonthly)}/mes desde ${plan.subsidyStart.toLocaleDateString('es-ES',{month:'long',year:'numeric'})} · importe manual, sin IPC`:'No contado en este escenario.';
-      els.pensionHelp.textContent=`Por paga · 14 pagas · equiv. ${euro0.format(plan.pensionEquivalent12)}/mes en 12 · ${plan.retirementDate.toLocaleDateString('es-ES',{month:'long',year:'numeric'})}`;
+      els.pensionHelp.textContent=`Por paga · 14 pagas · equiv. ${euro0.format(plan.pensionEquivalent12)}/mes en 12 · ${plan.retirementDate.toLocaleDateString('es-ES',{month:'long',year:'numeric'})} · sube ${formatNumberES(input.pensionInflation,1)} %/año después de jubilarte`;
       els.benefitSourceMini.innerHTML=`<b>Javi Real</b> · ${esc(javiRealSource)} · motor ${esc(FIN.version)}`;
       els.benefitStatus.classList.remove('warn');
       els.benefitStatus.querySelector('span:last-child').textContent=`Automático · despido ${dismissalText} · paro con base ${euro0.format(plan.unemploymentBase)}/mes · pensión estimada ${euro0.format(plan.pensionMonthly14)}/paga · jubilación ${plan.retirementDate.toLocaleDateString('es-ES',{month:'long',year:'numeric'})} (${plan.retirementAge} años).`;
@@ -949,7 +976,7 @@ details summary::-webkit-details-marker{display:none}
     const input={
       savings:num(els.savings.value),severance:num(els.severance.value),assets:num(els.assets.value),unemployment:num(els.unemployment.value),subsidy:num(els.subsidy.value),
       dismissalDate,dismissalDateAuto:dismissalAuto,autoBenefits:!!els.autoBenefits.checked,children:String(els.children.value||'0'),includeSubsidy52:!!els.includeSubsidy52.checked,
-      currentAge:els.currentAge.value===''?null:num(els.currentAge.value),expenseInflation:Math.max(0,Math.min(20,num(els.expenseInflation.value))),pension:num(els.pension.value),longContribution:!!els.longContribution.checked,retirementAge:els.longContribution.checked?65:67,
+      currentAge:els.currentAge.value===''?null:num(els.currentAge.value),expenseInflation:Math.max(0,Math.min(20,num(els.expenseInflation.value))),pensionInflation:Math.max(0,Math.min(20,num(els.pensionInflation.value))),pension:num(els.pension.value),longContribution:!!els.longContribution.checked,retirementAge:els.longContribution.checked?65:67,
       endYear:Math.min(2120,Math.max(normalizedDismissalDate(dismissalDate).getFullYear(),Math.trunc(num(els.endYear.value)||2075)))
     };
     const plan=benefitsPlan(input);input.retirementAge=plan.retirementAge;input.longContribution=plan.retirementAge===65;
@@ -964,7 +991,7 @@ details summary::-webkit-details-marker{display:none}
   }
 
   function defaultAssumptions(){
-    return {savings:0,severance:0,assets:0,unemployment:0,subsidy:SUBSIDY52_2026,subsidyManual:true,dismissalDate:FIN.dateKey(automaticDismissalDate()),dismissalDateAuto:true,autoBenefits:true,children:'0',includeSubsidy52:true,currentAge:DEFAULT_CURRENT_AGE,currentAgeAuto:true,expenseInflation:2,pension:0,longContribution:false,retirementAge:67,endYear:2075};
+    return {savings:0,severance:0,assets:0,unemployment:0,subsidy:SUBSIDY52_2026,subsidyManual:true,dismissalDate:FIN.dateKey(automaticDismissalDate()),dismissalDateAuto:true,autoBenefits:true,children:'0',includeSubsidy52:true,currentAge:DEFAULT_CURRENT_AGE,currentAgeAuto:true,expenseInflation:2,pensionInflation:0.5,pension:0,longContribution:false,retirementAge:67,endYear:2075};
   }
 
   function assumptionsFromUI(){
@@ -990,6 +1017,7 @@ details summary::-webkit-details-marker{display:none}
     els.children.value=['0','1','2'].includes(String(x.children))?String(x.children):'0';
     els.includeSubsidy52.checked=x.includeSubsidy52!==false;
     els.expenseInflation.value=Number.isFinite(Number(x.expenseInflation))?Number(x.expenseInflation):2;
+    els.pensionInflation.value=Number.isFinite(Number(x.pensionInflation))?Number(x.pensionInflation):0.5;
     els.pension.value=x.pension ?? 0;
     els.endYear.value=x.endYear ?? 2075;
     if(Object.prototype.hasOwnProperty.call(x,'longContribution')) els.longContribution.checked=!!x.longContribution;
@@ -1067,7 +1095,7 @@ details summary::-webkit-details-marker{display:none}
   function legacyAssumptions(data){
     const a=defaultAssumptions();
     if(data.dismissalDate){a.dismissalDate=dismissalDateValue(data.dismissalDate);a.dismissalDateAuto=data.dismissalDateAuto!==false;}
-    ['savings','severance','assets','unemployment','subsidy','expenseInflation','pension','endYear'].forEach(k=>{
+    ['savings','severance','assets','unemployment','subsidy','expenseInflation','pensionInflation','pension','endYear'].forEach(k=>{
       if(data[k]!==null && data[k]!==undefined && data[k]!=='') a[k]=num(data[k]);
     });
     if(Object.prototype.hasOwnProperty.call(data,'longContribution')) a.longContribution=!!data.longContribution;
@@ -1284,7 +1312,7 @@ details summary::-webkit-details-marker{display:none}
 
   function comparisonInput(assumptions){
     const x={...defaultAssumptions(),...(assumptions||{})};
-    x.savings=num(x.savings);x.severance=num(x.severance);x.assets=num(x.assets);x.unemployment=num(x.unemployment);x.subsidy=num(x.subsidy);x.expenseInflation=Math.max(0,Math.min(20,num(x.expenseInflation)));x.pension=num(x.pension);
+    x.savings=num(x.savings);x.severance=num(x.severance);x.assets=num(x.assets);x.unemployment=num(x.unemployment);x.subsidy=num(x.subsidy);x.expenseInflation=Math.max(0,Math.min(20,num(x.expenseInflation)));x.pensionInflation=Math.max(0,Math.min(20,num(x.pensionInflation)));x.pension=num(x.pension);
     x.dismissalDateAuto=x.dismissalDateAuto!==false;x.dismissalDate=x.dismissalDateAuto?FIN.dateKey(automaticDismissalDate()):dismissalDateValue(x.dismissalDate);
     x.autoBenefits=x.autoBenefits!==false;x.children=['0','1','2'].includes(String(x.children))?String(x.children):'0';x.includeSubsidy52=x.includeSubsidy52!==false;
     x.currentAge=x.currentAgeAuto===false?(x.currentAge===null?null:num(x.currentAge)):DEFAULT_CURRENT_AGE;x.longContribution=!!x.longContribution;x.retirementAge=x.longContribution?65:67;
@@ -1446,7 +1474,7 @@ details summary::-webkit-details-marker{display:none}
     const retirementPlan=model.plan||benefitsPlan(model.input);
     const reachesRetirement=model.rows.some(r=>r.year>=retirementPlan.retirementDate.getFullYear());
     els.retirementNotice.classList.toggle('show', reachesRetirement && model.input.pension===0);
-    const start=projectionStartDate(model.input);els.tableNote.textContent=`Desde ${start.toLocaleDateString('es-ES',{month:'long',year:'numeric'})} hasta ${model.input.endYear}. Gasto con IPC ${formatNumberES(model.input.expenseInflation,1)} % anual · cálculo mensual agrupado por año · jubilación resaltada.`;
+    const start=projectionStartDate(model.input);els.tableNote.textContent=`Desde ${start.toLocaleDateString('es-ES',{month:'long',year:'numeric'})} hasta ${model.input.endYear}. Gasto con IPC ${formatNumberES(model.input.expenseInflation,1)} % anual · pensión con IPC ${formatNumberES(model.input.pensionInflation,1)} % desde la jubilación · cálculo mensual agrupado por año · jubilación resaltada.`;
   }
 
   function renderKpis(model){
@@ -2044,6 +2072,8 @@ details summary::-webkit-details-marker{display:none}
   els.currentAge.addEventListener('change',()=>{currentAgeAuto=false;markScenarioDirty();render();});
   els.expenseInflation.addEventListener('input',()=>{markScenarioDirty();render();});
   els.expenseInflation.addEventListener('change',()=>{els.expenseInflation.value=Math.max(0,Math.min(20,num(els.expenseInflation.value)));markScenarioDirty();render();});
+  els.pensionInflation.addEventListener('input',()=>{markScenarioDirty();render();});
+  els.pensionInflation.addEventListener('change',()=>{els.pensionInflation.value=Math.max(0,Math.min(20,num(els.pensionInflation.value)));markScenarioDirty();render();});
 
   els.dismissalDate.addEventListener('change',()=>{els.dismissalAutoBtn.classList.remove('active');els.dismissalDate.value=dismissalDateValue(els.dismissalDate.value);markScenarioDirty();render();});
 
