@@ -92,7 +92,7 @@ h1{font-family:"Manrope",sans-serif;font-size:clamp(26px,3vw,40px);line-height:1
 .money-input{width:100%;border:0;outline:0;background:transparent;color:var(--ink);font-family:"Manrope",sans-serif;font-size:26px;font-weight:800;letter-spacing:-.035em;padding:0;min-width:0}
 .money-input::placeholder,.mini-input::placeholder{color:#c1c7d4}
 .input-help{font-size:11px;color:var(--muted);margin-top:6px;min-height:16px}
-.advanced{margin-top:13px;padding-top:13px;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;max-width:1050px;margin-left:auto;margin-right:auto}
+.advanced{margin-top:13px;padding-top:13px;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;max-width:1320px;margin-left:auto;margin-right:auto}
 .advanced>.mini-copy{grid-column:1/-1;text-align:center;max-width:940px;margin:0 auto 2px;line-height:1.55}
 .advanced .mini-control{text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:92px}
 .advanced .mini-control>label:first-child{width:100%;text-align:center}
@@ -360,26 +360,18 @@ details summary::-webkit-details-marker{display:none}
         <div id="unemploymentHelp" class="input-help">Se calculará con Javi Real cuando esté disponible.</div>
       </div>
       <div id="subsidyCard" class="input-card">
-        <div class="input-label"><span>Subsidio +52</span><span id="subsidyChip">Después del paro</span></div>
+        <div class="input-label"><span>Subsidio +52</span><span id="subsidyChip">Manual · +52</span></div>
         <div class="money-wrap"><span class="currency">€</span><input id="subsidy" class="money-input" type="text" inputmode="numeric" autocomplete="off" placeholder="0"></div>
         <div id="subsidyHelp" class="input-help">Se aplica solo si activas el supuesto y cumples requisitos.</div>
       </div>
     </div>
 
     <div class="advanced">
-      <div class="mini-copy">La <b>fecha de despido</b> marca el inicio real de toda la previsión. En automático usa <b>Javi Real</b> y el motor compartido para calcular paro, subsidio +52, cotización acumulada, edad ordinaria y pensión estimada. Los gastos parten del año de despido y crecen cada año con el <b>IPC de gastos</b> del escenario. La tabla sigue siendo anual, pero los cálculos se hacen mes a mes.</div>
+      <div class="mini-copy">La <b>fecha de despido</b> marca el inicio real de toda la previsión. En automático usa <b>Javi Real</b> y el motor compartido para calcular paro, cotización acumulada, edad ordinaria y pensión estimada. El <b>subsidio +52</b> parte del importe actual y queda editable, sin aplicarle IPC automáticamente. Los gastos parten del año de despido y crecen cada año con el <b>IPC de gastos</b> del escenario. La tabla sigue siendo anual, pero los cálculos se hacen mes a mes.</div>
       <div class="mini-control">
         <label>Prestaciones</label>
         <label class="benefit-check" for="autoBenefits"><input id="autoBenefits" type="checkbox" checked><span>Calcular con Javi Real</span></label>
         <div id="benefitSourceMini" class="retirement-age-result">Buscando datos compartidos…</div>
-      </div>
-      <div class="mini-control">
-        <label for="children">Hijos a cargo · topes paro</label>
-        <select id="children" class="mini-select"><option value="0">Sin hijos</option><option value="1">1 hijo</option><option value="2">2 o más</option></select>
-      </div>
-      <div class="mini-control">
-        <label>Subsidio +52</label>
-        <label class="benefit-check" for="includeSubsidy52"><input id="includeSubsidy52" type="checkbox" checked><span>Contarlo si cumplo requisitos</span></label>
       </div>
       <div class="mini-control">
         <label for="currentAge">Edad actual</label>
@@ -396,6 +388,10 @@ details summary::-webkit-details-marker{display:none}
         <div id="pensionHelp" class="pension-auto-help">Por paga · 14 pagas.</div>
       </div>
       <div class="mini-control">
+        <label for="children">Hijos a cargo · topes paro</label>
+        <select id="children" class="mini-select"><option value="0">Sin hijos</option><option value="1">1 hijo</option><option value="2">2 o más</option></select>
+      </div>
+      <div class="mini-control">
         <label>Jubilación ordinaria</label>
         <div class="retirement-age-result" style="margin-top:0">Edad prevista: <b id="retirementAgeDisplay">67 años</b></div>
         <div id="retirementAutoNote" class="retirement-check-copy" style="margin-top:5px"><span>Se calculará con la cotización acumulada.</span></div>
@@ -405,6 +401,10 @@ details summary::-webkit-details-marker{display:none}
             <span class="retirement-check-copy"><strong>38 años y 6 meses cotizados</strong><span>Respaldo manual si Javi Real no está disponible</span></span>
           </label>
         </div>
+      </div>
+      <div class="mini-control">
+        <label>Subsidio +52</label>
+        <label class="benefit-check" for="includeSubsidy52"><input id="includeSubsidy52" type="checkbox" checked><span>Contarlo si cumplo requisitos</span></label>
       </div>
     </div>
     <div id="benefitStatus" class="benefit-status"><span class="dot"></span><span>Buscando Javi Real para calcular las prestaciones automáticamente…</span></div>
@@ -867,7 +867,9 @@ details summary::-webkit-details-marker{display:none}
     }
     const shared=FIN.calculateLayoffPlan(javiRealState,dismissalDate,{children:input.children,includeSubsidy52:input.includeSubsidy52},new Date());
     if(shared?.error)return {auto:false,error:shared.error,dismissalDate,retirementAge:input.longContribution?65:67,retirementDate:new Date(BIRTH_YEAR+(input.longContribution?65:67),0,1),unemploymentBase:null,unemploymentFirst6:input.unemployment,unemploymentRest:input.unemployment,unemploymentAverage:input.unemployment,unemploymentEnd:addMonths(dismissalDate,UNEMPLOYMENT_MONTHS),subsidyStart:addMonths(dismissalDate,UNEMPLOYMENT_MONTHS),subsidyMonthly:input.subsidy,pensionMonthly14:input.pension,pensionEquivalent12:input.pension*14/12,pension:null};
-    return {...shared,auto:true,subsidyMonthly:shared.subsidyAtStart,pensionMonthly14:shared.pension.monthly,pensionEquivalent12:shared.pension.equivalent12};
+    // El subsidio +52 se mantiene como importe manual: usamos el valor introducido
+    // por el usuario y no la proyeccion del motor con IPC. Paro y pension siguen siendo automaticos.
+    return {...shared,auto:true,subsidyMonthly:Math.max(0,num(input.subsidy)),pensionMonthly14:shared.pension.monthly,pensionEquivalent12:shared.pension.equivalent12};
   }
 
   function benefitIncomeForYear(year,input,planOverride=null){
@@ -875,7 +877,10 @@ details summary::-webkit-details-marker{display:none}
     for(let m=0;m<12;m++){
       const date=new Date(year,m,1);let part={type:'none',label:'Sin ingreso',amount:0};
       if(date<plan.dismissalDate)continue;
-      if(plan.auto){part=FIN.incomeForMonth(plan,date);}
+      if(plan.auto){
+        part=FIN.incomeForMonth(plan,date);
+        if(part?.type==='subsidy') part={...part,amount:Math.max(0,num(input.subsidy))};
+      }
       else if(date>=plan.retirementDate){part={type:'pension',label:'Jubilación',amount:plan.pensionEquivalent12};}
       else{
         const idx=monthDiff(plan.dismissalDate,date);
@@ -891,21 +896,28 @@ details summary::-webkit-details-marker{display:none}
 
   function renderBenefitsUi(input,planOverride=null){
     const plan=planOverride||benefitsPlan(input),auto=plan.auto;
-    els.unemployment.readOnly=auto;els.subsidy.readOnly=auto;els.pension.readOnly=auto;
-    els.unemploymentCard.classList.toggle('auto-source',auto);els.subsidyCard.classList.toggle('auto-source',auto);
-    els.unemploymentCard.classList.toggle('manual-source',!!input.autoBenefits&&!auto);els.subsidyCard.classList.toggle('manual-source',!!input.autoBenefits&&!auto);
+    els.unemployment.readOnly=auto;
+    // El +52 es siempre editable: solo el paro y la pension dependen del calculo automatico.
+    els.subsidy.readOnly=false;
+    els.pension.readOnly=auto;
+    els.unemploymentCard.classList.toggle('auto-source',auto);
+    els.subsidyCard.classList.toggle('auto-source',false);
+    els.subsidyCard.classList.toggle('manual-source',true);
+    els.unemploymentCard.classList.toggle('manual-source',!!input.autoBenefits&&!auto);
     els.dismissalAutoBtn.classList.toggle('active',input.dismissalDateAuto!==false);
     const dismissalText=plan.dismissalDate.toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'});
     els.dismissalDateHelp.textContent=`Cálculo mensual desde ${dismissalText}${input.dismissalDateAuto!==false?' · fecha automática':' · fecha fijada en este escenario'}.`;
     if(auto){
-      els.unemployment.value=groupedIntegerES(plan.unemploymentAverage);els.subsidy.value=groupedIntegerES(plan.subsidyMonthly);els.pension.value=groupedIntegerES(plan.pensionMonthly14);
+      els.unemployment.value=groupedIntegerES(plan.unemploymentAverage);
+      els.subsidy.value=groupedIntegerES(input.subsidy);
+      els.pension.value=groupedIntegerES(plan.pensionMonthly14);
     }
     els.unemploymentChip.textContent=auto?'Auto · 24 meses':'Manual · 24 meses';
-    els.subsidyChip.textContent=auto?'Auto · +52':'Manual';
+    els.subsidyChip.textContent='Manual · +52';
     if(auto){
       const max=UNEMPLOYMENT_MAX_2026[String(input.children)]??UNEMPLOYMENT_MAX_2026[0];
       els.unemploymentHelp.textContent=`1-6: ${euro0.format(plan.unemploymentFirst6)}/mes · 7-24: ${euro0.format(plan.unemploymentRest)}/mes · tope ${euro0.format(max)}`;
-      els.subsidyHelp.textContent=input.includeSubsidy52?`${euro0.format(plan.subsidyMonthly)}/mes aprox. desde ${plan.subsidyStart.toLocaleDateString('es-ES',{month:'long',year:'numeric'})} · proyectado con IPC del escenario`:'No contado en este escenario.';
+      els.subsidyHelp.textContent=input.includeSubsidy52?`${euro0.format(plan.subsidyMonthly)}/mes desde ${plan.subsidyStart.toLocaleDateString('es-ES',{month:'long',year:'numeric'})} · importe manual, sin IPC`:'No contado en este escenario.';
       els.pensionHelp.textContent=`Por paga · 14 pagas · equiv. ${euro0.format(plan.pensionEquivalent12)}/mes en 12 · ${plan.retirementDate.toLocaleDateString('es-ES',{month:'long',year:'numeric'})}`;
       els.benefitSourceMini.innerHTML=`<b>Javi Real</b> · ${esc(javiRealSource)} · motor ${esc(FIN.version)}`;
       els.benefitStatus.classList.remove('warn');
@@ -936,7 +948,8 @@ details summary::-webkit-details-marker{display:none}
       endYear:Math.min(2120,Math.max(normalizedDismissalDate(dismissalDate).getFullYear(),Math.trunc(num(els.endYear.value)||2075)))
     };
     const plan=benefitsPlan(input);input.retirementAge=plan.retirementAge;input.longContribution=plan.retirementAge===65;
-    if(plan.auto){input.unemployment=plan.unemploymentAverage;input.subsidy=plan.subsidyMonthly;input.pension=plan.pensionMonthly14;}
+    if(plan.auto){input.unemployment=plan.unemploymentAverage;input.pension=plan.pensionMonthly14;}
+    input.subsidy=Math.max(0,num(input.subsidy));
     input.pensionEquivalent12=plan.pensionEquivalent12;
     return input;
   }
@@ -946,7 +959,7 @@ details summary::-webkit-details-marker{display:none}
   }
 
   function defaultAssumptions(){
-    return {savings:0,severance:0,assets:0,unemployment:0,subsidy:SUBSIDY52_2026,dismissalDate:FIN.dateKey(automaticDismissalDate()),dismissalDateAuto:true,autoBenefits:true,children:'0',includeSubsidy52:true,currentAge:DEFAULT_CURRENT_AGE,currentAgeAuto:true,expenseInflation:2,pension:0,longContribution:false,retirementAge:67,endYear:2075};
+    return {savings:0,severance:0,assets:0,unemployment:0,subsidy:SUBSIDY52_2026,subsidyManual:true,dismissalDate:FIN.dateKey(automaticDismissalDate()),dismissalDateAuto:true,autoBenefits:true,children:'0',includeSubsidy52:true,currentAge:DEFAULT_CURRENT_AGE,currentAgeAuto:true,expenseInflation:2,pension:0,longContribution:false,retirementAge:67,endYear:2075};
   }
 
   function assumptionsFromUI(){
@@ -954,7 +967,14 @@ details summary::-webkit-details-marker{display:none}
   }
 
   function applyAssumptions(a){
-    const x={...defaultAssumptions(),...(a||{})};
+    const source=a||{};
+    const x={...defaultAssumptions(),...source};
+    // Migración: versiones anteriores podían guardar el +52 ya inflado por IPC.
+    // Si el escenario no tiene la nueva marca manual, volvemos al importe actual.
+    if(!Object.prototype.hasOwnProperty.call(source,'subsidyManual')){
+      x.subsidy=SUBSIDY52_2026;
+      x.subsidyManual=true;
+    }
     els.savings.value=x.savings ?? 0;
     els.severance.value=x.severance ?? 0;
     els.assets.value=x.assets ?? 0;
@@ -1263,7 +1283,7 @@ details summary::-webkit-details-marker{display:none}
     x.dismissalDateAuto=x.dismissalDateAuto!==false;x.dismissalDate=x.dismissalDateAuto?FIN.dateKey(automaticDismissalDate()):dismissalDateValue(x.dismissalDate);
     x.autoBenefits=x.autoBenefits!==false;x.children=['0','1','2'].includes(String(x.children))?String(x.children):'0';x.includeSubsidy52=x.includeSubsidy52!==false;
     x.currentAge=x.currentAgeAuto===false?(x.currentAge===null?null:num(x.currentAge)):DEFAULT_CURRENT_AGE;x.longContribution=!!x.longContribution;x.retirementAge=x.longContribution?65:67;
-    const plan=benefitsPlan(x);x.retirementAge=plan.retirementAge;x.longContribution=plan.retirementAge===65;if(plan.auto){x.unemployment=plan.unemploymentAverage;x.subsidy=plan.subsidyMonthly;x.pension=plan.pensionMonthly14;}x.pensionEquivalent12=plan.pensionEquivalent12;
+    const plan=benefitsPlan(x);x.retirementAge=plan.retirementAge;x.longContribution=plan.retirementAge===65;if(plan.auto){x.unemployment=plan.unemploymentAverage;x.pension=plan.pensionMonthly14;}x.subsidy=Math.max(0,num(x.subsidy));x.pensionEquivalent12=plan.pensionEquivalent12;
     x.endYear=Math.min(2120,Math.max(projectionStartYear(x),Math.trunc(num(x.endYear)||2075)));return x;
   }
 
@@ -1376,7 +1396,9 @@ details summary::-webkit-details-marker{display:none}
   }
 
   function applyReadOnlyUi(){
-    ['savings','severance','assets','unemployment','subsidy','pension','currentAge','endYear','dismissalDate'].forEach(id=>{if(els[id])els[id].readOnly=true;});
+    ['savings','severance','assets','unemployment','pension','currentAge','endYear','dismissalDate'].forEach(id=>{if(els[id])els[id].readOnly=true;});
+    // El subsidio +52 sigue editable incluso en modo lectura del motor.
+    if(els.subsidy)els.subsidy.readOnly=false;
     [els.autoBenefits,els.children,els.includeSubsidy52,els.longContribution,els.dismissalAutoBtn].forEach(el=>{if(el)el.disabled=true;});
     [els.newScenarioBtn,els.saveScenarioBtn,els.resetScenarioBtn,els.deleteScenarioBtn].forEach(el=>{if(el)el.disabled=true;});
     if(els.scenarioName)els.scenarioName.disabled=true;
@@ -1390,10 +1412,13 @@ details summary::-webkit-details-marker{display:none}
         const input=getInputs();
         const model={input,initial:num(snap.initial),rows:cloneJson(snap.rows)||[],startYear:snap.rows[0].year,fromSnapshot:true,retirementDate:parseIsoDate(snap.retirementDate)};
         renderBenefitsUi(input);
-        els.unemployment.readOnly=true;els.subsidy.readOnly=true;els.pension.readOnly=true;
+        els.unemployment.readOnly=true;
+        els.subsidy.readOnly=false;
+        els.pension.readOnly=true;
         if(snap.benefits){
           if(snap.benefits.unemploymentAverage!=null)els.unemployment.value=groupedIntegerES(snap.benefits.unemploymentAverage);
-          if(snap.benefits.subsidyMonthly!=null)els.subsidy.value=groupedIntegerES(snap.benefits.subsidyMonthly);
+          if(snap.input?.subsidy!=null)els.subsidy.value=groupedIntegerES(snap.input.subsidy);
+          else if(snap.benefits.subsidyMonthly!=null)els.subsidy.value=groupedIntegerES(snap.benefits.subsidyMonthly);
           if(snap.benefits.pensionMonthly14!=null)els.pension.value=groupedIntegerES(snap.benefits.pensionMonthly14);
         }
         els.benefitSourceMini.innerHTML='<b>Último cálculo guardado en el Gist</b> · motor no disponible';
