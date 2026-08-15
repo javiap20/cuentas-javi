@@ -503,7 +503,23 @@
   .payroll-kpi span{font-size:10px;font-weight:900;color:#475467;margin-bottom:5px}
   .payroll-kpi strong{font-size:23px;line-height:1.05;letter-spacing:-.025em}
   .payroll-kpi small{font-size:8.8px;color:var(--muted);margin-top:6px;line-height:1.3}
-  .payroll-breakdown,.payroll-table-panel,.payroll-note{padding:16px;margin-bottom:14px}
+  .payroll-breakdown,.payroll-table-panel,.payroll-note,.salary-history-panel{padding:16px;margin-bottom:14px}
+  .salary-history-panel{text-align:center}
+  .salary-history-panel .payroll-section-head{justify-content:center;text-align:center}
+  .salary-history-panel .payroll-section-head>div{width:100%}
+  .salary-history-empty{color:var(--muted);font-size:12.5px;margin-top:10px}
+  .salary-history-list{display:flex;flex-direction:column;gap:8px;margin-top:14px;max-width:360px;margin-left:auto;margin-right:auto}
+  .salary-history-row{display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 14px;border:1px solid var(--line);border-radius:10px;background:#fff}
+  .salary-history-row.closed{cursor:pointer;transition:.15s}
+  .salary-history-row.closed:hover{background:#f8faff;border-color:var(--accent)}
+  .salary-history-row .sh-year{font-weight:900;color:var(--text)}
+  .salary-history-row .sh-gross{font-weight:900;color:var(--accent)}
+  .salary-history-row.editing{background:#f8faff}
+  .salary-history-row input{text-align:center}
+  .salary-history-row .sh-year-input{width:80px}
+  .salary-history-row .input-wrap{width:150px}
+  .salary-history-row.editing .sh-gross-input.sh-error,.salary-history-row.editing .sh-year-input.sh-error{border-color:#b42318}
+  .salary-history-add-row{margin-top:16px;display:flex;justify-content:center}
   .payroll-section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
   .payroll-section-head h3{margin:0 0 3px;font-size:14px}
   .payroll-section-head p{margin:0;font-size:9.5px;color:var(--muted);line-height:1.4}
@@ -822,6 +838,8 @@
   .all-year-card:nth-child(3n){background:linear-gradient(145deg,#ffffff 0%,#f1faf8 58%,#f8fbff 100%)}
   .all-year-head{display:block;text-align:center;margin-bottom:11px}
   .all-year-title{font-size:16px;font-weight:950;letter-spacing:-.02em;text-align:center}
+  .year-age-tag{font-size:11px;font-weight:800;color:#667085;letter-spacing:0;margin-left:3px}
+  .kpi-year-tag{font-size:10.5px;font-weight:800;color:#8a94a6}
   .all-year-meta{font-size:9.5px;color:var(--muted);text-align:center;line-height:1.3;margin-top:3px}
   .all-year-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
   .all-year-stat{
@@ -928,6 +946,7 @@
     font-weight:950;
     margin-bottom:10px;
   }
+  .projection-year-title .year-age-tag{font-weight:700}
   .semester-row{
     display:grid;
     grid-template-columns:130px repeat(5,minmax(0,1fr));
@@ -1622,7 +1641,7 @@
               <article class="panel payroll-kpi"><span>Neto paga extra</span><strong id="payrollNetExtra">—</strong><small id="payrollNetExtraNote">—</small></article>
               <article class="panel payroll-kpi"><span>IRPF</span><strong id="payrollIrpfRate">—</strong><small id="payrollIrpfMode">estimación AEAT 2026</small></article>
               <article class="panel payroll-kpi"><span>Seguridad Social</span><strong id="payrollSSAnnual">—</strong><small>aportación anual del trabajador</small></article>
-              <article class="panel payroll-kpi"><span>Bruto por paga</span><strong id="payrollGrossPerPay">—</strong><small id="payrollGrossPerPayNote">—</small></article>
+              <article class="panel payroll-kpi"><span>Neto por paga</span><strong id="payrollGrossPerPay">—</strong><small id="payrollGrossPerPayNote">—</small></article>
             </section>
 
             <section class="panel payroll-breakdown">
@@ -1669,6 +1688,20 @@
               Incluye mínimo personal, descendientes, reducción por rendimientos del trabajo, límites de retención, discapacidad del trabajador,
               pensión compensatoria, anualidades y minoración de vivienda indicada. La Seguridad Social usa tipos y topes 2026 del Régimen General,
               incluido MEI y cotización adicional de solidaridad. Casos especiales o regularizaciones de empresa pueden producir diferencias.
+            </section>
+
+            <section class="panel salary-history-panel">
+              <div class="payroll-section-head">
+                <div>
+                  <h3>Histórico de bruto anual</h3>
+                  <p>Guarda aquí el bruto anual de cada año. Toca un año guardado para editarlo.</p>
+                </div>
+              </div>
+              <div id="salaryHistoryEmpty" class="salary-history-empty">Todavía no has añadido ningún año.</div>
+              <div id="salaryHistoryList" class="salary-history-list"></div>
+              <div class="salary-history-add-row">
+                <button id="salaryHistoryAddBtn" class="btn btn-secondary" type="button">+ Añadir año</button>
+              </div>
             </section>
           </div>
         </div>
@@ -1793,10 +1826,10 @@
             </section>
 
             <section class="payroll-kpis">
-              <article class="panel payroll-kpi"><span>Pensi&oacute;n bruta / paga</span><strong id="pensionMonthly">&mdash;</strong><small id="pensionMonthlyMeta">14 pagas</small></article>
-              <article class="panel payroll-kpi"><span>Bruto anual estimado</span><strong id="pensionAnnual">&mdash;</strong><small>antes de IRPF</small></article>
-              <article class="panel payroll-kpi"><span>Pensi&oacute;n si fuese hoy</span><strong id="pensionTodayMoney">&mdash;</strong><small id="pensionTodayMoneyMeta">equivalente en euros de 2026</small></article>
-              <article class="panel payroll-kpi"><span>% aplicable</span><strong id="pensionPercent">&mdash;</strong><small>seg&uacute;n meses cotizados</small></article>
+              <article class="panel payroll-kpi"><span>Pensión bruta / paga <span id="pensionMonthlyYear" class="kpi-year-tag"></span></span><strong id="pensionMonthly">&mdash;</strong><small id="pensionMonthlyMeta">14 pagas</small></article>
+              <article class="panel payroll-kpi"><span>Bruto anual estimado <span id="pensionAnnualYear" class="kpi-year-tag"></span></span><strong id="pensionAnnual">&mdash;</strong><small>antes de IRPF</small></article>
+              <article class="panel payroll-kpi"><span>Pensión si fuese hoy <span id="pensionTodayYear" class="kpi-year-tag"></span></span><strong id="pensionTodayMoney">&mdash;</strong><small id="pensionTodayMoneyMeta">equivalente en euros de 2026</small></article>
+              <article class="panel payroll-kpi"><span>38 años y 6 meses cotizados</span><strong id="pensionFullContributionDate">&mdash;</strong><small id="pensionFullContributionMeta">seg&uacute;n meses cotizados</small></article>
               <article class="panel payroll-kpi"><span>Cotizaci&oacute;n al jubilarte</span><strong id="pensionYearsProjected">&mdash;</strong><small>estimaci&oacute;n con el fin de cotizaci&oacute;n indicado</small></article>
               <article class="panel payroll-kpi"><span>Edad ordinaria estimada</span><strong id="pensionOrdinaryAge">&mdash;</strong><small>regla vigente desde 2027</small></article>
             </section>
@@ -1950,6 +1983,11 @@
               <article id="layoffCashHorizonCard" class="panel layoff-key-card horizon"><span>Horizonte del dinero</span><strong id="layoffCashHorizonKpi">&mdash;</strong><small id="layoffCashHorizonMeta">&mdash;</small></article>
             </section>
 
+            <section class="panel layoff-stage-panel">
+              <div class="layoff-benefit-head"><h3>Evoluci&oacute;n anual del patrimonio</h3><p>Saldo al cierre de cada a&ntilde;o desde el despido hasta la jubilaci&oacute;n ordinaria. El gasto mensual sube cada a&ntilde;o seg&uacute;n el IPC de gastos indicado. La primera fila que entra en negativo queda resaltada.</p></div>
+              <div class="layoff-stage-wrap"><table class="layoff-stage-table layoff-year-table"><thead><tr><th>A&ntilde;o</th><th>Edad</th><th>Saldo inicial</th><th>Paro / subsidio</th><th>Gasto</th><th>Saldo final</th></tr></thead><tbody id="layoffCashYearRows"></tbody></table></div>
+            </section>
+
             <section class="panel layoff-benefit-panel">
               <div class="layoff-benefit-head"><h3>Paro y subsidio +52</h3><p>Cuant&iacute;as brutas estimadas. El paro aplica los topes oficiales vigentes en 2026 (sin hijos: 1.225 &euro;/mes); no se proyectan por IPC. El subsidio +52 sigue siendo una aproximaci&oacute;n para a&ntilde;os futuros.</p></div>
               <div class="layoff-benefit-grid">
@@ -1963,11 +2001,6 @@
             <section class="panel layoff-stage-panel">
               <div class="layoff-benefit-head"><h3>Flujo por etapas</h3><p>As&iacute; entra el dinero mes a mes; el horizonte no suma las prestaciones de golpe al capital inicial.</p></div>
               <div class="layoff-stage-wrap"><table class="layoff-stage-table"><thead><tr><th>Etapa</th><th>Desde</th><th>Hasta</th><th>Importe medio / mes</th><th>Total</th></tr></thead><tbody id="layoffCashStageRows"></tbody></table></div>
-            </section>
-
-            <section class="panel layoff-stage-panel">
-              <div class="layoff-benefit-head"><h3>Evoluci&oacute;n anual del patrimonio</h3><p>Saldo al cierre de cada a&ntilde;o desde el despido hasta la jubilaci&oacute;n ordinaria. El gasto mensual sube cada a&ntilde;o seg&uacute;n el IPC de gastos indicado. La primera fila que entra en negativo queda resaltada.</p></div>
-              <div class="layoff-stage-wrap"><table class="layoff-stage-table layoff-year-table"><thead><tr><th>A&ntilde;o</th><th>Edad</th><th>Saldo inicial</th><th>Paro / subsidio</th><th>Gasto</th><th>Saldo final</th></tr></thead><tbody id="layoffCashYearRows"></tbody></table></div>
             </section>
 
             <section class="panel layoff-cash-note"><strong>Estimaci&oacute;n orientativa.</strong> El paro se calcula con la media aproximada de las seis bases previas, 70 % los primeros 180 d&iacute;as y 60 % despu&eacute;s, aplicando los topes oficiales vigentes en 2026. Para escenarios futuros esos topes se mantienen congelados, porque sus importes reales depender&aacute;n del IPREM que exista entonces. El subsidio +52 se muestra solo como supuesto si cumples sus requisitos, incluida la carencia de rentas. Las cifras de prestaciones son brutas: el efectivo ingresado puede ser menor por cotizaciones y, en su caso, IRPF. El horizonte usa un gasto mensual que se actualiza cada a&ntilde;o con el IPC de gastos indicado en el escenario.</section>
@@ -2508,6 +2541,9 @@
   const PROJECTION_STORAGE_KEY = 'dashboard_financiero_projection_v1';
   const PAYROLL_STORAGE_KEY = 'dashboard_financiero_payroll_v1';
   const PAYROLL_CASES_STORAGE_KEY = 'dashboard_financiero_payroll_cases_v1';
+  const SALARY_HISTORY_STORAGE_KEY = 'dashboard_financiero_salary_history_v1';
+  let salaryHistory = [];
+  const salaryHistoryOpenIds = new Set();
   const FIXED_PROJECTION_SAVINGS = 25878;
   const PROJECTION_FORECAST_VERSION = 2;
 
@@ -2748,7 +2784,7 @@
     set('#layoffCashExtraMeta',c.includeSubsidy52?'paro + subsidio +52':'solo paro contributivo');
     const hCard=$('#layoffCashHorizonCard');
     if(calc.exhaustDate){
-      set('#layoffCashHorizonKpi',monthFmtLong.format(calc.exhaustDate));
+      set('#layoffCashHorizonKpi',`${monthFmtLong.format(calc.exhaustDate)} (${ageForYear(calc.exhaustDate.getFullYear())} años)`);
       const monthsLeft=Math.max(0,monthDiff(calc.exhaustDate,calc.retirementDate));
       set('#layoffCashHorizonMeta',`El capital se agota antes de la jubilación ordinaria · faltan ${monthsLeft} meses para ${monthFmtLong.format(calc.retirementDate)} (${calc.ordinaryAge} años).`);
       hCard?.classList.remove('good');hCard?.classList.add('warn');
@@ -2989,6 +3025,107 @@
       createdAt:raw.createdAt || new Date().toISOString(),
       updatedAt:raw.updatedAt || raw.createdAt || new Date().toISOString()
     };
+  }
+
+  function normalizeSalaryHistoryItem(raw){
+    const year=parseInt(raw?.year,10);
+    const gross=Number(raw?.gross);
+    if(!raw || !raw.id || !year || !gross) return null;
+    return {id:String(raw.id),year,gross};
+  }
+
+  function loadSalaryHistoryLocal(){
+    try{
+      const raw=safeStorageGet(localStorage,SALARY_HISTORY_STORAGE_KEY);
+      const arr=raw?JSON.parse(raw):[];
+      salaryHistory=(Array.isArray(arr)?arr:[]).map(normalizeSalaryHistoryItem).filter(Boolean);
+    }catch(e){
+      salaryHistory=[];
+    }
+  }
+
+  function persistSalaryHistoryLocal(){
+    safeStorageSet(localStorage,SALARY_HISTORY_STORAGE_KEY,JSON.stringify(salaryHistory));
+  }
+
+  function salaryHistoryRowHtml(item){
+    if(salaryHistoryOpenIds.has(item.id)){
+      return `<div class="salary-history-row editing" data-id="${item.id}">
+        <input type="number" class="sh-year-input" inputmode="numeric" placeholder="Año" value="${item.year||''}">
+        <div class="input-wrap has-suffix">
+          <input type="text" class="sh-gross-input" inputmode="decimal" placeholder="Bruto anual" value="${item.gross?formatEditableAmount(item.gross):''}">
+          <span class="suffix">€</span>
+        </div>
+        <button type="button" class="btn btn-primary sh-save-btn" style="padding:7px 10px;font-size:12px">Guardar</button>
+        <button type="button" class="btn btn-secondary sh-delete-btn" style="padding:7px 10px;font-size:12px">✕</button>
+      </div>`;
+    }
+    return `<div class="salary-history-row closed" data-id="${item.id}" tabindex="0" role="button" aria-label="Editar año ${item.year}">
+      <span class="sh-year">${item.year}</span>
+      <span class="sh-gross">${eur0.format(item.gross)}</span>
+    </div>`;
+  }
+
+  function renderSalaryHistory(){
+    const list=$('#salaryHistoryList');
+    const empty=$('#salaryHistoryEmpty');
+    if(!list||!empty)return;
+    const sorted=[...salaryHistory].sort((a,b)=>(b.year||0)-(a.year||0));
+    list.innerHTML=sorted.map(salaryHistoryRowHtml).join('');
+    empty.style.display=salaryHistory.length?'none':'block';
+
+    list.querySelectorAll('.salary-history-row.closed').forEach(row=>{
+      const open=()=>{salaryHistoryOpenIds.add(row.dataset.id);renderSalaryHistory();};
+      row.addEventListener('click',open);
+      row.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open();}});
+    });
+    list.querySelectorAll('.sh-save-btn').forEach(btn=>{
+      btn.addEventListener('click',()=>saveSalaryHistoryRow(btn.closest('.salary-history-row').dataset.id));
+    });
+    list.querySelectorAll('.sh-delete-btn').forEach(btn=>{
+      btn.addEventListener('click',()=>deleteSalaryHistoryRow(btn.closest('.salary-history-row').dataset.id));
+    });
+    list.querySelectorAll('.sh-year-input,.sh-gross-input').forEach(el=>{
+      el.addEventListener('keydown',e=>{
+        if(e.key==='Enter'){e.preventDefault();saveSalaryHistoryRow(el.closest('.salary-history-row').dataset.id);}
+      });
+    });
+  }
+
+  function addSalaryHistoryRow(){
+    const suggestedYear=salaryHistory.length?Math.max(...salaryHistory.map(x=>x.year||0))+1:new Date().getFullYear();
+    const id=newId();
+    salaryHistory.push({id,year:suggestedYear,gross:''});
+    salaryHistoryOpenIds.add(id);
+    renderSalaryHistory();
+    const input=document.querySelector(`.salary-history-row[data-id="${id}"] .sh-gross-input`);
+    if(input)input.focus();
+  }
+
+  function saveSalaryHistoryRow(id){
+    const row=document.querySelector(`.salary-history-row[data-id="${id}"]`);
+    if(!row)return;
+    const yearInput=row.querySelector('.sh-year-input');
+    const grossInput=row.querySelector('.sh-gross-input');
+    const year=parseInt(yearInput.value,10);
+    const gross=parseEsAmount(grossInput.value);
+    yearInput.classList.toggle('sh-error',!year);
+    grossInput.classList.toggle('sh-error',!gross);
+    if(!year||!gross)return;
+    const item=salaryHistory.find(x=>x.id===id);
+    if(item){item.year=year;item.gross=gross;}
+    salaryHistoryOpenIds.delete(id);
+    persistSalaryHistoryLocal();
+    renderSalaryHistory();
+    scheduleGistAutoSync();
+  }
+
+  function deleteSalaryHistoryRow(id){
+    salaryHistory=salaryHistory.filter(x=>x.id!==id);
+    salaryHistoryOpenIds.delete(id);
+    persistSalaryHistoryLocal();
+    renderSalaryHistory();
+    scheduleGistAutoSync();
   }
 
   function loadPayrollCasesLocal(){
@@ -3417,6 +3554,22 @@
     return FIN.projectedContributionMonthsAtDate(p,retirement,todayLocal());
   }
 
+  const PENSION_FULL_CONTRIBUTION_MONTHS=462; // 38 años y 6 meses
+  function pensionFullContributionDate(p){
+    const start=monthStart(todayLocal());
+    if(pensionProjectedContributionMonthsAtDate(p,start)>=PENSION_FULL_CONTRIBUTION_MONTHS){
+      return {reached:true,date:start};
+    }
+    let cursor=new Date(start);
+    for(let i=0;i<720;i++){
+      cursor=new Date(cursor.getFullYear(),cursor.getMonth()+1,1);
+      if(pensionProjectedContributionMonthsAtDate(p,cursor)>=PENSION_FULL_CONTRIBUTION_MONTHS){
+        return {reached:false,date:cursor};
+      }
+    }
+    return {reached:false,date:null};
+  }
+
   function pensionProjectedContributionMonths(p,age=Number(p.targetAge)||65){
     return pensionProjectedContributionMonthsAtDate(p,pensionRetirementMonth(p,age));
   }
@@ -3563,7 +3716,7 @@
       voluntaryMeta=meta(voluntary.date.getFullYear(),`${pensionRetirementMonthName(voluntary.date)} · ${pensionYearsText(voluntary.contributionMonths)} cotizados`);
       voluntaryExtra=`Reducción -${formatSmartNumber(voluntary.reduction,2)} % · ≈ ${eur0.format(voluntary.todayMoney)} en euros de hoy${voluntary.earlyCapApplied?' · tope máximo aplicado':''}`;
     }
-    return `<article class="pension-layoff-row${isHistorical?' historical':''}"><div class="pension-layoff-row-head"><h4>${isHistorical?'Si te hubieran despedido en ': 'Si te despiden en '}${year}...</h4><button class="pension-info-btn" type="button" data-layoff-info-year="${year}" aria-label="Ver cotizaciones del escenario ${year}" title="Ver desglose">i</button></div><div class="pension-layoff-cards"><div class="pension-layoff-card"><span>Jubilación ordinaria</span><strong>${eur0.format(ordinary.monthly)}</strong>${ordinaryMeta}<em>≈ ${eur0.format(ordinary.todayMoney)} en euros de hoy${ordinary.theoretical>ordinary.max?' · tope máximo aplicado':''}</em></div><div class="pension-layoff-card early${invol?'':' unavailable'}"><span>Primera anticipada</span><strong>${earlyStrong}</strong>${earlyMeta}<em>${earlyExtra}</em></div><div class="pension-layoff-card voluntary${voluntary?'':' unavailable'}"><span>Primera voluntaria</span><strong>${voluntaryStrong}</strong>${voluntaryMeta}<em>${voluntaryExtra}</em></div></div></article>`;
+    return `<article class="pension-layoff-row${isHistorical?' historical':''}"><div class="pension-layoff-row-head"><h4>${isHistorical?'Si te hubieran despedido en ': 'Si te despiden en '}${year} (${ageForYear(year)} años)...</h4><button class="pension-info-btn" type="button" data-layoff-info-year="${year}" aria-label="Ver cotizaciones del escenario ${year}" title="Ver desglose">i</button></div><div class="pension-layoff-cards"><div class="pension-layoff-card"><span>Jubilación ordinaria</span><strong>${eur0.format(ordinary.monthly)}</strong>${ordinaryMeta}<em>≈ ${eur0.format(ordinary.todayMoney)} en euros de hoy${ordinary.theoretical>ordinary.max?' · tope máximo aplicado':''}</em></div><div class="pension-layoff-card early${invol?'':' unavailable'}"><span>Primera anticipada</span><strong>${earlyStrong}</strong>${earlyMeta}<em>${earlyExtra}</em></div><div class="pension-layoff-card voluntary${voluntary?'':' unavailable'}"><span>Primera voluntaria</span><strong>${voluntaryStrong}</strong>${voluntaryMeta}<em>${voluntaryExtra}</em></div></div></article>`;
   }
   function bindPensionLayoffInfoButtons(scope){
     scope?.querySelectorAll('[data-layoff-info-year]').forEach(btn=>btn.addEventListener('click',()=>openPensionLayoffModal(Number(btn.dataset.layoffInfoYear))));
@@ -3990,15 +4143,20 @@
   function buildPensionResultSnapshot(state,{includeLayoff=false}={}){
     if(!FIN_AVAILABLE)return null;
     const p=normalizePensionSettings(state),calc=pensionCalculate(p),status=pensionSnapshotStatus(calc,p);
+    const fullContrib=pensionFullContributionDate(p);
     return {
       capturedAt:new Date().toISOString(),engineVersion:FIN.version,
       status,
       monthly:calc.baseReg>0?eur0.format(calc.monthly14):'--',
       monthlyMeta:calc.baseReg>0?(calc.capApplied?`14 pagas · tope proyectado ${eur0.format(calc.maxMonthly14)}`:'14 pagas · sin alcanzar el tope'):'14 pagas',
+      monthlyYear:calc.retirementYear?`(${calc.retirementYear})`:'',
       annual:calc.baseReg>0?eur0.format(calc.annual):'--',
+      annualYear:calc.retirementYear?`(${calc.retirementYear})`:'',
       todayMoney:calc.baseReg>0?eur0.format(calc.todayMoneyMonthly14):'--',
+      todayYear:`(${todayLocal().getFullYear()})`,
       todayMoneyMeta:calc.baseReg>0?`por paga · euros de ${todayLocal().getFullYear()} · IPC ${formatSmartNumber(p.baseCpi,1)} %${calc.todayMoneyCapApplied?' · tope actual aplicado':''}`:'equivalente en euros actuales',
-      percent:calc.percent>0?`${formatSmartNumber(calc.percent,2)} %`:'--',
+      fullContributionDate:fullContrib.date?monthFmtLong.format(fullContrib.date):'--',
+      fullContributionMeta:fullContrib.date?(fullContrib.reached?'ya alcanzados a día de hoy':`${ageForYear(fullContrib.date.getFullYear())} años · jubilación a los 65 posible`):'no se alcanza con este escenario',
       yearsProjected:pensionYearsText(calc.contributionMonths),ordinaryAge:`${calc.ordinaryAge} años`,
       methodA:calc.methodA>0?eur0.format(calc.methodA):'--',methodB:calc.methodB>0?eur0.format(calc.methodB):'--',
       methodFinal:calc.baseReg>0?eur0.format(calc.monthly14):'--',dataCoverage:`${calc.explicitCount} / 29`,
@@ -4030,7 +4188,9 @@
     const stamp=gistFreshnessStamp(snapshot.capturedAt);
     set('#pensionEligibilityText',`${snapshot.status?.text||''}${stamp?` · Último cálculo guardado ${stamp}`:''}`.trim());
     set('#pensionMonthly',snapshot.monthly);set('#pensionMonthlyMeta',snapshot.monthlyMeta);set('#pensionAnnual',snapshot.annual);
-    set('#pensionTodayMoney',snapshot.todayMoney);set('#pensionTodayMoneyMeta',snapshot.todayMoneyMeta);set('#pensionPercent',snapshot.percent);
+    set('#pensionMonthlyYear',snapshot.monthlyYear);set('#pensionAnnualYear',snapshot.annualYear);set('#pensionTodayYear',snapshot.todayYear);
+    set('#pensionTodayMoney',snapshot.todayMoney);set('#pensionTodayMoneyMeta',snapshot.todayMoneyMeta);
+    set('#pensionFullContributionDate',snapshot.fullContributionDate);set('#pensionFullContributionMeta',snapshot.fullContributionMeta);
     set('#pensionYearsProjected',snapshot.yearsProjected);set('#pensionOrdinaryAge',snapshot.ordinaryAge);set('#pensionMethodA',snapshot.methodA);
     set('#pensionMethodB',snapshot.methodB);set('#pensionMethodFinal',snapshot.methodFinal);set('#pensionDataCoverage',snapshot.dataCoverage);
     set('#pensionMethodChip',snapshot.methodChip);set('#pensionRetirementYearChip',snapshot.retirementChip);
@@ -4099,7 +4259,7 @@
     set('#layoffCashExtraKpi',eur0.format(snapshot.extraTotal));set('#layoffCashTotalKpi',eur0.format(snapshot.potentialTotal));set('#layoffCashNeedKpi',`${eur0.format(snapshot.monthlyNeed)}/mes`);
     set('#layoffCashExtraMeta',snapshot.includeSubsidy52?'paro + subsidio +52':'solo paro contributivo');
     const hCard=$('#layoffCashHorizonCard');
-    if(snapshot.exhaustDate){const ex=d(snapshot.exhaustDate),monthsLeft=ex&&retirement?Math.max(0,monthDiff(ex,retirement)):0;set('#layoffCashHorizonKpi',ex?monthFmtLong.format(ex):'--');set('#layoffCashHorizonMeta',`El capital se agota antes de la jubilación ordinaria · faltan ${monthsLeft} meses para ${retirement?monthFmtLong.format(retirement):'--'} (${snapshot.ordinaryAge} años).`);hCard?.classList.remove('good');hCard?.classList.add('warn')}
+    if(snapshot.exhaustDate){const ex=d(snapshot.exhaustDate),monthsLeft=ex&&retirement?Math.max(0,monthDiff(ex,retirement)):0;set('#layoffCashHorizonKpi',ex?`${monthFmtLong.format(ex)} (${ageForYear(ex.getFullYear())} años)`:'--');set('#layoffCashHorizonMeta',`El capital se agota antes de la jubilación ordinaria · faltan ${monthsLeft} meses para ${retirement?monthFmtLong.format(retirement):'--'} (${snapshot.ordinaryAge} años).`);hCard?.classList.remove('good');hCard?.classList.add('warn')}
     else{set('#layoffCashHorizonKpi','Llega a jubilación');set('#layoffCashHorizonMeta',`Sobraría aproximadamente ${eur0.format(snapshot.remainingAtRetirement)} al llegar a ${retirement?monthFmtLong.format(retirement):'--'} (${snapshot.ordinaryAge} años).`);hCard?.classList.remove('warn');hCard?.classList.add('good')}
     set('#layoffCashParo1',snapshot.first6?.months?`${eur0.format(snapshot.first6.average)}/mes`:'--');set('#layoffCashParo1Meta',snapshot.first6?.months?`${snapshot.first6.months} meses · total ${eur0.format(snapshot.first6.total)} · tope ${eur0.format(snapshot.unemploymentMax)}/mes`:'Sin periodo');
     set('#layoffCashParo2',snapshot.rest?.months?`${eur0.format(snapshot.rest.average)}/mes`:'--');set('#layoffCashParo2Meta',snapshot.rest?.months?`${snapshot.rest.months} meses · total ${eur0.format(snapshot.rest.total)} · tope ${eur0.format(snapshot.unemploymentMax)}/mes`:'Sin periodo');
@@ -4134,16 +4294,24 @@
     }
     pensionSettings=pensionReadUI();
     const calc=pensionCalculate(pensionSettings);
+    const pensionCurrentYear=todayLocal().getFullYear();
     $('#pensionMonthly').textContent=calc.baseReg>0?eur0.format(calc.monthly14):'--';
     $('#pensionMonthlyMeta').textContent=calc.baseReg>0
       ? (calc.capApplied?`14 pagas · tope proyectado ${eur0.format(calc.maxMonthly14)}`:'14 pagas · sin alcanzar el tope')
       : '14 pagas';
+    $('#pensionMonthlyYear').textContent=calc.retirementYear?`(${calc.retirementYear})`:'';
     $('#pensionAnnual').textContent=calc.baseReg>0?eur0.format(calc.annual):'--';
+    $('#pensionAnnualYear').textContent=calc.retirementYear?`(${calc.retirementYear})`:'';
     $('#pensionTodayMoney').textContent=calc.baseReg>0?eur0.format(calc.todayMoneyMonthly14):'--';
+    $('#pensionTodayYear').textContent=`(${pensionCurrentYear})`;
     $('#pensionTodayMoneyMeta').textContent=calc.baseReg>0
       ? `por paga · euros de ${todayLocal().getFullYear()} · IPC ${formatSmartNumber(pensionSettings.baseCpi,1)} %${calc.todayMoneyCapApplied?' · tope actual aplicado':''}`
       : 'equivalente en euros actuales';
-    $('#pensionPercent').textContent=calc.percent>0?`${formatSmartNumber(calc.percent,2)} %`:'--';
+    const fullContrib=pensionFullContributionDate(pensionSettings);
+    $('#pensionFullContributionDate').textContent=fullContrib.date?monthFmtLong.format(fullContrib.date):'--';
+    $('#pensionFullContributionMeta').textContent=fullContrib.date
+      ? (fullContrib.reached?'ya alcanzados a día de hoy':`${ageForYear(fullContrib.date.getFullYear())} años · jubilación a los 65 posible`)
+      : 'no se alcanza con este escenario';
     $('#pensionYearsProjected').textContent=pensionYearsText(calc.contributionMonths);
     $('#pensionOrdinaryAge').textContent=`${calc.ordinaryAge} a\u00f1os`;
     $('#pensionMethodA').textContent=calc.methodA>0?eur0.format(calc.methodA):'--';
@@ -4679,7 +4847,8 @@ No se borrará hasta que confirmes este mensaje.`))return;
       pensionSettings:pensionSettingsForGist(),
       pensionCases,
       pensionLayoffSettings,
-      layoffCashSettings
+      layoffCashSettings,
+      salaryHistory
     };
   }
 
@@ -4941,6 +5110,11 @@ No se borrará hasta que confirmes este mensaje.`))return;
       layoffCashSettings=normalizeLayoffCashSettings(parsed.layoffCashSettings);
       persistLayoffCashSettingsLocal();
     }
+    if(parsed && !Array.isArray(parsed) && Array.isArray(parsed.salaryHistory)){
+      salaryHistory=parsed.salaryHistory.map(normalizeSalaryHistoryItem).filter(Boolean);
+      salaryHistoryOpenIds.clear();
+      persistSalaryHistoryLocal();
+    }
 
     activeSavedCaseIds.mortgage=null;
     activeSavedCaseIds.personal=null;
@@ -4950,6 +5124,7 @@ No se borrará hasta que confirmes este mensaje.`))return;
 
     if(renderNow){
       payrollApplyUI();payrollRecalc();renderPayrollCases();
+      renderSalaryHistory();
       pensionApplyUI();
       pensionRecalc();
       renderPensionCases();
@@ -5103,6 +5278,8 @@ No se borrará hasta que confirmes este mensaje.`))return;
     }
   }
   function monthKey(date){ return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}`; }
+  const JAVITO_BIRTH_YEAR=1972;
+  function ageForYear(year){ return year-JAVITO_BIRTH_YEAR; }
   function dateKey(date){
     return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
   }
@@ -5322,9 +5499,11 @@ No se borrará hasta que confirmes este mensaje.`))return;
     const regularNet=grossPerPay-irpfPerPay-ssRegular;
     const extraNet=extraCount>0?grossPerPay-irpfPerPay:0;
 
+    const netPerPayEven=payCount>0?(regularNet*12+extraNet*extraCount)/payCount:0;
+
     return {
       ss,autoIrpf,manual,irpfRate,irpfAnnual,netAnnual,
-      payCount,extraCount,grossPerPay,irpfPerPay,ssRegular,regularNet,extraNet,
+      payCount,extraCount,grossPerPay,irpfPerPay,ssRegular,regularNet,extraNet,netPerPayEven,
       effectiveDeduction:p.grossAnnual>0?((ss.total+irpfAnnual)/p.grossAnnual*100):0
     };
   }
@@ -5348,7 +5527,7 @@ No se borrará hasta que confirmes este mensaje.`))return;
     $('#payrollIrpfRate').textContent=`${formatSmartNumber(r.irpfRate,2)} %`;
     $('#payrollIrpfMode').textContent=r.manual?'IRPF indicado manualmente':'estimación AEAT 2026';
     $('#payrollSSAnnual').textContent=eur0.format(r.ss.total);
-    $('#payrollGrossPerPay').textContent=eur0.format(r.grossPerPay);
+    $('#payrollGrossPerPay').textContent=eur0.format(r.netPerPayEven);
     $('#payrollGrossPerPayNote').textContent=`${r.payCount} pagas iguales`;
 
     $('#payrollIrpfAnnual').textContent=eur0.format(r.irpfAnnual);
@@ -5750,7 +5929,7 @@ No se borrará hasta que confirmes este mensaje.`))return;
       card.className='all-year-card';
       card.innerHTML=`
         <div class="all-year-head">
-          <div class="all-year-title">${a.year}</div>
+          <div class="all-year-title">${a.year} <span class="year-age-tag">(${ageForYear(a.year)})</span></div>
           <div class="all-year-meta">${n} ${activeCalculatorId==='mortgage'?(n===1?'hipoteca':'hipotecas'):(n===1?'préstamo':'préstamos')}</div>
         </div>
         <div class="all-year-stats">
@@ -6132,7 +6311,7 @@ No se borrará hasta que confirmes este mensaje.`))return;
         const yearCard=document.createElement('article');
         yearCard.className='projection-year';
         yearCard.innerHTML=`
-          <div class="projection-year-title">${year}</div>
+          <div class="projection-year-title">${year} <span class="year-age-tag">(${ageForYear(year)} años)</span></div>
           ${yearRows.map(renderProjectionRow).join('')}
         `;
         target.appendChild(yearCard);
@@ -6902,6 +7081,7 @@ No se borrará hasta que confirmes este mensaje.`))return;
     }
   });
   $('#addAmort').addEventListener('click',addAmort);
+  $('#salaryHistoryAddBtn').addEventListener('click',addSalaryHistoryRow);
   $('#csvBtn').addEventListener('click',exportCSV);
   $('#resetBtn').addEventListener('click',reset);
   window.addEventListener('resize',()=>requestAnimationFrame(drawCharts));
@@ -6918,6 +7098,7 @@ No se borrará hasta que confirmes este mensaje.`))return;
     loadPensionLayoffSettingsLocal();
     loadLayoffCashSettingsLocal();
     loadResultSnapshotsLocal();
+    loadSalaryHistoryLocal();
 
     const rememberLocal=safeStorageGet(localStorage,GIST_TOKEN_REMEMBER_KEY)!=='0';
     $('#gistRememberToken').checked=rememberLocal;
@@ -6937,6 +7118,7 @@ No se borrará hasta que confirmes este mensaje.`))return;
     payrollApplyUI();
     payrollRecalc();
     renderPayrollCases();
+    renderSalaryHistory();
     pensionApplyUI();
     pensionRecalc();
     renderPensionCases();
@@ -6966,6 +7148,7 @@ No se borrará hasta que confirmes este mensaje.`))return;
     console.error('Arranque del dashboard:',err);
     setGlobalGistFreshness('error',safeStorageGet(localStorage,GIST_LAST_SYNC_STORAGE_KEY),'error al iniciar · usando local');
     payrollApplyUI();payrollRecalc();renderPayrollCases();
+    loadSalaryHistoryLocal();renderSalaryHistory();
     pensionApplyUI();pensionRecalc();
     renderPensionCases();setPensionView('main');
     layoffCashApplyUI();layoffCashRecalc();renderSavedCases();
