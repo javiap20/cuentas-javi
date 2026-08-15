@@ -92,11 +92,16 @@ h1{font-family:"Manrope",sans-serif;font-size:clamp(26px,3vw,40px);line-height:1
 .money-input{width:100%;border:0;outline:0;background:transparent;color:var(--ink);font-family:"Manrope",sans-serif;font-size:26px;font-weight:800;letter-spacing:-.035em;padding:0;min-width:0}
 .money-input::placeholder,.mini-input::placeholder{color:#c1c7d4}
 .input-help{font-size:11px;color:var(--muted);margin-top:6px;min-height:16px}
-.advanced{margin-top:13px;padding-top:13px;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;max-width:1320px;margin-left:auto;margin-right:auto}
+.advanced{margin-top:13px;padding-top:13px;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:10px;max-width:1320px;margin-left:auto;margin-right:auto}
 .advanced>.mini-copy{grid-column:1/-1;text-align:center;max-width:940px;margin:0 auto 2px;line-height:1.55}
 .advanced .mini-control{text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:92px}
 .advanced .mini-control>label:first-child{width:100%;text-align:center}
 .advanced .mini-input,.advanced .mini-select{text-align:center;text-align-last:center}
+/* En escritorio, la segunda fila (3 bloques) queda centrada bajo la primera de 4. */
+.advanced>.mini-control{grid-column:span 2}
+.advanced>.mini-control:nth-child(6){grid-column:2 / span 2}
+.advanced>.mini-control:nth-child(7){grid-column:4 / span 2}
+.advanced>.mini-control:nth-child(8){grid-column:6 / span 2}
 .advanced .benefit-check,.advanced .retirement-check-row{justify-content:center}
 .section-date-control{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;background:#fafbfe;border:1px solid var(--line);border-radius:13px;padding:8px 10px;min-width:310px}
 .section-date-control label{font-size:9px;text-transform:uppercase;letter-spacing:.08em;font-weight:800;color:var(--muted)}
@@ -2041,6 +2046,23 @@ details summary::-webkit-details-marker{display:none}
   els.expenseInflation.addEventListener('change',()=>{els.expenseInflation.value=Math.max(0,Math.min(20,num(els.expenseInflation.value)));markScenarioDirty();render();});
 
   els.dismissalDate.addEventListener('change',()=>{els.dismissalAutoBtn.classList.remove('active');els.dismissalDate.value=dismissalDateValue(els.dismissalDate.value);markScenarioDirty();render();});
+
+  // En iPad/iOS, un campo enfocado puede mantener el teclado abierto hasta que
+  // otro elemento focuseable recibe el foco. Si el usuario toca cualquier parte
+  // que no sea editable, quitamos el foco para cerrar el teclado.
+  document.addEventListener('pointerdown',e=>{
+    const active=document.activeElement;
+    if(!active || !['INPUT','SELECT','TEXTAREA'].includes(active.tagName)) return;
+    const target=e.target?.closest?.('input,select,textarea,[contenteditable="true"]');
+    if(target) return;
+    try{active.blur();}catch(err){}
+    setTimeout(()=>{
+      const stillActive=document.activeElement;
+      if(stillActive && ['INPUT','SELECT','TEXTAREA'].includes(stillActive.tagName)){
+        try{stillActive.blur();}catch(err){}
+      }
+    },0);
+  },{capture:true});
   els.dismissalAutoBtn.addEventListener('click',()=>{els.dismissalAutoBtn.classList.add('active');els.dismissalDate.value=FIN.dateKey(automaticDismissalDate());markScenarioDirty();render();});
 
   els.scenarioSelect.addEventListener('change',()=>{
