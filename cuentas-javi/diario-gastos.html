@@ -299,11 +299,16 @@
     </div>
     <div class="topbar-actions">
       <select id="yearSelect" class="field"></select>
-      <button class="btn" id="btnGenerarProyeccion" title="Genera los años 2027+ desde MASTER, encadenando el saldo inicial con el saldo final del año anterior">Generar años proyectados</button>
+      <button class="btn" id="btnGenerarProyeccion" title="Genera los años 2027+ usando la estructura de excel/2027.xlsx">Generar estructura 2027+</button>
       <button class="btn" id="btnSyncMaster">Actualizar MASTER</button>
       <span id="masterStatus" style="font-size:11.5px;color:var(--ink-soft);white-space:nowrap">MASTER: esperando…</span>
+      <span id="templateStatus" style="font-size:11.5px;color:var(--ink-soft);white-space:nowrap">Plantilla 2027: esperando…</span>
       <button class="btn" id="btnGist">☁ Gist</button>
-      <label class="btn" for="importFile">Importar Excel (fallback)</label>
+      <label class="btn" for="import2026File">Importar 2026</label>
+      <input type="file" id="import2026File" accept=".xlsx,.xls">
+      <label class="btn" for="import2027File">Importar 2027</label>
+      <input type="file" id="import2027File" accept=".xlsx,.xls">
+      <label class="btn" for="importFile">Importar MASTER</label>
       <input type="file" id="importFile" accept=".xlsx,.xls">
       <button class="btn ghost" id="btnExport">Exportar</button>
     </div>

@@ -7,6 +7,7 @@ const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto'
 const MESES_ABR = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 const FIJOS_REF_YEAR = 2026; // año de referencia del MASTER
 const MASTER_URL = '../excel/finanzas-master.xlsx';
+const TEMPLATE_2027_URL = '../excel/2027.xlsx';
 const MASTER_MAX_YEAR = 2040; // horizonte visible/proyectable desde el año base
 const MASTER_REFRESH_PARAM = () => `?v=${Date.now()}`;
 const MES_ABR_LOWER = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
@@ -546,128 +547,6 @@ function monthlyBudgetForMaster(item, year, month){
   return item.meses.includes(month) ? unit : 0;
 }
 
-function masterDateHint(concept, month){
-  const candidates = PLANTILLA_2027_DIAS.filter(t=>t.concept===concept && Number(t.date.slice(5,7))===month);
-  if(candidates.length) return Number(candidates[0].date.slice(8,10));
-  const all = PLANTILLA_2027_DIAS.filter(t=>t.concept===concept);
-  if(all.length) return Number(all[0].date.slice(8,10));
-  return concept && /nomina|nómina|ing/i.test(concept) ? 1 : 5;
-}
-
-function validDateDay(year,month,day){ return Math.min(Math.max(1,day), daysInMonth(year,month)); }
-
-function generarAnoDesdePlantilla(year){
-  const yearStr = String(year);
-  const todayIso = isoDate(new Date());
-  const existing = DB.years[yearStr];
-  const prevDays = existing && existing.days ? existing.days.slice() : [];
-  const prevCard = existing && existing.cardEntries ? existing.cardEntries.slice() : [];
-
-  const activeMaster = DB.fijos.filter(f=>f.source==='master' && f.activo);
-  const generatedDayKeys = new Set();
-  const generatedCardKeys = new Set();
-  const prevDaysMap = new Map(prevDays.map(d=>[d.date+'|'+d.concept,d]));
-  const prevCardMap = new Map(prevCard.map(c=>[c.month+'|'+c.category+'|'+(c.masterId||''),c]));
-  // Migración: las versiones anteriores generaban estos elementos desde una plantilla JS.
-  // Se consideran generados (no manuales) para evitar duplicarlos al activar MASTER.
-  const legacyDayKeys = new Set(PLANTILLA_2027_DIAS.map(t=>(yearStr+t.date.slice(4))+'|'+t.concept));
-  for(let m=1;m<=12;m++) legacyDayKeys.add(isoDate(new Date(year,m,0))+'|'+`Tarjetas ${MESES_ABR[m-1]}`);
-  const legacyCardKeys = new Set(PLANTILLA_2027_TARJETA.map(t=>t.month+'|'+t.category));
-
-  // Conserva movimientos que no pertenecen al Master (manuales/Extras).
-  const manualDays = prevDays.filter(d=>!d.sourceMaster && !legacyDayKeys.has(d.date+'|'+d.concept));
-  const manualCard = prevCard.filter(c=>!c.sourceMaster && !legacyCardKeys.has(c.month+'|'+c.category));
-  const days = manualDays.slice();
-  const cardEntries = manualCard.slice();
-
-  activeMaster.filter(item=>item.medio==='cuenta').forEach(item=>{
-    const months = masterMonths(item, year);
-    months.forEach(month=>{
-      if(item.frecuencia==='semanal'){
-        for(let d=1; d<=daysInMonth(year,month); d+=7){
-          const date = isoDate(new Date(year,month-1,d));
-          if(date<todayIso) continue;
-          const concept = item.name;
-          const prev = prevDaysMap.get(date+'|'+concept);
-          days.push({id:prev?.id||uid(),date,concept,amount:item.tipo==='ingreso'?Math.abs(Number(item.values?.[year])||0):-Math.abs(Number(item.values?.[year])||0),sourceMaster:true,masterId:item.masterId});
-          generatedDayKeys.add(date+'|'+concept);
-        }
-      } else {
-        if(item.frecuencia==='anual' && !item.meses.includes(month)) return;
-        const day = validDateDay(year,month,masterDateHint(item.name,month));
-        const date = isoDate(new Date(year,month-1,day));
-        const key = date+'|'+item.name;
-        if(date<todayIso) {
-          const prev = prevDaysMap.get(key);
-          if(prev) days.push(prev);
-          generatedDayKeys.add(key);
-          return;
-        }
-        const prev = prevDaysMap.get(key);
-        const amount = item.tipo==='ingreso' ? Math.abs(Number(item.values?.[year])||0) : -Math.abs(Number(item.values?.[year])||0);
-        days.push({id:prev?.id||uid(),date,concept:item.name,amount,sourceMaster:true,masterId:item.masterId});
-        generatedDayKeys.add(key);
-      }
-    });
-  });
-
-  // Tarjeta se guarda como presupuesto mensual por categoría.
-  activeMaster.filter(item=>item.medio==='tarjeta' && item.tipo!=='ingreso').forEach(item=>{
-    for(let month=1;month<=12;month++){
-      const amount = monthlyBudgetForMaster(item,year,month);
-      const key = month+'|'+item.name+'|'+item.masterId;
-      if(amount<=0) continue;
-      const prev = prevCardMap.get(key);
-      const mesCerrado = isoDate(new Date(year,month,0)) < todayIso;
-      if(mesCerrado && prev){
-        cardEntries.push(prev);
-      }else{
-        cardEntries.push({id:prev?.id||uid(),month,category:item.name,amount,sourceMaster:true,masterId:item.masterId});
-      }
-      generatedCardKeys.add(key);
-    }
-  });
-
-  // Cierres de tarjeta: uno por mes con la suma de categorías Master.
-  for(let month=1;month<=12;month++){
-    const total = cardEntries.filter(c=>Number(c.month)===month && c.sourceMaster).reduce((sum,c)=>sum+Number(c.amount||0),0);
-    const concept = `Tarjetas ${MESES_ABR[month-1]}`;
-    const date = isoDate(new Date(year,month,0));
-    const prev = prevDaysMap.get(date+'|'+concept);
-    const mesCerrado = date < todayIso;
-    if(total>0){
-      if(mesCerrado && prev) days.push(prev);
-      else days.push({id:prev?.id||uid(),date,concept,amount:-total,sourceMaster:true,masterId:'CARD_CLOSE_'+month});
-    }
-  }
-
-  let start = 0;
-  const prevYear = DB.years[String(year-1)];
-  if(prevYear){
-    const prevSorted = getSortedDays(year-1);
-    start = prevSorted.length ? prevSorted[prevSorted.length-1].balance : (prevYear.start||0);
-  }
-  DB.years[yearStr] = {start,days,cardEntries};
-}
-
-function sincronizarDiarioConFijos(){
-  const years = fijosYears().filter(y=>y>FIJOS_REF_YEAR && DB.years[String(y)]).sort((a,b)=>a-b);
-  years.forEach(year=>generarAnoDesdePlantilla(year));
-}
-
-function generarTodosLosAnosProyectados(){
-  const years = fijosYears().filter(y=>y>FIJOS_REF_YEAR).sort((a,b)=>a-b);
-  if(!years.length){ toast(`No hay años posteriores a ${FIJOS_REF_YEAR} configurados en el Master`); return; }
-  const yaConDatos = years.filter(y=>{ const yd=DB.years[String(y)]; return yd && ((yd.days&&yd.days.length)||(yd.cardEntries&&yd.cardEntries.length)); });
-  if(yaConDatos.length){
-    if(!confirm(`Los años ${yaConDatos.join(', ')} ya tienen movimientos. ¿Regenerar todos (${years.join(', ')}) desde MASTER? Los movimientos manuales se conservarán y los meses ya cerrados no cambiarán.`)) return;
-  }
-  years.forEach(year=>generarAnoDesdePlantilla(year));
-  ui.year = String(years[0]||FIJOS_REF_YEAR+1);
-  saveDB(); renderAll();
-  toast(`Generados desde MASTER: ${years.join(', ')}`);
-}
-
 function ipcRateFor(tipo){
   const cfg = DB.ipc || { gastos:2, ingresos:0.5 };
   if(tipo==='ingreso') return Number(cfg.ingresos)||0;
@@ -1155,26 +1034,205 @@ function fijoMagnitudeForYear(item, year){
   return Math.abs(val);
 }
 
-const PLANTILLA_2027_DIAS = [{"date": "2027-01-02", "concept": "ING"}, {"date": "2027-01-03", "concept": "ING"}, {"date": "2027-01-04", "concept": "Limpieza"}, {"date": "2027-01-05", "concept": "Tele"}, {"date": "2027-01-06", "concept": "Móvil"}, {"date": "2027-01-07", "concept": "Casa Mad"}, {"date": "2027-01-08", "concept": "Pádel"}, {"date": "2027-01-11", "concept": "Regalo Navidad"}, {"date": "2027-01-19", "concept": "Spotify"}, {"date": "2027-01-21", "concept": "Seguro Madrid"}, {"date": "2027-01-25", "concept": "Luz"}, {"date": "2027-01-26", "concept": "Gas"}, {"date": "2027-01-27", "concept": "Bonus"}, {"date": "2027-01-28", "concept": "Nom Ene"}, {"date": "2027-02-01", "concept": "ING"}, {"date": "2027-02-02", "concept": "Casa Mad"}, {"date": "2027-02-03", "concept": "Móvil"}, {"date": "2027-02-04", "concept": "Limpieza"}, {"date": "2027-02-05", "concept": "Pádel"}, {"date": "2027-02-12", "concept": "Cumple Niños"}, {"date": "2027-02-20", "concept": "Seguro Madrid"}, {"date": "2027-02-22", "concept": "Luz"}, {"date": "2027-02-23", "concept": "Agua"}, {"date": "2027-02-26", "concept": "Nom Feb"}, {"date": "2027-03-01", "concept": "ING"}, {"date": "2027-03-02", "concept": "Casa Mad"}, {"date": "2027-03-03", "concept": "Móvil"}, {"date": "2027-03-04", "concept": "Limpieza"}, {"date": "2027-03-05", "concept": "Pádel"}, {"date": "2027-03-11", "concept": "Cumple Niños"}, {"date": "2027-03-14", "concept": "Extra Mar"}, {"date": "2027-03-22", "concept": "Seguro Madrid"}, {"date": "2027-03-25", "concept": "Luz"}, {"date": "2027-03-26", "concept": "Gas"}, {"date": "2027-03-29", "concept": "Nom Mar"}, {"date": "2027-03-31", "concept": "ING"}, {"date": "2027-04-01", "concept": "Tele"}, {"date": "2027-04-03", "concept": "Casa Mad"}, {"date": "2027-04-04", "concept": "Móvil"}, {"date": "2027-04-05", "concept": "Limpieza"}, {"date": "2027-04-07", "concept": "Pádel"}, {"date": "2027-04-23", "concept": "Seguro Madrid"}, {"date": "2027-04-25", "concept": "Luz"}, {"date": "2027-04-26", "concept": "Agua"}, {"date": "2027-04-28", "concept": "Nom Abr"}, {"date": "2027-05-01", "concept": "ING"}, {"date": "2027-05-03", "concept": "Casa Mad"}, {"date": "2027-05-04", "concept": "Móvil"}, {"date": "2027-05-05", "concept": "Limpieza"}, {"date": "2027-05-06", "concept": "Pádel"}, {"date": "2027-05-21", "concept": "Seguro Madrid"}, {"date": "2027-05-26", "concept": "Luz"}, {"date": "2027-05-27", "concept": "Gas"}, {"date": "2027-05-30", "concept": "Nom May"}, {"date": "2027-06-02", "concept": "ING"}, {"date": "2027-06-03", "concept": "Casa Mad"}, {"date": "2027-06-04", "concept": "Móvil"}, {"date": "2027-06-05", "concept": "Limpieza"}, {"date": "2027-06-06", "concept": "Pádel"}, {"date": "2027-06-16", "concept": "Extra Jun"}, {"date": "2027-06-21", "concept": "Seguro Madrid"}, {"date": "2027-06-25", "concept": "Luz"}, {"date": "2027-06-26", "concept": "Agua"}, {"date": "2027-06-28", "concept": "Nom Jun"}, {"date": "2027-06-30", "concept": "ING"}, {"date": "2027-07-01", "concept": "Tele"}, {"date": "2027-07-02", "concept": "Casa Mad"}, {"date": "2027-07-03", "concept": "Móvil"}, {"date": "2027-07-04", "concept": "Limpieza"}, {"date": "2027-07-05", "concept": "ING"}, {"date": "2027-07-09", "concept": "Pádel"}, {"date": "2027-07-24", "concept": "Seguro Madrid"}, {"date": "2027-07-26", "concept": "Luz"}, {"date": "2027-07-27", "concept": "Gas"}, {"date": "2027-07-29", "concept": "Nom Jul"}, {"date": "2027-08-01", "concept": "ING"}, {"date": "2027-08-02", "concept": "Casa Mad"}, {"date": "2027-08-03", "concept": "Móvil"}, {"date": "2027-08-04", "concept": "Limpieza"}, {"date": "2027-08-21", "concept": "Seguro Madrid"}, {"date": "2027-08-26", "concept": "Luz"}, {"date": "2027-08-27", "concept": "Agua"}, {"date": "2027-08-29", "concept": "Nom Ago"}, {"date": "2027-09-01", "concept": "ING"}, {"date": "2027-09-02", "concept": "Casa Mad"}, {"date": "2027-09-03", "concept": "Móvil"}, {"date": "2027-09-04", "concept": "Limpieza"}, {"date": "2027-09-08", "concept": "Pádel"}, {"date": "2027-09-14", "concept": "Cumple Niños"}, {"date": "2027-09-21", "concept": "Seguro Madrid"}, {"date": "2027-09-24", "concept": "Luz"}, {"date": "2027-09-25", "concept": "Gas"}, {"date": "2027-09-27", "concept": "Nom Sep"}, {"date": "2027-09-30", "concept": "ING"}, {"date": "2027-10-02", "concept": "Casa Mad"}, {"date": "2027-10-03", "concept": "Móvil"}, {"date": "2027-10-04", "concept": "Limpieza"}, {"date": "2027-10-05", "concept": "Tele"}, {"date": "2027-10-06", "concept": "Pádel"}, {"date": "2027-10-22", "concept": "Seguro Madrid"}, {"date": "2027-10-26", "concept": "Luz"}, {"date": "2027-10-27", "concept": "Agua"}, {"date": "2027-10-29", "concept": "Nom Oct"}, {"date": "2027-10-31", "concept": "ING"}, {"date": "2027-11-02", "concept": "Casa Mad"}, {"date": "2027-11-03", "concept": "Móvil"}, {"date": "2027-11-04", "concept": "Limpieza"}, {"date": "2027-11-06", "concept": "Pádel"}, {"date": "2027-11-17", "concept": "Cumple Niños"}, {"date": "2027-11-22", "concept": "Seguro Madrid"}, {"date": "2027-11-23", "concept": "Luz"}, {"date": "2027-11-24", "concept": "Gas"}, {"date": "2027-11-28", "concept": "Nom Nov"}, {"date": "2027-12-02", "concept": "Casa Mad"}, {"date": "2027-12-03", "concept": "Móvil"}, {"date": "2027-12-04", "concept": "ING"}, {"date": "2027-12-05", "concept": "Limpieza"}, {"date": "2027-12-06", "concept": "Pádel"}, {"date": "2027-12-17", "concept": "Extra Dic"}, {"date": "2027-12-21", "concept": "Seguro Madrid"}, {"date": "2027-12-22", "concept": "Luz"}, {"date": "2027-12-23", "concept": "Agua"}, {"date": "2027-12-27", "concept": "Nom Dic"}];
-const PLANTILLA_2027_TARJETA = [{"month": 1, "category": "Gastos"}, {"month": 1, "category": "Gasolina"}, {"month": 1, "category": "Cloud Apple"}, {"month": 1, "category": "Farmacia"}, {"month": 1, "category": "Otros"}, {"month": 1, "category": "Fin de año"}, {"month": 1, "category": "Peluquería"}, {"month": 1, "category": "Gym"}, {"month": 1, "category": "Trabajo"}, {"month": 1, "category": "Dentista"}, {"month": 1, "category": "Carrefour"}, {"month": 1, "category": "Fijos"}, {"month": 1, "category": "Cepsa"}, {"month": 2, "category": "Gastos"}, {"month": 2, "category": "Gasolina"}, {"month": 2, "category": "Cloud Apple"}, {"month": 2, "category": "Farmacia"}, {"month": 2, "category": "Otros"}, {"month": 2, "category": "Sky"}, {"month": 2, "category": "Peluquería"}, {"month": 2, "category": "Gym"}, {"month": 2, "category": "Trabajo"}, {"month": 2, "category": "Dentista"}, {"month": 2, "category": "Carrefour"}, {"month": 2, "category": "Fijos"}, {"month": 2, "category": "Cepsa"}, {"month": 3, "category": "Gastos"}, {"month": 3, "category": "Gasolina"}, {"month": 3, "category": "Cloud Apple"}, {"month": 3, "category": "Farmacia"}, {"month": 3, "category": "Peluquería"}, {"month": 3, "category": "Otros"}, {"month": 3, "category": "Gym"}, {"month": 3, "category": "Trabajo"}, {"month": 3, "category": "Dentista"}, {"month": 3, "category": "Carrefour"}, {"month": 3, "category": "Fijos"}, {"month": 3, "category": "Cepsa"}, {"month": 4, "category": "Gastos"}, {"month": 4, "category": "Gasolina"}, {"month": 4, "category": "Cloud Apple"}, {"month": 4, "category": "Farmacia"}, {"month": 4, "category": "Otros"}, {"month": 4, "category": "SemSanta"}, {"month": 4, "category": "Peluquería"}, {"month": 4, "category": "Gym"}, {"month": 4, "category": "Trabajo"}, {"month": 4, "category": "Dentista"}, {"month": 4, "category": "Carrefour"}, {"month": 4, "category": "Fijos"}, {"month": 4, "category": "Cepsa"}, {"month": 5, "category": "Gastos"}, {"month": 5, "category": "Gasolina"}, {"month": 5, "category": "Cloud Apple"}, {"month": 5, "category": "Otros"}, {"month": 5, "category": "Numerito"}, {"month": 5, "category": "Peluquería"}, {"month": 5, "category": "Cloud"}, {"month": 5, "category": "Trabajo"}, {"month": 5, "category": "Gym"}, {"month": 5, "category": "Farmacia"}, {"month": 5, "category": "Dentista"}, {"month": 5, "category": "Carrefour"}, {"month": 5, "category": "Fijos"}, {"month": 5, "category": "Cepsa"}, {"month": 6, "category": "Gastos"}, {"month": 6, "category": "Gasolina"}, {"month": 6, "category": "Cloud Apple"}, {"month": 6, "category": "Farmacia"}, {"month": 6, "category": "Peluquería"}, {"month": 6, "category": "Otros"}, {"month": 6, "category": "Gym"}, {"month": 6, "category": "Trabajo"}, {"month": 6, "category": "Dentista"}, {"month": 6, "category": "Carrefour"}, {"month": 6, "category": "Fijos"}, {"month": 6, "category": "Cepsa"}, {"month": 7, "category": "Gastos"}, {"month": 7, "category": "Gasolina"}, {"month": 7, "category": "Cloud Apple"}, {"month": 7, "category": "Otros"}, {"month": 7, "category": "YouTube"}, {"month": 7, "category": "Peluquería"}, {"month": 7, "category": "Verano 1"}, {"month": 7, "category": "Trabajo"}, {"month": 7, "category": "Gym"}, {"month": 7, "category": "Farmacia"}, {"month": 7, "category": "Dentista"}, {"month": 7, "category": "Carrefour"}, {"month": 7, "category": "Fijos"}, {"month": 7, "category": "Cepsa"}, {"month": 8, "category": "Gastos"}, {"month": 8, "category": "Gasolina"}, {"month": 8, "category": "Cloud Apple"}, {"month": 8, "category": "Farmacia"}, {"month": 8, "category": "Otros"}, {"month": 8, "category": "Seguro"}, {"month": 8, "category": "Peluquería"}, {"month": 8, "category": "Gym"}, {"month": 8, "category": "Trabajo"}, {"month": 8, "category": "Dentista"}, {"month": 8, "category": "Carrefour"}, {"month": 8, "category": "Fijos"}, {"month": 8, "category": "Cepsa"}, {"month": 9, "category": "Gastos"}, {"month": 9, "category": "Gasolina"}, {"month": 9, "category": "Cloud Apple"}, {"month": 9, "category": "Otros"}, {"month": 9, "category": "Revisión"}, {"month": 9, "category": "Peluquería"}, {"month": 9, "category": "Verano 2"}, {"month": 9, "category": "Trabajo"}, {"month": 9, "category": "Gym"}, {"month": 9, "category": "Farmacia"}, {"month": 9, "category": "Dentista"}, {"month": 9, "category": "Carrefour"}, {"month": 9, "category": "Fijos"}, {"month": 9, "category": "Cepsa"}, {"month": 10, "category": "Gastos"}, {"month": 10, "category": "Gasolina"}, {"month": 10, "category": "Cloud Apple"}, {"month": 10, "category": "Farmacia"}, {"month": 10, "category": "Peluquería"}, {"month": 10, "category": "Otros"}, {"month": 10, "category": "Gym"}, {"month": 10, "category": "Trabajo"}, {"month": 10, "category": "Dentista"}, {"month": 10, "category": "Carrefour"}, {"month": 10, "category": "Fijos"}, {"month": 10, "category": "Cepsa"}, {"month": 11, "category": "Gastos"}, {"month": 11, "category": "Gasolina"}, {"month": 11, "category": "Cloud Apple"}, {"month": 11, "category": "Farmacia"}, {"month": 11, "category": "Peluquería"}, {"month": 11, "category": "Otros"}, {"month": 11, "category": "Lotería"}, {"month": 11, "category": "Trabajo"}, {"month": 11, "category": "Gym"}, {"month": 11, "category": "Carrefour"}, {"month": 11, "category": "Fijos"}, {"month": 11, "category": "Cepsa"}, {"month": 12, "category": "Gastos"}, {"month": 12, "category": "Gasolina"}, {"month": 12, "category": "Cloud Apple"}, {"month": 12, "category": "Farmacia"}, {"month": 12, "category": "Peluquería"}, {"month": 12, "category": "Otros"}, {"month": 12, "category": "Fin de Año"}, {"month": 12, "category": "Trabajo"}, {"month": 12, "category": "Gym"}, {"month": 12, "category": "Carrefour"}, {"month": 12, "category": "Fijos"}, {"month": 12, "category": "Cepsa"}, {"month": 12, "category": "Salir"}, {"month": 12, "category": "Gasolina"}];
+// ============================================================
+// PLANTILLA 2027+ — estructura externa en excel/2027.xlsx
+// La plantilla NO se embebe en HTML/JS ni se guarda como plantilla
+// maestra en el JSON. Se carga desde el archivo Excel cuando hace falta.
+// ============================================================
+let TEMPLATE_2027 = null;
 
-// Genera UN año completo a partir de la plantilla (basada originalmente en
-// 2027, se reutiliza el patrón día-del-mes/mes para cualquier año): conceptos
-// y días desde la plantilla, importes siempre recalculados en vivo desde
-// Gastos Fijos (DB.fijos) para ESE año concreto. Si un concepto/categoría no
-// tiene una partida con el mismo nombre en Gastos Fijos, su importe queda a 0.
-// Los cierres "Tarjetas <Mes>" se calculan como el cierre real de tarjeta de
-// ese mes (igual que el botón "Cerrar mes (tarjeta)").
-// El saldo inicial (start) se encadena con el saldo final (31 dic) del año
-// anterior, si existe en DB.years — así el conjunto funciona como un
-// acumulado real año a año.
-//
-// Los movimientos ya PASADOS (fecha anterior a hoy) nunca se recalculan al
-// volver a generar: se conservan tal cual estén guardados, aunque cambien los
-// importes en Gastos Fijos. Solo se actualizan los movimientos futuros. Los
-// movimientos manuales que no correspondan a ninguna línea de la plantilla
-// (los que tú añadas a mano) también se conservan siempre, sean del pasado o
-// del futuro.
+function normalizeTemplateKey(s){
+  return normalizeName(String(s||'').trim());
+}
+
+function templateMasterAliases(concept, medium){
+  const k = normalizeTemplateKey(concept);
+  const aliases = [];
+  if(medium==='cuenta'){
+    if(/^nom/.test(k)) aliases.push(normalizeName('Nómina'));
+    if(/^extra/.test(k)) aliases.push(normalizeName('Paga Extra'));
+    if(k===normalizeName('Casa Mad')) aliases.push(normalizeName('Casa Madrid'));
+    if(k===normalizeName('Regalo Navidad')) aliases.push(normalizeName('Regalo Navidad Niños'));
+  }else if(medium==='tarjeta'){
+    const map = {
+      'cloudapple':'cloud',
+      'semsanta':'semanasanta',
+      'findeano':'finano',
+      'seguro':'segurocoche',
+      'revision':'revisioncoche',
+      'numerito':'numeritocoche'
+    };
+    if(map[k]) aliases.push(map[k]);
+  }
+  return aliases;
+}
+
+function masterMatchesForTemplate(concept, medium){
+  const exact = DB.fijos.filter(f=>f.source==='master' && f.activo && f.medio===medium && normalizeTemplateKey(f.name)===normalizeTemplateKey(concept));
+  if(exact.length) return exact;
+  const aliases = templateMasterAliases(concept, medium);
+  for(const alias of aliases){
+    const matches = DB.fijos.filter(f=>f.source==='master' && f.activo && f.medio===medium && normalizeTemplateKey(f.name)===alias);
+    if(matches.length) return matches;
+  }
+  return [];
+}
+
+function templateMatchInfo(){
+  const accountNames = Array.from(new Set((TEMPLATE_2027?.days||[]).map(x=>x.concept).filter(Boolean)));
+  const accountInfo = accountNames.map(name=>({concept:name,matches:masterMatchesForTemplate(name,'cuenta')}));
+  const cardNames = Array.from(new Set((TEMPLATE_2027?.cardEntries||[]).map(x=>x.category).filter(Boolean)));
+  const cardInfo = cardNames.map(name=>({concept:name,matches:masterMatchesForTemplate(name,'tarjeta')}));
+  return {accountInfo,cardInfo};
+}
+
+function templateStatusText(){
+  if(!TEMPLATE_2027) return 'Plantilla 2027: no cargada';
+  const info = templateMatchInfo();
+  const aOk = info.accountInfo.filter(x=>x.matches.length).length;
+  const cOk = info.cardInfo.filter(x=>x.matches.length).length;
+  return `Plantilla 2027 · cuenta ${aOk}/${info.accountInfo.length} · tarjeta ${cOk}/${info.cardInfo.length}`;
+}
+
+function setTemplateStatus(msg, ok=null){
+  const el=document.getElementById('templateStatus');
+  if(!el) return;
+  el.textContent=msg;
+  el.style.color = ok===false ? 'var(--neg)' : (ok===true ? 'var(--pos)' : 'var(--ink-soft)');
+}
+
+function parse2027TemplateRows(rows){
+  const days=[];
+  // Rows 2..366 are exactly 365 calendar days in the template.
+  for(let r=1;r<=365;r++){
+    const row = rows[r] || [];
+    const concept = row[1]==null ? '' : String(row[1]).trim();
+    days.push({day:r, concept});
+  }
+  if(days.length!==365) throw new Error(`La plantilla 2027 no contiene 365 días`);
+
+  const cardAgg = new Map();
+  let currentMonth = 0;
+  const monthStarts = new Set(MESES.map(m=>m));
+  for(let r=0;r<rows.length;r++){
+    const f = rows[r]?.[5];
+    if(typeof f==='string' && monthStarts.has(f.trim())) currentMonth = MESES.indexOf(f.trim())+1;
+    if(!currentMonth) continue;
+    for(const col of [5,7,9]){
+      const raw = rows[r]?.[col];
+      if(raw==null || String(raw).trim()==='') continue;
+      if(typeof raw !== 'string') continue;
+      const category = raw.trim();
+      if(monthStarts.has(category)) continue;
+      const key = `${currentMonth}|${normalizeTemplateKey(category)}`;
+      if(cardAgg.has(key)) continue;
+      cardAgg.set(key,{month:currentMonth,category});
+    }
+  }
+  const cardEntries = Array.from(cardAgg.values());
+  return {days,cardEntries};
+}
+
+async function loadTemplate2027Buffer(buf, sourceLabel='plantilla 2027'){
+  const wb = XLSX.read(buf,{type:'array',cellDates:true});
+  const sheetName = wb.SheetNames.find(name=>/^2027$/i.test(name.trim())) || wb.SheetNames[0];
+  if(!sheetName) throw new Error('No se encontró la hoja 2027');
+  const ws = wb.Sheets[sheetName];
+  const rows = XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:null});
+  const parsed = parse2027TemplateRows(rows);
+  TEMPLATE_2027 = parsed;
+  setTemplateStatus(templateStatusText(), true);
+  return parsed;
+}
+
+async function cargarPlantilla2027Automatica(){
+  setTemplateStatus('Cargando plantilla 2027…');
+  try{
+    const res = await fetch(TEMPLATE_2027_URL + MASTER_REFRESH_PARAM(), {cache:'no-store'});
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const buf = await res.arrayBuffer();
+    await loadTemplate2027Buffer(buf,'GitHub');
+    sincronizarDiarioConFijos();
+    if(DB.masterLoaded) saveDB({sync:false});
+    renderAll();
+    return true;
+  }catch(err){
+    console.warn('No se pudo cargar la plantilla 2027 automáticamente:',err);
+    setTemplateStatus('Plantilla 2027 no disponible · falta excel/2027.xlsx',false);
+    return false;
+  }
+}
+
+function templateDayKey(year, day, concept){
+  return isoDate(new Date(year,0,day))+'|'+String(concept||'');
+}
+function templateCardKey(month, category){
+  return String(month)+'|'+normalizeTemplateKey(category);
+}
+
+function generarAnoDesdePlantilla(year){
+  if(!TEMPLATE_2027) throw new Error('La plantilla 2027 no está cargada');
+  const yearStr = String(year);
+  const existing = DB.years[yearStr];
+  const prevDays = existing?.days ? existing.days.slice() : [];
+  const prevCard = existing?.cardEntries ? existing.cardEntries.slice() : [];
+
+  const templateDayKeys = new Set(TEMPLATE_2027.days.map(t=>templateDayKey(year,t.day,t.concept)));
+  const templateCardKeys = new Set(TEMPLATE_2027.cardEntries.map(c=>templateCardKey(c.month,c.category)));
+
+  const manualDays = prevDays.filter(d=>!d.sourceTemplate2027 && !templateDayKeys.has(d.date+'|'+String(d.concept||'')));
+  const manualCard = prevCard.filter(c=>!c.sourceTemplate2027 && !templateCardKeys.has(templateCardKey(c.month,c.category)));
+
+  const prevDaysMap = new Map(prevDays.map(d=>[d.date+'|'+String(d.concept||''),d]));
+  const prevCardMap = new Map(prevCard.map(c=>[templateCardKey(c.month,c.category),c]));
+
+  const days = manualDays.slice();
+  TEMPLATE_2027.days.forEach(t=>{
+    const date = isoDate(new Date(year,0,t.day));
+    const key = date+'|'+String(t.concept||'');
+    const prev = prevDaysMap.get(key);
+    // Estructura solamente: el dinero se añadirá en la siguiente fase desde MASTER.
+    days.push({id:prev?.id||uid(),date,concept:t.concept||'',amount:0,sourceTemplate2027:true});
+  });
+
+  const cardEntries = manualCard.slice();
+  TEMPLATE_2027.cardEntries.forEach(c=>{
+    const key = templateCardKey(c.month,c.category);
+    const prev = prevCardMap.get(key);
+    cardEntries.push({id:prev?.id||uid(),month:c.month,category:c.category,amount:0,sourceTemplate2027:true});
+  });
+
+  let start = 0;
+  const prevYear = DB.years[String(year-1)];
+  if(prevYear){
+    const prevSorted = getSortedDays(year-1);
+    start = prevSorted.length ? prevSorted[prevSorted.length-1].balance : (prevYear.start||0);
+  }
+  DB.years[yearStr] = {start,days,cardEntries};
+}
+
+function sincronizarDiarioConFijos(){
+  // 2027+ se basa en la plantilla externa; de momento solo se sincroniza
+  // la estructura. Los importes se rellenarán en la siguiente fase.
+  const years = fijosYears().filter(y=>y>FIJOS_REF_YEAR && DB.years[String(y)]).sort((a,b)=>a-b);
+  if(!TEMPLATE_2027) return;
+  years.forEach(year=>generarAnoDesdePlantilla(year));
+}
+
+function generarTodosLosAnosProyectados(){
+  if(!TEMPLATE_2027){ toast('Carga la plantilla 2027 primero'); return; }
+  const years = fijosYears().filter(y=>y>FIJOS_REF_YEAR).sort((a,b)=>a-b);
+  if(!years.length){ toast(`No hay años posteriores a ${FIJOS_REF_YEAR} configurados en el Master`); return; }
+  const yaConDatos = years.filter(y=>{ const yd=DB.years[String(y)]; return yd && ((yd.days&&yd.days.length)||(yd.cardEntries&&yd.cardEntries.length)); });
+  if(yaConDatos.length){
+    if(!confirm(`Los años ${yaConDatos.join(', ')} ya tienen estructura. ¿Regenerarlos desde la plantilla 2027? Los movimientos manuales se conservarán.`)) return;
+  }
+  years.forEach(year=>generarAnoDesdePlantilla(year));
+  ui.year = String(years[0]||FIJOS_REF_YEAR+1);
+  saveDB(); renderAll();
+  toast(`Estructura generada: ${years.join(', ')}`);
+}
+
 function parseGastosSheet(rows){
   return parseMasterRows(rows);
 }
@@ -1196,6 +1254,85 @@ async function loadMasterBuffer(buf, sourceLabel='MASTER'){
   return items.length;
 }
 
+
+// ============================================================
+// IMPORTACIÓN 2026 DESDE EXCEL (solo se inicializa al subir el
+// archivo; no hay datos de 2026 embebidos en HTML/JS).
+// ============================================================
+const CARD_2026_PAIRS = [[6,7],[9,10],[12,13]]; // F/G, I/J, L/M
+
+function merge2026CardEntries(rows){
+  const monthStarts = [];
+  rows.forEach((row, idx)=>{
+    const v = row[5]; // columna F
+    if(typeof v==='string' && MESES.includes(v.trim())) monthStarts.push({row:idx, month:MESES.indexOf(v.trim())+1});
+  });
+
+  const agg = new Map();
+  for(let i=0;i<monthStarts.length;i++){
+    const start = monthStarts[i].row + 1;
+    const end = i+1<monthStarts.length ? monthStarts[i+1].row : rows.length;
+    const month = monthStarts[i].month;
+    for(let r=start;r<end;r++){
+      const row = rows[r] || [];
+      for(const [nameCol,valCol] of CARD_2026_PAIRS){
+        const rawName = row[nameCol];
+        const rawVal = row[valCol];
+        if(rawName==null || String(rawName).trim()==='') continue;
+        if(typeof rawVal!=='number' || !Number.isFinite(rawVal)) continue;
+        const category = String(rawName).trim();
+        const key = `${month}|${normalizeName(category)}`;
+        const existing = agg.get(key);
+        if(existing) existing.amount += rawVal;
+        else agg.set(key, {id:uid(), month, category, amount:rawVal});
+      }
+    }
+  }
+  return Array.from(agg.values());
+}
+
+function parse2026Sheet(rows){
+  const days = [];
+  let start = 0;
+  let startFound = false;
+  for(const row of rows){
+    const d = row?.[0];
+    if(!(d instanceof Date) || d.getFullYear()!==FIJOS_REF_YEAR) continue;
+    const dateIso = isoDate(d);
+    if(!startFound && typeof row?.[3]==='number'){
+      start = row[3];
+      startFound = true;
+    }
+    const concept = row?.[1]==null ? '' : String(row[1]).trim();
+    const amount = typeof row?.[2]==='number' && Number.isFinite(row[2]) ? row[2] : 0;
+    // Conservamos TODOS los días del Excel, incluso los que no tienen movimiento.
+    days.push({id:uid(), date:dateIso, concept, amount});
+  }
+  if(days.length!==365) throw new Error(`Se esperaban 365 días de 2026 y se han leído ${days.length}`);
+  return {start, days, cardEntries:merge2026CardEntries(rows), source:'2026-upload'};
+}
+
+async function import2026Buffer(buf, sourceLabel='archivo'){
+  const wb = XLSX.read(buf, {type:'array', cellDates:true});
+  const sheetName = wb.SheetNames.find(name=>/^2026$/i.test(name.trim())) || wb.SheetNames[0];
+  if(!sheetName) throw new Error('No se encontró una hoja de 2026');
+  const ws = wb.Sheets[sheetName];
+  const rows = XLSX.utils.sheet_to_json(ws, {header:1, raw:true, defval:null});
+  const parsed = parse2026Sheet(rows);
+  const previous = DB.years[String(FIJOS_REF_YEAR)];
+  if(previous && (previous.days?.length || previous.cardEntries?.length)){
+    const ok = confirm('2026 ya está cargado. ¿Quieres reemplazarlo con este Excel?');
+    if(!ok) return false;
+  }
+  DB.years[String(FIJOS_REF_YEAR)] = parsed;
+  DB.updatedAt = new Date().toISOString();
+  ui.year = String(FIJOS_REF_YEAR);
+  saveDB();
+  renderAll();
+  toast(`2026 importado · ${parsed.days.length} días · ${parsed.cardEntries.length} categorías de tarjeta`);
+  return true;
+}
+
 async function cargarMasterAutomatico(){
   setMasterStatus('Cargando MASTER…');
   try{
@@ -1212,6 +1349,33 @@ async function cargarMasterAutomatico(){
     setMasterStatus('MASTER no disponible · usa «Importar Excel»', false);
   }
 }
+
+document.getElementById('import2026File').addEventListener('change', async (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  try{
+    const buf = await file.arrayBuffer();
+    await import2026Buffer(buf, file.name);
+  }catch(err){
+    console.error(err);
+    toast(`No se pudo importar 2026: ${err.message||'archivo no válido'}`);
+  }finally{
+    e.target.value='';
+  }
+});
+
+document.getElementById('import2027File')?.addEventListener('change', async (e)=>{
+  const file=e.target.files[0];
+  if(!file) return;
+  try{
+    const buf=await file.arrayBuffer();
+    await loadTemplate2027Buffer(buf,file.name);
+    toast('Plantilla 2027 cargada');
+  }catch(err){
+    console.error(err);
+    toast(`No se pudo importar 2027: ${err.message||'archivo no válido'}`);
+  }finally{ e.target.value=''; }
+});
 
 document.getElementById('importFile').addEventListener('change', async (e)=>{
   const file = e.target.files[0];
@@ -1612,6 +1776,7 @@ async function initDashboard(){
   await loadGistFirst();
   renderAll();
   await cargarMasterAutomatico();
+  await cargarPlantilla2027Automatica();
   renderAll();
 }
 
