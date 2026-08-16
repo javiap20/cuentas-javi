@@ -6,7 +6,11 @@ const STORAGE_KEY = 'diarioGastosDB_v1';
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 const MESES_ABR = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 const FIJOS_REF_YEAR = 2026; // año de referencia del MASTER
-const MASTER_URLS = ['../excel/finanzas-master.xlsx','./excel/finanzas-master.xlsx'];
+const MASTER_URLS = [
+  'https://javiap20.github.io/javi/excel/finanzas-master.xlsx',
+  '../excel/finanzas-master.xlsx',
+  './excel/finanzas-master.xlsx'
+];
 const BOOTSTRAP_VERSION = 4; // bootstrap manual: 2026/2027 se importan una vez desde botones
 const MASTER_MAX_YEAR = 2040; // horizonte visible/proyectable desde el año base
 const MASTER_REFRESH_PARAM = () => `?v=${Date.now()}`;
