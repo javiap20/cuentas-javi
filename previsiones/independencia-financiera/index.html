@@ -88,7 +88,9 @@ h1{font-family:"Manrope",sans-serif;font-size:clamp(26px,3vw,40px);line-height:1
 .input-label{display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--ink-2);font-size:12px;font-weight:700;margin-bottom:8px}
 .input-label span:last-child{font-size:10px;color:var(--muted);font-weight:600;background:#f0f2f7;padding:3px 7px;border-radius:999px}
 .money-wrap{display:flex;align-items:baseline;gap:7px}
-.money-wrap .currency{font-family:"Manrope",sans-serif;font-size:19px;font-weight:700;color:var(--muted)}
+.money-wrap .currency{order:2}
+.money-wrap .money-input{order:1;text-align:left;width:fit-content;min-width:0;field-sizing:content}
+.money-wrap .currency{font-family:"Manrope",sans-serif;font-size:19px;font-weight:700;color:var(--ink)}
 .money-input{width:100%;border:0;outline:0;background:transparent;color:var(--ink);font-family:"Manrope",sans-serif;font-size:26px;font-weight:800;letter-spacing:-.035em;padding:0;min-width:0}
 .money-input::placeholder,.mini-input::placeholder{color:#c1c7d4}
 .input-help{font-size:11px;color:var(--muted);margin-top:6px;min-height:16px}
@@ -194,8 +196,15 @@ details summary::-webkit-details-marker{display:none}
 .benefit-status.warn{border-color:#f0d9a7;background:#fff9eb;color:#8b651b}
 .benefit-status .dot{width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 0 4px rgba(124,77,255,.08);flex:0 0 auto}
 .input-card.auto-source{background:linear-gradient(180deg,#fcfbff,#f7f5ff);border-color:#e2dcff}
-.input-card.auto-source .money-input{color:var(--accent-2)}
+.input-card.auto-source .money-input,.input-card.auto-source .currency{color:var(--accent-2)}
 .input-card.manual-source{border-color:#f0d9a7}
+#pensionCard{border-color:#f0d9a7}
+.pension-money-wrap{display:flex;align-items:baseline;justify-content:center;gap:4px;width:100%}
+.pension-money-wrap .currency{order:2}
+.pension-money-wrap .mini-input{order:1}
+.pension-money-wrap .currency{font-family:"Manrope",sans-serif;font-size:16px;font-weight:700;color:var(--ink)}
+.pension-money-wrap .mini-input{font-size:22px;text-align:left;text-align-last:left;width:fit-content;min-width:0;max-width:100%;flex:0 0 auto;field-sizing:content}
+#pensionHelp{display:none}
 .mini-select{width:100%;border:0;background:transparent;outline:0;color:var(--ink);font-weight:800;font-size:13px;padding:0;cursor:pointer}
 .benefit-check{display:flex!important;align-items:center;gap:8px;cursor:pointer;text-transform:none!important;letter-spacing:0!important;color:var(--ink)!important;margin:0!important}
 .benefit-check input{width:16px;height:16px;accent-color:var(--accent);flex:0 0 auto}
@@ -401,9 +410,9 @@ details summary::-webkit-details-marker{display:none}
         </div>
         <div class="pension-auto-help">2 % gastos · 0,5 % pensión · editables por escenario.</div>
       </div>
-      <div class="mini-control">
+      <div id="pensionCard" class="mini-control">
         <label for="pension">Pensión estimada al jubilarte</label>
-        <input id="pension" class="mini-input money-value-input" type="text" inputmode="numeric" autocomplete="off" placeholder="0">
+        <div class="pension-money-wrap"><span class="currency">€</span><input id="pension" class="mini-input money-value-input" type="text" inputmode="numeric" autocomplete="off" placeholder="0"></div>
         <div id="pensionHelp" class="pension-auto-help">Por paga · 14 pagas.</div>
       </div>
       <div class="mini-control">
