@@ -6,8 +6,8 @@ const STORAGE_KEY = 'diarioGastosDB_v1';
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 const MESES_ABR = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 const FIJOS_REF_YEAR = 2026; // año de referencia del MASTER
-const MASTER_URL = '../excel/finanzas-master.xlsx';
-const TEMPLATE_2027_URL = '../excel/2027.xlsx';
+const MASTER_URLS = ['../excel/finanzas-master.xlsx','./excel/finanzas-master.xlsx'];
+const TEMPLATE_2027_URLS = ['../excel/2027.xlsx','./excel/2027.xlsx'];
 const MASTER_MAX_YEAR = 2040; // horizonte visible/proyectable desde el año base
 const MASTER_REFRESH_PARAM = () => `?v=${Date.now()}`;
 const MES_ABR_LOWER = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
@@ -1145,20 +1145,27 @@ async function loadTemplate2027Buffer(buf, sourceLabel='plantilla 2027'){
   return parsed;
 }
 
-async function cargarPlantilla2027Automatica(){
+async function prefetchPlantilla2027Automatica(){
   setTemplateStatus('Cargando plantilla 2027…');
   try{
-    const res = await fetch(TEMPLATE_2027_URL + MASTER_REFRESH_PARAM(), {cache:'no-store'});
-    if(!res.ok) throw new Error(`HTTP ${res.status}`);
-    const buf = await res.arrayBuffer();
+    return await fetchWorkbookFromCandidates(TEMPLATE_2027_URLS);
+  }catch(err){
+    console.warn('No se pudo cargar la plantilla 2027 automáticamente:',err);
+    setTemplateStatus(`Plantilla 2027 no disponible · ${err.message||'revisa la carpeta excel'}`,false);
+    return null;
+  }
+}
+
+async function cargarPlantilla2027DesdeBufferAutomatico(buf){
+  if(!buf) return false;
+  try{
     await loadTemplate2027Buffer(buf,'GitHub');
     sincronizarDiarioConFijos();
     if(DB.masterLoaded) saveDB({sync:false});
-    renderAll();
     return true;
   }catch(err){
-    console.warn('No se pudo cargar la plantilla 2027 automáticamente:',err);
-    setTemplateStatus('Plantilla 2027 no disponible · falta excel/2027.xlsx',false);
+    console.warn('No se pudo procesar la plantilla 2027:',err);
+    setTemplateStatus(`Plantilla 2027 no disponible · ${err.message||'archivo inválido'}`,false);
     return false;
   }
 }
@@ -1333,20 +1340,38 @@ async function import2026Buffer(buf, sourceLabel='archivo'){
   return true;
 }
 
-async function cargarMasterAutomatico(){
+async function fetchWorkbookFromCandidates(urls){
+  let lastErr = null;
+  for(const baseUrl of urls){
+    try{
+      const res = await fetch(baseUrl + MASTER_REFRESH_PARAM(), {cache:'no-store'});
+      if(!res.ok){ lastErr = new Error(`HTTP ${res.status} · ${baseUrl}`); continue; }
+      return await res.arrayBuffer();
+    }catch(err){ lastErr = err; }
+  }
+  throw lastErr || new Error('No se pudo localizar el archivo');
+}
+
+async function prefetchMasterAutomatico(){
   setMasterStatus('Cargando MASTER…');
   try{
-    const res = await fetch(MASTER_URL + MASTER_REFRESH_PARAM(), {cache:'no-store'});
-    if(!res.ok) throw new Error(`HTTP ${res.status}`);
-    const buf = await res.arrayBuffer();
-    const count = await loadMasterBuffer(buf,'GitHub');
-    if(!DB.years[String(FIJOS_REF_YEAR+1)] && count){
-      // No crea años automáticamente para no alterar el flujo del usuario;
-      // el botón Generar años proyectados sigue siendo explícito.
-    }
+    return await fetchWorkbookFromCandidates(MASTER_URLS);
   }catch(err){
     console.warn('No se pudo cargar MASTER automáticamente:', err);
-    setMasterStatus('MASTER no disponible · usa «Importar Excel»', false);
+    setMasterStatus(`MASTER no disponible · ${err.message||'revisa la carpeta excel'}`, false);
+    return null;
+  }
+}
+
+async function cargarMasterDesdeBufferAutomatico(buf){
+  if(!buf) return false;
+  try{
+    await loadMasterBuffer(buf,'GitHub');
+    return true;
+  }catch(err){
+    console.warn('No se pudo procesar MASTER:', err);
+    setMasterStatus(`MASTER no disponible · ${err.message||'archivo inválido'}`, false);
+    return false;
   }
 }
 
@@ -1773,10 +1798,20 @@ function renderAll(){
 
 async function initDashboard(){
   initGistSync();
-  await loadGistFirst();
   renderAll();
-  await cargarMasterAutomatico();
-  await cargarPlantilla2027Automatica();
+
+  // Descargamos los Excels en paralelo, pero NO los aplicamos hasta que
+  // termina la lectura inicial del Gist. Así el Gist sigue siendo la
+  // primera fuente de datos, pero un Gist lento no deja los Excel en
+  // estado "esperando" indefinidamente.
+  const masterPromise = prefetchMasterAutomatico();
+  const templatePromise = prefetchPlantilla2027Automatica();
+
+  await loadGistFirst();
+
+  const [masterBuf, templateBuf] = await Promise.all([masterPromise, templatePromise]);
+  await cargarMasterDesdeBufferAutomatico(masterBuf);
+  await cargarPlantilla2027DesdeBufferAutomatico(templateBuf);
   renderAll();
 }
 
