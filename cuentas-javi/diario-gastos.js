@@ -3,7 +3,7 @@
    ============================================================ */
 
 const STORAGE_KEY = 'diarioGastosDB_v1';
-const UI_BUILD = 'gist-sync-robust-2026-08-16';
+const UI_BUILD = 'gist-central-raw-fallback-2026-08-16-fix1';
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 const MESES_ABR = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 const FIJOS_REF_YEAR = 2026; // año de referencia del MASTER
@@ -23,6 +23,7 @@ const DEFAULT_SPECIAL_RULES = { ing:{ ingresoSemestral:4050, gastoNormal:675, me
 // Gist central del dashboard. El ID es público; el token NUNCA se incluye en el JSON.
 const GIST_ID = 'bcb12de9d4e6b476062a8d13a676532f';
 const GIST_FILE = 'diario-gastos.json';
+const GIST_RAW_URL = `https://gist.githubusercontent.com/javiap20/${GIST_ID}/raw/${GIST_FILE}`;
 const GIST_API_URL = `https://api.github.com/gists/${GIST_ID}`;
 const GIST_API_VERSION = '2026-03-10';
 const GIST_TIMEOUT_MS = 12000;
@@ -1870,11 +1871,9 @@ async function initializeData(){
     const forceLocal=!!DB.syncMeta.forceLocalImport;
     const localUpdatedAt=DB.updatedAt||null;
 
-    if(forceLocal){
-      setGistStatus('pending',`☁ Gist conectado · importación local pendiente · Gist ${formatSyncDate(remoteUpdatedAt)}`);
-      return true;
-    }
-
+    // Cuando existe una copia remota válida, el Gist es la fuente central.
+    // Una importación JSON local solo se considera candidata a subir cuando
+    // el usuario pulsa Guardar/entra el token; no debe imponerse al arrancar.
     // Un dispositivo que nunca ha sincronizado debe confiar en el Gist central.
     if(!lastSyncedAt){
       gistSync.suppress=true;
@@ -2220,24 +2219,43 @@ function normalizeGistPayload(payload){
 }
 
 async function fetchGistRemote(){
-  const res = await gistFetch(GIST_API_URL, {headers:gistHeaders()});
-  if(!res.ok){
-    if(res.status===404) return {exists:false, payload:null, response:res};
-    throw new Error(`Gist HTTP ${res.status}`);
+  let apiError = null;
+  try{
+    const res = await gistFetch(GIST_API_URL, {headers:gistHeaders()});
+    if(res.ok){
+      const gist = await res.json();
+      const file = gist.files && gist.files[GIST_FILE];
+      if(file){
+        let text = file.content;
+        if(file.truncated && file.raw_url){
+          const rawRes = await gistFetch(file.raw_url, {headers:gistHeaders()});
+          if(!rawRes.ok) throw new Error(`Gist raw HTTP ${rawRes.status}`);
+          text = await rawRes.text();
+        }
+        const payload = JSON.parse(text);
+        if(!isValidGistPayload(payload)) throw new Error('El archivo del Gist no tiene un formato válido');
+        return {exists:true, payload:normalizeGistPayload(payload), gist, response:res, source:'api'};
+      }
+      return {exists:false, payload:null, response:res, gist, source:'api'};
+    }
+    if(res.status===404) return {exists:false, payload:null, response:res, source:'api'};
+    apiError = new Error(`Gist HTTP ${res.status}`);
+  }catch(err){
+    apiError = err;
   }
-  const gist = await res.json();
-  const file = gist.files && gist.files[GIST_FILE];
-  if(!file) return {exists:false, payload:null, response:res, gist};
-  let text = file.content;
-  if(file.truncated && file.raw_url){
-    const rawRes = await gistFetch(file.raw_url, {headers:gistHeaders()});
-    if(!rawRes.ok) throw new Error(`Gist raw HTTP ${rawRes.status}`);
-    text = await rawRes.text();
+
+  // Fallback de lectura pública: evita depender de api.github.com en navegadores
+  // con restricciones especiales (Safari privado, bloqueadores, rate limits, etc.).
+  try{
+    const rawRes = await gistFetch(GIST_RAW_URL, {headers:{'Accept':'text/plain'}});
+    if(!rawRes.ok) throw new Error(`Gist raw fallback HTTP ${rawRes.status}`);
+    const payload = JSON.parse(await rawRes.text());
+    if(!isValidGistPayload(payload)) throw new Error('El archivo raw del Gist no tiene un formato válido');
+    return {exists:true, payload:normalizeGistPayload(payload), gist:null, response:rawRes, source:'raw'};
+  }catch(rawErr){
+    const detail = apiError?.message ? `${apiError.message}; ${rawErr.message}` : rawErr.message;
+    throw new Error(`No se pudo leer el Gist remoto (${detail})`);
   }
-  const payload = JSON.parse(text);
-  if(!isValidGistPayload(payload)) throw new Error('El archivo del Gist no tiene un formato válido');
-  const normalized = normalizeGistPayload(payload);
-  return {exists:true, payload:normalized, gist, response:res};
 }
 
 function applyGistData(data){
@@ -2441,15 +2459,18 @@ function renderAll(){
 
 async function initDashboard(){
   initGistSync();
-  renderAll();
+  setGistStatus('loading','☁ Gist · cargando copia central…');
+  // No renderizamos la base local/default antes de comprobar el Gist.
+  // Así, un dispositivo sin localStorage (p.ej. navegación privada) no muestra
+  // ceros/estado vacío mientras el remoto aún está disponible.
   await initializeData();
   Object.keys(DB.years||{}).forEach(y=>syncAllOpenTarjetasToDiario(Number(y)));
-  saveDB();
+  saveDB({sync:false});
   // MASTER sí se refresca en cada arranque para detectar nuevos conceptos, renombres e importes.
   await cargarMasterAutomatico();
   setBootstrapStatus(bootstrapStateText(), true);
   renderAll();
-applyProjectionButtonState();
+  applyProjectionButtonState();
 }
 
 initDashboard();
