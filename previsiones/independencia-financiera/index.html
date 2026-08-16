@@ -889,7 +889,7 @@ details summary::-webkit-details-marker{display:none}
     // El subsidio +52 se mantiene como importe manual: usamos el valor introducido
     // por el usuario y no la proyeccion del motor con IPC. Paro y pension siguen siendo automaticos.
     const fallbackAge=input.longContribution?65:67;
-    const retirementAge=Number.isFinite(shared.retirementAge)?shared.retirementAge:fallbackAge;
+    const retirementAge=Number.isFinite(shared.ordinaryAge)?shared.ordinaryAge:fallbackAge;
     const retirementDate=(shared.retirementDate instanceof Date&&!Number.isNaN(shared.retirementDate.getTime()))?shared.retirementDate:new Date(BIRTH_YEAR+retirementAge,0,1);
     return {...shared,auto:true,retirementAge,retirementDate,subsidyMonthly:Math.max(0,num(input.subsidy)),pensionMonthly14:shared.pension.monthly,pensionEquivalent12:shared.pension.equivalent12};
   }
