@@ -351,7 +351,7 @@ function renderDiario(){
   // sube arriba del todo; lo anterior a hoy queda archivado abajo, para
   // no tener que hacer scroll entre los movimientos ya pasados cada vez.
   const currentYear = new Date().getFullYear();
-  const isYearActual = Number(ui.year) === currentYear && Number(ui.year) !== FIJOS_REF_YEAR;
+  const isYearActual = Number(ui.year) === currentYear;
   const todayIso = isoDate(new Date());
   const futuros = isYearActual ? sorted.filter(e=> e.date >= todayIso) : sorted;
   const pasados = isYearActual ? sorted.filter(e=> e.date < todayIso) : [];
