@@ -7,7 +7,9 @@ const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto'
 const MESES_ABR = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 const FIJOS_REF_YEAR = 2026; // año de referencia del MASTER
 const MASTER_URLS = ['../excel/finanzas-master.xlsx','./excel/finanzas-master.xlsx'];
-const TEMPLATE_2027_URLS = ['../excel/2027.xlsx','./excel/2027.xlsx'];
+const BOOTSTRAP_2026_URLS = ['../excel/2026.xlsx','./excel/2026.xlsx'];
+const BOOTSTRAP_2027_URLS = ['../excel/2027.xlsx','./excel/2027.xlsx'];
+const BOOTSTRAP_VERSION = 2;
 const MASTER_MAX_YEAR = 2040; // horizonte visible/proyectable desde el año base
 const MASTER_REFRESH_PARAM = () => `?v=${Date.now()}`;
 const MES_ABR_LOWER = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
@@ -36,6 +38,7 @@ const gistSync = {
 };
 
 let DB = loadDB();
+let TEMPLATE_2027 = DB.template2027 || null;
 let ui = {
   year: null,
   monthFilterDiario: 'todos',
@@ -1039,8 +1042,6 @@ function fijoMagnitudeForYear(item, year){
 // La plantilla NO se embebe en HTML/JS ni se guarda como plantilla
 // maestra en el JSON. Se carga desde el archivo Excel cuando hace falta.
 // ============================================================
-let TEMPLATE_2027 = null;
-
 function normalizeTemplateKey(s){
   return normalizeName(String(s||'').trim());
 }
@@ -1086,88 +1087,18 @@ function templateMatchInfo(){
   return {accountInfo,cardInfo};
 }
 
-function templateStatusText(){
-  if(!TEMPLATE_2027) return 'Plantilla 2027: no cargada';
-  const info = templateMatchInfo();
-  const aOk = info.accountInfo.filter(x=>x.matches.length).length;
-  const cOk = info.cardInfo.filter(x=>x.matches.length).length;
-  return `Plantilla 2027 · cuenta ${aOk}/${info.accountInfo.length} · tarjeta ${cOk}/${info.cardInfo.length}`;
-}
-
-function setTemplateStatus(msg, ok=null){
-  const el=document.getElementById('templateStatus');
+function setBootstrapStatus(msg, ok=null){
+  const el=document.getElementById('bootstrapStatus');
   if(!el) return;
   el.textContent=msg;
   el.style.color = ok===false ? 'var(--neg)' : (ok===true ? 'var(--pos)' : 'var(--ink-soft)');
 }
 
-function parse2027TemplateRows(rows){
-  const days=[];
-  // Rows 2..366 are exactly 365 calendar days in the template.
-  for(let r=1;r<=365;r++){
-    const row = rows[r] || [];
-    const concept = row[1]==null ? '' : String(row[1]).trim();
-    days.push({day:r, concept});
-  }
-  if(days.length!==365) throw new Error(`La plantilla 2027 no contiene 365 días`);
-
-  const cardAgg = new Map();
-  let currentMonth = 0;
-  const monthStarts = new Set(MESES.map(m=>m));
-  for(let r=0;r<rows.length;r++){
-    const f = rows[r]?.[5];
-    if(typeof f==='string' && monthStarts.has(f.trim())) currentMonth = MESES.indexOf(f.trim())+1;
-    if(!currentMonth) continue;
-    for(const col of [5,7,9]){
-      const raw = rows[r]?.[col];
-      if(raw==null || String(raw).trim()==='') continue;
-      if(typeof raw !== 'string') continue;
-      const category = raw.trim();
-      if(monthStarts.has(category)) continue;
-      const key = `${currentMonth}|${normalizeTemplateKey(category)}`;
-      if(cardAgg.has(key)) continue;
-      cardAgg.set(key,{month:currentMonth,category});
-    }
-  }
-  const cardEntries = Array.from(cardAgg.values());
-  return {days,cardEntries};
-}
-
-async function loadTemplate2027Buffer(buf, sourceLabel='plantilla 2027'){
-  const wb = XLSX.read(buf,{type:'array',cellDates:true});
-  const sheetName = wb.SheetNames.find(name=>/^2027$/i.test(name.trim())) || wb.SheetNames[0];
-  if(!sheetName) throw new Error('No se encontró la hoja 2027');
-  const ws = wb.Sheets[sheetName];
-  const rows = XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:null});
-  const parsed = parse2027TemplateRows(rows);
-  TEMPLATE_2027 = parsed;
-  setTemplateStatus(templateStatusText(), true);
-  return parsed;
-}
-
-async function prefetchPlantilla2027Automatica(){
-  setTemplateStatus('Cargando plantilla 2027…');
-  try{
-    return await fetchWorkbookFromCandidates(TEMPLATE_2027_URLS);
-  }catch(err){
-    console.warn('No se pudo cargar la plantilla 2027 automáticamente:',err);
-    setTemplateStatus(`Plantilla 2027 no disponible · ${err.message||'revisa la carpeta excel'}`,false);
-    return null;
-  }
-}
-
-async function cargarPlantilla2027DesdeBufferAutomatico(buf){
-  if(!buf) return false;
-  try{
-    await loadTemplate2027Buffer(buf,'GitHub');
-    sincronizarDiarioConFijos();
-    if(DB.masterLoaded) saveDB({sync:false});
-    return true;
-  }catch(err){
-    console.warn('No se pudo procesar la plantilla 2027:',err);
-    setTemplateStatus(`Plantilla 2027 no disponible · ${err.message||'archivo inválido'}`,false);
-    return false;
-  }
+function bootstrapStateText(){
+  const has2026 = !!(DB.years && DB.years[String(FIJOS_REF_YEAR)] && DB.years[String(FIJOS_REF_YEAR)].days?.length===365);
+  const has2027 = !!(TEMPLATE_2027 && TEMPLATE_2027.days?.length===365);
+  const hasMaster = !!DB.masterLoaded && Array.isArray(DB.fijos) && DB.fijos.some(f=>f.source==='master');
+  return `Base: 2026 ${has2026?'✓':'—'} · estructura 2027 ${has2027?'✓':'—'} · MASTER ${hasMaster?'✓':'—'}`;
 }
 
 function templateDayKey(year, day, concept){
@@ -1244,7 +1175,15 @@ function parseGastosSheet(rows){
   return parseMasterRows(rows);
 }
 
-async function loadMasterBuffer(buf, sourceLabel='MASTER'){
+function masterFingerprint(items){
+  return JSON.stringify((items||[]).map(item=>({
+    id:item.id,name:item.name,tipo:item.tipo,groupId:item.groupId,masterGroup:item.masterGroup,masterTipo:item.masterTipo,
+    frecuencia:item.frecuencia,meses:item.meses,medio:item.medio,activo:item.activo,orden:item.orden,
+    values:item.values
+  })).sort((a,b)=>String(a.id).localeCompare(String(b.id))));
+}
+
+async function loadMasterBuffer(buf, sourceLabel='MASTER', options={}){
   const wb = XLSX.read(buf, {type:'array', cellDates:true});
   const masterName = wb.SheetNames.find(name=>/^master$/i.test(name.trim()));
   if(!masterName) throw new Error('No se encontró la hoja MASTER');
@@ -1252,46 +1191,51 @@ async function loadMasterBuffer(buf, sourceLabel='MASTER'){
   const rows = XLSX.utils.sheet_to_json(ws, {header:1, raw:true, defval:null});
   const items = parseMasterRows(rows);
   if(!items.length) throw new Error('La hoja MASTER no contiene partidas válidas');
-  installMasterItems(items);
-  // Recalcula automáticamente los años 2027+ que ya existían.
-  sincronizarDiarioConFijos();
-  saveDB();
-  renderAll();
-  setMasterStatus(`MASTER actualizado · ${items.length} partidas`, true);
-  return items.length;
+  const current = (DB.fijos||[]).filter(f=>f.source==='master');
+  const changed = masterFingerprint(items) !== masterFingerprint(current);
+  if(changed){
+    installMasterItems(items);
+    if(options.syncStructure!==false) sincronizarDiarioConFijos();
+    if(options.persist!==false){
+      DB.updatedAt = new Date().toISOString();
+      saveDB({sync: options.sync !== false});
+    }
+    if(options.render!==false) renderAll();
+    setMasterStatus(`MASTER actualizado · ${items.length} partidas`, true);
+  }else{
+    setMasterStatus(`MASTER al día · ${items.length} partidas`, true);
+  }
+  setBootstrapStatus(bootstrapStateText(), true);
+  return {count:items.length,changed};
 }
 
-
 // ============================================================
-// IMPORTACIÓN 2026 DESDE EXCEL (solo se inicializa al subir el
-// archivo; no hay datos de 2026 embebidos en HTML/JS).
+// IMPORTACIÓN 2026 / PLANTILLA 2027 SOLO PARA BOOTSTRAP INICIAL
 // ============================================================
-const CARD_2026_PAIRS = [[6,7],[9,10],[12,13]]; // F/G, I/J, L/M
+const CARD_2026_PAIRS = [[5,6],[8,9],[11,12]]; // F/G, I/J, L/M (0-indexed)
 
 function merge2026CardEntries(rows){
-  const monthStarts = [];
-  rows.forEach((row, idx)=>{
-    const v = row[5]; // columna F
-    if(typeof v==='string' && MESES.includes(v.trim())) monthStarts.push({row:idx, month:MESES.indexOf(v.trim())+1});
+  const monthStarts=[];
+  rows.forEach((row,idx)=>{
+    const v=row[5];
+    if(typeof v==='string' && MESES.includes(v.trim())) monthStarts.push({row:idx,month:MESES.indexOf(v.trim())+1});
   });
-
-  const agg = new Map();
+  const agg=new Map();
   for(let i=0;i<monthStarts.length;i++){
-    const start = monthStarts[i].row + 1;
-    const end = i+1<monthStarts.length ? monthStarts[i+1].row : rows.length;
-    const month = monthStarts[i].month;
+    const start=monthStarts[i].row+1;
+    const end=i+1<monthStarts.length?monthStarts[i+1].row:rows.length;
+    const month=monthStarts[i].month;
     for(let r=start;r<end;r++){
-      const row = rows[r] || [];
+      const row=rows[r]||[];
       for(const [nameCol,valCol] of CARD_2026_PAIRS){
-        const rawName = row[nameCol];
-        const rawVal = row[valCol];
+        const rawName=row[nameCol], rawVal=row[valCol];
         if(rawName==null || String(rawName).trim()==='') continue;
         if(typeof rawVal!=='number' || !Number.isFinite(rawVal)) continue;
-        const category = String(rawName).trim();
-        const key = `${month}|${normalizeName(category)}`;
-        const existing = agg.get(key);
-        if(existing) existing.amount += rawVal;
-        else agg.set(key, {id:uid(), month, category, amount:rawVal});
+        const category=String(rawName).trim();
+        const key=`${month}|${normalizeName(category)}`;
+        const existing=agg.get(key);
+        if(existing) existing.amount+=rawVal;
+        else agg.set(key,{id:uid(),month,category,amount:rawVal});
       }
     }
   }
@@ -1299,125 +1243,160 @@ function merge2026CardEntries(rows){
 }
 
 function parse2026Sheet(rows){
-  const days = [];
-  let start = 0;
-  let startFound = false;
+  const days=[]; let start=0; let startFound=false;
   for(const row of rows){
-    const d = row?.[0];
+    const d=row?.[0];
     if(!(d instanceof Date) || d.getFullYear()!==FIJOS_REF_YEAR) continue;
-    const dateIso = isoDate(d);
-    if(!startFound && typeof row?.[3]==='number'){
-      start = row[3];
-      startFound = true;
-    }
-    const concept = row?.[1]==null ? '' : String(row[1]).trim();
-    const amount = typeof row?.[2]==='number' && Number.isFinite(row[2]) ? row[2] : 0;
-    // Conservamos TODOS los días del Excel, incluso los que no tienen movimiento.
-    days.push({id:uid(), date:dateIso, concept, amount});
+    const dateIso=isoDate(d);
+    if(!startFound && typeof row?.[3]==='number'){ start=row[3]; startFound=true; }
+    const concept=row?.[1]==null?'':String(row[1]).trim();
+    const amount=typeof row?.[2]==='number' && Number.isFinite(row[2])?row[2]:0;
+    days.push({id:uid(),date:dateIso,concept,amount,source:'2026-bootstrap'});
   }
   if(days.length!==365) throw new Error(`Se esperaban 365 días de 2026 y se han leído ${days.length}`);
-  return {start, days, cardEntries:merge2026CardEntries(rows), source:'2026-upload'};
+  return {start,days,cardEntries:merge2026CardEntries(rows),source:'2026-bootstrap'};
 }
 
-async function import2026Buffer(buf, sourceLabel='archivo'){
-  const wb = XLSX.read(buf, {type:'array', cellDates:true});
-  const sheetName = wb.SheetNames.find(name=>/^2026$/i.test(name.trim())) || wb.SheetNames[0];
-  if(!sheetName) throw new Error('No se encontró una hoja de 2026');
-  const ws = wb.Sheets[sheetName];
-  const rows = XLSX.utils.sheet_to_json(ws, {header:1, raw:true, defval:null});
-  const parsed = parse2026Sheet(rows);
-  const previous = DB.years[String(FIJOS_REF_YEAR)];
-  if(previous && (previous.days?.length || previous.cardEntries?.length)){
-    const ok = confirm('2026 ya está cargado. ¿Quieres reemplazarlo con este Excel?');
-    if(!ok) return false;
-  }
-  DB.years[String(FIJOS_REF_YEAR)] = parsed;
-  DB.updatedAt = new Date().toISOString();
-  ui.year = String(FIJOS_REF_YEAR);
-  saveDB();
-  renderAll();
-  toast(`2026 importado · ${parsed.days.length} días · ${parsed.cardEntries.length} categorías de tarjeta`);
-  return true;
+async function read2026WorkbookBuffer(buf){
+  const wb=XLSX.read(buf,{type:'array',cellDates:true});
+  const sheetName=wb.SheetNames.find(name=>/^2026$/i.test(name.trim()))||wb.SheetNames[0];
+  if(!sheetName) throw new Error('No se encontró la hoja de 2026');
+  const rows=XLSX.utils.sheet_to_json(wb.Sheets[sheetName],{header:1,raw:true,defval:null});
+  return parse2026Sheet(rows);
+}
+
+async function read2027WorkbookBuffer(buf){
+  const wb=XLSX.read(buf,{type:'array',cellDates:true});
+  const sheetName=wb.SheetNames.find(name=>/^2027$/i.test(name.trim()))||wb.SheetNames[0];
+  if(!sheetName) throw new Error('No se encontró la hoja de 2027');
+  const rows=XLSX.utils.sheet_to_json(wb.Sheets[sheetName],{header:1,raw:true,defval:null});
+  return parse2027TemplateRows(rows);
 }
 
 async function fetchWorkbookFromCandidates(urls){
-  let lastErr = null;
+  let lastErr=null;
   for(const baseUrl of urls){
     try{
-      const res = await fetch(baseUrl + MASTER_REFRESH_PARAM(), {cache:'no-store'});
-      if(!res.ok){ lastErr = new Error(`HTTP ${res.status} · ${baseUrl}`); continue; }
+      const res=await fetch(baseUrl+MASTER_REFRESH_PARAM(),{cache:'no-store'});
+      if(!res.ok){lastErr=new Error(`HTTP ${res.status} · ${baseUrl}`);continue;}
       return await res.arrayBuffer();
-    }catch(err){ lastErr = err; }
+    }catch(err){lastErr=err;}
   }
-  throw lastErr || new Error('No se pudo localizar el archivo');
+  throw lastErr||new Error('No se pudo localizar el archivo');
 }
 
-async function prefetchMasterAutomatico(){
+async function cargarMasterAutomatico(){
   setMasterStatus('Cargando MASTER…');
   try{
-    return await fetchWorkbookFromCandidates(MASTER_URLS);
-  }catch(err){
-    console.warn('No se pudo cargar MASTER automáticamente:', err);
-    setMasterStatus(`MASTER no disponible · ${err.message||'revisa la carpeta excel'}`, false);
-    return null;
-  }
-}
-
-async function cargarMasterDesdeBufferAutomatico(buf){
-  if(!buf) return false;
-  try{
-    await loadMasterBuffer(buf,'GitHub');
+    const buf=await fetchWorkbookFromCandidates(MASTER_URLS);
+    await loadMasterBuffer(buf,'GitHub',{sync:true,persist:true,render:true});
     return true;
   }catch(err){
-    console.warn('No se pudo procesar MASTER:', err);
-    setMasterStatus(`MASTER no disponible · ${err.message||'archivo inválido'}`, false);
+    console.warn('No se pudo cargar MASTER automáticamente:',err);
+    setMasterStatus(`MASTER no disponible · ${err.message||'revisa la carpeta excel'}`,false);
     return false;
   }
 }
 
-document.getElementById('import2026File').addEventListener('change', async (e)=>{
-  const file = e.target.files[0];
-  if(!file) return;
-  try{
-    const buf = await file.arrayBuffer();
-    await import2026Buffer(buf, file.name);
-  }catch(err){
-    console.error(err);
-    toast(`No se pudo importar 2026: ${err.message||'archivo no válido'}`);
-  }finally{
-    e.target.value='';
+function hasCompletedBootstrap(db){
+  return !!(db && db.bootstrap && Number(db.bootstrap.version)>=BOOTSTRAP_VERSION
+    && db.years && db.years[String(FIJOS_REF_YEAR)]?.days?.length===365
+    && db.template2027?.days?.length===365
+    && db.masterLoaded);
+}
+
+async function bootstrapFromExcelOnce(){
+  setGistStatus('loading','☁ Inicialización · cargando Excel…');
+  setBootstrapStatus('Cargando 2026 + estructura 2027 + MASTER…');
+  const [b2026,b2027,bMaster]=await Promise.all([
+    fetchWorkbookFromCandidates(BOOTSTRAP_2026_URLS),
+    fetchWorkbookFromCandidates(BOOTSTRAP_2027_URLS),
+    fetchWorkbookFromCandidates(MASTER_URLS)
+  ]);
+  const parsed2026=await read2026WorkbookBuffer(b2026);
+  const parsed2027=await read2027WorkbookBuffer(b2027);
+
+  if(!DB.years) DB.years={};
+  DB.years[String(FIJOS_REF_YEAR)]=parsed2026;
+  DB.template2027=parsed2027;
+  TEMPLATE_2027=parsed2027;
+  if(!DB.ipc) DB.ipc={gastos:2,ingresos:0.5};
+  if(!DB.fijos) DB.fijos=[];
+  if(!DB.fijosGroups) DB.fijosGroups=[];
+
+  await loadMasterBuffer(bMaster,'GitHub',{syncStructure:false,persist:false,render:false});
+
+  DB.bootstrap={
+    version:BOOTSTRAP_VERSION,
+    completedAt:new Date().toISOString(),
+    sources:{year2026:'2026.xlsx',template2027:'2027.xlsx',master:'finanzas-master.xlsx'}
+  };
+  DB.updatedAt=new Date().toISOString();
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(DB));
+  renderAll();
+  setBootstrapStatus(bootstrapStateText(),true);
+  if(gistSync.token){
+    await syncGistNow();
+  }else{
+    setGistStatus('pending','☁ Inicialización guardada localmente · añade token para guardarla en Gist');
   }
-});
+  toast('Inicialización completada desde los 3 Excel');
+  return true;
+}
 
-document.getElementById('import2027File')?.addEventListener('change', async (e)=>{
-  const file=e.target.files[0];
-  if(!file) return;
-  try{
-    const buf=await file.arrayBuffer();
-    await loadTemplate2027Buffer(buf,file.name);
-    toast('Plantilla 2027 cargada');
-  }catch(err){
-    console.error(err);
-    toast(`No se pudo importar 2027: ${err.message||'archivo no válido'}`);
-  }finally{ e.target.value=''; }
-});
+async function initializeData(){
+  let remote=null;
+  try{ remote=await fetchGistRemote(); }
+  catch(err){ console.warn('Gist no disponible durante el arranque:',err); }
 
-document.getElementById('importFile').addEventListener('change', async (e)=>{
-  const file = e.target.files[0];
-  if(!file) return;
-  try{
-    const buf = await file.arrayBuffer();
-    const count = await loadMasterBuffer(buf,'archivo');
-    toast(`MASTER importado: ${count} partidas`);
-  }catch(err){
-    console.error(err);
-    setMasterStatus('No se pudo leer MASTER', false);
-    toast('No se pudo leer la hoja MASTER');
-  }finally{
-    e.target.value='';
+  const remoteData=remote?.exists?remote.payload?.data:null;
+  const remoteReady=hasCompletedBootstrap(remoteData);
+  const localReady=hasCompletedBootstrap(DB);
+
+  if(remoteReady){
+    const remoteUpdatedAt=remote.payload.updatedAt||remote.gist?.updated_at||null;
+    gistSync.remoteUpdatedAt=remoteUpdatedAt;
+    const localUpdatedAt=DB.updatedAt||null;
+    if(!localUpdatedAt || Date.parse(remoteUpdatedAt||0)>=Date.parse(localUpdatedAt||0)){
+      gistSync.suppress=true;
+      applyGistData(remoteData);
+      DB.updatedAt=remoteUpdatedAt||DB.updatedAt||new Date().toISOString();
+      saveDB({sync:false});
+      gistSync.suppress=false;
+      setGistStatus('ok',`☁ Última actualización del Gist · ${formatSyncDate(DB.updatedAt)}`);
+    }else{
+      setGistStatus('pending',`☁ Gist conectado · cambios locales pendientes · Gist ${formatSyncDate(remoteUpdatedAt)}`);
+      if(gistSync.token) scheduleGistSync();
+    }
+    setBootstrapStatus(bootstrapStateText(),true);
+    return true;
   }
-});
 
+  if(localReady && !remote?.exists){
+    setBootstrapStatus(bootstrapStateText(),true);
+    if(gistSync.token){
+      setGistStatus('syncing','☁ Gist · creando copia central…');
+      await syncGistNow();
+    }else{
+      setGistStatus('pending',`☁ Gist conectado · sin archivo todavía · cambios locales pendientes`);
+    }
+    return true;
+  }
+
+  try{
+    return await bootstrapFromExcelOnce();
+  }catch(err){
+    console.error('No se pudo completar la inicialización desde Excel:',err);
+    if(localReady){
+      setBootstrapStatus(bootstrapStateText(),true);
+      setGistStatus('error',`⚠ Inicialización no disponible · mostrando copia local de ${formatSyncDate(DB.updatedAt)}`);
+      return true;
+    }
+    setBootstrapStatus(`Error inicializando Excel · ${err.message||'revisa GitHub'}`,false);
+    setGistStatus('error','⚠ No se pudo inicializar el dashboard');
+    return false;
+  }
+}
 
 document.getElementById('btnExport').addEventListener('click', ()=>{
   const blob = new Blob([JSON.stringify(DB,null,2)], {type:'application/json'});
@@ -1618,47 +1597,7 @@ function applyGistData(data){
   if(!clean.years) clean.years = {};
   delete clean.token;
   DB = clean;
-}
-
-async function loadGistFirst(){
-  setGistStatus('loading', '☁ Gist · comprobando…');
-  try{
-    const remote = await fetchGistRemote();
-    if(!remote.exists){
-      gistSync.remoteUpdatedAt = null;
-      if(DB.updatedAt){
-        if(gistSync.token) scheduleGistSync();
-        setGistStatus('pending', '☁ Gist conectado · todavía no existen datos guardados para este dashboard');
-      }else{
-        setGistStatus('empty', '☁ Gist conectado · todavía no existen datos guardados para este dashboard');
-      }
-      return {exists:false};
-    }
-    const remoteUpdatedAt = remote.payload.updatedAt || remote.gist?.updated_at || null;
-    gistSync.remoteUpdatedAt = remoteUpdatedAt;
-    const localUpdatedAt = DB.updatedAt || null;
-    const remoteMs = remoteUpdatedAt ? Date.parse(remoteUpdatedAt) : 0;
-    const localMs = localUpdatedAt ? Date.parse(localUpdatedAt) : 0;
-
-    if(remoteMs >= localMs){
-      gistSync.suppress = true;
-      applyGistData(remote.payload.data);
-      DB.updatedAt = remoteUpdatedAt || DB.updatedAt || new Date().toISOString();
-      saveDB({sync:false});
-      gistSync.suppress = false;
-      setGistStatus('ok', `☁ Última actualización del Gist · ${formatSyncDate(DB.updatedAt)}`);
-      return {exists:true, winner:'gist'};
-    }
-
-    setGistStatus('pending', `☁ Gist · cambios locales pendientes · Gist ${formatSyncDate(remoteUpdatedAt)}`);
-    if(gistSync.token) scheduleGistSync();
-    return {exists:true, winner:'local'};
-  }catch(err){
-    console.warn('No se pudo leer Gist:', err);
-    const when = formatSyncDate(DB.updatedAt);
-    setGistStatus('error', when ? `⚠ Gist no disponible · mostrando copia local de ${when}` : '⚠ Gist no disponible · mostrando copia local');
-    return {exists:false, error:err};
-  }
+  TEMPLATE_2027 = DB.template2027 || null;
 }
 
 function scheduleGistSync(){
@@ -1799,19 +1738,10 @@ function renderAll(){
 async function initDashboard(){
   initGistSync();
   renderAll();
-
-  // Descargamos los Excels en paralelo, pero NO los aplicamos hasta que
-  // termina la lectura inicial del Gist. Así el Gist sigue siendo la
-  // primera fuente de datos, pero un Gist lento no deja los Excel en
-  // estado "esperando" indefinidamente.
-  const masterPromise = prefetchMasterAutomatico();
-  const templatePromise = prefetchPlantilla2027Automatica();
-
-  await loadGistFirst();
-
-  const [masterBuf, templateBuf] = await Promise.all([masterPromise, templatePromise]);
-  await cargarMasterDesdeBufferAutomatico(masterBuf);
-  await cargarPlantilla2027DesdeBufferAutomatico(templateBuf);
+  await initializeData();
+  // MASTER sí se refresca en cada arranque para detectar nuevos conceptos, renombres e importes.
+  await cargarMasterAutomatico();
+  setBootstrapStatus(bootstrapStateText(), true);
   renderAll();
 }
 
