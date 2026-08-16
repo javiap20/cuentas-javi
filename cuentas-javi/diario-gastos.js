@@ -3,7 +3,7 @@
    ============================================================ */
 
 const STORAGE_KEY = 'diarioGastosDB_v1';
-const UI_BUILD = 'calendar-keyboard-2026-08-16';
+const UI_BUILD = 'gist-sync-robust-2026-08-16';
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 const MESES_ABR = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 const FIJOS_REF_YEAR = 2026; // año de referencia del MASTER
@@ -29,6 +29,7 @@ const GIST_TIMEOUT_MS = 12000;
 const GIST_TOKEN_SESSION_KEY = 'diarioGastos_gistToken_session';
 const GIST_TOKEN_LOCAL_KEY = 'diarioGastos_gistToken_local';
 const GIST_REMEMBER_KEY = 'diarioGastos_gistToken_remember';
+const GIST_LOCAL_SYNC_BACKUP_KEY = 'diarioGastos_gistLocalConflictBackup_v1';
 
 const gistSync = {
   ready: false,
@@ -62,6 +63,9 @@ function loadDB(){
       if(!('bootstrap' in db)) db.bootstrap = {version:0};
       if(!('template2027' in db)) db.template2027 = null;
       if(!('masterLoaded' in db)) db.masterLoaded = false;
+      if(!db.syncMeta) db.syncMeta = {lastSyncedAt:null, forceLocalImport:false};
+      if(!('lastSyncedAt' in db.syncMeta)) db.syncMeta.lastSyncedAt = null;
+      if(!('forceLocalImport' in db.syncMeta)) db.syncMeta.forceLocalImport = false;
       if(!db.specialRules) db.specialRules = JSON.parse(JSON.stringify(DEFAULT_SPECIAL_RULES));
       if(!db.specialRules.ing) db.specialRules.ing = JSON.parse(JSON.stringify(DEFAULT_SPECIAL_RULES.ing));
       // Migración puntual: versiones anteriores llegaron a guardar 4.000 €
@@ -70,10 +74,11 @@ function loadDB(){
       return db;
     }
   }catch(e){ console.error('Error leyendo almacenamiento', e); }
-  return { years:{}, template2027:null, bootstrap:{version:0}, masterLoaded:false, specialRules:JSON.parse(JSON.stringify(DEFAULT_SPECIAL_RULES)), fijos:[], ipc:{ gastos:2, ingresos:0.5 }, fijosGroups:[] };
+  return { years:{}, template2027:null, bootstrap:{version:0}, masterLoaded:false, syncMeta:{lastSyncedAt:null, forceLocalImport:false}, specialRules:JSON.parse(JSON.stringify(DEFAULT_SPECIAL_RULES)), fijos:[], ipc:{ gastos:2, ingresos:0.5 }, fijosGroups:[] };
 }
 function saveDB(options={}){
   const shouldSync = options.sync !== false;
+  if(!DB.syncMeta) DB.syncMeta = {lastSyncedAt:null, forceLocalImport:false};
   if(gistSync.ready && shouldSync && !gistSync.suppress){
     DB.updatedAt = new Date().toISOString();
   }
@@ -1856,22 +1861,78 @@ async function initializeData(){
   try{ remote=await fetchGistRemote(); }
   catch(err){ console.warn('Gist no disponible durante el arranque:',err); }
 
+  if(!DB.syncMeta) DB.syncMeta={lastSyncedAt:null, forceLocalImport:false};
+
   if(remote?.exists){
     const remoteUpdatedAt=remote.payload.updatedAt||remote.gist?.updated_at||null;
     gistSync.remoteUpdatedAt=remoteUpdatedAt;
+    const lastSyncedAt=DB.syncMeta.lastSyncedAt||null;
+    const forceLocal=!!DB.syncMeta.forceLocalImport;
     const localUpdatedAt=DB.updatedAt||null;
-    if(!localUpdatedAt || Date.parse(remoteUpdatedAt||0)>=Date.parse(localUpdatedAt||0)){
+
+    if(forceLocal){
+      setGistStatus('pending',`☁ Gist conectado · importación local pendiente · Gist ${formatSyncDate(remoteUpdatedAt)}`);
+      return true;
+    }
+
+    // Un dispositivo que nunca ha sincronizado debe confiar en el Gist central.
+    if(!lastSyncedAt){
       gistSync.suppress=true;
       applyGistData(remote.payload.data);
-      DB.updatedAt=remoteUpdatedAt||DB.updatedAt||new Date().toISOString();
+      DB.updatedAt=remoteUpdatedAt||new Date().toISOString();
+      DB.syncMeta={lastSyncedAt:DB.updatedAt, forceLocalImport:false};
       saveDB({sync:false});
       gistSync.suppress=false;
-      setGistStatus('ok',`☁ Última actualización del Gist · ${formatSyncDate(DB.updatedAt)}`);
-    }else{
-      setGistStatus('pending',`☁ Gist conectado · cambios locales pendientes · Gist ${formatSyncDate(remoteUpdatedAt)}`);
-      if(gistSync.token) scheduleGistSync();
+      setGistStatus('ok',`☁ Gist central cargado · ${formatSyncDate(DB.updatedAt)}`);
+      return true;
     }
-    setBootstrapStatus(bootstrapStateText(),true);
+
+    const localChanged = !!localUpdatedAt && Date.parse(localUpdatedAt) > Date.parse(lastSyncedAt);
+    const remoteChanged = !!remoteUpdatedAt && Date.parse(remoteUpdatedAt) > Date.parse(lastSyncedAt);
+
+    if(remoteChanged && !localChanged){
+      gistSync.suppress=true;
+      applyGistData(remote.payload.data);
+      DB.updatedAt=remoteUpdatedAt;
+      DB.syncMeta={lastSyncedAt:remoteUpdatedAt, forceLocalImport:false};
+      saveDB({sync:false});
+      gistSync.suppress=false;
+      setGistStatus('ok',`☁ Gist actualizado · ${formatSyncDate(remoteUpdatedAt)}`);
+      return true;
+    }
+
+    if(localChanged && !remoteChanged){
+      setGistStatus('pending',`☁ Cambios locales pendientes · Gist ${formatSyncDate(remoteUpdatedAt)}`);
+      if(gistSync.token) await syncGistNow();
+      return true;
+    }
+
+    if(localChanged && remoteChanged){
+      // Conflicto real: conservamos una copia local de recuperación y gana el Gist central.
+      try{ localStorage.setItem(GIST_LOCAL_SYNC_BACKUP_KEY, JSON.stringify(DB)); }catch(e){}
+      gistSync.suppress=true;
+      applyGistData(remote.payload.data);
+      DB.updatedAt=remoteUpdatedAt||new Date().toISOString();
+      DB.syncMeta={lastSyncedAt:DB.updatedAt, forceLocalImport:false};
+      saveDB({sync:false});
+      gistSync.suppress=false;
+      setGistStatus('ok',`☁ Gist central gana · copia local de recuperación guardada`);
+      return true;
+    }
+
+    // Sin cambios reales: dejamos la copia local sincronizada con el remoto.
+    gistSync.suppress=true;
+    applyGistData(remote.payload.data);
+    DB.updatedAt=remoteUpdatedAt||localUpdatedAt||new Date().toISOString();
+    DB.syncMeta={lastSyncedAt:DB.updatedAt, forceLocalImport:false};
+    saveDB({sync:false});
+    gistSync.suppress=false;
+    setGistStatus('ok',`☁ Gist sincronizado · ${formatSyncDate(DB.updatedAt)}`);
+    return true;
+  }
+
+  if(DB.syncMeta?.forceLocalImport){
+    setGistStatus('pending','☁ Importación local pendiente · no existe copia remota');
     return true;
   }
 
@@ -1880,24 +1941,58 @@ async function initializeData(){
     if(gistSync.token){
       await syncGistNow();
     }else{
-      setGistStatus('pending','☁ Gist conectado · sin copia remota todavía');
+      setGistStatus('pending','☁ Sin copia remota · cambios locales pendientes');
     }
     return true;
   }
 
   setBootstrapStatus('2026/2027 en Gist o copia local · MASTER se carga automáticamente');
-  setGistStatus('ok','☁ Gist conectado · sin datos guardados todavía');
+  setGistStatus('ok','☁ Gist listo · todavía no existen datos guardados');
   return true;
 }
 
-document.getElementById('btnExport').addEventListener('click', ()=>{
-  const blob = new Blob([JSON.stringify(DB,null,2)], {type:'application/json'});
+function exportDashboardJson(){
+  const portable = {
+    schemaVersion: 2,
+    dashboard: 'diario-gastos',
+    exportedAt: new Date().toISOString(),
+    data: JSON.parse(JSON.stringify(DB, (key,value)=> key==='syncMeta' ? undefined : value)),
+    calculatedSnapshots: Object.fromEntries(Object.keys(DB.years||{}).map(y=>[y,{yearTotals:yearTotals(y),monthlyAggregates:monthlyAggregates(y)}]))
+  };
+  const blob = new Blob([JSON.stringify(portable,null,2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url; a.download = `diario-gastos-backup-${isoDate(new Date())}.json`;
   a.click();
   URL.revokeObjectURL(url);
-});
+}
+
+async function importDashboardJson(file){
+  if(!file) return;
+  try{
+    const text=await file.text();
+    const parsed=JSON.parse(text);
+    const importedData=(parsed && parsed.data && typeof parsed.data==='object') ? parsed.data : parsed;
+    if(!importedData || typeof importedData!=='object' || !importedData.years) throw new Error('El JSON no contiene datos de Diario válidos');
+    gistSync.suppress=true;
+    applyGistData(importedData);
+    DB.updatedAt=new Date().toISOString();
+    DB.syncMeta={lastSyncedAt:null, forceLocalImport:true};
+    saveDB({sync:false});
+    gistSync.suppress=false;
+    renderAll();
+    setGistStatus('pending','☁ JSON importado · copia local pendiente de guardar en Gist');
+    toast('JSON importado en local');
+  }catch(err){
+    console.error('No se pudo importar JSON:',err);
+    toast('No se pudo importar JSON');
+  }finally{
+    const el=document.getElementById('importJsonFile'); if(el) el.value='';
+  }
+}
+
+document.getElementById('btnExport').addEventListener('click', exportDashboardJson);
+document.getElementById('importJsonFile').addEventListener('change', async e=>{ await importDashboardJson(e.target.files[0]); });
 
 // ============================================================
 // EVENTOS UI
@@ -2092,11 +2187,13 @@ function gistPayload(){
       monthlyAggregates: monthlyAggregates(y)
     };
   });
+  const data = JSON.parse(JSON.stringify(DB));
+  delete data.syncMeta;
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     dashboard: 'diario-gastos',
     updatedAt: DB.updatedAt || new Date().toISOString(),
-    data: JSON.parse(JSON.stringify(DB)),
+    data,
     calculatedSnapshots: snapshots,
     calculatedAt: new Date().toISOString(),
     engineVersion: 'gist-sync-1.0'
@@ -2153,6 +2250,7 @@ function applyGistData(data){
   if(!('template2027' in clean)) clean.template2027=null;
   if(!('masterLoaded' in clean)) clean.masterLoaded=false;
   delete clean.token;
+  delete clean.syncMeta;
   DB = clean;
   TEMPLATE_2027 = DB.template2027 || null;
 }
@@ -2188,6 +2286,7 @@ async function syncGistNow(){
     }
     if(!res.ok) throw new Error(`Gist HTTP ${res.status}`);
     gistSync.remoteUpdatedAt = payload.updatedAt;
+    DB.syncMeta = {lastSyncedAt:payload.updatedAt, forceLocalImport:false};
     localStorage.setItem(STORAGE_KEY, JSON.stringify(DB));
     setGistStatus('ok', `☁ Última actualización del Gist · ${formatSyncDate(payload.updatedAt)}`);
     return true;
@@ -2208,6 +2307,7 @@ async function replaceFromGist(){
     gistSync.suppress = true;
     applyGistData(remote.payload.data);
     DB.updatedAt = remote.payload.updatedAt || remote.gist?.updated_at || new Date().toISOString();
+    DB.syncMeta = {lastSyncedAt:DB.updatedAt, forceLocalImport:false};
     saveDB({sync:false});
     renderAll();
     gistSync.remoteUpdatedAt = DB.updatedAt;
@@ -2221,6 +2321,49 @@ async function replaceFromGist(){
     return false;
   }finally{
     gistSync.suppress = false;
+  }
+}
+
+async function prepareTokenAndSync(token, remember){
+  setGistToken(token, remember);
+  if(!gistSync.token){
+    setGistStatus('pending','☁ Sin token · solo lectura del Gist');
+    return false;
+  }
+  // Si hay una importación JSON forzada, la intención explícita es subirla.
+  if(DB.syncMeta?.forceLocalImport){
+    return await syncGistNow();
+  }
+  // Antes de escribir, resolver primero contra el Gist remoto para evitar que un dispositivo
+  // con datos viejos pise la copia central.
+  try{
+    const remote=await fetchGistRemote();
+    if(remote?.exists){
+      const remoteUpdatedAt=remote.payload.updatedAt||remote.gist?.updated_at||null;
+      const lastSyncedAt=DB.syncMeta?.lastSyncedAt||null;
+      const localChanged=!!DB.updatedAt && !!lastSyncedAt && Date.parse(DB.updatedAt)>Date.parse(lastSyncedAt);
+      const remoteChanged=!!remoteUpdatedAt && !!lastSyncedAt && Date.parse(remoteUpdatedAt)>Date.parse(lastSyncedAt);
+      if(!lastSyncedAt || (remoteChanged && !localChanged) || (remoteChanged && localChanged)){
+        if(remoteChanged && localChanged){
+          try{ localStorage.setItem(GIST_LOCAL_SYNC_BACKUP_KEY, JSON.stringify(DB)); }catch(e){}
+        }
+        gistSync.suppress=true;
+        applyGistData(remote.payload.data);
+        DB.updatedAt=remoteUpdatedAt||new Date().toISOString();
+        DB.syncMeta={lastSyncedAt:DB.updatedAt, forceLocalImport:false};
+        saveDB({sync:false});
+        gistSync.suppress=false;
+        renderAll();
+        setGistStatus('ok',`☁ Gist central cargado · ${formatSyncDate(DB.updatedAt)}`);
+        return true;
+      }
+      if(localChanged && !remoteChanged) return await syncGistNow();
+    }
+    return await syncGistNow();
+  }catch(err){
+    console.warn('No se pudo resolver el estado antes de guardar:',err);
+    setGistStatus('error','⚠ Gist · no se pudo verificar la versión remota');
+    return false;
   }
 }
 
@@ -2250,15 +2393,12 @@ function openGistPanel(){
     document.getElementById('gistSaveNow').onclick = async ()=>{
       const token = document.getElementById('gistTokenInput').value.trim();
       const remember = document.getElementById('gistRemember').checked;
-      setGistToken(token, remember);
-      if(!token){ setGistStatus('pending', '☁ Sin token · solo lectura del Gist'); toast('Token borrado'); return; }
-      await syncGistNow();
+      await prepareTokenAndSync(token, remember);
     };
     document.getElementById('gistSaveClose').onclick = async ()=>{
       const token = document.getElementById('gistTokenInput').value.trim();
       const remember = document.getElementById('gistRemember').checked;
-      setGistToken(token, remember);
-      if(token) await syncGistNow();
+      await prepareTokenAndSync(token, remember);
       closeModal();
     };
   });
