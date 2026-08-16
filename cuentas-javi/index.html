@@ -305,7 +305,10 @@
       <input type="file" id="import2027File" accept=".xlsx,.xls">
       <button class="btn" id="btnGenerarProyeccion" title="Genera 2027 y todos los años siguientes usando MASTER y las reglas especiales">Generar 2027+ con MASTER</button>
       <button class="btn" id="btnSyncMaster">Actualizar MASTER</button>
-      <span id="masterStatus" style="font-size:11.5px;color:var(--ink-soft);white-space:nowrap">MASTER: esperando…</span>
+      <label class="btn" for="importMasterFile">Importar MASTER</label>
+      <input type="file" id="importMasterFile" accept=".xlsx,.xls">
+      <button class="btn" id="btnSpecialRulesTop">Reglas especiales</button>
+      <span id="masterStatus" style="font-size:11.5px;color:var(--ink-soft);white-space:nowrap">MASTER: comprobando…</span>
       <span id="bootstrapStatus" style="font-size:11.5px;color:var(--ink-soft);white-space:nowrap">Importa 2026 y 2027 una vez</span>
       <button class="btn" id="btnGist">☁ Gist</button>
       <button class="btn ghost" id="btnExport">Exportar</button>
@@ -399,6 +402,6 @@
 </div>
 <div class="toast" id="toast"></div>
 
-<script src="diario-gastos.js"></script>
+<script src="diario-gastos.js?v=20260816b"></script>
 </body>
 </html>

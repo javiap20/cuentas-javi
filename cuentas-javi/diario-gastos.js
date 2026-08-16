@@ -1581,6 +1581,22 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
 document.getElementById('yearSelect').addEventListener('change', e=>{
   ui.year = e.target.value; renderAll();
 });
+document.getElementById('importMasterFile').addEventListener('change', async e=>{
+  const file=e.target.files[0];
+  if(!file) return;
+  try{
+    const buf=await file.arrayBuffer();
+    await loadMasterBuffer(buf,'archivo seleccionado',{sync:true,persist:true,render:true});
+    toast('MASTER importado correctamente');
+  }catch(err){
+    console.error(err);
+    setMasterStatus(`MASTER no disponible · ${err.message||'archivo no válido'}`,false);
+    toast('No se pudo importar MASTER');
+  }finally{ e.target.value=''; }
+});
+
+document.getElementById('btnSpecialRulesTop').addEventListener('click', openSpecialRulesModal);
+
 document.getElementById('btnGenerarProyeccion').addEventListener('click', generarTodosLosAnosProyectados);
 document.getElementById('btnSyncMaster').addEventListener('click', cargarMasterAutomatico);
 document.getElementById('import2026File').addEventListener('change', e=>{ const f=e.target.files[0]; if(f) importar2026Manual(f); e.target.value=''; });
