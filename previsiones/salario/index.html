@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Alquiler Majadahonda</title>
+<title>Salario</title>
 <meta name="theme-color" content="#f5f7fb">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Alquiler Majadahonda">
+<meta name="apple-mobile-web-app-title" content="Salario">
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,109 +17,104 @@
 <style>
 :root{
   --bg:#f5f7fb;--surface:#fff;--surface-2:#f9fafc;--ink:#172033;--ink-2:#4d5870;--muted:#8b95aa;
-  --line:#e6eaf1;--accent:#5b63f2;--accent-2:#7c4dff;--accent-soft:#eef0ff;
-  --green:#14966f;--green-soft:#e9f8f3;--red:#d54f63;--red-dark:#b92f49;--red-soft:#fff0f2;
+  --line:#e6eaf1;--accent:#2563eb;--accent-2:#5b63f2;--accent-soft:#eef4ff;
+  --green:#14966f;--green-soft:#e9f8f3;--red:#d54f63;--red-soft:#fff0f2;
   --amber:#b77a10;--amber-soft:#fff6df;--shadow:0 18px 55px rgba(32,43,74,.08);--radius:20px
 }
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-height:100vh;color:var(--ink);background:radial-gradient(circle at 12% -10%,rgba(91,99,242,.10),transparent 29rem),radial-gradient(circle at 92% 5%,rgba(124,77,255,.08),transparent 28rem),var(--bg);font-family:"DM Sans",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:14px}
-button,input{font:inherit}button{cursor:pointer}.shell{width:min(1280px,calc(100% - 36px));margin:0 auto;padding:26px 0 56px}.topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:24px}.brand-kicker{display:flex;align-items:center;gap:9px;color:var(--accent);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.11em;margin-bottom:8px}.brand-dot{width:9px;height:9px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-2));box-shadow:0 0 0 6px rgba(91,99,242,.09)}h1{font-family:"Manrope",sans-serif;font-size:clamp(28px,3vw,42px);line-height:1.08;letter-spacing:-.04em;margin:0;font-weight:800}.subtitle{margin:9px 0 0;color:var(--ink-2);font-size:14px;max-width:760px;line-height:1.6}.status-pill{border:1px solid var(--line);background:rgba(255,255,255,.82);backdrop-filter:blur(8px);border-radius:999px;padding:7px 10px;display:inline-flex;align-items:center;gap:7px;color:var(--ink-2);font-size:10.5px;font-weight:700;box-shadow:0 5px 14px rgba(32,43,74,.035)}.status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px var(--green-soft)}
-.status-pill{cursor:pointer;transition:.16s}.status-pill:hover{transform:translateY(-1px);border-color:#d6dbea}.status-pill.pending .status-dot{background:var(--amber);box-shadow:0 0 0 3px var(--amber-soft)}.status-pill.error .status-dot{background:var(--red);box-shadow:0 0 0 3px var(--red-soft)}
-.gist-update-line{text-align:center;color:#7c4dff;font-size:11.5px;font-weight:800;letter-spacing:.01em;margin:-8px 0 16px;min-height:18px}
-.panel{background:rgba(255,255,255,.95);border:1px solid rgba(225,229,239,.94);border-radius:var(--radius);box-shadow:var(--shadow)}.overview{padding:20px;margin-bottom:18px}.section-head{text-align:center;margin-bottom:16px}.section-title{font-family:"Manrope",sans-serif;font-size:17px;font-weight:800;letter-spacing:-.02em;margin:0}.section-note{font-size:11.5px;color:var(--muted);margin-top:5px;line-height:1.45}.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.milestone{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:17px;background:linear-gradient(180deg,#fff,#fbfcff);padding:17px 18px;min-height:132px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center}.milestone::after{content:"";position:absolute;width:100px;height:100px;border-radius:50%;right:-46px;top:-48px;background:rgba(91,99,242,.05)}.milestone-label{font-size:10px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:800;margin-bottom:8px;position:relative;z-index:1}.milestone-value{font-family:"Manrope",sans-serif;font-size:27px;font-weight:800;letter-spacing:-.035em;line-height:1.05;position:relative;z-index:1}.milestone-sub{font-size:11px;color:var(--ink-2);margin-top:8px;position:relative;z-index:1}.milestone-chip{display:inline-flex;margin-top:9px;padding:4px 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:9px;font-weight:800;position:relative;z-index:1}.milestone-age{font-size:14px;font-weight:700;opacity:.5;margin-left:2px}.milestone.renewal-now{border-color:rgba(91,99,242,.32);background:linear-gradient(135deg,#f7f7ff,#eef0ff)}.milestone.irpf-critical{background:linear-gradient(135deg,var(--red-dark),#e55d70);border-color:transparent;color:#fff;box-shadow:0 18px 38px rgba(213,79,99,.24)}.milestone.irpf-critical .milestone-label,.milestone.irpf-critical .milestone-sub{color:rgba(255,255,255,.82)}.milestone.irpf-critical .milestone-chip{background:rgba(255,255,255,.17);color:#fff}.milestone.irpf-warning{background:linear-gradient(135deg,#fff,#ffe2e7);border-color:#f3c5ce}.milestone.irpf-warning .milestone-label,.milestone.irpf-warning .milestone-value{color:#b43c51}.milestone.irpf-warning .milestone-chip{background:#ffd7df;color:#a93349}
-.projection-overview{padding:20px;margin-bottom:18px}.projection-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.projection-card{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:17px;background:linear-gradient(180deg,#fff,#fbfcff);padding:17px 18px;min-height:126px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center}.projection-card::after{content:"";position:absolute;width:96px;height:96px;border-radius:50%;right:-44px;top:-46px;background:rgba(91,99,242,.05)}.projection-label{font-size:10px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:800;margin-bottom:8px;position:relative;z-index:1}.projection-value{font-family:"Manrope",sans-serif;font-size:27px;font-weight:800;letter-spacing:-.035em;line-height:1.05;position:relative;z-index:1}.projection-value.blue{color:#2563eb}.projection-sub{font-size:11px;color:var(--ink-2);margin-top:8px;position:relative;z-index:1}.ipc-wrap{display:inline-flex;align-items:baseline;justify-content:center;gap:2px;position:relative;z-index:1;white-space:nowrap}.ipc-input{width:1.15em;min-width:0;border:0;outline:0;background:transparent;text-align:center;color:var(--accent);font-family:"Manrope",sans-serif;font-size:27px;font-weight:800;letter-spacing:-.035em;padding:0}.ipc-symbol{font-family:"Manrope",sans-serif;font-size:21px;font-weight:800;color:var(--accent)}.ipc-wrap:focus-within{background:var(--accent-soft);border-radius:11px;padding:3px 8px;margin:-3px -8px}.reference-head{color:#2563eb!important}.reference-col{color:#2563eb!important;font-weight:800}.irpf-row-now .reference-col{color:#fff!important}
-.table-panel{overflow:hidden}.table-header{padding:19px 20px;border-bottom:1px solid var(--line);text-align:center}.rent-toolbar{display:flex;align-items:center;justify-content:center;gap:9px;flex-wrap:wrap;margin-top:13px}.mode-toggle{display:inline-flex;align-items:center;padding:3px;border:1px solid var(--line);border-radius:12px;background:#f7f8fb;box-shadow:inset 0 1px 2px rgba(32,43,74,.03)}.mode-btn{border:0;background:transparent;color:var(--ink-2);border-radius:9px;padding:7px 12px;font-size:10.5px;font-weight:800;transition:.16s}.mode-btn:hover{color:var(--ink)}.mode-btn.active{background:#fff;color:var(--accent);box-shadow:0 4px 12px rgba(32,43,74,.09)}.fixed-ipc-control{display:none;align-items:center;gap:6px;border:1px solid #d9defa;border-radius:12px;background:var(--accent-soft);padding:6px 9px;color:var(--accent);font-size:10px;font-weight:800}.fixed-ipc-control.show{display:inline-flex}.fixed-ipc-input{width:46px;border:0;outline:0;background:transparent;color:var(--accent);text-align:center;font-family:"Manrope",sans-serif;font-size:15px;font-weight:800;padding:0}.mode-note{margin-top:8px;color:var(--muted);font-size:10.5px;line-height:1.45}.table-wrap{overflow:auto;max-height:720px}table{width:100%;border-collapse:separate;border-spacing:0;min-width:970px}thead th{position:sticky;top:0;z-index:3;background:#f8f9fc;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-size:10px;font-weight:800;text-align:center;padding:12px 13px;border-bottom:1px solid var(--line)}tbody td{padding:12px 13px;border-bottom:1px solid #edf0f5;text-align:center;vertical-align:middle;font-variant-numeric:tabular-nums}tbody tr:hover td{background:#fbfcff}.year{font-family:"Manrope",sans-serif;font-weight:800;font-size:14px}.years{color:var(--ink-2);font-weight:700}.amount{font-weight:800}.muted{color:var(--muted);font-weight:600}.positive-cost{color:var(--red);font-weight:800}.negative-cost{color:var(--green);font-weight:800}.neutral{color:var(--ink-2);font-weight:700}.rent-cell{display:flex;justify-content:center;align-items:center;gap:8px;min-width:220px}.rent-input{width:118px;border:1px solid var(--line);background:#fff;border-radius:10px;padding:7px 9px;text-align:center;color:var(--ink);font-weight:800;outline:0;font-variant-numeric:tabular-nums}.rent-input:focus{border-color:rgba(91,99,242,.55);box-shadow:0 0 0 3px rgba(91,99,242,.08)}.rent-input:disabled{background:#f3f5f8;color:#59647a;border-color:#e1e5ec}.rent-derived{min-width:126px;border:1px solid #dfe3f5;background:#f7f8ff;border-radius:10px;padding:6px 10px;text-align:center}.rent-derived .amount{display:block;color:var(--accent)}.rent-origin{font-size:8.5px;color:var(--muted);font-weight:700;margin-top:2px}.lock-btn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:7px 9px;color:var(--ink-2);font-size:10px;font-weight:800;white-space:nowrap;transition:.16s}.lock-btn:hover:not(:disabled){transform:translateY(-1px);border-color:#d5daea}.lock-btn:disabled{opacity:.38;cursor:not-allowed}.lock-btn.closed{background:#f0f2f6;color:#5a657b}.fixed-base-row td{background:#f5f6fa}.fixed-base-row td:first-child{box-shadow:inset 3px 0 0 #aeb6c6}.closed-row td{background:#fafbfc}.closed-row:hover td{background:#f7f9fb}.current-row td{background:#f6f7ff}.current-row td:first-child{box-shadow:inset 3px 0 0 var(--accent)}.irpf-row-now td{background:linear-gradient(90deg,#c83a53,#e65c71)!important;color:#fff;border-bottom-color:rgba(255,255,255,.22)}.irpf-row-now .muted,.irpf-row-now .years{color:rgba(255,255,255,.82)}.irpf-row-now .rent-derived{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.30)}.irpf-row-now .rent-derived .amount,.irpf-row-now .rent-origin{color:#fff}.irpf-row-warning td{background:linear-gradient(90deg,#fff8f9,#ffe3e8)!important}.row-chip{display:inline-flex;margin-left:6px;padding:2px 6px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:8px;font-weight:800;vertical-align:2px}.irpf-row-now .row-chip{background:rgba(255,255,255,.18);color:#fff}.renewal-row td:first-child{box-shadow:inset 3px 0 0 #7c4dff}.footer{margin-top:20px;display:flex;justify-content:space-between;gap:20px;color:var(--muted);font-size:10.5px;line-height:1.5;padding:0 3px}.hint{margin-top:12px;text-align:center;color:var(--muted);font-size:10.5px}.empty{padding:30px;color:var(--muted)}
-
-.projection-card.cumulative-card{background:linear-gradient(135deg,#f8fbff,#edf4ff);border-color:#cfddff}
-.projection-card.cumulative-card::after{background:rgba(37,99,235,.09)}
-.iprem-panel{padding:20px;margin-top:18px}.iprem-grid-wrap{overflow-x:auto;padding-bottom:4px}.iprem-grid{display:grid;grid-template-columns:repeat(5,minmax(190px,1fr));gap:12px;min-width:1040px}.iprem-card{overflow:hidden;border:1px solid var(--line);border-radius:16px;background:#fbfcfe;box-shadow:0 8px 24px rgba(32,43,74,.045)}.iprem-card.past{background:#fcfcfd;border-color:#edf0f4}.iprem-card.current{border-color:rgba(91,99,242,.42);box-shadow:0 14px 32px rgba(91,99,242,.13)}.iprem-card.future{border-style:dashed;border-color:#cfd5ff;background:#fafaff}.iprem-year{padding:10px 12px;text-align:center;background:#edf0f5;color:#7c879c;font-family:"Manrope",sans-serif;font-size:13px;font-weight:800;letter-spacing:.02em}.iprem-card.current .iprem-year{background:linear-gradient(135deg,#4f57dc,#6d63f1);color:#fff}.iprem-card.future .iprem-year{background:#eef0ff;color:var(--accent)}.iprem-body{padding:11px}.iprem-main{display:grid;grid-template-columns:1fr 1fr;border:1px solid #e7ebf2;border-radius:11px;overflow:hidden;background:#fff}.iprem-main>div{padding:8px 7px;text-align:center}.iprem-main>div+div{border-left:1px solid #e7ebf2}.iprem-k{display:block;color:var(--muted);font-size:8.5px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px}.iprem-v{display:block;color:var(--ink);font-size:13px;font-weight:800;font-variant-numeric:tabular-nums}.iprem-input{width:92px;max-width:100%;border:1px solid #dfe4ee;border-radius:8px;padding:5px 6px;background:#fff;text-align:center;color:var(--accent);font-weight:800;outline:0;font-variant-numeric:tabular-nums}.iprem-input:focus{border-color:rgba(91,99,242,.55);box-shadow:0 0 0 3px rgba(91,99,242,.08)}.iprem-factor{margin-top:9px;display:flex;align-items:center;justify-content:center;gap:7px;border-radius:9px;background:#f1edf8;color:#5f5473;padding:6px 8px;font-size:10px;font-weight:800}.iprem-bottom{margin-top:8px;display:grid;grid-template-columns:.78fr 1.22fr;border-radius:10px;overflow:hidden;border:1px solid #e5e9ef}.iprem-corrector,.iprem-objective{padding:7px 6px;text-align:center}.iprem-corrector{background:#edf2f8}.iprem-objective{background:#fffde2}.iprem-corrector .iprem-v,.iprem-objective .iprem-v{font-size:12px}.iprem-card.current .iprem-objective{background:#fff7b8}.iprem-formula{margin-top:11px;text-align:center;color:var(--muted);font-size:10.5px;line-height:1.45}.iprem-badge{display:inline-flex;margin-left:5px;padding:2px 5px;border-radius:999px;background:rgba(255,255,255,.18);color:inherit;font-size:7.5px;font-weight:800;vertical-align:1px}
-
-.sync-modal{position:fixed;inset:0;z-index:1000;display:flex;align-items:flex-start;justify-content:flex-end;padding:18px;background:rgba(23,32,51,.22);backdrop-filter:blur(3px);opacity:0;visibility:hidden;pointer-events:none;transition:.18s}.sync-modal.open{opacity:1;visibility:visible;pointer-events:auto}.sync-card{width:min(820px,calc(100vw - 36px));max-height:calc(100vh - 36px);overflow:auto;background:rgba(255,255,255,.99);border:1px solid var(--line);border-radius:18px;box-shadow:0 24px 80px rgba(23,32,51,.18);padding:18px;transform:translateY(-8px) scale(.99);transition:.18s}.sync-modal.open .sync-card{transform:translateY(0) scale(1)}.sync-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:15px}.sync-title{font-family:"Manrope",sans-serif;font-size:16px;font-weight:800}.sync-note{font-size:10.5px;color:var(--muted);line-height:1.5;margin-top:4px;max-width:640px}.sync-close{width:30px;height:30px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink-2);font-size:18px;display:grid;place-items:center}.sync-grid{display:grid;grid-template-columns:minmax(210px,1.25fr) minmax(210px,1fr) auto auto auto auto;gap:8px;align-items:stretch}.sync-field{background:#fafbfe;border:1px solid var(--line);border-radius:12px;padding:8px 10px;min-width:0}.sync-field label{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.08em;font-weight:800;color:var(--muted);margin-bottom:4px}.sync-input{width:100%;border:0;outline:0;background:transparent;color:var(--ink);font-size:12px;font-weight:700;min-width:0}.sync-id{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;color:var(--green);font-weight:800;word-break:break-all}.sync-btn{border:1px solid var(--line);background:#fff;border-radius:12px;padding:9px 11px;color:var(--ink);font-size:10.5px;font-weight:800;white-space:nowrap}.sync-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}.sync-btn:disabled{opacity:.5;cursor:wait}.sync-status{display:flex;align-items:flex-start;gap:7px;margin-top:10px;color:var(--muted);font-size:10.5px;line-height:1.45}.sync-status-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex:0 0 auto;margin-top:4px}.sync-status.ok{color:var(--green)}.sync-status.warn{color:var(--amber)}.sync-status.error{color:var(--red)}
-@media(max-width:820px){.topbar{flex-direction:column}.cards,.projection-cards{grid-template-columns:1fr}.shell{width:min(100% - 20px,1280px);padding-top:18px}.overview{padding:15px}.milestone{min-height:118px}.footer{flex-direction:column}.table-header{padding:16px}.sync-grid{grid-template-columns:1fr}.sync-modal{padding:10px}.sync-card{width:100%;max-height:calc(100vh - 20px);padding:15px}}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-height:100vh;color:var(--ink);background:radial-gradient(circle at 12% -10%,rgba(37,99,235,.10),transparent 29rem),radial-gradient(circle at 92% 5%,rgba(91,99,242,.08),transparent 28rem),var(--bg);font-family:"DM Sans",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:14px}
+button,input{font:inherit}button{cursor:pointer}.shell{width:min(1320px,calc(100% - 36px));margin:0 auto;padding:26px 0 56px}.topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:24px}.brand-kicker{display:flex;align-items:center;gap:9px;color:var(--accent);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.11em;margin-bottom:8px}.brand-dot{width:9px;height:9px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-2));box-shadow:0 0 0 6px rgba(37,99,235,.09)}h1{font-family:"Manrope",sans-serif;font-size:clamp(28px,3vw,42px);line-height:1.08;letter-spacing:-.04em;margin:0;font-weight:800}.subtitle{margin:9px 0 0;color:var(--ink-2);font-size:14px;max-width:780px;line-height:1.6}.status-pill{border:1px solid var(--line);background:rgba(255,255,255,.84);backdrop-filter:blur(8px);border-radius:999px;padding:7px 10px;display:inline-flex;align-items:center;gap:7px;color:var(--ink-2);font-size:10.5px;font-weight:700;box-shadow:0 5px 14px rgba(32,43,74,.035);cursor:pointer;transition:.16s}.status-pill:hover{transform:translateY(-1px);border-color:#d6dbea}.status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px var(--green-soft)}.status-pill.pending .status-dot{background:var(--amber);box-shadow:0 0 0 3px var(--amber-soft)}.status-pill.error .status-dot{background:var(--red);box-shadow:0 0 0 3px var(--red-soft)}
+.gist-updated-line{margin:-10px 0 18px;text-align:center;color:#7c4dff;font-size:11.5px;font-weight:800;letter-spacing:.01em}.gist-updated-line .gist-cloud{margin-right:5px}.panel{background:rgba(255,255,255,.95);border:1px solid rgba(225,229,239,.94);border-radius:var(--radius);box-shadow:var(--shadow)}.overview{padding:20px;margin-bottom:18px}.section-head{text-align:center;margin-bottom:16px}.section-title{font-family:"Manrope",sans-serif;font-size:17px;font-weight:800;letter-spacing:-.02em;margin:0}.section-note{font-size:11.5px;color:var(--muted);margin-top:5px;line-height:1.45}.summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.summary-card{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:17px;background:linear-gradient(180deg,#fff,#fbfcff);padding:17px 18px;min-height:126px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center}.summary-card::after{content:"";position:absolute;width:96px;height:96px;border-radius:50%;right:-44px;top:-46px;background:rgba(37,99,235,.06)}.summary-card.blue{background:linear-gradient(135deg,#f8fbff,#eef4ff);border-color:#cfe0ff}.summary-label{font-size:10px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:800;margin-bottom:8px;position:relative;z-index:1}.summary-value{font-family:"Manrope",sans-serif;font-size:27px;font-weight:800;letter-spacing:-.035em;line-height:1.05;position:relative;z-index:1}.summary-value.blue{color:var(--accent)}.summary-sub{font-size:11px;color:var(--ink-2);margin-top:8px;position:relative;z-index:1}.summary-chip{display:inline-flex;margin-top:8px;padding:4px 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:9px;font-weight:800;position:relative;z-index:1}
+.table-panel{overflow:hidden;margin-bottom:18px}.table-header{padding:19px 20px;border-bottom:1px solid var(--line);text-align:center}.salary-toolbar{display:flex;align-items:center;justify-content:center;gap:9px;flex-wrap:wrap;margin-top:13px}.mode-toggle{display:inline-flex;align-items:center;padding:3px;border:1px solid var(--line);border-radius:12px;background:#f7f8fb;box-shadow:inset 0 1px 2px rgba(32,43,74,.03)}.mode-btn{border:0;background:transparent;color:var(--ink-2);border-radius:9px;padding:7px 13px;font-size:10.5px;font-weight:800;transition:.16s}.mode-btn:hover{color:var(--ink)}.mode-btn.active{background:#fff;color:var(--accent);box-shadow:0 4px 12px rgba(32,43,74,.09)}.mode-note{margin-top:8px;color:var(--muted);font-size:10.5px;line-height:1.45}.table-wrap{overflow:auto;max-height:720px}table{width:100%;border-collapse:separate;border-spacing:0;min-width:1050px}thead th{position:sticky;top:0;z-index:3;background:#f8f9fc;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-size:10px;font-weight:800;text-align:center;padding:12px 13px;border-bottom:1px solid var(--line)}tbody td{padding:12px 13px;border-bottom:1px solid #edf0f5;text-align:center;vertical-align:middle;font-variant-numeric:tabular-nums}tbody tr:hover td{background:#fbfcff}.current-row td{background:#f5f8ff}.current-row td:first-child{box-shadow:inset 3px 0 0 var(--accent)}.year{font-family:"Manrope",sans-serif;font-weight:800;font-size:14px}.age{color:var(--ink-2);font-weight:700}.salary-cell{display:flex;justify-content:center;align-items:center;gap:7px}.salary-input{width:118px;border:1px solid var(--line);background:#fff;border-radius:10px;padding:7px 9px;text-align:center;color:var(--ink);font-weight:800;outline:0;font-variant-numeric:tabular-nums}.salary-input:focus{border-color:rgba(37,99,235,.55);box-shadow:0 0 0 3px rgba(37,99,235,.08)}.amount{font-weight:800}.positive{color:var(--green);font-weight:800}.negative{color:var(--red);font-weight:800}.neutral{color:var(--ink-2);font-weight:700}.reference-head,.reference-col{color:var(--accent)!important;font-weight:800}.accum-pill{display:inline-flex;padding:6px 10px;border-radius:10px;background:#f5f8ff;border:1px solid #dce7ff;color:var(--accent);font-weight:800}.hint{margin:-7px 0 18px;padding:0 5px;color:var(--muted);font-size:10.5px;line-height:1.5;text-align:center}
+.annual-panel{padding:20px;margin-bottom:18px}.annual-grid{display:flex;flex-wrap:wrap;justify-content:center;gap:12px}.annual-card{flex:0 0 calc((100% - 48px)/5);position:relative;overflow:hidden;border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg,#fff,#fafbfe);min-height:196px;padding:15px 14px;text-align:center;display:flex;flex-direction:column}.annual-card.current{background:linear-gradient(145deg,#163d6b,#2563eb);border-color:transparent;color:#fff;box-shadow:0 16px 34px rgba(37,99,235,.18)}.annual-card.current .annual-label,.annual-card.current .annual-mini{color:rgba(255,255,255,.75)}.annual-card.current .annual-input,.annual-card.current .annual-value{background:rgba(255,255,255,.13);border-color:rgba(255,255,255,.25);color:#fff}.annual-card.current .annual-diff{color:#fff}.annual-card.past{opacity:.82}.annual-year{font-family:"Manrope",sans-serif;font-size:18px;font-weight:800;letter-spacing:-.02em;margin-bottom:13px}.annual-row{display:grid;grid-template-columns:1fr;gap:5px;margin-bottom:10px}.annual-label{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:800}.annual-input,.annual-value{width:100%;border:1px solid var(--line);background:#fff;border-radius:9px;padding:7px 8px;text-align:center;color:var(--ink);font-weight:800;outline:0}.annual-value{min-height:36px;display:flex;align-items:center;justify-content:center}.annual-input:focus{border-color:rgba(37,99,235,.55);box-shadow:0 0 0 3px rgba(37,99,235,.08)}.annual-diff{margin-top:auto;font-family:"Manrope",sans-serif;font-weight:800;font-size:16px;color:var(--ink-2)}.annual-diff.positive{color:var(--green)}.annual-diff.negative{color:var(--red)}.annual-card.current .annual-diff.positive{color:#8ff0c9}.annual-card.current .annual-diff.negative{color:#ffb3c0}.annual-mini{font-size:9px;color:var(--muted);margin-top:3px}.annual-empty{width:100%;text-align:center;color:var(--muted);padding:28px}
+.sync-modal{position:fixed;inset:0;z-index:1000;display:flex;align-items:flex-start;justify-content:flex-end;padding:18px;background:rgba(23,32,51,.22);backdrop-filter:blur(3px);opacity:0;visibility:hidden;pointer-events:none;transition:.18s}.sync-modal.open{opacity:1;visibility:visible;pointer-events:auto}.sync-card{width:min(900px,calc(100vw - 36px));max-height:calc(100vh - 36px);overflow:auto;background:rgba(255,255,255,.99);border:1px solid var(--line);border-radius:18px;box-shadow:0 24px 80px rgba(23,32,51,.18);padding:18px}.sync-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:12px}.sync-title{font-family:"Manrope",sans-serif;font-size:15px;font-weight:800}.sync-note{font-size:10.5px;color:var(--muted);line-height:1.45;margin-top:3px}.sync-close{width:30px;height:30px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink-2);font-size:18px;line-height:1;display:grid;place-items:center;padding:0}.sync-grid{display:grid;grid-template-columns:minmax(150px,.7fr) minmax(220px,1.3fr) auto auto auto auto;gap:8px;align-items:stretch}.sync-field{background:#fafbfe;border:1px solid var(--line);border-radius:12px;padding:8px 10px;min-width:0}.sync-field label{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.08em;font-weight:800;color:var(--muted);margin-bottom:4px}.sync-input{width:100%;border:0;outline:0;background:transparent;color:var(--ink);font-size:12px;font-weight:700}.sync-id{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--green);font-weight:700;font-size:11px}.sync-btn{border:1px solid var(--line);background:#fff;border-radius:12px;padding:9px 11px;color:var(--ink);font-size:11px;font-weight:800;white-space:nowrap}.sync-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}.sync-status{display:flex;align-items:center;gap:7px;margin-top:9px;color:var(--muted);font-size:10.5px}.sync-status.ok{color:var(--green)}.sync-status.error{color:var(--red)}.sync-status.warn{color:var(--amber)}.sync-status-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex:0 0 auto}.footer{margin-top:20px;display:flex;justify-content:space-between;gap:20px;color:var(--muted);font-size:10.5px;line-height:1.55;padding:0 3px}
+@media(max-width:1120px){.annual-card{flex-basis:calc((100% - 24px)/3)}.sync-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:720px){.shell{width:min(100% - 20px,1320px);padding-top:18px}.topbar{flex-direction:column}.annual-card{flex-basis:calc((100% - 12px)/2)}.summary-grid{grid-template-columns:1fr}.annual-panel,.overview{padding:15px}.sync-modal{padding:10px}.sync-card{width:100%;max-height:calc(100vh - 20px);padding:15px}.sync-grid{grid-template-columns:1fr}.footer{flex-direction:column}.salary-input{width:104px}}
+@media(max-width:460px){.annual-card{flex-basis:100%}}
 </style>
 </head>
 <body>
 <div class="shell">
   <header class="topbar">
     <div>
-      <div class="brand-kicker"><span class="brand-dot"></span>Previsión · vivienda</div>
-      <h1>Alquiler Majadahonda</h1>
-      <p class="subtitle">Histórico de cuotas, evolución real del alquiler y avisos de renovación / IRPF con una lectura rápida de los años clave.</p>
+      <div class="brand-kicker"><span class="brand-dot"></span>Previsión personal</div>
+      <h1>Salario</h1>
+      <p class="subtitle">Histórico de salario real, por meses y evolución desde 2008.</p>
     </div>
-    <button id="syncOpenBtn" class="status-pill pending" type="button" title="Guardar o recuperar los datos de Alquiler Majadahonda"><span class="status-dot"></span><span id="topSyncText">☁ Gist / JSON</span></button>
+    <button id="syncOpenBtn" class="status-pill pending" type="button"><span class="status-dot"></span><span id="topSyncText">☁ Gist / JSON</span></button>
   </header>
 
-  <div id="gistUpdateLine" class="gist-update-line">☁ Última actualización del Gist · comprobando…</div>
+  <div id="gistUpdatedLine" class="gist-updated-line"><span class="gist-cloud">☁</span>Última actualización del Gist · —</div>
 
   <section class="panel overview">
     <div class="section-head">
-      <h2 class="section-title">Hitos del contrato</h2>
-      <div class="section-note">La renovación toma 2026 como referencia y se repite cada 5 años. El año IRPF es siempre el anterior a la próxima renovación.</div>
+      <h2 class="section-title">Resumen salarial</h2>
+      <div class="section-note">Una lectura rápida del último salario registrado y de su evolución desde 2008.</div>
     </div>
-    <div class="cards">
-      <article class="milestone">
-        <div class="milestone-label">Año de alta</div>
-        <div class="milestone-value">Diciembre 2007</div>
-        <div class="milestone-sub">Inicio de la relación de alquiler</div>
+    <div class="summary-grid">
+      <article class="summary-card">
+        <div class="summary-label">Último salario real</div>
+        <div id="latestReal" class="summary-value">—</div>
+        <div id="latestRealSub" class="summary-sub">Esperando datos.</div>
       </article>
-      <article id="renewalCard" class="milestone">
-        <div class="milestone-label">Próxima renovación</div>
-        <div id="renewalValue" class="milestone-value">2026</div>
-        <div class="milestone-sub">Ciclo de renovación cada 5 años</div>
-        <div id="renewalChip" class="milestone-chip">Referencia 2026</div>
+      <article class="summary-card">
+        <div class="summary-label">Equivalente en 12 pagas</div>
+        <div id="latestTwelve" class="summary-value">—</div>
+        <div id="latestTwelveSub" class="summary-sub">Mismo último año registrado.</div>
       </article>
-      <article id="irpfCard" class="milestone">
-        <div class="milestone-label">Año IRPF</div>
-        <div id="irpfValue" class="milestone-value">2025</div>
-        <div id="irpfSub" class="milestone-sub">Año anterior a la renovación</div>
-        <div id="irpfChip" class="milestone-chip">Aviso fiscal</div>
+      <article class="summary-card blue">
+        <div class="summary-label">Subida desde 2008</div>
+        <div id="growthSinceStart" class="summary-value blue">—</div>
+        <div id="growthSinceStartSub" class="summary-sub">Referencia: salario real de 2008.</div>
+      </article>
+      <article class="summary-card blue">
+        <div class="summary-label">Crecimiento anual equivalente</div>
+        <div id="annualEquivalent" class="summary-value blue">—</div>
+        <div id="annualEquivalentSub" class="summary-sub">Ritmo anual compuesto entre 2008 y el último dato.</div>
       </article>
     </div>
   </section>
 
-  <section class="panel projection-overview">
+  <section class="panel table-panel">
+    <div class="table-header">
+      <h2 class="section-title">Evolución del salario</h2>
+      <div class="section-note">La primera fila es siempre el año más reciente. Los datos de 2008 a 2023 vienen precargados; 2024 en adelante quedan abiertos para que los completes.</div>
+      <div class="salary-toolbar">
+        <div class="mode-toggle" role="group" aria-label="Vista del salario">
+          <button id="salaryModeBtn" class="mode-btn active" type="button">Salario</button>
+          <button id="accumModeBtn" class="mode-btn" type="button">Evolución desde 2008</button>
+        </div>
+      </div>
+      <div id="modeNote" class="mode-note">Salario · muestra cada año de forma independiente.</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr id="salaryHead"></tr></thead>
+        <tbody id="salaryBody"></tbody>
+      </table>
+    </div>
+  </section>
+  <div class="hint">En <b>Evolución desde 2008</b> cada fila compara el salario real de ese año con la referencia de 2008: diferencia en euros, subida porcentual y crecimiento anual equivalente.</div>
+
+  <section class="panel annual-panel">
     <div class="section-head">
-      <h2 class="section-title">Actualización de cuota</h2>
-      <div class="section-note">Resumen del año actual y estimación del siguiente. El IPC parte del 2 % y puedes modificarlo cuando quieras.</div>
+      <h2 class="section-title">Salario anual</h2>
+      <div class="section-note">El Total / mes se toma automáticamente de la tabla superior. Tú solo completas el Total / año; la diferencia mensual se calcula sola. El año actual aparece siempre primero.</div>
     </div>
-    <div class="projection-cards">
-      <article class="projection-card">
-        <div id="currentRentLabel" class="projection-label">Cuota del periodo actual</div>
-        <div id="currentRentValue" class="projection-value">—</div>
-        <div id="currentRentSub" class="projection-sub">Toma el importe de la tabla.</div>
-      </article>
-      <article class="projection-card">
-        <label class="projection-label" for="ipcInput">IPC estimado</label>
-        <div class="ipc-wrap"><input id="ipcInput" class="ipc-input" type="text" inputmode="decimal" autocomplete="off" value="2"><span class="ipc-symbol">%</span></div>
-        <div class="projection-sub">Editable · aplicado al año siguiente.</div>
-      </article>
-      <article class="projection-card">
-        <div id="nextRentLabel" class="projection-label">Cuota estimada siguiente periodo</div>
-        <div id="nextRentValue" class="projection-value blue">—</div>
-        <div id="nextRentSub" class="projection-sub">Cuota actual + IPC.</div>
-      </article>
-      <article class="projection-card cumulative-card">
-        <div class="projection-label">Subida desde 2008-09</div>
-        <div id="cumulativeGrowthValue" class="projection-value blue">—</div>
-        <div id="cumulativeGrowthSub" class="projection-sub">Comparación con la cuota de referencia.</div>
-      </article>
-    </div>
+    <div id="annualGrid" class="annual-grid"></div>
   </section>
-
 
   <div id="syncModal" class="sync-modal" aria-hidden="true">
     <div class="sync-card" role="dialog" aria-modal="true" aria-labelledby="syncTitle">
       <div class="sync-head">
         <div>
-          <div id="syncTitle" class="sync-title">Gist y copia de Alquiler Majadahonda</div>
-          <div class="sync-note">Usa el mismo Gist que Independencia financiera, pero en un archivo separado: <b>alquiler-majadahonda.json</b>. Al abrir la app se lee primero este JSON del Gist y después se compara con la copia local. Gana siempre la versión más nueva. El token solo se necesita para escribir en GitHub. Puedes guardarlo en Contraseñas de Apple mediante Autorrellenar y, si activas “Recordar en este dispositivo”, también queda en el almacenamiento local de esta PWA.</div>
+          <div id="syncTitle" class="sync-title">Gist y copia de Salario</div>
+          <div class="sync-note">Usa el mismo Gist que las otras previsiones, en un archivo independiente: <b>salario.json</b>. Al abrir, se lee primero el Gist y después se compara con la copia local; siempre gana la versión más nueva. Con token, los cambios se sincronizan automáticamente. El token solo sirve para escribir. Si activas “Recordar en este dispositivo”, se guarda localmente en este dispositivo y no se incluye en el Gist ni en el JSON.</div>
         </div>
         <button id="syncCloseBtn" class="sync-close" type="button" aria-label="Cerrar">×</button>
       </div>
       <div class="sync-grid">
-        <div class="sync-field"><label for="githubUser">Cuenta GitHub</label><input id="githubUser" class="sync-input" type="text" value="javiap20" autocomplete="username" readonly></div>
-        <div class="sync-field"><label for="githubToken">Token GitHub</label><input id="githubToken" class="sync-input" type="password" autocomplete="current-password" spellcheck="false" placeholder="github_pat_… / ghp_…">
-          <label style="display:flex;align-items:center;gap:6px;margin-top:7px;text-transform:none;letter-spacing:0;font-size:9.5px;color:#6f7890;font-weight:700;cursor:pointer"><input id="rememberGithubToken" type="checkbox" checked style="width:14px;height:14px;accent-color:#5b63f2"><span>Recordar en este dispositivo</span></label>
-        </div>
+        <div class="sync-field"><label for="githubUser">Cuenta GitHub</label><input id="githubUser" class="sync-input" type="text" autocomplete="username" value="javiap20" readonly></div>
+        <div class="sync-field"><label for="githubToken">Token GitHub</label><input id="githubToken" class="sync-input" type="password" autocomplete="current-password" spellcheck="false" placeholder="github_pat_… / ghp_…"><label style="display:flex;align-items:center;gap:7px;margin-top:7px;font-size:9.5px;color:var(--ink-2);font-weight:700;cursor:pointer"><input id="rememberToken" type="checkbox" checked style="accent-color:var(--accent);width:15px;height:15px"><span>Recordar en este dispositivo</span></label></div>
         <div class="sync-field"><label>Gist compartido</label><div class="sync-id">bcb12de9d4e6b476062a8d13a676532f</div></div>
         <button id="saveGistBtn" class="sync-btn primary" type="button">☁ Guardar Gist</button>
         <button id="loadGistBtn" class="sync-btn" type="button">↓ Cargar Gist</button>
@@ -127,737 +122,278 @@ button,input{font:inherit}button{cursor:pointer}.shell{width:min(1280px,calc(100
         <button id="importJsonBtn" class="sync-btn" type="button">↑ Importar</button>
         <input id="importJsonInput" type="file" accept="application/json,.json" hidden>
       </div>
-      <div id="syncStatus" class="sync-status warn"><span class="sync-status-dot"></span><span>Los cambios se guardan automáticamente en local y, cuando hay token en la sesión, también se sincronizan automáticamente con el Gist.</span></div>
+      <div id="syncStatus" class="sync-status warn"><span class="sync-status-dot"></span><span>Al abrir se comprueba primero el Gist. Los cambios se guardan en local y, si hay token, también en el Gist automáticamente.</span></div>
     </div>
   </div>
 
-  <section class="panel table-panel">
-    <div class="table-header">
-      <h2 class="section-title">Evolución del alquiler</h2>
-      <div class="section-note">Cada fila representa un periodo de cuota entre dos años. La edad corresponde siempre al <b>año final del periodo</b>. 2007-08 queda fuera de cálculo y la referencia comienza en <b>2008-09</b>.</div>
-      <div class="rent-toolbar">
-        <div class="mode-toggle" role="group" aria-label="Tipo de evolución del alquiler">
-          <button id="realModeBtn" class="mode-btn active" type="button">IPC Real</button>
-          <button id="fixedModeBtn" class="mode-btn" type="button">IPC Fijo</button>
-        </div>
-        <label id="fixedIpcControl" class="fixed-ipc-control" for="fixedIpcInput">IPC fijo <input id="fixedIpcInput" class="fixed-ipc-input" type="text" inputmode="decimal" autocomplete="off" value="2"><span>%</span></label>
-      </div>
-      <div id="modeNote" class="mode-note">IPC Real · muestra las cuotas realmente registradas y sus variaciones.</div>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Periodo</th><th>Edad</th><th id="rentAmountHead">Alquiler</th><th>Diferencia con periodo anterior</th><th id="growthHead">Subida real %</th><th class="reference-head">Diferencia con primera cuota (2008-09)</th></tr></thead>
-        <tbody id="rentBody"></tbody>
-      </table>
-    </div>
-  </section>
-  <div class="hint">2007-08 es un dato histórico fuera de cálculo. 2008-09 es la cuota de referencia. En <b>IPC Fijo</b>, la serie se simula desde 2008-09 aplicando el porcentaje elegido de forma compuesta y sin modificar tus cuotas reales.</div>
-
-
-  <section class="panel iprem-panel">
-    <div class="section-head">
-      <h2 class="section-title">IPREM y objetivo Madrid</h2>
-      <div class="section-note">El año actual aparece primero y destacado. Desde el 1 de enero de 2027, la primera fila muestra 5 cards editables: el año actual y los cuatro siguientes. En 2027 arrancan con los datos de 2026; el anual se calcula automáticamente multiplicando el mensual por 14.</div>
-    </div>
-    <div class="iprem-grid-wrap"><div id="ipremGrid" class="iprem-grid"></div></div>
-    <div class="iprem-formula">Objetivo Madrid = IPREM mensual × 14 × 5,5 ÷ corrector 0,8. Los valores editables también se guardan en <b>alquiler-majadahonda.json</b>.</div>
-  </section>
-
   <footer class="footer">
-    <div>Alquiler Majadahonda · navegador + Gist compartido · <b>v2.2</b></div>
-    <div>Alta: diciembre 2007 · ciclo de renovación anclado en 2026</div>
+    <div>Salario · navegador + Gist compartido · <b>v1.7</b></div>
+    <div>Referencia inicial: 2008 · años naturales</div>
   </footer>
 </div>
 <script>
 (()=>{
 'use strict';
+const BIRTH_YEAR=1972;
 const START_YEAR=2007;
 const REFERENCE_YEAR=2008;
-const RENEWAL_ANCHOR=2026;
-const RENEWAL_CYCLE=5;
-const STORAGE_KEY='alquiler_majadahonda_v2';
+const currentYear=new Date().getFullYear();
+const STORAGE_KEY='salario_prevision_v1';
 const GIST_ID='bcb12de9d4e6b476062a8d13a676532f';
 const GIST_OWNER='javiap20';
-const GIST_FILENAME='alquiler-majadahonda.json';
+const GIST_FILENAME='salario.json';
 const GIST_RAW_URL=`https://gist.githubusercontent.com/${GIST_OWNER}/${GIST_ID}/raw/${GIST_FILENAME}`;
 const GITHUB_API_VERSION='2026-03-10';
-const SYNC_DEBOUNCE_MS=900;
-const GIST_TIMEOUT_MS=12000;
-const now=new Date();
-const currentYear=now.getFullYear();
-const currentMonth=now.getMonth();
-const CURRENT_PERIOD_START=currentMonth>=11?currentYear:currentYear-1;
-const BIRTH_YEAR=1972;
-
-const IPREM_START_YEAR=2017;
-const IPREM_FACTOR=5.5;
-const MADRID_CORRECTOR=0.8;
-const FIXED_IPREM_MONTHLY={2017:537.84,2018:537.84,2019:537.84,2020:537.84,2021:564.90,2022:579.02,2023:600,2024:600,2025:600,2026:600};
-const DEFAULT_RENTS={
-  2007:'344,05',2008:'422,45',2009:'437,34',2010:'444,48',2011:'465,00',
-  2012:'475,00',2013:'485,00',2014:'500,00',2015:'503,00',2016:'496,38',
-  2017:'500,69',2018:'509,11',2019:'519,04',2020:'520,02',2021:'516,16',
-  2022:'541,35',2023:'551,42'
+const DEFAULT_SALARIES={
+  2008:{real:1623},2009:{real:1637},2010:{real:1624},
+  2011:{real:1673},2012:{real:1646},2013:{real:1647},
+  2014:{real:1630},2015:{real:1660},2016:{real:1669},
+  2017:{real:1669},2018:{real:1766},2019:{real:1771},
+  2020:{real:1851},2021:{real:2030},2022:{real:2222},
+  2023:{real:2235}
 };
-const body=document.getElementById('rentBody');
-const ipremGrid=document.getElementById('ipremGrid');
-const renewalCard=document.getElementById('renewalCard');
-const renewalValue=document.getElementById('renewalValue');
-const renewalChip=document.getElementById('renewalChip');
-const irpfCard=document.getElementById('irpfCard');
-const irpfValue=document.getElementById('irpfValue');
-const irpfSub=document.getElementById('irpfSub');
-const irpfChip=document.getElementById('irpfChip');
-const syncOpenBtn=document.getElementById('syncOpenBtn');
-const topSyncText=document.getElementById('topSyncText');
-const gistUpdateLine=document.getElementById('gistUpdateLine');
-const syncModal=document.getElementById('syncModal');
-const syncCloseBtn=document.getElementById('syncCloseBtn');
-const githubUser=document.getElementById('githubUser');
-const githubToken=document.getElementById('githubToken');
-const rememberGithubToken=document.getElementById('rememberGithubToken');
-const GITHUB_TOKEN_STORAGE_KEY='javi_dashboards_github_token_v1';
-const saveGistBtn=document.getElementById('saveGistBtn');
-const loadGistBtn=document.getElementById('loadGistBtn');
-const downloadJsonBtn=document.getElementById('downloadJsonBtn');
-const importJsonBtn=document.getElementById('importJsonBtn');
-const importJsonInput=document.getElementById('importJsonInput');
-const syncStatus=document.getElementById('syncStatus');
-const currentRentLabel=document.getElementById('currentRentLabel');
-const currentRentValue=document.getElementById('currentRentValue');
-const currentRentSub=document.getElementById('currentRentSub');
-const ipcInput=document.getElementById('ipcInput');
-const nextRentLabel=document.getElementById('nextRentLabel');
-const nextRentValue=document.getElementById('nextRentValue');
-const nextRentSub=document.getElementById('nextRentSub');
-const cumulativeGrowthValue=document.getElementById('cumulativeGrowthValue');
-const cumulativeGrowthSub=document.getElementById('cumulativeGrowthSub');
-const realModeBtn=document.getElementById('realModeBtn');
-const fixedModeBtn=document.getElementById('fixedModeBtn');
-const fixedIpcControl=document.getElementById('fixedIpcControl');
-const fixedIpcInput=document.getElementById('fixedIpcInput');
-const modeNote=document.getElementById('modeNote');
-const rentAmountHead=document.getElementById('rentAmountHead');
-const growthHead=document.getElementById('growthHead');
-let state={rents:{...DEFAULT_RENTS},closed:{},ipc:2,fixedIpc:2,rentMode:'real',ipremMonthly:{}};
+const DEFAULT_ANNUAL={
+  2008:{annual:34000},2018:{annual:36000},2020:{annual:39000},
+  2021:{annual:43000},2022:{annual:48000},2023:{annual:49025},
+  2024:{annual:50811},2025:{annual:51380},2026:{annual:null}
+};
+let state={viewMode:'salary',salaries:{},annual:{},updatedAt:null,gistUpdatedAt:null};
 let gistDirty=false;
-let localUpdatedAt=null;
-let serverUpdatedAt=null;
-let syncTimer=null;
-let syncInFlight=false;
-let syncAgainAfterCurrent=false;
-let bootstrapFinished=false;
-
-function setTopSync(mode,text){
-  syncOpenBtn.classList.remove('pending','error');
-  if(mode==='pending') syncOpenBtn.classList.add('pending');
-  if(mode==='error') syncOpenBtn.classList.add('error');
-  topSyncText.textContent=text;
-}
-function formatGistSavedAt(value){
-  if(!value) return null;
-  const d=new Date(value);
-  if(Number.isNaN(d.getTime())) return null;
-  const date=d.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'});
-  const time=d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',hour12:false});
-  return `${date} · ${time}`;
-}
-function setGistUpdate(value,status='ok'){
-  if(!gistUpdateLine) return;
-  if(status==='checking'){gistUpdateLine.textContent='☁ Última actualización del Gist · comprobando…';return;}
-  if(status==='missing'){gistUpdateLine.textContent='☁ Gist conectado · todavía sin datos guardados';return;}
-  if(status==='error'){gistUpdateLine.textContent='☁ Gist no disponible · mostrando copia local si existe';return;}
-  if(status==='syncing'){gistUpdateLine.textContent='☁ Gist · sincronizando…';return;}
-  const formatted=formatGistSavedAt(value);
-  if(status==='pending'){
-    gistUpdateLine.textContent=`☁ Última actualización del Gist · ${formatted||'sin copia remota'} · cambios locales pendientes`;
-    return;
-  }
-  gistUpdateLine.textContent=`☁ Última actualización del Gist · ${formatted||'—'}`;
-}
-function setSyncStatus(type,html){
-  syncStatus.className=`sync-status ${type||''}`.trim();
-  syncStatus.innerHTML=`<span class="sync-status-dot"></span><span>${html}</span>`;
-}
+let autosaveTimer=null;
+let saveInFlight=false;
+const GIST_TIMEOUT_MS=12000;
+const AUTOSAVE_DELAY_MS=850;
+const TOKEN_STORAGE_KEY='salario_github_token_v1';
+const $=id=>document.getElementById(id);
+const els={
+  body:$('salaryBody'),head:$('salaryHead'),annualGrid:$('annualGrid'),salaryModeBtn:$('salaryModeBtn'),accumModeBtn:$('accumModeBtn'),modeNote:$('modeNote'),
+  latestReal:$('latestReal'),latestRealSub:$('latestRealSub'),latestTwelve:$('latestTwelve'),latestTwelveSub:$('latestTwelveSub'),growthSinceStart:$('growthSinceStart'),growthSinceStartSub:$('growthSinceStartSub'),annualEquivalent:$('annualEquivalent'),annualEquivalentSub:$('annualEquivalentSub'),
+  syncOpenBtn:$('syncOpenBtn'),topSyncText:$('topSyncText'),gistUpdatedLine:$('gistUpdatedLine'),syncModal:$('syncModal'),syncCloseBtn:$('syncCloseBtn'),githubUser:$('githubUser'),githubToken:$('githubToken'),rememberToken:$('rememberToken'),saveGistBtn:$('saveGistBtn'),loadGistBtn:$('loadGistBtn'),downloadJsonBtn:$('downloadJsonBtn'),importJsonBtn:$('importJsonBtn'),importJsonInput:$('importJsonInput'),syncStatus:$('syncStatus')
+};
+function clone(v){return JSON.parse(JSON.stringify(v));}
+function num(v){if(v===null||v===undefined||v==='')return null;if(typeof v==='number')return Number.isFinite(v)?v:null;let s=String(v).trim().replace(/\s/g,'').replace(/€/g,'');if(!s)return null;if(s.includes(',')&&s.includes('.'))s=s.replace(/\./g,'').replace(',','.');else if(s.includes(','))s=s.replace(',','.');else if(/^\d{1,3}(?:\.\d{3})+$/.test(s))s=s.replace(/\./g,'');const n=Number(s);return Number.isFinite(n)?n:null;}
+function fmt(v,dec=0){const n=num(v);if(n===null)return '—';const sign=n<0?'-':'';const fixed=Math.abs(n).toFixed(dec);let [integer,decimals='']=fixed.split('.');integer=integer.replace(/\B(?=(\d{3})+(?!\d))/g,'.');return dec?`${sign}${integer},${decimals}`:`${sign}${integer}`;}
+function euro(v){const n=num(v);return n===null?'—':`${fmt(n,0)} €`;}
+function pct(v,dec=2){const n=num(v);return n===null?'—':`${n>=0?'+':''}${fmt(n,dec)} %`;}
 function esc(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
-function normalizeState(source,legacyCalendar=false){
-  const rents={...DEFAULT_RENTS,...(source?.rents||{})};
-  const closed={...(source?.closed||{})};
-  if(legacyCalendar && currentMonth<11){
-    const legacyKey=String(currentYear),activeKey=String(CURRENT_PERIOD_START);
-    const activeEmpty=parseES(rents[activeKey])===null;
-    const legacyValue=parseES(rents[legacyKey]);
-    if(activeEmpty && legacyValue!==null){
-      rents[activeKey]=rents[legacyKey];
-      if(closed[legacyKey] && closed[activeKey]===undefined) closed[activeKey]=true;
-      delete rents[legacyKey];
-      delete closed[legacyKey];
-    }
-  }
-  return {
-    rents,closed,
-    ipc:source?.ipc??2,
-    fixedIpc:source?.fixedIpc??2,
-    rentMode:source?.rentMode==='fixed'?'fixed':'real',
-    ipremMonthly:withIpremProjection(source?.ipremMonthly||{})
-  };
+function defaultState(){return {viewMode:'salary',salaries:clone(DEFAULT_SALARIES),annual:clone(DEFAULT_ANNUAL),updatedAt:null,gistUpdatedAt:null};}
+function normalizeState(raw){
+  const base=defaultState();
+  if(!raw||typeof raw!=='object')return base;
+  base.viewMode=(raw.viewMode==='evolution'||raw.viewMode==='accum')?'evolution':'salary';
+  if(raw.salaries&&typeof raw.salaries==='object')Object.entries(raw.salaries).forEach(([y,v])=>{base.salaries[y]={real:num(v?.real)}});
+  if(raw.annual&&typeof raw.annual==='object')Object.entries(raw.annual).forEach(([y,v])=>{base.annual[y]={annual:num(v?.annual)}});
+  base.updatedAt=raw.updatedAt||raw.savedAt||null;
+  base.gistUpdatedAt=raw.gistUpdatedAt||raw.savedAt||null;
+  return base;
 }
-function loadRememberedToken(){
-  try{
-    const saved=localStorage.getItem(GITHUB_TOKEN_STORAGE_KEY)||'';
-    if(saved){ githubToken.value=saved; rememberGithubToken.checked=true; }
-  }catch(e){}
-}
-function saveRememberedToken(){
-  try{
-    if(rememberGithubToken.checked && githubToken.value.trim()) localStorage.setItem(GITHUB_TOKEN_STORAGE_KEY,githubToken.value.trim());
-    else localStorage.removeItem(GITHUB_TOKEN_STORAGE_KEY);
-  }catch(e){}
-}
-function parseTime(value){
-  const t=Date.parse(value||'');
-  return Number.isFinite(t)?t:0;
-}
+function persist(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch(e){}}
 function readLocalSnapshot(){
   try{
-    let raw=localStorage.getItem(STORAGE_KEY);
-    if(!raw){
-      const old=localStorage.getItem('alquiler_majadahonda_v1');
-      if(old) raw=old;
-    }
-    if(!raw) return null;
-    const parsed=JSON.parse(raw||'{}');
-    if(!parsed || typeof parsed!=='object') return null;
-    const source=parsed.state&&typeof parsed.state==='object'?parsed.state:parsed;
-    return {
-      state:normalizeState(source,Number(parsed.stateVersion||source.stateVersion||0)<5),
-      updatedAt:parsed.updatedAt||parsed.savedAt||source.updatedAt||source.savedAt||null
-    };
+    const raw=localStorage.getItem(STORAGE_KEY);
+    return raw?normalizeState(JSON.parse(raw)):null;
   }catch(e){return null;}
 }
-function persistLocal({touch=false,updatedAt=null,markDirty=false}={}){
-  if(touch) localUpdatedAt=new Date().toISOString();
-  else if(updatedAt) localUpdatedAt=updatedAt;
-  const wrapper={stateVersion:9,updatedAt:localUpdatedAt,state:{...state}};
-  try{localStorage.setItem(STORAGE_KEY,JSON.stringify(wrapper));}catch(e){}
-  if(markDirty){
-    gistDirty=true;
-    setTopSync('pending','☁ Gist · cambios locales');
-    setGistUpdate(serverUpdatedAt,'pending');
-    scheduleGistAutosave();
+function stampMs(value){const t=Date.parse(value||'');return Number.isFinite(t)?t:0;}
+function touchLocal(){
+  state.updatedAt=new Date().toISOString();
+  gistDirty=true;
+  persist();
+  renderGistUpdated('pending');
+  setSyncStatus('warn','Cambios guardados localmente · pendientes de sincronizar con el Gist.');
+  scheduleAutoSave();
+}
+function scheduleAutoSave(delay=AUTOSAVE_DELAY_MS){
+  clearTimeout(autosaveTimer);
+  if(!String(els.githubToken.value||'').trim())return;
+  autosaveTimer=setTimeout(()=>saveToGist({auto:true}),delay);
+}
+function twelvePayFromReal(real){const r=num(real);return r===null?null:((r*12)+((r+200)*3))/12;}
+function salaryFor(year){const row=state.salaries[year]||{real:null};const real=num(row.real);return {real,twelve:twelvePayFromReal(real)};}
+function yearsDescending(){const max=Math.max(currentYear,...Object.keys(state.salaries).map(Number).filter(Number.isFinite),REFERENCE_YEAR);const out=[];for(let y=max;y>=START_YEAR;y--)out.push(y);return out;}
+function latestFilled(){for(const y of yearsDescending()){const s=salaryFor(y);if(num(s.real)!==null)return {year:y,...s};}return null;}
+function renderSummary(){const latest=latestFilled();const ref=salaryFor(REFERENCE_YEAR);if(!latest){els.latestReal.textContent='—';els.latestTwelve.textContent='—';els.growthSinceStart.textContent='—';els.annualEquivalent.textContent='—';return;}els.latestReal.textContent=euro(latest.real);els.latestRealSub.textContent=`Último dato registrado · ${latest.year} · edad ${latest.year-BIRTH_YEAR}`;els.latestTwelve.textContent=euro(latest.twelve);els.latestTwelveSub.textContent=`Calculado con 12 mensualidades + 3 pagas con 200 € extra.`;const refReal=num(ref.real),lastReal=num(latest.real);if(refReal&&lastReal){const growth=(lastReal/refReal-1)*100;els.growthSinceStart.textContent=pct(growth,2);els.growthSinceStartSub.textContent=`De ${euro(refReal)} en 2008 a ${euro(lastReal)} en ${latest.year}.`;const years=latest.year-REFERENCE_YEAR;if(years>0){const cagr=(Math.pow(lastReal/refReal,1/years)-1)*100;els.annualEquivalent.textContent=pct(cagr,2);els.annualEquivalentSub.textContent=`Equivalente anual compuesto durante ${years} años.`;}else{els.annualEquivalent.textContent='—';}}else{els.growthSinceStart.textContent='—';els.annualEquivalent.textContent='—';}}
+function renderTable(){
+  const evolution=state.viewMode==='evolution';
+  els.salaryModeBtn.classList.toggle('active',!evolution);
+  els.accumModeBtn.classList.toggle('active',evolution);
+  els.modeNote.textContent=evolution
+    ?'Evolución desde 2008 · compara cada salario real con la referencia de 2008 y calcula su crecimiento anual equivalente.'
+    :'Salario · “En 12 pagas” se calcula automáticamente: [(Real × 12) + ((Real + 200 €) × 3)] ÷ 12.';
+  if(!evolution){
+    els.head.innerHTML='<th>Año</th><th>Edad</th><th>Real</th><th>En 12 pagas</th><th>Diferencia año anterior</th><th>Subida real %</th><th class="reference-head">Diferencia con 2008</th>';
+    els.body.innerHTML=yearsDescending().map(y=>{
+      const s=salaryFor(y),real=num(s.real),twelve=num(s.twelve),prev=num(salaryFor(y-1).real),ref=num(salaryFor(REFERENCE_YEAR).real);
+      const diff=y>REFERENCE_YEAR&&real!==null&&prev!==null?real-prev:null;
+      const rise=diff!==null&&prev?diff/prev*100:null;
+      const fromRef=y>=REFERENCE_YEAR&&real!==null&&ref!==null?real-ref:null;
+      return `<tr class="${y===currentYear?'current-row':''}"><td><span class="year">${y}</span></td><td><span class="age">${y-BIRTH_YEAR}</span></td><td><div class="salary-cell"><input class="salary-input" data-year="${y}" data-key="real" type="text" inputmode="decimal" value="${real===null?'':esc(fmt(real,0))}" placeholder="—"></div></td><td><span class="amount" title="[(Real × 12) + ((Real + 200 €) × 3)] ÷ 12">${twelve===null?'—':euro(twelve)}</span></td><td class="${diff===null?'neutral':diff>=0?'positive':'negative'}">${diff===null?'—':`${diff>=0?'+':''}${euro(diff)}`}</td><td class="${rise===null?'neutral':rise>=0?'positive':'negative'}">${rise===null?'—':pct(rise,2)}</td><td class="reference-col">${fromRef===null?'—':`${fromRef>=0?'+':''}${euro(fromRef)}`}</td></tr>`;
+    }).join('');
+  }else{
+    els.head.innerHTML='<th>Año</th><th>Edad</th><th>Salario real</th><th class="reference-head">Diferencia € vs 2008</th><th>Subida % vs 2008</th><th>Crecimiento anual equivalente</th>';
+    els.body.innerHTML=yearsDescending().map(y=>{
+      const real=num(salaryFor(y).real),ref=num(salaryFor(REFERENCE_YEAR).real);
+      const diff=(real!==null&&ref!==null)?real-ref:null;
+      const rise=(real!==null&&ref!==null&&ref!==0)?((real/ref)-1)*100:null;
+      const years=y-REFERENCE_YEAR;
+      const cagr=(real!==null&&ref!==null&&real>0&&ref>0&&years>0)?(Math.pow(real/ref,1/years)-1)*100:(years===0&&real!==null&&ref!==null?0:null);
+      return `<tr class="${y===currentYear?'current-row':''}"><td><span class="year">${y}</span></td><td><span class="age">${y-BIRTH_YEAR}</span></td><td><span class="amount">${real===null?'—':euro(real)}</span></td><td class="reference-col">${diff===null?'—':`${diff>=0?'+':''}${euro(diff)}`}</td><td class="${rise===null?'neutral':rise>=0?'positive':'negative'}">${rise===null?'—':pct(rise,2)}</td><td class="${cagr===null?'neutral':cagr>=0?'positive':'negative'}">${cagr===null?'—':pct(cagr,2)}</td></tr>`;
+    }).join('');
   }
 }
-function saveLocal(markDirty=true){
-  persistLocal({touch:markDirty,markDirty});
+function annualYears(){const set=new Set(Object.keys(state.annual).map(Number).filter(Number.isFinite));set.add(currentYear);return [...set].sort((a,b)=>b-a);}
+function previousAnnualMonthly(year){const years=annualYears().filter(y=>y<year).sort((a,b)=>b-a);for(const y of years){const m=num(salaryFor(y).real);if(m!==null)return {year:y,value:m};}return null;}
+function loadRememberedToken(){try{const t=localStorage.getItem(TOKEN_STORAGE_KEY);if(t){els.githubToken.value=t;els.rememberToken.checked=true;return true;}}catch(e){}return false;}
+function persistRememberedToken(){try{if(els.rememberToken.checked&&String(els.githubToken.value||'').trim())localStorage.setItem(TOKEN_STORAGE_KEY,String(els.githubToken.value).trim());else localStorage.removeItem(TOKEN_STORAGE_KEY);}catch(e){}}
+function formatGistUpdatedAt(value){if(!value)return '—';const d=new Date(value);if(Number.isNaN(d.getTime()))return '—';const parts=new Intl.DateTimeFormat('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(d);const get=t=>parts.find(x=>x.type===t)?.value||'';return `${get('day')}/${get('month')}/${get('year')} · ${get('hour')}:${get('minute')}`;}
+function renderGistUpdated(mode='ok'){
+  if(mode==='checking'){els.gistUpdatedLine.innerHTML='<span class="gist-cloud">☁</span>Última actualización del Gist · comprobando…';return;}
+  const stamp=formatGistUpdatedAt(state.gistUpdatedAt);
+  const suffix=mode==='pending'?' · cambios locales pendientes':mode==='syncing'?' · sincronizando…':mode==='error'?' · error de sincronización':mode==='local'?' · mostrando copia local':'';
+  els.gistUpdatedLine.innerHTML=`<span class="gist-cloud">☁</span>Última actualización del Gist · ${stamp}${suffix}`;
 }
-function scheduleGistAutosave(delay=SYNC_DEBOUNCE_MS){
-  if(!bootstrapFinished || !gistDirty || !githubToken?.value?.trim()) return;
-  clearTimeout(syncTimer);
-  syncTimer=setTimeout(()=>saveToGist({auto:true}),delay);
-}
-function nextRenewal(year){
-  if(year<=RENEWAL_ANCHOR) return RENEWAL_ANCHOR;
-  const steps=Math.ceil((year-RENEWAL_ANCHOR)/RENEWAL_CYCLE);
-  return RENEWAL_ANCHOR+steps*RENEWAL_CYCLE;
-}
-function parseES(v){
-  let s=String(v??'').trim().replace(/\s/g,'').replace(/€/g,''); if(!s) return null;
-  if(s.includes(',')&&s.includes('.')) s=s.replace(/\./g,'').replace(',','.');
-  else if(s.includes(',')) s=s.replace(',','.');
-  else if(/^\d{1,3}(?:\.\d{3})+$/.test(s)) s=s.replace(/\./g,'');
-  const n=Number(s); return Number.isFinite(n)?n:null;
-}
-function numES(v,dec=0){
-  if(v===null||v===undefined||!Number.isFinite(Number(v))) return '—';
-  const n=Number(v),neg=n<0?'-':'',abs=Math.abs(n),fixed=abs.toFixed(dec);let [i,d='']=fixed.split('.');i=i.replace(/\B(?=(\d{3})+(?!\d))/g,'.');return neg+i+(dec?','+d:'');
-}
-function eur(v,dec=0){return `${numES(v,dec)} €`;}
-function pct(v){if(v===null||!Number.isFinite(v))return '—';return `${v>0?'+':''}${numES(v,0)} %`;}
-function pctPrecise(v){if(v===null||!Number.isFinite(v))return '—';return `${v>0?'+':''}${numES(v,2)} %`;}
-function formatInput(el){const n=parseES(el.value);el.value=n===null?'':numES(n,0);}
-
-function numESFlexible(v,maxDec=2){
-  if(v===null||v===undefined||!Number.isFinite(Number(v))) return '—';
-  const fixed=Number(v).toFixed(maxDec).replace(/0+$/,'').replace(/\.$/,'');
-  const parts=fixed.split('.');
-  let i=parts[0],d=parts[1]||'';
-  const neg=i.startsWith('-'); if(neg)i=i.slice(1);
-  i=i.replace(/\B(?=(\d{3})+(?!\d))/g,'.');
-  return (neg?'-':'')+i+(d?','+d:'');
-}
-function ipremMonthlyForYear(year){
-  if(Object.prototype.hasOwnProperty.call(FIXED_IPREM_MONTHLY,year)) return FIXED_IPREM_MONTHLY[year];
-  return parseES(state.ipremMonthly?.[year]);
-}
-function withIpremProjection(values){
-  const next={...(values||{})};
-  let seed=null;
-  for(let y=IPREM_START_YEAR;y<=currentYear;y++){
-    if(Object.prototype.hasOwnProperty.call(FIXED_IPREM_MONTHLY,y)){seed=FIXED_IPREM_MONTHLY[y];continue;}
-    const existing=parseES(next[y]);
-    if(existing!==null){seed=existing;}
-    else if(seed!==null){next[y]=seed;}
-  }
-  return next;
-}
-function ipremYearsToShow(){
-  const years=[];
-  for(let y=currentYear;y>=IPREM_START_YEAR;y--) years.push(y);
-  return years;
-}
-function renderIPREM(){
-  if(!ipremGrid) return;
-  const years=ipremYearsToShow();
-  ipremGrid.innerHTML=years.map(year=>{
-    const monthly=ipremMonthlyForYear(year);
-    const annual=monthly===null?null:monthly*14;
-    const objective=annual===null?null:(annual*IPREM_FACTOR/MADRID_CORRECTOR);
-    const editable=!Object.prototype.hasOwnProperty.call(FIXED_IPREM_MONTHLY,year);
-    const cls=year===currentYear?'current':(year<currentYear?'past':'future');
-    const badge=year===currentYear?'<span class="iprem-badge">ACTUAL</span>':(year>currentYear?'<span class="iprem-badge">PRÓXIMO</span>':'');
-    const monthlyHtml=editable
-      ? `<input class="iprem-input" data-iprem-year="${year}" data-iprem-field="monthly" type="text" inputmode="decimal" autocomplete="off" value="${monthly===null?'':numESFlexible(monthly,2)}" placeholder="0">`
-      : `<span class="iprem-v">${monthly===null?'—':numESFlexible(monthly,2)+' €'}</span>`;
-    const annualHtml=editable
-      ? `<input class="iprem-input" data-iprem-year="${year}" data-iprem-field="annual" type="text" inputmode="decimal" autocomplete="off" value="${annual===null?'':numESFlexible(annual,0)}" placeholder="0">`
-      : `<span class="iprem-v">${annual===null?'—':eur(annual,0)}</span>`;
-    return `<article class="iprem-card ${cls}">
-      <div class="iprem-year">IPREM ${year}${badge}</div>
-      <div class="iprem-body">
-        <div class="iprem-main">
-          <div><span class="iprem-k">Mensual</span>${monthlyHtml}</div>
-          <div><span class="iprem-k">Anual ×14</span>${annualHtml}</div>
-        </div>
-        <div class="iprem-factor"><span>IPREM ×</span><strong>${numESFlexible(IPREM_FACTOR,1)}</strong></div>
-        <div class="iprem-bottom">
-          <div class="iprem-corrector"><span class="iprem-k">Corrector Madrid</span><span class="iprem-v">${numESFlexible(MADRID_CORRECTOR,1)}</span></div>
-          <div class="iprem-objective"><span class="iprem-k">Objetivo</span><span class="iprem-v">${objective===null?'—':eur(objective,0)}</span></div>
-        </div>
-      </div>
-    </article>`;
-  }).join('');
-}
-
-function diffClass(v){if(v===null||Math.abs(v)<1e-9)return 'neutral';return v>0?'positive-cost':'negative-cost';}
-function isRenewalYear(y){return y>=RENEWAL_ANCHOR && (y-RENEWAL_ANCHOR)%RENEWAL_CYCLE===0;}
-function periodLabel(startYear){return `${startYear}-${String(startYear+1).slice(-2)}`;}
-function fixedIpcValue(){
-  const n=parseES(state.fixedIpc);
-  return n===null?2:n;
-}
-function fixedRentForYear(year){
-  if(year===START_YEAR) return parseES(state.rents[START_YEAR]);
-  const reference=parseES(state.rents[REFERENCE_YEAR]);
-  if(reference===null || year<REFERENCE_YEAR) return null;
-  const rate=fixedIpcValue()/100;
-  return reference*Math.pow(1+rate,year-REFERENCE_YEAR);
-}
-function rentForMode(year){
-  return state.rentMode==='fixed'?fixedRentForYear(year):parseES(state.rents[year]);
-}
-function renderRentModeControls(){
-  const fixed=state.rentMode==='fixed';
-  realModeBtn.classList.toggle('active',!fixed);
-  fixedModeBtn.classList.toggle('active',fixed);
-  fixedIpcControl.classList.toggle('show',fixed);
-  fixedIpcInput.value=numES(fixedIpcValue(),0);
-  rentAmountHead.textContent=fixed?'Alquiler con IPC fijo':'Alquiler';
-  growthHead.textContent=fixed?'Subida fija %':'Subida real %';
-  modeNote.innerHTML=fixed
-    ? `IPC Fijo · simulación compuesta desde <b>${periodLabel(REFERENCE_YEAR)}</b> al <b>${numES(fixedIpcValue(),0)} %</b> anual. No modifica tus datos reales.`
-    : 'IPC Real · muestra las cuotas realmente registradas y sus variaciones.';
-}
-function updateMilestones(){
-  const renewal=nextRenewal(currentYear),irpf=renewal-1;
-  renewalValue.innerHTML=`${renewal} <span class="milestone-age">(${renewal-1972} años)</span>`;irpfValue.innerHTML=`${irpf} <span class="milestone-age">(${irpf-1972} años)</span>`;
-  renewalCard.className='milestone'+(currentYear===renewal?' renewal-now':'');
-  renewalChip.textContent=currentYear===renewal?'Renovación este año':`Cada ${RENEWAL_CYCLE} años`;
-  irpfCard.className='milestone';
-  if(currentYear===irpf){irpfCard.classList.add('irpf-critical');irpfChip.textContent='ATENCIÓN · este año';irpfSub.textContent=`Previo a la renovación de ${renewal}`;}
-  else if(currentYear===irpf-1){irpfCard.classList.add('irpf-warning');irpfChip.textContent='Se acerca · el año que viene';irpfSub.textContent=`IRPF ${irpf} · renovación ${renewal}`;}
-  else{irpfChip.textContent=irpf<currentYear?'Ciclo ya cumplido':`Previo a renovación ${renewal}`;irpfSub.textContent='Año anterior a la renovación';}
-}
-function averageRealAnnualGrowth(){
-  const values=[];
-  for(let year=REFERENCE_YEAR+1;year<=CURRENT_PERIOD_START;year++){
-    const current=parseES(state.rents[year]);
-    const previous=parseES(state.rents[year-1]);
-    if(current===null||previous===null||previous===0) continue;
-    values.push(((current/previous)-1)*100);
-  }
-  if(!values.length) return null;
-  return values.reduce((sum,value)=>sum+value,0)/values.length;
-}
-
-function renderUpdateCards(){
-  const currentRent=parseES(state.rents[CURRENT_PERIOD_START]);
-  const reference=parseES(state.rents[REFERENCE_YEAR]);
-  const ipcRaw=parseES(state.ipc);
-  const ipc=ipcRaw===null?2:ipcRaw;
-  currentRentLabel.textContent=`Cuota ${periodLabel(CURRENT_PERIOD_START)}`;
-  nextRentLabel.textContent=`Cuota estimada ${periodLabel(CURRENT_PERIOD_START+1)}`;
-  currentRentValue.textContent=currentRent===null?'—':eur(currentRent,0);
-  currentRentSub.textContent=currentRent===null?`Completa ${periodLabel(CURRENT_PERIOD_START)} en la tabla.`:'Periodo vigente hasta el cambio de diciembre.';
-  ipcInput.value=numES(ipc,0);
-  const estimated=currentRent===null?null:currentRent*(1+ipc/100);
-  nextRentValue.textContent=estimated===null?'—':eur(estimated,0);
-  nextRentSub.textContent=estimated===null?'Esperando la cuota actual.':`Aplicando ${numES(ipc,0)} % de IPC.`;
-  const cumulative=(currentRent!==null&&reference!==null&&reference!==0)?((currentRent/reference)-1)*100:null;
-  const averageGrowth=averageRealAnnualGrowth();
-  cumulativeGrowthValue.textContent=cumulative===null?'—':pct(cumulative);
-  cumulativeGrowthSub.textContent=reference===null
-    ? `Falta la cuota de ${periodLabel(REFERENCE_YEAR)}.`
-    : (averageGrowth===null?'Sin suficientes años para calcular la media.':`Subida media anual real: ${pctPrecise(averageGrowth)}.`);
-}
-function rowClass(year){
-  const renewal=nextRenewal(currentYear),irpf=renewal-1;
-  const classes=[];
-  if(year===START_YEAR) classes.push('fixed-base-row');
-  if(state.rentMode==='real' && state.closed[year]) classes.push('closed-row');
-  if(year===CURRENT_PERIOD_START) classes.push('current-row');
-  if(year===irpf && currentYear===irpf) classes.push('irpf-row-now');
-  if(year===irpf-1 && currentYear===irpf-1) classes.push('irpf-row-warning');
-  if(isRenewalYear(year)) classes.push('renewal-row');
-  return classes.join(' ');
-}
-function render(){
-  const reference=parseES(state.rents[REFERENCE_YEAR]);
-  const fixedMode=state.rentMode==='fixed';
-  let html='';
-  for(let year=CURRENT_PERIOD_START;year>=START_YEAR;year--){
-    const rent=rentForMode(year);
-    const prev=year>REFERENCE_YEAR?rentForMode(year-1):null;
-    const diff=(year>REFERENCE_YEAR&&rent!==null&&prev!==null)?rent-prev:null;
-    const growth=(diff!==null&&prev!==0)?(diff/prev*100):null;
-    const firstDiff=(year>=REFERENCE_YEAR&&rent!==null&&reference!==null)?rent-reference:null;
-    const closed=!!state.closed[year];
-    const renewalBadge=isRenewalYear(year)?'<span class="row-chip">RENOVACIÓN</span>':'';
-    const currentBadge=year===CURRENT_PERIOD_START?'<span class="row-chip">ACTUAL</span>':'';
-    const fixedBadge=year===START_YEAR?'<span class="row-chip">FIJO · FUERA CÁLCULO</span>':'';
-    const referenceBadge=year===REFERENCE_YEAR?'<span class="row-chip">REFERENCIA</span>':'';
-    const rentValue=rent===null?'':numES(rent,0);
-    const ageText=String((year+1)-BIRTH_YEAR);
-    let rentCell='';
-    if(fixedMode){
-      const origin=year===START_YEAR?'Histórico · fuera cálculo':(year===REFERENCE_YEAR?'Referencia real':`IPC fijo ${numES(fixedIpcValue(),0)} %`);
-      rentCell=`<div class="rent-cell"><div class="rent-derived"><span class="amount">${rent===null?'—':eur(rent,0)}</span><div class="rent-origin">${origin}</div></div></div>`;
-    }else{
-      rentCell=`<div class="rent-cell"><input class="rent-input" data-year="${year}" type="text" inputmode="decimal" autocomplete="off" value="${rentValue}" ${closed?'disabled':''} placeholder="0"><button class="lock-btn ${closed?'closed':''}" data-lock-year="${year}" type="button" ${!closed&&rent===null?'disabled':''}>${closed?'🔒 Cerrado':'Cerrar año'}</button></div>`;
-    }
-    html+=`<tr class="${rowClass(year)}">
-      <td><span class="year">${periodLabel(year)}</span>${fixedBadge}${referenceBadge}${renewalBadge}${currentBadge}</td>
-      <td><span class="years">${ageText}</span></td>
-      <td>${rentCell}</td>
-      <td><span class="${diffClass(diff)}">${diff===null?'—':`${diff>0?'+':''}${eur(diff,0)}`}</span></td>
-      <td><span class="${diffClass(growth)}">${pct(growth)}</span></td>
-      <td><span class="reference-col">${firstDiff===null?'—':`${firstDiff>0?'+':''}${eur(firstDiff,0)}`}</span></td>
-    </tr>`;
-  }
-  body.innerHTML=html||'<tr><td colspan="6" class="empty">Sin años que mostrar.</td></tr>';
-  renderRentModeControls();
-  renderUpdateCards();
-  renderIPREM();
+function renderAnnual(){els.annualGrid.innerHTML=annualYears().map(y=>{const d=state.annual[y]||{annual:null};const annual=num(d.annual),monthly=num(salaryFor(y).real);const prev=previousAnnualMonthly(y);const diff=monthly!==null&&prev?monthly-prev.value:null;const cls=y===currentYear?'current':'past';const diffCls=diff===null?'':diff>=0?'positive':'negative';return `<article class="annual-card ${cls}"><div class="annual-year">${y}</div><label class="annual-row"><span class="annual-label">Total / año</span><input class="annual-input" data-annual-year="${y}" data-annual-key="annual" type="text" inputmode="numeric" value="${annual===null?'':esc(fmt(annual,0))}" placeholder="—"></label><div class="annual-row"><span class="annual-label">Total / mes</span><div class="annual-value" title="Tomado automáticamente de Evolución del salario · ${y}">${monthly===null?'—':fmt(monthly,0)}</div></div><div class="annual-diff ${diffCls}">${diff===null?'—':`${diff>=0?'+':''}${euro(diff)}`}</div><div class="annual-mini">${prev?`Diferencia vs ${prev.year}`:'Primer registro con mensual'}${monthly!==null?' · automático':''}</div></article>`;}).join('')||'<div class="annual-empty">Sin datos.</div>';}
+function render(){renderSummary();renderTable();renderAnnual();renderGistUpdated(gistDirty?'pending':'ok');}
+function setSyncStatus(type,text){
+  els.syncStatus.className=`sync-status ${type}`;
+  els.syncStatus.innerHTML=`<span class="sync-status-dot"></span><span>${text}</span>`;
+  els.syncOpenBtn.className=`status-pill ${type==='error'?'error':type==='ok'?'':'pending'}`;
+  els.topSyncText.textContent=type==='ok'?'Gist sincronizado':'☁ Gist / JSON';
 }
 function calculatedSnapshot(){
-  const currentRent=parseES(state.rents[CURRENT_PERIOD_START]);
-  const reference=parseES(state.rents[REFERENCE_YEAR]);
-  const ipc=parseES(state.ipc)??2;
-  const nextRent=currentRent===null?null:currentRent*(1+ipc/100);
-  const cumulative=(currentRent!==null&&reference!==null&&reference!==0)?((currentRent/reference)-1)*100:null;
-  const iprem={};
-  ipremYearsToShow().forEach(year=>{
-    const monthly=ipremMonthlyForYear(year);
-    if(monthly===null) return;
-    const annual=monthly*14;
-    iprem[year]={monthly,annual,objective:annual*IPREM_FACTOR/MADRID_CORRECTOR};
-  });
-  return {
-    calculatedAt:new Date().toISOString(),
-    currentPeriod:periodLabel(CURRENT_PERIOD_START),
-    currentRent,
-    nextPeriod:periodLabel(CURRENT_PERIOD_START+1),
-    nextRent,
-    cumulativeGrowthPct:cumulative,
-    averageRealAnnualGrowthPct:averageRealAnnualGrowth(),
-    nextRenewal:nextRenewal(currentYear),
-    irpfYear:nextRenewal(currentYear)-1,
-    iprem
-  };
+  const latest=latestFilled();
+  const ref=salaryFor(REFERENCE_YEAR);
+  const refReal=num(ref.real),lastReal=num(latest?.real);
+  const years=latest?latest.year-REFERENCE_YEAR:0;
+  const growth=refReal&&lastReal?((lastReal/refReal)-1)*100:null;
+  const cagr=refReal&&lastReal&&years>0?(Math.pow(lastReal/refReal,1/years)-1)*100:null;
+  return {calculatedAt:new Date().toISOString(),latest:latest?{year:latest.year,real:latest.real,twelve:latest.twelve}:null,growthSince2008:growth,annualEquivalent:cagr};
 }
-function payload(){
-  const stamp=localUpdatedAt||new Date().toISOString();
-  return {
-    schema:'alquiler-majadahonda',
-    version:9,
-    updatedAt:stamp,
-    savedAt:stamp,
-    startYear:START_YEAR,
-    referenceYear:REFERENCE_YEAR,
-    birthYear:BIRTH_YEAR,
-    renewalAnchor:RENEWAL_ANCHOR,
-    renewalCycle:RENEWAL_CYCLE,
-    periodMode:'december-to-december',
-    rents:state.rents,
-    closed:state.closed,
-    ipc:parseES(state.ipc)??2,
-    fixedIpc:parseES(state.fixedIpc)??2,
-    rentMode:state.rentMode==='fixed'?'fixed':'real',
-    ipremMonthly:{...(state.ipremMonthly||{})},
-    calculatedSnapshot:calculatedSnapshot()
-  };
+function payload(savedAt=new Date().toISOString()){
+  return {schema:'salario',version:4,updatedAt:state.updatedAt||savedAt,savedAt,viewMode:state.viewMode,salaries:clone(state.salaries),annual:clone(state.annual),calculatedSnapshot:calculatedSnapshot()};
 }
-function applyPayload(data,{markDirty=false,remote=false}={}){
-  if(!data||typeof data!=='object') throw new Error('El JSON no contiene datos válidos.');
-  const source=data.state&&typeof data.state==='object'?data.state:data;
-  if(!source.rents||typeof source.rents!=='object') throw new Error('No encuentro el histórico de alquileres en el JSON.');
-  state=normalizeState(source,Number(data.version||source.version||0)<5);
-  const sourceStamp=data.updatedAt||data.savedAt||source.updatedAt||source.savedAt||null;
-  const stamp=markDirty?new Date().toISOString():(sourceStamp||new Date().toISOString());
-  localUpdatedAt=stamp;
-  if(remote) serverUpdatedAt=stamp;
-  persistLocal({updatedAt:stamp,markDirty:false});
+function applyPayload(p,{fromGist=false,markDirty=false}={}){
+  if(!p||typeof p!=='object')throw new Error('JSON no válido.');
+  const next=normalizeState(p);
+  if(fromGist){next.updatedAt=p.updatedAt||p.savedAt||next.updatedAt;next.gistUpdatedAt=p.savedAt||p.updatedAt||next.gistUpdatedAt;}
+  state=next;
   gistDirty=markDirty;
-  setTopSync(markDirty?'pending':'','☁ Gist · '+(markDirty?'cambios locales':'sincronizado'));
+  if(markDirty)state.updatedAt=new Date().toISOString();
+  persist();
   render();
-  if(markDirty){setGistUpdate(serverUpdatedAt,'pending');scheduleGistAutosave();}
-  else setGistUpdate(serverUpdatedAt||stamp);
-}
-function githubHeaders(){
-  const headers={'Accept':'application/vnd.github+json','X-GitHub-Api-Version':GITHUB_API_VERSION};
-  const token=githubToken.value.trim();
-  if(token) headers.Authorization=`Bearer ${token}`;
-  return headers;
-}
-async function saveToGist({auto=false}={}){
-  const token=githubToken.value.trim();
-  if(!token){
-    if(!auto){setSyncStatus('error','Introduce el <b>token de GitHub</b> para guardar. No se almacenará en la app.');githubToken.focus();}
-    return false;
-  }
-  if(syncInFlight){syncAgainAfterCurrent=true;return false;}
-  syncInFlight=true;
-  clearTimeout(syncTimer);
-  saveGistBtn.disabled=true;loadGistBtn.disabled=true;
-  setTopSync('pending','☁ Gist · sincronizando');setGistUpdate(serverUpdatedAt,'syncing');
-  if(!auto) setSyncStatus('warn','Guardando <b>alquiler-majadahonda.json</b> en el Gist compartido…');
-  const gistPayload=payload();
-  try{
-    const res=await fetch(`https://api.github.com/gists/${encodeURIComponent(GIST_ID)}`,{
-      method:'PATCH',headers:{...githubHeaders(),'Content-Type':'application/json'},
-      body:JSON.stringify({files:{[GIST_FILENAME]:{content:JSON.stringify(gistPayload,null,2)}}})
-    });
-    const text=await res.text();let data=null;try{data=text?JSON.parse(text):null}catch(e){}
-    if(!res.ok) throw new Error(data?.message||text||`HTTP ${res.status}`);
-    serverUpdatedAt=gistPayload.updatedAt||gistPayload.savedAt;
-    const newerLocal=parseTime(localUpdatedAt)>parseTime(serverUpdatedAt);
-    gistDirty=newerLocal;
-    if(newerLocal){
-      persistLocal({updatedAt:localUpdatedAt,markDirty:false});
-      setTopSync('pending','☁ Gist · cambios locales');setGistUpdate(serverUpdatedAt,'pending');
-      setSyncStatus('warn',`Gist actualizado, pero ya hay cambios locales posteriores pendientes de sincronizar.`);
-      syncAgainAfterCurrent=true;
-    }else{
-      localUpdatedAt=serverUpdatedAt;
-      persistLocal({updatedAt:localUpdatedAt,markDirty:false});
-      setTopSync('','☁ Gist · sincronizado');setGistUpdate(serverUpdatedAt);
-      setSyncStatus('ok',`Guardado en el mismo Gist como <b>${GIST_FILENAME}</b>.`);
-    }
-    return true;
-  }catch(err){
-    console.error(err);gistDirty=true;setTopSync('error','☁ Gist · error');setGistUpdate(serverUpdatedAt,'pending');
-    setSyncStatus('error',`No he podido guardar: ${esc(err.message)}. Los cambios siguen guardados localmente.`);
-    return false;
-  }finally{
-    syncInFlight=false;saveGistBtn.disabled=false;loadGistBtn.disabled=false;
-    if(syncAgainAfterCurrent || gistDirty){syncAgainAfterCurrent=false;scheduleGistAutosave(150);}
-  }
 }
 async function fetchGistPayload(){
   const controller=new AbortController();
   const timer=setTimeout(()=>controller.abort(),GIST_TIMEOUT_MS);
   try{
-    const url=`${GIST_RAW_URL}?t=${Date.now()}`;
-    const res=await fetch(url,{cache:'no-store',signal:controller.signal});
-    if(res.status===404) return {status:'missing',data:null};
-    if(!res.ok) throw new Error(`HTTP ${res.status}`);
-    return {status:'ok',data:JSON.parse(await res.text())};
+    const res=await fetch(`${GIST_RAW_URL}?t=${Date.now()}`,{cache:'no-store',signal:controller.signal});
+    if(res.status===404)return {missing:true,payload:null};
+    if(!res.ok)throw new Error(`HTTP ${res.status}`);
+    return {missing:false,payload:JSON.parse(await res.text())};
   }catch(err){
-    if(err?.name==='AbortError') throw new Error('tiempo de espera agotado');
+    if(err?.name==='AbortError')throw new Error('tiempo de espera agotado');
     throw err;
   }finally{clearTimeout(timer);}
 }
-async function loadFromGist({auto=false,force=true}={}){
-  saveGistBtn.disabled=true;loadGistBtn.disabled=true;
-  if(!auto) setSyncStatus('warn','Cargando datos desde el Gist compartido…');
-  setGistUpdate(null,'checking');
+async function loadFromGist({auto=false}={}){
+  setSyncStatus('warn',auto?'Comprobando primero el Gist…':'Comprobando el Gist…');
+  renderGistUpdated('checking');
   try{
-    const result=await fetchGistPayload();
-    if(result.status==='missing'){
-      if(!auto) setSyncStatus('warn',`Aún no existe <b>${GIST_FILENAME}</b> en este Gist.`);
-      setTopSync('pending','☁ Gist · solo local');setGistUpdate(null,'missing');
+    const remote=await fetchGistPayload();
+    if(remote.missing){
+      const local=readLocalSnapshot();
+      if(local){
+        state=local;
+        if(!state.updatedAt)state.updatedAt=new Date().toISOString();
+        gistDirty=true;persist();render();
+        setSyncStatus('warn','El Gist todavía no contiene salario.json · mostrando la copia local, pendiente de subir.');
+        renderGistUpdated('pending');scheduleAutoSave(150);
+      }else{
+        state=defaultState();gistDirty=false;render();
+        setSyncStatus('warn','El Gist todavía no contiene salario.json y no hay copia local previa.');
+        renderGistUpdated('local');
+      }
       return false;
     }
-    const data=result.data;
-    serverUpdatedAt=data?.updatedAt||data?.savedAt||null;
-    if(force) applyPayload(data,{markDirty:false,remote:true});
-    setSyncStatus('ok',`${auto?'Datos cargados automáticamente':'Datos recuperados'} desde <b>${GIST_FILENAME}</b>.`);
-    return data;
-  }catch(err){
-    console.error(err);setTopSync('error','☁ Gist · no cargado');setGistUpdate(null,'error');
-    if(!auto) setSyncStatus('error',`No he podido cargar el Gist: ${esc(err.message)}`);
-    return false;
-  }finally{saveGistBtn.disabled=false;loadGistBtn.disabled=false;}
-}
-async function bootstrap(){
-  setTopSync('pending','☁ Gist · comprobando');setGistUpdate(null,'checking');
-  const remote=await loadFromGist({auto:true,force:false});
-  const local=readLocalSnapshot();
-  if(remote && typeof remote==='object'){
-    const remoteStamp=remote.updatedAt||remote.savedAt||null;
-    serverUpdatedAt=remoteStamp;
-    if(local && parseTime(local.updatedAt)>parseTime(remoteStamp)){
-      state=local.state;localUpdatedAt=local.updatedAt;gistDirty=true;
-      persistLocal({updatedAt:localUpdatedAt,markDirty:false});
-      render();setTopSync('pending','☁ Gist · cambios locales');setGistUpdate(serverUpdatedAt,'pending');setSyncStatus('warn','La copia local es más reciente que el Gist · cambios pendientes de sincronizar.');
-    }else{
-      applyPayload(remote,{markDirty:false,remote:true});setSyncStatus('ok',`Gist cargado primero · la copia del servidor es la más reciente.`);
+    const remoteState=normalizeState(remote.payload);
+    const local=readLocalSnapshot();
+    const remoteTime=stampMs(remote.payload?.updatedAt||remote.payload?.savedAt);
+    const localTime=stampMs(local?.updatedAt);
+    if(local && localTime>remoteTime){
+      state=local;gistDirty=true;persist();render();
+      setSyncStatus('warn','La copia local es más nueva que el Gist · cambios locales pendientes.');
+      renderGistUpdated('pending');
+      scheduleAutoSave(150);
+      return true;
     }
-  }else if(local){
-    state=local.state;localUpdatedAt=local.updatedAt;gistDirty=true;render();
-    setTopSync('pending','☁ Gist · copia local');
-    setGistUpdate(serverUpdatedAt,serverUpdatedAt?'pending':'error');
-    setSyncStatus('warn','No he podido usar el Gist al arrancar · mostrando la copia local disponible.');
-  }else{
-    localUpdatedAt=null;gistDirty=false;render();
+    remoteState.updatedAt=remote.payload?.updatedAt||remote.payload?.savedAt||remoteState.updatedAt;
+    remoteState.gistUpdatedAt=remote.payload?.savedAt||remote.payload?.updatedAt||remoteState.gistUpdatedAt;
+    state=remoteState;gistDirty=false;persist();render();
+    setSyncStatus('ok',`Datos cargados desde <b>${GIST_FILENAME}</b> · el Gist es la versión más reciente.`);
+    renderGistUpdated('ok');
+    return true;
+  }catch(err){
+    console.warn(err);
+    const local=readLocalSnapshot();
+    if(local){state=local;gistDirty=stampMs(local.updatedAt)>stampMs(local.gistUpdatedAt);render();setSyncStatus('warn',`Gist no disponible (${esc(err.message)}) · mostrando copia local${gistDirty?' con cambios pendientes':''}.`);renderGistUpdated(gistDirty?'pending':'local');}
+    else{state=defaultState();render();setSyncStatus('warn',`Gist no disponible (${esc(err.message)}) · no hay copia local previa.`);renderGistUpdated('error');}
+    return false;
   }
-  bootstrapFinished=true;
-  if(gistDirty && githubToken.value.trim()) scheduleGistAutosave(100);
 }
-function downloadJson(){
-  const blob=new Blob([JSON.stringify(payload(),null,2)],{type:'application/json;charset=utf-8'});
-  const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=GIST_FILENAME;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
-  setSyncStatus('ok',`JSON descargado como <b>${GIST_FILENAME}</b>.`);
+async function saveToGist({auto=false}={}){
+  const token=String(els.githubToken.value||'').trim();
+  persistRememberedToken();
+  if(!token){
+    if(auto){gistDirty=true;persist();renderGistUpdated('pending');return false;}
+    setSyncStatus('error','Introduce el token de GitHub para guardar.');els.githubToken.focus();return false;
+  }
+  if(saveInFlight){scheduleAutoSave(300);return false;}
+  saveInFlight=true;clearTimeout(autosaveTimer);
+  const updateBeingSaved=state.updatedAt||new Date().toISOString();
+  if(!state.updatedAt)state.updatedAt=updateBeingSaved;
+  const data=payload(new Date().toISOString());
+  els.saveGistBtn.disabled=true;els.loadGistBtn.disabled=true;
+  setSyncStatus('warn','Sincronizando cambios con el Gist…');renderGistUpdated('syncing');
+  try{
+    const body={description:'Previsiones personales',files:{[GIST_FILENAME]:{content:JSON.stringify(data,null,2)}}};
+    const res=await fetch(`https://api.github.com/gists/${GIST_ID}`,{method:'PATCH',headers:{'Accept':'application/vnd.github+json','X-GitHub-Api-Version':GITHUB_API_VERSION,'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const text=await res.text();
+    if(!res.ok){let msg=text;try{msg=JSON.parse(text)?.message||text}catch(e){}throw new Error(`${msg} (HTTP ${res.status})`);}
+    state.gistUpdatedAt=data.savedAt;
+    gistDirty=state.updatedAt!==updateBeingSaved;
+    persist();render();
+    if(gistDirty){setSyncStatus('warn','Se guardó una versión, pero hay cambios nuevos pendientes.');renderGistUpdated('pending');scheduleAutoSave(250);}
+    else{setSyncStatus('ok',`Gist actualizado · <b>${GIST_FILENAME}</b>.`);renderGistUpdated('ok');}
+    return true;
+  }catch(err){
+    console.error(err);gistDirty=true;persist();setSyncStatus('error',`No he podido guardar en GitHub: ${esc(err.message)} · los cambios siguen guardados localmente.`);renderGistUpdated('error');return false;
+  }finally{saveInFlight=false;els.saveGistBtn.disabled=false;els.loadGistBtn.disabled=false;}
 }
-async function importJson(file){
-  if(!file)return;
-  try{applyPayload(JSON.parse(await file.text()),{markDirty:true});setSyncStatus('ok',`JSON importado. Queda pendiente guardarlo en Gist.`);}catch(err){setSyncStatus('error',`No he podido importar el JSON: ${esc(err.message)}`);}finally{importJsonInput.value='';}
-}
-function openSync(){syncModal.classList.add('open');syncModal.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';}
-function closeSync(){syncModal.classList.remove('open');syncModal.setAttribute('aria-hidden','true');document.body.style.overflow='';}
+function downloadJson(){const blob=new Blob([JSON.stringify(payload(),null,2)],{type:'application/json;charset=utf-8'});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=GIST_FILENAME;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+async function importJson(file){if(!file)return;try{applyPayload(JSON.parse(await file.text()),{markDirty:true});setSyncStatus('warn',`Importado <b>${esc(file.name)}</b> · cambios locales pendientes.`);scheduleAutoSave(150);}catch(err){setSyncStatus('error',`No he podido importar el JSON: ${esc(err.message)}`);}finally{els.importJsonInput.value='';}}
+function openSync(){els.syncModal.classList.add('open');els.syncModal.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';}
+function closeSync(){els.syncModal.classList.remove('open');els.syncModal.setAttribute('aria-hidden','true');document.body.style.overflow='';}
+function commitUserChange(){touchLocal();render();}
 
-body.addEventListener('input',e=>{
-  if(!e.target.classList.contains('rent-input'))return;
-  const y=e.target.dataset.year;
-  // Guardamos exactamente lo que se está escribiendo. No reconstruimos la tabla
-  // en cada tecla para permitir importes decimales como 344,05 sin perder la coma.
-  state.rents[y]=e.target.value;
-  saveLocal(true);
-  const btn=body.querySelector(`[data-lock-year="${y}"]`);
-  if(btn && !state.closed[y]) btn.disabled=parseES(e.target.value)===null;
-  if(Number(y)===CURRENT_PERIOD_START) renderUpdateCards();
-});
-body.addEventListener('change',e=>{
-  if(!e.target.classList.contains('rent-input'))return;
-  const y=e.target.dataset.year;formatInput(e.target);state.rents[y]=e.target.value;saveLocal(true);render();
-});
-body.addEventListener('keydown',e=>{
-  if(e.target.classList.contains('rent-input') && e.key==='Enter'){e.preventDefault();e.target.blur();}
-});
-body.addEventListener('click',e=>{
-  const btn=e.target.closest('[data-lock-year]');if(!btn)return;
-  const y=btn.dataset.lockYear;
-  if(state.closed[y]){
-    if(confirm(`¿Reabrir ${periodLabel(Number(y))} para modificar su alquiler?`)){state.closed[y]=false;saveLocal(true);render();}
-    return;
-  }
-  const rent=parseES(state.rents[y]);if(rent===null)return;
-  state.rents[y]=numES(rent,0);state.closed[y]=true;saveLocal(true);render();
-});
-ipcInput.addEventListener('input',()=>{
-  state.ipc=ipcInput.value;
-  saveLocal(true);
-  const currentRent=parseES(state.rents[CURRENT_PERIOD_START]);
-  const ipc=parseES(state.ipc);
-  const estimated=(currentRent!==null&&ipc!==null)?currentRent*(1+ipc/100):null;
-  nextRentValue.textContent=estimated===null?'—':eur(estimated,0);
-  nextRentSub.textContent=estimated===null?'Esperando la cuota actual.':`Aplicando ${numES(ipc,0)} % de IPC.`;
-});
-ipcInput.addEventListener('change',()=>{
-  const n=parseES(ipcInput.value);
-  state.ipc=n===null?2:Math.round(n);
-  saveLocal(true);
-  renderUpdateCards();
-});
-ipcInput.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();ipcInput.blur();}});
-
-realModeBtn.addEventListener('click',()=>{
-  if(state.rentMode==='real') return;
-  state.rentMode='real';
-  saveLocal(true);
-  render();
-});
-fixedModeBtn.addEventListener('click',()=>{
-  if(state.rentMode==='fixed') return;
-  state.rentMode='fixed';
-  saveLocal(true);
-  render();
-});
-fixedIpcInput.addEventListener('input',()=>{
-  state.fixedIpc=fixedIpcInput.value;
-  saveLocal(true);
-});
-fixedIpcInput.addEventListener('change',()=>{
-  const n=parseES(fixedIpcInput.value);
-  state.fixedIpc=n===null?2:Math.round(n);
-  saveLocal(true);
-  render();
-});
-fixedIpcInput.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();fixedIpcInput.blur();}});
-
-ipremGrid.addEventListener('input',e=>{
-  if(!e.target.classList.contains('iprem-input')) return;
-  const card=e.target.closest('.iprem-card');
-  const field=e.target.dataset.ipremField;
-  const n=parseES(e.target.value);
-  let monthly,annual;
-  if(field==='annual'){
-    annual=n;monthly=n===null?null:n/14;
-    const monthlyInput=card?.querySelector('[data-iprem-field="monthly"]');
-    if(monthlyInput) monthlyInput.value=monthly===null?'':numESFlexible(monthly,2);
-  }else{
-    monthly=n;annual=n===null?null:n*14;
-    const y=e.target.dataset.ipremYear;
-    state.ipremMonthly[y]=e.target.value;
-    saveLocal(true);
-    const annualInput=card?.querySelector('[data-iprem-field="annual"]');
-    if(annualInput) annualInput.value=annual===null?'':numESFlexible(annual,0);
-  }
-  const objective=annual===null?null:(annual*IPREM_FACTOR/MADRID_CORRECTOR);
-  const vals=card?.querySelectorAll('.iprem-v');
-  if(vals&&vals.length>=2){
-    vals[1].textContent=objective===null?'—':eur(objective,0);
-  }
-});
-ipremGrid.addEventListener('change',e=>{
-  if(!e.target.classList.contains('iprem-input')) return;
-  const y=e.target.dataset.ipremYear,field=e.target.dataset.ipremField,n=parseES(e.target.value);
-  const monthly=field==='annual'?(n===null?null:n/14):n;
-  state.ipremMonthly[y]=monthly===null?'':numESFlexible(monthly,2);
-  saveLocal(true);
-  renderIPREM();
-});
-ipremGrid.addEventListener('keydown',e=>{if(e.target.classList.contains('iprem-input')&&e.key==='Enter'){e.preventDefault();e.target.blur();}});
-
-syncOpenBtn.addEventListener('click',openSync);syncCloseBtn.addEventListener('click',closeSync);syncModal.addEventListener('click',e=>{if(e.target===syncModal)closeSync();});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&syncModal.classList.contains('open'))closeSync();});
-saveGistBtn.addEventListener('click',()=>saveToGist({auto:false}));loadGistBtn.addEventListener('click',()=>loadFromGist({auto:false,force:true}));downloadJsonBtn.addEventListener('click',downloadJson);importJsonBtn.addEventListener('click',()=>importJsonInput.click());importJsonInput.addEventListener('change',()=>importJson(importJsonInput.files?.[0]));
-githubToken.addEventListener('input',()=>{if(rememberGithubToken.checked) saveRememberedToken(); if(gistDirty) scheduleGistAutosave(900);});
-rememberGithubToken.addEventListener('change',()=>{saveRememberedToken(); if(rememberGithubToken.checked && gistDirty) scheduleGistAutosave(100);});
-loadRememberedToken();
+els.salaryModeBtn.addEventListener('click',()=>{if(state.viewMode==='salary')return;state.viewMode='salary';commitUserChange();});
+els.accumModeBtn.addEventListener('click',()=>{if(state.viewMode==='evolution')return;state.viewMode='evolution';commitUserChange();});
+els.body.addEventListener('change',e=>{const el=e.target.closest('.salary-input');if(!el)return;const y=Number(el.dataset.year),key=el.dataset.key;if(!state.salaries[y])state.salaries[y]={real:null};if(key==='real')state.salaries[y].real=num(el.value);commitUserChange();});
+els.annualGrid.addEventListener('change',e=>{const el=e.target.closest('.annual-input');if(!el)return;const y=Number(el.dataset.annualYear);if(!state.annual[y])state.annual[y]={annual:null};state.annual[y].annual=num(el.value);commitUserChange();});
+els.githubToken.addEventListener('input',()=>{persistRememberedToken();if(gistDirty&&String(els.githubToken.value||'').trim())scheduleAutoSave(600);});
+els.rememberToken.addEventListener('change',()=>{persistRememberedToken();});
+els.syncOpenBtn.addEventListener('click',openSync);els.syncCloseBtn.addEventListener('click',closeSync);els.syncModal.addEventListener('click',e=>{if(e.target===els.syncModal)closeSync();});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&els.syncModal.classList.contains('open'))closeSync();});els.saveGistBtn.addEventListener('click',()=>saveToGist());els.loadGistBtn.addEventListener('click',()=>loadFromGist());els.downloadJsonBtn.addEventListener('click',downloadJson);els.importJsonBtn.addEventListener('click',()=>els.importJsonInput.click());els.importJsonInput.addEventListener('change',()=>importJson(els.importJsonInput.files?.[0]));
 document.addEventListener('touchstart',e=>{const active=document.activeElement;if(!active||!(active.matches('input,textarea,select')||active.isContentEditable))return;if(e.target.closest('input,textarea,select,[contenteditable],label'))return;active.blur();},{passive:true});
 
-updateMilestones();bootstrap();
-if('serviceWorker' in navigator && location.protocol!=='file:'){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));}
+async function bootstrap(){
+  loadRememberedToken();
+  setSyncStatus('warn','Comprobando primero el Gist…');renderGistUpdated('checking');
+  await loadFromGist({auto:true});
+}
+bootstrap();
 })();
+</script>
+<script>
+if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=1.7',{scope:'./'}).catch(err=>console.warn('Service worker:',err)));}
 </script>
 </body>
 </html>
