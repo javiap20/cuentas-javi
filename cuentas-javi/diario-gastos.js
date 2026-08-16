@@ -7,9 +7,7 @@ const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto'
 const MESES_ABR = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 const FIJOS_REF_YEAR = 2026; // año de referencia del MASTER
 const MASTER_URLS = ['../excel/finanzas-master.xlsx','./excel/finanzas-master.xlsx'];
-const BOOTSTRAP_2026_URLS = ['../excel/2026.xlsx','./excel/2026.xlsx'];
-const BOOTSTRAP_2027_URLS = ['../excel/2027.xlsx','./excel/2027.xlsx'];
-const BOOTSTRAP_VERSION = 3;
+const BOOTSTRAP_VERSION = 4; // bootstrap manual: 2026/2027 se importan una vez desde botones
 const MASTER_MAX_YEAR = 2040; // horizonte visible/proyectable desde el año base
 const MASTER_REFRESH_PARAM = () => `?v=${Date.now()}`;
 const MES_ABR_LOWER = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
@@ -1164,10 +1162,6 @@ function parseGastosSheet(rows){
   return parseMasterRows(rows);
 }
 
-function parseGastosSheet(rows){
-  return parseMasterRows(rows);
-}
-
 function masterFingerprint(items){
   return JSON.stringify((items||[]).map(item=>({
     id:item.id,name:item.name,tipo:item.tipo,groupId:item.groupId,masterGroup:item.masterGroup,masterTipo:item.masterTipo,
@@ -1319,51 +1313,82 @@ async function cargarMasterAutomatico(){
   }
 }
 
-function hasCompletedBootstrap(db){
-  return !!(db && db.bootstrap && Number(db.bootstrap.version)>=BOOTSTRAP_VERSION
-    && db.years && db.years[String(FIJOS_REF_YEAR)]?.days?.length===365
-    && db.template2027?.days?.length===365
-    && db.template2027?.cardEntries
-    && db.masterLoaded);
+// ============================================================
+// INICIALIZACION MANUAL DE 2026 / ESTRUCTURA 2027
+// Los dos Excel son fuentes de bootstrap: el usuario los selecciona
+// una sola vez y la estructura queda guardada en local/Gist.
+// MASTER, en cambio, sigue siendo una fuente viva y se refresca al arrancar.
+// ============================================================
+function manualBootstrapState(){
+  if(!DB.bootstrap) DB.bootstrap={version:0};
+  return DB.bootstrap;
 }
 
-async function bootstrapFromExcelOnce(){
-  setGistStatus('loading','☁ Inicialización · cargando Excel…');
-  setBootstrapStatus('Cargando 2026 + estructura 2027 + MASTER…');
-  const [b2026,b2027,bMaster]=await Promise.all([
-    fetchWorkbookFromCandidates(BOOTSTRAP_2026_URLS),
-    fetchWorkbookFromCandidates(BOOTSTRAP_2027_URLS),
-    fetchWorkbookFromCandidates(MASTER_URLS)
-  ]);
-  const parsed2026=await read2026WorkbookBuffer(b2026);
-  const parsed2027=await read2027WorkbookBuffer(b2027);
+function markManualBootstrap(kind, sourceName){
+  const st=manualBootstrapState();
+  const now=new Date().toISOString();
+  st.version=Math.max(Number(st.version)||0, BOOTSTRAP_VERSION);
+  st[kind]={importedAt:now,source:sourceName};
+  st.completedAt=now;
+  DB.bootstrap=st;
+}
 
-  if(!DB.years) DB.years={};
-  DB.years[String(FIJOS_REF_YEAR)]=parsed2026;
-  DB.template2027=parsed2027;
-  TEMPLATE_2027=parsed2027;
-  if(!DB.ipc) DB.ipc={gastos:2,ingresos:0.5};
-  if(!DB.fijos) DB.fijos=[];
-  if(!DB.fijosGroups) DB.fijosGroups=[];
+function hasManual2026(){
+  return !!(DB.years && DB.years[String(FIJOS_REF_YEAR)] && DB.years[String(FIJOS_REF_YEAR)].days?.length===365);
+}
+function hasManual2027(){
+  return !!(TEMPLATE_2027 && TEMPLATE_2027.days?.length===365);
+}
 
-  await loadMasterBuffer(bMaster,'GitHub',{syncStructure:false,persist:false,render:false});
+function bootstrapStateText(){
+  const hasMaster = !!DB.masterLoaded && Array.isArray(DB.fijos) && DB.fijos.some(f=>f.source==='master');
+  return `Base: 2026 ${hasManual2026()?'✓':'—'} · estructura 2027 ${hasManual2027()?'✓':'—'} · MASTER ${hasMaster?'✓':'—'}`;
+}
 
-  DB.bootstrap={
-    version:BOOTSTRAP_VERSION,
-    completedAt:new Date().toISOString(),
-    sources:{year2026:'2026.xlsx',template2027:'2027.xlsx',master:'finanzas-master.xlsx'}
-  };
-  DB.updatedAt=new Date().toISOString();
-  localStorage.setItem(STORAGE_KEY,JSON.stringify(DB));
-  renderAll();
-  setBootstrapStatus(bootstrapStateText(),true);
-  if(gistSync.token){
-    await syncGistNow();
-  }else{
-    setGistStatus('pending','☁ Inicialización guardada localmente · añade token para guardarla en Gist');
+async function importar2026Manual(file){
+  if(!file) return;
+  try{
+    setBootstrapStatus('Leyendo 2026.xlsx…');
+    const parsed=await read2026WorkbookBuffer(await file.arrayBuffer());
+    DB.years[String(FIJOS_REF_YEAR)]=parsed;
+    markManualBootstrap('year2026', file.name||'2026.xlsx');
+    DB.updatedAt=new Date().toISOString();
+    ui.year=String(FIJOS_REF_YEAR);
+    saveDB();
+    renderAll();
+    setBootstrapStatus(bootstrapStateText(),true);
+    if(gistSync.token) await syncGistNow();
+    else setGistStatus('pending','☁ 2026 importado · cambios locales pendientes');
+    toast('2026 importado y guardado');
+  }catch(err){
+    console.error('No se pudo importar 2026:',err);
+    setBootstrapStatus(`Error 2026 · ${err.message||'archivo no válido'}`,false);
+    toast('No se pudo importar 2026');
   }
-  toast('Inicialización completada desde los 3 Excel');
-  return true;
+}
+
+async function importar2027Manual(file){
+  if(!file) return;
+  try{
+    setBootstrapStatus('Leyendo 2027.xlsx…');
+    const parsed=await read2027WorkbookBuffer(await file.arrayBuffer());
+    DB.template2027=parsed;
+    TEMPLATE_2027=parsed;
+    markManualBootstrap('template2027', file.name||'2027.xlsx');
+    generarAnoDesdePlantilla(2027);
+    DB.updatedAt=new Date().toISOString();
+    ui.year='2027';
+    saveDB();
+    renderAll();
+    setBootstrapStatus(bootstrapStateText(),true);
+    if(gistSync.token) await syncGistNow();
+    else setGistStatus('pending','☁ 2027 importado · cambios locales pendientes');
+    toast('Estructura 2027 importada y guardada');
+  }catch(err){
+    console.error('No se pudo importar 2027:',err);
+    setBootstrapStatus(`Error 2027 · ${err.message||'archivo no válido'}`,false);
+    toast('No se pudo importar 2027');
+  }
 }
 
 async function initializeData(){
@@ -1371,17 +1396,13 @@ async function initializeData(){
   try{ remote=await fetchGistRemote(); }
   catch(err){ console.warn('Gist no disponible durante el arranque:',err); }
 
-  const remoteData=remote?.exists?remote.payload?.data:null;
-  const remoteReady=hasCompletedBootstrap(remoteData);
-  const localReady=hasCompletedBootstrap(DB);
-
-  if(remoteReady){
+  if(remote?.exists){
     const remoteUpdatedAt=remote.payload.updatedAt||remote.gist?.updated_at||null;
     gistSync.remoteUpdatedAt=remoteUpdatedAt;
     const localUpdatedAt=DB.updatedAt||null;
     if(!localUpdatedAt || Date.parse(remoteUpdatedAt||0)>=Date.parse(localUpdatedAt||0)){
       gistSync.suppress=true;
-      applyGistData(remoteData);
+      applyGistData(remote.payload.data);
       DB.updatedAt=remoteUpdatedAt||DB.updatedAt||new Date().toISOString();
       saveDB({sync:false});
       gistSync.suppress=false;
@@ -1394,30 +1415,19 @@ async function initializeData(){
     return true;
   }
 
-  if(localReady && !remote?.exists){
+  if(DB.updatedAt){
     setBootstrapStatus(bootstrapStateText(),true);
     if(gistSync.token){
-      setGistStatus('syncing','☁ Gist · creando copia central…');
       await syncGistNow();
     }else{
-      setGistStatus('pending',`☁ Gist conectado · sin archivo todavía · cambios locales pendientes`);
+      setGistStatus('pending','☁ Gist conectado · sin copia remota todavía');
     }
     return true;
   }
 
-  try{
-    return await bootstrapFromExcelOnce();
-  }catch(err){
-    console.error('No se pudo completar la inicialización desde Excel:',err);
-    if(localReady){
-      setBootstrapStatus(bootstrapStateText(),true);
-      setGistStatus('error',`⚠ Inicialización no disponible · mostrando copia local de ${formatSyncDate(DB.updatedAt)}`);
-      return true;
-    }
-    setBootstrapStatus(`Error inicializando Excel · ${err.message||'revisa GitHub'}`,false);
-    setGistStatus('error','⚠ No se pudo inicializar el dashboard');
-    return false;
-  }
+  setBootstrapStatus('Importa 2026 y 2027 manualmente · MASTER se carga automáticamente');
+  setGistStatus('ok','☁ Gist conectado · sin datos guardados todavía');
+  return true;
 }
 
 document.getElementById('btnExport').addEventListener('click', ()=>{
@@ -1445,6 +1455,8 @@ document.getElementById('yearSelect').addEventListener('change', e=>{
 });
 document.getElementById('btnGenerarProyeccion').addEventListener('click', generarTodosLosAnosProyectados);
 document.getElementById('btnSyncMaster').addEventListener('click', cargarMasterAutomatico);
+document.getElementById('import2026File').addEventListener('change', e=>{ const f=e.target.files[0]; if(f) importar2026Manual(f); e.target.value=''; });
+document.getElementById('import2027File').addEventListener('change', e=>{ const f=e.target.files[0]; if(f) importar2027Manual(f); e.target.value=''; });
 document.getElementById('btnGist').addEventListener('click', openGistPanel);
 document.getElementById('btnAddMov').addEventListener('click', modalAddMovimiento);
 document.getElementById('btnAddCat').addEventListener('click', modalAddCategoria);
