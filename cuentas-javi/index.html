@@ -170,11 +170,18 @@
 
   /* Diario: todo centrado */
   #diarioTableWrap th, #diarioTableWrap td{text-align:center;}
-  #diarioTableWrap .row-input{text-align:center;}
+  #diarioTableWrap thead th{background:#17365D;color:#FFFFFF;font-weight:700;}
+  #diarioTableWrap thead th .icon-btn{color:#FFFFFF;}
+  #diarioTableWrap thead th .icon-btn:hover{color:#FFFFFF;background:rgba(255,255,255,.12);}
+  #diarioTableWrap tr.diario-month-row td{
+    background:#F2B24A;color:#4A2F00;font-weight:800;font-size:11px;letter-spacing:.08em;
+    text-transform:uppercase;padding:8px 10px;text-align:left;border-bottom:1px solid #D99A32;
+  }
   #diarioTableWrap tr.diario-archivo-sep td{
     background:var(--panel-alt);font-weight:700;font-size:10.5px;letter-spacing:.06em;
     text-transform:uppercase;color:var(--ink-soft);padding:7px 8px;text-align:left;
   }
+  #diarioTableWrap .row-input{text-align:center;}
   #diarioTableWrap tr.fila-archivada{opacity:.55;}
   #diarioTableWrap tr.fila-archivada:hover{opacity:.85;}
   #fijosTableWrap{overflow-x:auto;overflow-y:visible;max-height:none;}

@@ -339,28 +339,43 @@ function populateMonthFilter(){
 function renderDiario(){
   const wrap = document.getElementById('diarioTableWrap');
   if(!ui.year){ wrap.innerHTML = emptyState('Sin año seleccionado','Crea o importa un año primero.'); return; }
-  // Los 365 días pueden seguir guardados internamente, pero en pantalla
-  // solo enseñamos las filas que tienen concepto.
-  let sorted = getSortedDays(ui.year).filter(e=> String(e.concept||'').trim()!=='');
+  let sorted = getSortedDays(ui.year);
   if(ui.monthFilterDiario!=='todos'){
     sorted = sorted.filter(e=> parseDateISO(e.date).getMonth()+1 === Number(ui.monthFilterDiario));
   }
+  // Las filas sin concepto siguen existiendo internamente, pero no ocupan espacio visual.
+  sorted = sorted.filter(e=> String(e.concept||'').trim() !== '');
   if(!sorted.length){
     wrap.innerHTML = emptyState('Sin movimientos','No hay movimientos para este filtro.');
     return;
   }
 
-  // 2026 debe comportarse como el año actual: al abrirlo se ve primero
-  // hoy y los movimientos futuros; los anteriores bajan a "Archivado".
-  // Los años futuros (2027+) no se archivan hasta que lleguen a ser años
-  // históricos. Las filas archivadas conservan el importe guardado y nunca
-  // se recalculan desde MASTER.
   const currentYear = new Date().getFullYear();
-  const yNum = Number(ui.year);
-  const isArchiveMode = yNum === currentYear;
+  const isYearActual = Number(ui.year) === currentYear;
   const todayIso = isoDate(new Date());
-  const futuros = isArchiveMode ? sorted.filter(e=> e.date >= todayIso) : sorted;
-  const pasados = isArchiveMode ? sorted.filter(e=> e.date < todayIso) : [];
+  const todayMonth = new Date().getMonth()+1;
+  const monthFilter = ui.monthFilterDiario==='todos' ? null : Number(ui.monthFilterDiario);
+
+  // Solo el año actual empieza en el mes actual.
+  // Los años futuros o pasados siempre se muestran de enero a diciembre.
+  // Si hay filtro mensual, se muestra solo ese mes.
+  const monthOrder = monthFilter
+    ? [monthFilter]
+    : (isYearActual
+        ? Array.from({length:12},(_,i)=>((todayMonth-1+i)%12)+1)
+        : MESES.map((_,i)=>i+1));
+
+  const groups = new Map();
+  monthOrder.forEach(m=>groups.set(m,[]));
+  sorted.forEach(e=>{
+    const m = parseDateISO(e.date).getMonth()+1;
+    if(!groups.has(m)) groups.set(m,[]);
+    groups.get(m).push(e);
+  });
+
+  // Dentro del año actual, solo las fechas anteriores a hoy se consideran archivadas.
+  // En años distintos al actual se conserva el comportamiento anterior: todo editable y activo.
+  const isArchived = e => isYearActual && e.date < todayIso;
 
   const rowHtml = (e, archived)=>{
     const cls = Number(e.amount)>=0 ? 'amount-pos':'amount-neg';
@@ -372,14 +387,37 @@ function renderDiario(){
       <td style="width:30px"><button class="icon-btn" data-del="${e.id}" title="Eliminar">✕</button></td>
     </tr>`;
   };
-  let rows = futuros.map(e=>rowHtml(e,false)).join('');
-  if(pasados.length){
-    rows += `<tr class="diario-archivo-sep"><td colspan="5">Archivado · movimientos anteriores a hoy (no se recalculan automáticamente)</td></tr>`;
-    rows += pasados.map(e=>rowHtml(e,true)).join('');
-  }
+
+  let bodyHtml = '';
+  let archiveHeaderShown = false;
+
+  monthOrder.forEach(m=>{
+    const items = (groups.get(m)||[]).slice().sort((a,b)=>a.date<b.date?-1:(a.date>b.date?1:0));
+    if(!items.length) return;
+
+    bodyHtml += `<tr class="diario-month-row"><td colspan="5">${MESES[m-1]}</td></tr>`;
+
+    if(isYearActual){
+      const activos = items.filter(e=>!isArchived(e));
+      const archivados = items.filter(e=>isArchived(e));
+
+      bodyHtml += activos.map(e=>rowHtml(e,false)).join('');
+      if(archivados.length){
+        // Un único separador global antes del primer bloque histórico.
+        if(!archiveHeaderShown){
+          bodyHtml += `<tr class="diario-archivo-sep"><td colspan="5">Archivado · movimientos anteriores a hoy (no se recalculan automáticamente)</td></tr>`;
+          archiveHeaderShown = true;
+        }
+        bodyHtml += archivados.map(e=>rowHtml(e,true)).join('');
+      }
+    } else {
+      bodyHtml += items.map(e=>rowHtml(e,false)).join('');
+    }
+  });
+
   wrap.innerHTML = `<table>
     <thead><tr><th style="width:130px">Fecha</th><th>Concepto</th><th style="width:140px">Importe</th><th style="width:160px">Saldo</th><th></th></tr></thead>
-    <tbody>${rows}</tbody>
+    <tbody>${bodyHtml}</tbody>
   </table>`;
 
   wrap.querySelectorAll('input[data-field]').forEach(inp=>{
@@ -555,12 +593,24 @@ function masterMonths(item, year){
 }
 
 function daysInMonth(year,month){ return new Date(year, month, 0).getDate(); }
+function countFridaysInBillingMonth(year, month){
+  // Mes financiero para partidas semanales: del dia 22 del mes anterior
+  // al dia 21 del mes indicado, ambos inclusive. Cada viernes cuenta como
+  // una semana. Enero, por tanto, empieza el 22 de diciembre del año anterior.
+  const start = new Date(Date.UTC(Number(year), Number(month)-2, 22));
+  const end = new Date(Date.UTC(Number(year), Number(month)-1, 21));
+  let count = 0;
+  for(let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate()+1)){
+    if(d.getUTCDay()===5) count++; // viernes
+  }
+  return count;
+}
 function monthlyBudgetForMaster(item, year, month){
   const unit = Math.abs(Number(item?.values?.[year])||0);
   if(!item || !item.activo) return 0;
   if(item.frecuencia==='mensual') return unit;
   if(item.frecuencia==='anual') return item.meses.includes(month) ? unit : 0;
-  if(item.frecuencia==='semanal') return unit * 52 / 12;
+  if(item.frecuencia==='semanal') return unit * countFridaysInBillingMonth(year, month);
   return item.meses.includes(month) ? unit : 0;
 }
 
@@ -1210,14 +1260,52 @@ function generarAnoDesdePlantilla(year){
   const todayIso=isoDate(new Date());
 
   // Primero resolvemos Tarjeta para poder construir las líneas "Tarjetas Mes" del Diario.
+  // Correcciones definitivas acordadas para la estructura 2027:
+  // - YouTube pasa de julio a agosto, porque MASTER lo sitúa en agosto.
+  // - Esqui se incorpora en febrero como gasto de vacaciones.
+  const adjustedCardTemplate = (TEMPLATE_2027.cardEntries||[])
+    .filter(c=>!(normalizeTemplateKey(c.category)==='youtube' && Number(c.month)===7))
+    .map(c=>({...c}));
+  if(!adjustedCardTemplate.some(c=>normalizeTemplateKey(c.category)==='youtube' && Number(c.month)===8)) {
+    adjustedCardTemplate.push({id:uid(),month:8,category:'YouTube',amount:0});
+  }
+  if(!adjustedCardTemplate.some(c=>normalizeTemplateKey(c.category)==='esquí' && Number(c.month)===2)) {
+    adjustedCardTemplate.push({id:uid(),month:2,category:'Esquí',amount:0});
+  }
+
+  // Regla de cierre: una categoría de tarjeta cuyo mes natural ya ha terminado
+  // no vuelve a calcularse desde MASTER. Se conserva exactamente como estaba.
+  // En el año actual solo quedan abiertos el mes actual y los posteriores; en
+  // años futuros todos los meses están abiertos.
+  const isClosedCalendarMonth = (y,m) => {
+    const lastDayIso = isoDate(new Date(Number(y), Number(m), 0));
+    return lastDayIso < todayIso;
+  };
+
   const cardAgg=new Map();
-  for(const c of TEMPLATE_2027.cardEntries){
+  for(const c of adjustedCardTemplate){
     const month=Number(c.month);
-    const result=amountForTemplateCard(c.category,year,month);
-    if(!result.include) continue;
-    const matches=masterMatchesForTemplate(c.category,'tarjeta');
-    const resolvedName=matches.length ? matches[0].name : c.category;
+    const templateName=String(c.category||'');
+    const matches=masterMatchesForTemplate(templateName,'tarjeta');
+    const resolvedName=matches.length ? matches[0].name : templateName;
     const groupKey=month+'|'+normalizeTemplateKey(resolvedName);
+
+    // Si este mes ya está cerrado y había un valor previo, ese valor histórico
+    // manda: el MASTER no puede modificarlo.
+    if(isClosedCalendarMonth(year,month)) {
+      const previous = prevCard.filter(pc => Number(pc.month)===month && normalizeTemplateKey(pc.category)===normalizeTemplateKey(resolvedName));
+      if(previous.length){
+        const preserved = previous.reduce((s,pc)=>s + Number(pc.amount||0),0);
+        if(preserved !== 0){
+          if(!cardAgg.has(groupKey)) cardAgg.set(groupKey,{id:previous[0].id||uid(),month,category:resolvedName,amount:0,sourceTemplate2027:true,sourceCalculation:'historical'});
+          cardAgg.get(groupKey).amount += preserved;
+          continue;
+        }
+      }
+    }
+
+    const result=amountForTemplateCard(templateName,year,month);
+    if(!result.include) continue;
     if(!cardAgg.has(groupKey)) cardAgg.set(groupKey,{id:uid(),month,category:resolvedName,amount:0,sourceTemplate2027:true,sourceCalculation:'master'});
     cardAgg.get(groupKey).amount += result.amount;
   }
@@ -1455,10 +1543,6 @@ async function fetchWorkbookFromCandidates(urls){
 }
 
 async function cargarMasterAutomatico(){
-  if(location.protocol==='file:'){
-    setMasterStatus('MASTER · abre desde GitHub Pages o usa «Importar MASTER» en este dispositivo',false);
-    return false;
-  }
   setMasterStatus('Cargando MASTER…');
   try{
     const buf=await fetchWorkbookFromCandidates(MASTER_URLS);
