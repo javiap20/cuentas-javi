@@ -166,6 +166,7 @@
   .row-input.num{text-align:right;}
   .row-input.amount-pos{color:var(--pos)!important;}
   .row-input.amount-neg{color:var(--neg)!important;}
+  .card-amount-input{width:92px;text-align:right;font-size:12.5px;}
   .row-input:disabled{opacity:.75;cursor:not-allowed;}
 
   /* Diario: todo centrado */
@@ -284,6 +285,25 @@
   }
   .toast.show{opacity:1;transform:translateX(-50%) translateY(-4px);}
 
+  .calendar-nav{position:relative;display:inline-flex;align-items:center;}
+  .calendar-trigger{min-width:122px;text-align:center;}
+  .calendar-popover{display:none;position:absolute;top:calc(100% + 6px);right:0;z-index:40;width:286px;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 30px rgba(28,38,32,.16);padding:10px;}
+  .calendar-popover.active{display:block;}
+  .calendar-pop-head{display:grid;grid-template-columns:32px 1fr 32px;align-items:center;gap:4px;margin-bottom:8px;}
+  .calendar-pop-head .icon-btn{font-size:22px;line-height:1;padding:2px 0;}
+  .calendar-pop-title{border:none;background:none;font:600 14px 'Space Grotesk',sans-serif;color:var(--ink);cursor:pointer;padding:4px;border-radius:6px;}
+  .calendar-pop-title:hover{background:var(--panel-alt);}
+  .calendar-weekdays,.calendar-days{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+  .calendar-weekdays{margin-bottom:3px;}
+  .calendar-weekdays span{text-align:center;font-size:10px;color:var(--ink-soft);font-weight:700;}
+  .calendar-days button{border:1px solid transparent;background:transparent;border-radius:6px;padding:7px 0;font:13px/1.1 'Inter',sans-serif;color:var(--ink);cursor:pointer;}
+  .calendar-days button:hover{border-color:var(--line);background:var(--panel-alt);}
+  .calendar-days button.muted{color:#A0AAA3;}
+  .calendar-days button.today{box-shadow:inset 0 0 0 1px var(--card);}
+  .calendar-days button.selected{background:var(--card);color:#fff;border-color:var(--card);font-weight:700;}
+  .calendar-all{width:100%;margin-top:8px;}
+  @media (max-width:860px){.calendar-popover{right:auto;left:0;}}
+
   .footer-note{font-size:11.5px;color:var(--ink-soft);text-align:center;margin-top:30px;}
   .gist-status{width:100%;text-align:center;color:#7C5A9E;font-size:11.5px;font-weight:600;margin:-7px 0 14px;min-height:18px;line-height:18px;}
   .gist-status[data-kind=syncing]{color:#7C5A9E;}
@@ -306,17 +326,13 @@
     </div>
     <div class="topbar-actions">
       <select id="yearSelect" class="field"></select>
-      <label class="btn" for="import2026File">Importar 2026</label>
-      <input type="file" id="import2026File" accept=".xlsx,.xls">
-      <label class="btn" for="import2027File">Importar 2027</label>
-      <input type="file" id="import2027File" accept=".xlsx,.xls">
-      <button class="btn" id="btnGenerarProyeccion" title="Genera 2027 y todos los años siguientes usando MASTER y las reglas especiales">Generar 2027+ con MASTER</button>
+      <button class="btn" id="btnGenerar2028" title="Genera 2028 una sola vez a partir de la estructura definitiva de 2027 y los importes de MASTER">Generar 2028 (una vez)</button>
       <button class="btn" id="btnSyncMaster">Actualizar MASTER</button>
       <label class="btn" for="importMasterFile">Importar MASTER</label>
       <input type="file" id="importMasterFile" accept=".xlsx,.xls">
       <button class="btn" id="btnSpecialRulesTop">Reglas especiales</button>
       <span id="masterStatus" style="font-size:11.5px;color:var(--ink-soft);white-space:nowrap">MASTER: comprobando…</span>
-      <span id="bootstrapStatus" style="font-size:11.5px;color:var(--ink-soft);white-space:nowrap">Importa 2026 y 2027 una vez</span>
+      <span id="bootstrapStatus" style="font-size:11.5px;color:var(--ink-soft);white-space:nowrap">2026/2027 en Gist · MASTER automático</span>
       <button class="btn" id="btnGist">☁ Gist</button>
       <button class="btn ghost" id="btnExport">Exportar</button>
     </div>
@@ -362,7 +378,19 @@
     <div class="panel">
       <div class="toolbar">
         <h2 style="margin-right:auto">Movimientos</h2>
-        <select id="monthFilter" class="field small"></select>
+        <div class="calendar-nav" id="calendarNav">
+          <button class="btn small calendar-trigger" id="btnCalendar" type="button" aria-haspopup="dialog" aria-expanded="false">📅 <span id="calendarNavLabel">—</span></button>
+          <div class="calendar-popover" id="calendarPopover" role="dialog" aria-label="Calendario de Diario">
+            <div class="calendar-pop-head">
+              <button class="icon-btn" id="calPrev" type="button" aria-label="Mes anterior">‹</button>
+              <button class="calendar-pop-title" id="calTitle" type="button"></button>
+              <button class="icon-btn" id="calNext" type="button" aria-label="Mes siguiente">›</button>
+            </div>
+            <div class="calendar-weekdays"><span>Lu</span><span>Ma</span><span>Mi</span><span>Ju</span><span>Vi</span><span>Sá</span><span>Do</span></div>
+            <div class="calendar-days" id="calendarDays"></div>
+            <button class="btn small ghost calendar-all" id="calAll" type="button">Ver todo el año</button>
+          </div>
+        </div>
         <button class="btn small" id="btnAddMov">+ Movimiento</button>
         <button class="btn small" id="btnCerrarMes">Cerrar mes (tarjeta)</button>
       </div>

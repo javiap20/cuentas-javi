@@ -3,6 +3,7 @@
    ============================================================ */
 
 const STORAGE_KEY = 'diarioGastosDB_v1';
+const UI_BUILD = 'calendar-keyboard-2026-08-16';
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 const MESES_ABR = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 const FIJOS_REF_YEAR = 2026; // año de referencia del MASTER
@@ -45,6 +46,7 @@ let TEMPLATE_2027 = DB.template2027 || null;
 let ui = {
   year: null,
   monthFilterDiario: 'todos',
+  calendarMonth: null,
   tarjMonth: (new Date().getMonth()+1)
 };
 
@@ -62,6 +64,9 @@ function loadDB(){
       if(!('masterLoaded' in db)) db.masterLoaded = false;
       if(!db.specialRules) db.specialRules = JSON.parse(JSON.stringify(DEFAULT_SPECIAL_RULES));
       if(!db.specialRules.ing) db.specialRules.ing = JSON.parse(JSON.stringify(DEFAULT_SPECIAL_RULES.ing));
+      // Migración puntual: versiones anteriores llegaron a guardar 4.000 €
+      // por una regla antigua; la regla acordada es 4.050 €.
+      if(Number(db.specialRules.ing.ingresoSemestral)===4000) db.specialRules.ing.ingresoSemestral=4050;
       return db;
     }
   }catch(e){ console.error('Error leyendo almacenamiento', e); }
@@ -330,11 +335,52 @@ function rect(x,y,w,h,fill){
 // ============================================================
 // RENDER: Diario
 // ============================================================
+function monthFilterLabel(){
+  if(!ui.year) return '—';
+  if(ui.monthFilterDiario==='todos') return String(ui.year);
+  return `${MESES[Number(ui.monthFilterDiario)-1]} ${ui.year}`;
+}
+function calendarBaseMonth(){
+  const y=Number(ui.year)||new Date().getFullYear();
+  if(ui.calendarMonth && ui.calendarMonth.year===y) return ui.calendarMonth.month;
+  if(ui.monthFilterDiario!=='todos') return Number(ui.monthFilterDiario);
+  return y===new Date().getFullYear() ? new Date().getMonth()+1 : 1;
+}
+function renderCalendarPopover(){
+  const pop=document.getElementById('calendarPopover');
+  if(!pop) return;
+  const y=Number(ui.year);
+  if(!y){
+    document.getElementById('calendarNavLabel').textContent='—';
+    document.getElementById('calTitle').textContent='—';
+    document.getElementById('calendarDays').innerHTML='';
+    return;
+  }
+  const m=calendarBaseMonth();
+  ui.calendarMonth={year:y,month:m};
+  document.getElementById('calendarNavLabel').textContent=monthFilterLabel();
+  document.getElementById('calTitle').textContent=`${MESES[m-1]} ${y}`;
+  const first=new Date(y,m-1,1);
+  const daysIn=new Date(y,m,0).getDate();
+  const mondayIndex=(first.getDay()+6)%7;
+  const prevDays=new Date(y,m-1,0).getDate();
+  let html='';
+  for(let i=0;i<42;i++){
+    const day=i-mondayIndex+1;
+    let yy=y, mm=m, dd=day, muted=false;
+    if(day<1){ dd=prevDays+day; mm=m-1; muted=true; if(mm<1){mm=12;yy--;}}
+    else if(day>daysIn){ dd=day-daysIn; mm=m+1; muted=true; if(mm>12){mm=1;yy++;}}
+    const iso=`${yy}-${String(mm).padStart(2,'0')}-${String(dd).padStart(2,'0')}`;
+    const today=iso===isoDate(new Date());
+    const selectedMonth=ui.monthFilterDiario!=='todos' && Number(ui.monthFilterDiario)===mm && yy===y;
+    const cls=[muted?'muted':'',today?'today':'',selectedMonth&&!muted?'selected':''].filter(Boolean).join(' ');
+    html+=`<button type="button" class="${cls}" data-cal-date="${iso}" data-cal-year="${yy}" data-cal-month="${mm}">${dd}</button>`;
+  }
+  document.getElementById('calendarDays').innerHTML=html;
+  document.getElementById('calAll').textContent=`Ver todo ${y}`;
+}
 function populateMonthFilter(){
-  const sel = document.getElementById('monthFilter');
-  sel.innerHTML = '<option value="todos">Todos los meses</option>' +
-    MESES.map((m,i)=>`<option value="${i+1}">${m}</option>`).join('');
-  sel.value = ui.monthFilterDiario;
+  renderCalendarPopover();
 }
 function renderDiario(){
   const wrap = document.getElementById('diarioTableWrap');
@@ -422,6 +468,7 @@ function renderDiario(){
 
   wrap.querySelectorAll('input[data-field]').forEach(inp=>{
     inp.addEventListener('change', e=>{
+      e.target.blur();
       const tr = e.target.closest('tr');
       const id = tr.getAttribute('data-id');
       const field = e.target.getAttribute('data-field');
@@ -457,6 +504,73 @@ function populateTarjMonthSelect(){
   sel.innerHTML = MESES.map((m,i)=>`<option value="${i+1}">${m}</option>`).join('');
   sel.value = ui.tarjMonth;
 }
+function isCalendarMonthClosed(year, month){
+  const y=Number(year), m=Number(month);
+  const currentYear=new Date().getFullYear();
+  if(y>currentYear) return false;
+  const todayIso=isoDate(new Date());
+  const lastDayIso=isoDate(new Date(y, m, 0));
+  return lastDayIso < todayIso;
+}
+
+function syncTarjetaMonthToDiario(year, month, force=false){
+  const y=Number(year), m=Number(month);
+  const currentYear = new Date().getFullYear();
+  if(!force){
+    if(y < currentYear) return false;
+    if(y === currentYear && isCalendarMonthClosed(y,m)) return false;
+  }
+
+  const yd=ensureYear(y);
+  const concept=`Tarjetas ${MESES_ABR[m-1]}`;
+  const normConcept = s => String(s||'').trim().toLowerCase();
+  const total=yd.cardEntries.filter(c=>Number(c.month)===m)
+    .reduce((s,c)=>s+Number(c.amount||0),0);
+  const matches=[];
+  yd.days.forEach((d,i)=>{
+    if(normConcept(d.concept)===normConcept(concept) || /^tarjetas\s+/i.test(String(d.concept||'')) && normConcept(d.concept)===normConcept(concept)) matches.push(i);
+  });
+  if(total===0){
+    for(let i=matches.length-1;i>=0;i--) yd.days.splice(matches[i],1);
+    return matches.length>0;
+  }
+  const dateIso=isoDate(new Date(y,m,0));
+  let keepIndex = matches.length ? matches[0] : -1;
+  if(keepIndex<0){
+    yd.days.push({id:uid(),date:dateIso,concept,amount:-total,source:'card-total',sourceTemplate2027:true,sourceCalculation:'card-total'});
+  }else{
+    const d=yd.days[keepIndex];
+    d.amount=-total; d.date=dateIso; d.concept=concept;
+    d.source='card-total'; d.sourceTemplate2027=true; d.sourceCalculation='card-total';
+    for(let i=matches.length-1;i>=1;i--) yd.days.splice(matches[i],1);
+  }
+  return true;
+}
+
+function syncAllOpenTarjetasToDiario(year){
+  const y=Number(year);
+  const yd=ensureYear(y);
+  for(let m=1;m<=12;m++) syncTarjetaMonthToDiario(y,m,false);
+}
+
+function reconcileFutureYearStarts(){
+  let changed=false;
+  const years=Object.keys(DB.years||{}).map(Number).filter(Number.isFinite).sort((a,b)=>a-b);
+  years.forEach(year=>{
+    if(year<=FIJOS_REF_YEAR) return;
+    const prevYear=DB.years[String(year-1)];
+    if(!prevYear) return;
+    const prevSorted=getSortedDays(year-1);
+    const expectedStart=prevSorted.length ? prevSorted[prevSorted.length-1].balance : (prevYear.start||0);
+    const yd=ensureYear(year);
+    if(Number(yd.start||0)!==Number(expectedStart||0)){
+      yd.start=Number(expectedStart||0);
+      changed=true;
+    }
+  });
+  return changed;
+}
+
 function renderTarjeta(){
   document.getElementById('tarjMonthLabel').textContent = ui.year ? MESES[ui.tarjMonth-1] : '—';
   const catBox = document.getElementById('catBars');
@@ -475,17 +589,41 @@ function renderTarjeta(){
     entries.forEach(e=>{ byCat[e.category] = (byCat[e.category]||0) + Number(e.amount||0); });
     const list = Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
     const max = Math.max(...list.map(x=>x[1]));
-    catBox.innerHTML = list.map(([cat,val])=>`
-      <div style="margin-bottom:9px;">
-        <div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:3px;">
-          <span>${escapeHtml(cat)}</span><span class="mono">${fmt(val)} €</span>
+    const entryByCategory = new Map();
+    entries.forEach(e=>{ if(!entryByCategory.has(e.category)) entryByCategory.set(e.category, e); });
+    catBox.innerHTML = list.map(([cat,val])=>{
+      const entry = entryByCategory.get(cat);
+      const safeId = entry ? entry.id : '';
+      return `
+      <div style="margin-bottom:11px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:12.5px;margin-bottom:4px;gap:10px;">
+          <span>${escapeHtml(cat)}</span>
+          <input class="row-input card-amount-input num mono" type="text" inputmode="decimal" value="${fmt(val)}" data-card-id="${safeId}" title="Importe editable">
         </div>
         <div style="background:var(--panel-alt);border-radius:5px;height:8px;overflow:hidden;">
           <div style="background:var(--card);height:100%;width:${(val/max*100).toFixed(1)}%;"></div>
         </div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
     catBox.innerHTML += `<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line);display:flex;justify-content:space-between;font-weight:600;">
       <span>Total</span><span class="mono">${fmt(list.reduce((s,[,v])=>s+v,0))} €</span></div>`;
+
+    catBox.querySelectorAll('input[data-card-id]').forEach(inp=>{
+      inp.addEventListener('change', e=>{
+        e.target.blur();
+        const id=e.target.getAttribute('data-card-id');
+        const entry=yd.cardEntries.find(c=>c.id===id);
+        if(!entry) return;
+        entry.amount=parseEsNumber(e.target.value);
+        entry.manualEdit=true;
+        entry.sourceCalculation='manual';
+        const month = Number(entry.month);
+        syncTarjetaMonthToDiario(ui.year, month, true);
+        saveDB();
+        renderAll();
+        toast('Importe de tarjeta actualizado y Diario sincronizado');
+      });
+    });
   }
   const monthAgg = monthlyAggregates(ui.year);
   monthlyBox.innerHTML = `<table>
@@ -1110,6 +1248,17 @@ function normalizeTemplateKey(s){
   return normalizeName(String(s||'').trim());
 }
 
+function templateMasterIds(concept, medium){
+  const k = normalizeTemplateKey(concept);
+  if(medium==='tarjeta'){
+    // Cloud tiene dos partidas distintas en MASTER; usamos sus IDs estables
+    // para no depender del nombre visible y evitar duplicaciones.
+    if(k==='cloud') return ['gas_cloud_anual'];
+    if(k==='cloud apple') return ['gas_cloud_mensual'];
+  }
+  return [];
+}
+
 function templateMasterAliases(concept, medium){
   const k = normalizeTemplateKey(concept);
   const aliases = [];
@@ -1120,7 +1269,6 @@ function templateMasterAliases(concept, medium){
     if(k===normalizeName('Regalo Navidad')) aliases.push(normalizeName('Regalo Navidad Niños'));
   }else if(medium==='tarjeta'){
     const map = {
-      'cloud apple':'Cloud',
       'semsanta':'Semana Santa',
       'fin de año':'Fin Año',
       'seguro':'Seguro Coche',
@@ -1133,6 +1281,11 @@ function templateMasterAliases(concept, medium){
 }
 
 function masterMatchesForTemplate(concept, medium){
+  const wantedIds = templateMasterIds(concept, medium);
+  if(wantedIds.length){
+    const byId = DB.fijos.filter(f=>f.source==='master' && f.activo && f.medio===medium && wantedIds.includes(String(f.masterId)));
+    if(byId.length) return byId;
+  }
   const exact = DB.fijos.filter(f=>f.source==='master' && f.activo && f.medio===medium && normalizeTemplateKey(f.name)===normalizeTemplateKey(concept));
   if(exact.length) return exact;
   const aliases = templateMasterAliases(concept, medium);
@@ -1151,30 +1304,46 @@ function ingRules(){
 
 function dateOnlyMs(iso){ const d=parseDateISO(iso); return isNaN(d.getTime())?NaN:d.getTime(); }
 
-function amountForIng(date, year, incomeDates){
+function amountForIng(date, year, incomeDates, concept){
   const r=ingRules();
   const t=dateOnlyMs(date), lastIncome=dateOnlyMs(r.ultimoIngreso), change=dateOnlyMs(r.cambioGasto), end=dateOnlyMs(r.finGasto);
+  const key=normalizeTemplateKey(concept);
   if(!Number.isFinite(t)) return {include:false,amount:0,source:'special'};
-  if(incomeDates && incomeDates.has(date) && Number.isFinite(lastIncome) && t<=lastIncome){
-    return {include:true,amount:Math.abs(Number(r.ingresoSemestral)||0),source:'special'};
+
+  // ING INGRESO = ingreso semestral; ING = gasto periódico.
+  // Nunca debemos aplicar el ingreso semestral a una fila ING normal aunque
+  // compartan la misma fecha en la plantilla.
+  if(key==='ing ingreso'){
+    if(incomeDates && incomeDates.has(date) && Number.isFinite(lastIncome) && t<=lastIncome){
+      return {include:true,amount:Math.abs(Number(r.ingresoSemestral)||0),source:'special'};
+    }
+    return {include:false,amount:0,source:'special'};
   }
-  if(Number.isFinite(change) && Number.isFinite(end) && t>=change && t<=end){
-    return {include:true,amount:-Math.abs(Number(r.gastoReducido)||0),source:'special'};
-  }
-  if(Number.isFinite(lastIncome) && t<=lastIncome){
-    return {include:true,amount:-Math.abs(Number(r.gastoNormal)||0),source:'special'};
+
+  if(key==='ing'){
+    if(Number.isFinite(change) && Number.isFinite(end) && t>=change && t<=end){
+      return {include:true,amount:-Math.abs(Number(r.gastoReducido)||0),source:'special'};
+    }
+    if(Number.isFinite(lastIncome) && t<=lastIncome){
+      return {include:true,amount:-Math.abs(Number(r.gastoNormal)||0),source:'special'};
+    }
   }
   return {include:false,amount:0,source:'special'};
 }
 
 function amountForTemplateDay(concept, date, year, incomeDates=null){
-  if(normalizeTemplateKey(concept)==='ing' || normalizeTemplateKey(concept)==='ing ingreso') return amountForIng(date,year,incomeDates);
+  const key=normalizeTemplateKey(concept);
+  if(key==='ing' || key==='ing ingreso') return amountForIng(date,year,incomeDates,concept);
   const matches=masterMatchesForTemplate(concept,'cuenta');
   if(!matches.length) return {include:false,amount:0,source:'unmatched'};
   let total=0;
+  const m=parseDateISO(date).getMonth()+1;
+  // Regla especial Casa Madrid: en octubre-diciembre de cada año se usa
+  // el importe del año siguiente, porque la actualización de la renta
+  // entra en vigor en ese tramo final del año.
+  const budgetYear = (normalizeTemplateKey(concept)==='casa mad' && m>=10) ? Number(year)+1 : Number(year);
   for(const item of matches){
-    const m=parseDateISO(date).getMonth()+1;
-    total += monthlyBudgetForMaster(item,year,m);
+    total += monthlyBudgetForMaster(item,budgetYear,m);
   }
   if(Math.abs(total)<1e-9) return {include:false,amount:0,source:'inactive'};
   const tipo=matches[0].tipo;
@@ -1237,9 +1406,12 @@ function generateIngIncomeDates(year, templateDays){
   const chosen=new Set();
   const r=ingRules();
   for(const m of (r.mesesIngreso||[1,7]).map(Number)){
-    const preferred=all.filter(t=>normalizeTemplateKey(t.concept)==='ing ingreso' && parseDateISO(String(year)+String(t.date).slice(4)).getMonth()+1===m)
+    // Buscar en TODAS las fechas disponibles de ING INGRESO del año y elegir
+    // la más cercana al dia 1 del mes objetivo. Esto permite que julio use
+    // 30/06 cuando esa sea la fecha libre mas cercana en la plantilla 2027.
+    const preferred=all.filter(t=>normalizeTemplateKey(t.concept)==='ing ingreso')
       .map(t=>String(year)+String(t.date).slice(4));
-    const fallback=all.filter(t=>normalizeTemplateKey(t.concept)==='ing' && parseDateISO(String(year)+String(t.date).slice(4)).getMonth()+1===m)
+    const fallback=all.filter(t=>normalizeTemplateKey(t.concept)==='ing')
       .map(t=>String(year)+String(t.date).slice(4));
     const candidates=preferred.length?preferred:fallback;
     const d=nearestTemplateDateForMonth(year,m,candidates);
@@ -1304,6 +1476,16 @@ function generarAnoDesdePlantilla(year){
       }
     }
 
+    const previousOpen = prevCard.find(pc=>
+      Number(pc.month)===month &&
+      normalizeTemplateKey(pc.category)===normalizeTemplateKey(resolvedName) &&
+      pc.manualEdit===true
+    );
+    if(previousOpen){
+      if(!cardAgg.has(groupKey)) cardAgg.set(groupKey,{id:previousOpen.id||uid(),month,category:resolvedName,amount:Number(previousOpen.amount||0),sourceTemplate2027:true,sourceCalculation:'manual',manualEdit:true});
+      continue;
+    }
+
     const result=amountForTemplateCard(templateName,year,month);
     if(!result.include) continue;
     if(!cardAgg.has(groupKey)) cardAgg.set(groupKey,{id:uid(),month,category:resolvedName,amount:0,sourceTemplate2027:true,sourceCalculation:'master'});
@@ -1337,7 +1519,7 @@ function generarAnoDesdePlantilla(year){
     days.push({id:prev?.id||uid(),date,concept,amount:result.amount,sourceTemplate2027:true,sourceCalculation:result.source});
   }
 
-  const prevManualDays=prevDays.filter(d=>!d.sourceTemplate2027 && !d.sourceMaster && !days.some(x=>x.id===d.id));
+  const prevManualDays=prevDays.filter(d=>!/^tarjetas\s+/i.test(String(d.concept||'')) && !d.sourceTemplate2027 && !d.sourceMaster && !days.some(x=>x.id===d.id));
   const prevManualCard=prevCard.filter(c=>!c.sourceTemplate2027 && !c.sourceMaster && !cardEntries.some(x=>x.id===c.id));
   days.push(...prevManualDays);
   cardEntries.push(...prevManualCard);
@@ -1353,19 +1535,55 @@ function generarAnoDesdePlantilla(year){
 
 function sincronizarDiarioConFijos(){
   if(!TEMPLATE_2027 || !DB.masterLoaded) return;
-  const years=fijosYears().filter(y=>y>FIJOS_REF_YEAR).sort((a,b)=>a-b);
+  // 2027 queda protegido como versión definitiva. MASTER solo refresca años posteriores.
+  const years=fijosYears().filter(y=>y>2027 && DB.years[String(y)]).sort((a,b)=>a-b);
   years.forEach(year=>generarAnoDesdePlantilla(year));
 }
 
-function generarTodosLosAnosProyectados(){
-  if(!TEMPLATE_2027){ toast('Carga la plantilla 2027 primero'); return; }
+function regenerar2027UnaVez(){
+  if(!TEMPLATE_2027){ toast('La estructura 2027 no está cargada'); return; }
   if(!DB.masterLoaded){ toast('Carga MASTER primero'); return; }
-  const years=[];
-  for(let y=2027;y<=MASTER_MAX_YEAR;y++) years.push(y);
-  years.forEach(year=>generarAnoDesdePlantilla(year));
+  if(DB.regenerated2027Once){ toast('2027 ya fue regenerado y queda protegido'); return; }
+  if(!confirm('Se regenerará ÚNICAMENTE 2027 con la estructura definitiva de 2027, las reglas especiales y los importes actuales de MASTER. 2026 no se tocará. ¿Continuar?')) return;
+  generarAnoDesdePlantilla(2027);
   ui.year='2027';
-  saveDB(); renderAll();
-  toast(`Proyección generada: ${years[0]}–${years[years.length-1]}`);
+  DB.regenerated2027Once=true;
+  DB.updatedAt=new Date().toISOString();
+  saveDB();
+  applyProjectionButtonState();
+  renderAll();
+  if(gistSync.token) syncGistNow();
+  else setGistStatus('pending','☁ 2027 regenerado · cambios locales pendientes');
+  toast('2027 regenerado y protegido.');
+}
+
+function generar2028UnaVez(){
+  if(!TEMPLATE_2027){ toast('La estructura 2027 no está cargada'); return; }
+  if(!DB.masterLoaded){ toast('Carga MASTER primero'); return; }
+  const existing=DB.years['2028'];
+  if(existing && ((existing.days&&existing.days.length)||(existing.cardEntries&&existing.cardEntries.length))){
+    DB.futureGenerationLocked=true;
+    saveDB({sync:false});
+    applyProjectionButtonState();
+    toast('2028 ya existe y no se vuelve a generar');
+    return;
+  }
+  if(!confirm('2027 está protegido y no se modificará. Se generará únicamente 2028 usando la estructura de 2027 y los importes de MASTER. ¿Continuar?')) return;
+  generarAnoDesdePlantilla(2028);
+  ui.year='2028';
+  DB.futureGenerationLocked=true;
+  DB.updatedAt=new Date().toISOString();
+  saveDB();
+  applyProjectionButtonState();
+  renderAll();
+  if(gistSync.token) syncGistNow();
+  else setGistStatus('pending','☁ 2028 generado · cambios locales pendientes');
+  toast('2028 generado. 2027 queda protegido.');
+}
+
+function applyProjectionButtonState(){
+  const b28=document.getElementById('btnGenerar2028');
+  if(b28) b28.style.display = DB.futureGenerationLocked ? 'none' : '';
 }
 
 function openSpecialRulesModal(){
@@ -1667,7 +1885,7 @@ async function initializeData(){
     return true;
   }
 
-  setBootstrapStatus('Importa 2026 y 2027 manualmente · MASTER se carga automáticamente');
+  setBootstrapStatus('2026/2027 en Gist o copia local · MASTER se carga automáticamente');
   setGistStatus('ok','☁ Gist conectado · sin datos guardados todavía');
   return true;
 }
@@ -1693,7 +1911,10 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
   });
 });
 document.getElementById('yearSelect').addEventListener('change', e=>{
-  ui.year = e.target.value; renderAll();
+  ui.year = e.target.value;
+  ui.monthFilterDiario = 'todos';
+  ui.calendarMonth = {year:Number(ui.year), month:Number(ui.year)===new Date().getFullYear()?new Date().getMonth()+1:1};
+  renderAll();
 });
 document.getElementById('importMasterFile').addEventListener('change', async e=>{
   const file=e.target.files[0];
@@ -1711,10 +1932,8 @@ document.getElementById('importMasterFile').addEventListener('change', async e=>
 
 document.getElementById('btnSpecialRulesTop').addEventListener('click', openSpecialRulesModal);
 
-document.getElementById('btnGenerarProyeccion').addEventListener('click', generarTodosLosAnosProyectados);
+document.getElementById('btnGenerar2028').addEventListener('click', generar2028UnaVez);
 document.getElementById('btnSyncMaster').addEventListener('click', cargarMasterAutomatico);
-document.getElementById('import2026File').addEventListener('change', e=>{ const f=e.target.files[0]; if(f) importar2026Manual(f); e.target.value=''; });
-document.getElementById('import2027File').addEventListener('change', e=>{ const f=e.target.files[0]; if(f) importar2027Manual(f); e.target.value=''; });
 document.getElementById('btnGist').addEventListener('click', openGistPanel);
 document.getElementById('btnAddMov').addEventListener('click', modalAddMovimiento);
 document.getElementById('btnAddCat').addEventListener('click', modalAddCategoria);
@@ -1722,8 +1941,55 @@ document.getElementById('btnAddFijo').addEventListener('click', modalAddFijo);
 document.getElementById('btnAddGroup').addEventListener('click', modalAddGroup);
 document.getElementById('btnIPC').addEventListener('click', modalIPC);
 const btnSpecialRules=document.getElementById('btnSpecialRules'); if(btnSpecialRules) btnSpecialRules.addEventListener('click', openSpecialRulesModal);
-document.getElementById('monthFilter').addEventListener('change', e=>{
-  ui.monthFilterDiario = e.target.value; renderDiario();
+document.getElementById('btnCalendar').addEventListener('click', ()=>{
+  const pop=document.getElementById('calendarPopover');
+  const active=pop.classList.toggle('active');
+  document.getElementById('btnCalendar').setAttribute('aria-expanded', String(active));
+  if(active) renderCalendarPopover();
+});
+document.getElementById('calPrev').addEventListener('click', ()=>{
+  const y=Number(ui.year)||new Date().getFullYear();
+  let m=calendarBaseMonth()-1;
+  if(m<1) m=12;
+  ui.calendarMonth={year:y,month:m};
+  renderCalendarPopover();
+});
+document.getElementById('calNext').addEventListener('click', ()=>{
+  const y=Number(ui.year)||new Date().getFullYear();
+  let m=calendarBaseMonth()+1;
+  if(m>12) m=1;
+  ui.calendarMonth={year:y,month:m};
+  renderCalendarPopover();
+});
+document.getElementById('calendarDays').addEventListener('click', e=>{
+  const b=e.target.closest('button[data-cal-date]');
+  if(!b) return;
+  const y=Number(b.dataset.calYear), m=Number(b.dataset.calMonth);
+  if(y!==Number(ui.year)){ ui.year=String(y); document.getElementById('yearSelect').value=String(y); }
+  ui.monthFilterDiario=String(m);
+  ui.calendarMonth={year:y,month:m};
+  document.getElementById('calendarPopover').classList.remove('active');
+  document.getElementById('btnCalendar').setAttribute('aria-expanded','false');
+  renderAll();
+});
+document.getElementById('calAll').addEventListener('click', ()=>{
+  ui.monthFilterDiario='todos';
+  ui.calendarMonth={year:Number(ui.year),month:calendarBaseMonth()};
+  document.getElementById('calendarPopover').classList.remove('active');
+  document.getElementById('btnCalendar').setAttribute('aria-expanded','false');
+  renderAll();
+});
+document.addEventListener('pointerdown', e=>{
+  const pop=document.getElementById('calendarPopover');
+  const btn=document.getElementById('btnCalendar');
+  if(pop && pop.classList.contains('active') && !pop.contains(e.target) && !btn.contains(e.target)){
+    pop.classList.remove('active');
+    btn.setAttribute('aria-expanded','false');
+  }
+  const active=document.activeElement;
+  if(active && active.matches('input, textarea, select') && !active.closest('.modal') && !active.contains(e.target)){
+    active.blur();
+  }
 });
 document.getElementById('tarjMonthSelect').addEventListener('change', e=>{
   ui.tarjMonth = Number(e.target.value); renderTarjeta();
@@ -1735,14 +2001,9 @@ document.getElementById('btnCerrarMes').addEventListener('click', ()=>{
   const catEntries = yd.cardEntries.filter(c=>Number(c.month)===m);
   if(!catEntries.length){ toast('No hay gastos de tarjeta ese mes'); return; }
   const total = catEntries.reduce((s,c)=>s+Number(c.amount||0),0);
-  const concept = `Tarjetas ${MESES_ABR[m-1]}`;
-  const lastDay = new Date(Number(ui.year), m, 0); // last day of month
-  const dateIso = isoDate(lastDay);
-  let existing = yd.days.find(d=> d.concept===concept);
-  if(existing){ existing.amount = -total; existing.date = dateIso; }
-  else{ yd.days.push({id:uid(), date:dateIso, concept, amount:-total}); }
+  syncTarjetaMonthToDiario(ui.year, m);
   saveDB(); renderAll();
-  toast(`Mes cerrado: −${fmt(total)} € en tarjeta`);
+  toast(`Mes actualizado: −${fmt(total)} € en tarjeta`);
 });
 
 
@@ -2021,6 +2282,13 @@ function setMasterStatus(msg, ok=null){
 // RENDER ALL
 // ============================================================
 function renderAll(){
+  // Reconciliar saldos iniciales de todos los años futuros con el cierre del año anterior.
+  // Esto corrige estados antiguos de localStorage/Gist sin tocar los datos de movimientos.
+  const startsChanged=reconcileFutureYearStarts();
+  // Reconciliar siempre los totales de Tarjeta con Diario en años/meses abiertos.
+  // Esto también arregla estados antiguos guardados en localStorage/Gist.
+  Object.keys(DB.years||{}).forEach(y=>{ syncAllOpenTarjetasToDiario(Number(y)); });
+  if(startsChanged) saveDB();
   populateYearSelect();
   populateMonthFilter();
   populateTarjMonthSelect();
@@ -2035,10 +2303,13 @@ async function initDashboard(){
   initGistSync();
   renderAll();
   await initializeData();
+  Object.keys(DB.years||{}).forEach(y=>syncAllOpenTarjetasToDiario(Number(y)));
+  saveDB();
   // MASTER sí se refresca en cada arranque para detectar nuevos conceptos, renombres e importes.
   await cargarMasterAutomatico();
   setBootstrapStatus(bootstrapStateText(), true);
   renderAll();
+applyProjectionButtonState();
 }
 
 initDashboard();
