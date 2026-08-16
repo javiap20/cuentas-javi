@@ -9,7 +9,7 @@ const FIJOS_REF_YEAR = 2026; // año de referencia del MASTER
 const MASTER_URLS = ['../excel/finanzas-master.xlsx','./excel/finanzas-master.xlsx'];
 const BOOTSTRAP_2026_URLS = ['../excel/2026.xlsx','./excel/2026.xlsx'];
 const BOOTSTRAP_2027_URLS = ['../excel/2027.xlsx','./excel/2027.xlsx'];
-const BOOTSTRAP_VERSION = 2;
+const BOOTSTRAP_VERSION = 3;
 const MASTER_MAX_YEAR = 2040; // horizonte visible/proyectable desde el año base
 const MASTER_REFRESH_PARAM = () => `?v=${Date.now()}`;
 const MES_ABR_LOWER = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
@@ -54,10 +54,13 @@ function loadDB(){
       if(!db.ipc) db.ipc = { gastos:2, ingresos:0.5 };
       if(!db.fijos) db.fijos = [];
       if(!db.fijosGroups) db.fijosGroups = [];
+      if(!('bootstrap' in db)) db.bootstrap = {version:0};
+      if(!('template2027' in db)) db.template2027 = null;
+      if(!('masterLoaded' in db)) db.masterLoaded = false;
       return db;
     }
   }catch(e){ console.error('Error leyendo almacenamiento', e); }
-  return { years:{}, fijos:[], ipc:{ gastos:2, ingresos:0.5 }, fijosGroups:[] };
+  return { years:{}, template2027:null, bootstrap:{version:0}, masterLoaded:false, fijos:[], ipc:{ gastos:2, ingresos:0.5 }, fijosGroups:[] };
 }
 function saveDB(options={}){
   const shouldSync = options.sync !== false;
@@ -343,7 +346,7 @@ function renderDiario(){
   // sube arriba del todo; lo anterior a hoy queda archivado abajo, para
   // no tener que hacer scroll entre los movimientos ya pasados cada vez.
   const currentYear = new Date().getFullYear();
-  const isYearActual = Number(ui.year) === currentYear;
+  const isYearActual = Number(ui.year) === currentYear && Number(ui.year) !== FIJOS_REF_YEAR;
   const todayIso = isoDate(new Date());
   const futuros = isYearActual ? sorted.filter(e=> e.date >= todayIso) : sorted;
   const pasados = isYearActual ? sorted.filter(e=> e.date < todayIso) : [];
@@ -1102,7 +1105,7 @@ function bootstrapStateText(){
 }
 
 function templateDayKey(year, day, concept){
-  return isoDate(new Date(year,0,day))+'|'+String(concept||'');
+  return String(year)+String(day.date).slice(4)+'|'+String(concept||'');
 }
 function templateCardKey(month, category){
   return String(month)+'|'+normalizeTemplateKey(category);
@@ -1110,65 +1113,55 @@ function templateCardKey(month, category){
 
 function generarAnoDesdePlantilla(year){
   if(!TEMPLATE_2027) throw new Error('La plantilla 2027 no está cargada');
-  const yearStr = String(year);
-  const existing = DB.years[yearStr];
-  const prevDays = existing?.days ? existing.days.slice() : [];
-  const prevCard = existing?.cardEntries ? existing.cardEntries.slice() : [];
-
-  const templateDayKeys = new Set(TEMPLATE_2027.days.map(t=>templateDayKey(year,t.day,t.concept)));
-  const templateCardKeys = new Set(TEMPLATE_2027.cardEntries.map(c=>templateCardKey(c.month,c.category)));
-
-  const manualDays = prevDays.filter(d=>!d.sourceTemplate2027 && !templateDayKeys.has(d.date+'|'+String(d.concept||'')));
-  const manualCard = prevCard.filter(c=>!c.sourceTemplate2027 && !templateCardKeys.has(templateCardKey(c.month,c.category)));
-
-  const prevDaysMap = new Map(prevDays.map(d=>[d.date+'|'+String(d.concept||''),d]));
-  const prevCardMap = new Map(prevCard.map(c=>[templateCardKey(c.month,c.category),c]));
-
-  const days = manualDays.slice();
+  const yearStr=String(year);
+  const existing=DB.years[yearStr];
+  const prevDays=existing?.days ? existing.days.slice() : [];
+  const prevCard=existing?.cardEntries ? existing.cardEntries.slice() : [];
+  const templateDayKeys=new Set(TEMPLATE_2027.days.map(t=>templateDayKey(year,t,t.concept)));
+  const templateCardKeys=new Set(TEMPLATE_2027.cardEntries.map(c=>templateCardKey(c.month,c.category)));
+  const manualDays=prevDays.filter(d=>!d.sourceTemplate2027&&!d.sourceMaster&&!templateDayKeys.has(d.date+'|'+String(d.concept||'')));
+  const manualCard=prevCard.filter(c=>!c.sourceTemplate2027&&!c.sourceMaster&&!templateCardKeys.has(templateCardKey(c.month,c.category)));
+  const prevDaysMap=new Map(prevDays.map(d=>[d.date+'|'+String(d.concept||''),d]));
+  const prevCardMap=new Map(prevCard.map(c=>[templateCardKey(c.month,c.category),c]));
+  const days=[];
   TEMPLATE_2027.days.forEach(t=>{
-    const date = isoDate(new Date(year,0,t.day));
-    const key = date+'|'+String(t.concept||'');
-    const prev = prevDaysMap.get(key);
-    // Estructura solamente: el dinero se añadirá en la siguiente fase desde MASTER.
+    const date=String(year)+String(t.date).slice(4);
+    const key=date+'|'+String(t.concept||'');
+    const prev=prevDaysMap.get(key);
     days.push({id:prev?.id||uid(),date,concept:t.concept||'',amount:0,sourceTemplate2027:true});
   });
-
-  const cardEntries = manualCard.slice();
+  const cardEntries=[];
   TEMPLATE_2027.cardEntries.forEach(c=>{
-    const key = templateCardKey(c.month,c.category);
-    const prev = prevCardMap.get(key);
-    cardEntries.push({id:prev?.id||uid(),month:c.month,category:c.category,amount:0,sourceTemplate2027:true});
+    const prev=prevCardMap.get(templateCardKey(c.month,c.category));
+    cardEntries.push({id:prev?.id||uid(),month:Number(c.month),category:c.category,amount:0,sourceTemplate2027:true});
   });
-
-  let start = 0;
-  const prevYear = DB.years[String(year-1)];
+  days.push(...manualDays);
+  cardEntries.push(...manualCard);
+  let start=0;
+  const prevYear=DB.years[String(year-1)];
   if(prevYear){
-    const prevSorted = getSortedDays(year-1);
-    start = prevSorted.length ? prevSorted[prevSorted.length-1].balance : (prevYear.start||0);
+    const sorted=getSortedDays(year-1);
+    start=sorted.length?sorted[sorted.length-1].balance:(prevYear.start||0);
   }
-  DB.years[yearStr] = {start,days,cardEntries};
+  DB.years[yearStr]={start,days,cardEntries};
 }
 
 function sincronizarDiarioConFijos(){
-  // 2027+ se basa en la plantilla externa; de momento solo se sincroniza
-  // la estructura. Los importes se rellenarán en la siguiente fase.
-  const years = fijosYears().filter(y=>y>FIJOS_REF_YEAR && DB.years[String(y)]).sort((a,b)=>a-b);
-  if(!TEMPLATE_2027) return;
-  years.forEach(year=>generarAnoDesdePlantilla(year));
+  // En esta fase el MASTER actualiza Gastos fijos, pero no rellena dinero en 2027+.
 }
 
 function generarTodosLosAnosProyectados(){
   if(!TEMPLATE_2027){ toast('Carga la plantilla 2027 primero'); return; }
-  const years = fijosYears().filter(y=>y>FIJOS_REF_YEAR).sort((a,b)=>a-b);
+  const years=fijosYears().filter(y=>y>FIJOS_REF_YEAR).sort((a,b)=>a-b);
   if(!years.length){ toast(`No hay años posteriores a ${FIJOS_REF_YEAR} configurados en el Master`); return; }
-  const yaConDatos = years.filter(y=>{ const yd=DB.years[String(y)]; return yd && ((yd.days&&yd.days.length)||(yd.cardEntries&&yd.cardEntries.length)); });
-  if(yaConDatos.length){
-    if(!confirm(`Los años ${yaConDatos.join(', ')} ya tienen estructura. ¿Regenerarlos desde la plantilla 2027? Los movimientos manuales se conservarán.`)) return;
-  }
   years.forEach(year=>generarAnoDesdePlantilla(year));
-  ui.year = String(years[0]||FIJOS_REF_YEAR+1);
+  ui.year=String(years[0]);
   saveDB(); renderAll();
   toast(`Estructura generada: ${years.join(', ')}`);
+}
+
+function parseGastosSheet(rows){
+  return parseMasterRows(rows);
 }
 
 function parseGastosSheet(rows){
@@ -1195,6 +1188,7 @@ async function loadMasterBuffer(buf, sourceLabel='MASTER', options={}){
   const changed = masterFingerprint(items) !== masterFingerprint(current);
   if(changed){
     installMasterItems(items);
+    DB.masterLoaded=true;
     if(options.syncStructure!==false) sincronizarDiarioConFijos();
     if(options.persist!==false){
       DB.updatedAt = new Date().toISOString();
@@ -1203,6 +1197,7 @@ async function loadMasterBuffer(buf, sourceLabel='MASTER', options={}){
     if(options.render!==false) renderAll();
     setMasterStatus(`MASTER actualizado · ${items.length} partidas`, true);
   }else{
+    DB.masterLoaded=true;
     setMasterStatus(`MASTER al día · ${items.length} partidas`, true);
   }
   setBootstrapStatus(bootstrapStateText(), true);
@@ -1265,6 +1260,32 @@ async function read2026WorkbookBuffer(buf){
   return parse2026Sheet(rows);
 }
 
+function parse2027TemplateRows(rows){
+  const days=[];
+  for(const row of rows){
+    const d=row?.[0];
+    if(!(d instanceof Date) || d.getFullYear()!==2027) continue;
+    days.push({date:isoDate(d),concept:row?.[1]==null?'':String(row[1]).trim()});
+  }
+  if(days.length!==365) throw new Error(`Se esperaban 365 días de 2027 y se han leído ${days.length}`);
+
+  const agg=new Map();
+  for(const row of rows){
+    const d=row?.[0];
+    if(!(d instanceof Date) || d.getFullYear()!==2027) continue;
+    const month=d.getMonth()+1;
+    for(const col of [5,7,9]){ // F, H, J
+      const raw=row?.[col];
+      if(raw==null || raw instanceof Date) continue;
+      const category=String(raw).trim();
+      if(!category || MESES.includes(category)) continue;
+      const key=`${month}|${normalizeName(category)}`;
+      if(!agg.has(key)) agg.set(key,{id:uid(),month,category,amount:0});
+    }
+  }
+  return {year:2027,days,cardEntries:Array.from(agg.values()),source:'2027-bootstrap'};
+}
+
 async function read2027WorkbookBuffer(buf){
   const wb=XLSX.read(buf,{type:'array',cellDates:true});
   const sheetName=wb.SheetNames.find(name=>/^2027$/i.test(name.trim()))||wb.SheetNames[0];
@@ -1302,6 +1323,7 @@ function hasCompletedBootstrap(db){
   return !!(db && db.bootstrap && Number(db.bootstrap.version)>=BOOTSTRAP_VERSION
     && db.years && db.years[String(FIJOS_REF_YEAR)]?.days?.length===365
     && db.template2027?.days?.length===365
+    && db.template2027?.cardEntries
     && db.masterLoaded);
 }
 
@@ -1595,6 +1617,9 @@ function applyGistData(data){
   if(!clean.fijos) clean.fijos = [];
   if(!clean.fijosGroups) clean.fijosGroups = [];
   if(!clean.years) clean.years = {};
+  if(!('bootstrap' in clean)) clean.bootstrap={version:0};
+  if(!('template2027' in clean)) clean.template2027=null;
+  if(!('masterLoaded' in clean)) clean.masterLoaded=false;
   delete clean.token;
   DB = clean;
   TEMPLATE_2027 = DB.template2027 || null;
