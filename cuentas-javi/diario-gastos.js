@@ -13,6 +13,27 @@ const MES_ABR_LOWER = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oc
 const CONCEPT_ALIASES = { 'nom': 'nómina' }; // compatibilidad con plantillas antiguas
 const MASTER_FREQUENCIES = new Set(['mensual','anual','semanal']);
 
+// Gist central del dashboard. El ID es público; el token NUNCA se incluye en el JSON.
+const GIST_ID = 'bcb12de9d4e6b476062a8d13a676532f';
+const GIST_FILE = 'diario-gastos.json';
+const GIST_API_URL = `https://api.github.com/gists/${GIST_ID}`;
+const GIST_API_VERSION = '2026-03-10';
+const GIST_TIMEOUT_MS = 12000;
+const GIST_TOKEN_SESSION_KEY = 'diarioGastos_gistToken_session';
+const GIST_TOKEN_LOCAL_KEY = 'diarioGastos_gistToken_local';
+const GIST_REMEMBER_KEY = 'diarioGastos_gistToken_remember';
+
+const gistSync = {
+  ready: false,
+  suppress: false,
+  token: null,
+  rememberToken: false,
+  timer: null,
+  syncing: false,
+  remoteUpdatedAt: null,
+  lastStatus: null
+};
+
 let DB = loadDB();
 let ui = {
   year: null,
@@ -34,8 +55,15 @@ function loadDB(){
   }catch(e){ console.error('Error leyendo almacenamiento', e); }
   return { years:{}, fijos:[], ipc:{ gastos:2, ingresos:0.5 }, fijosGroups:[] };
 }
-function saveDB(){
+function saveDB(options={}){
+  const shouldSync = options.sync !== false;
+  if(gistSync.ready && shouldSync && !gistSync.suppress){
+    DB.updatedAt = new Date().toISOString();
+  }
   localStorage.setItem(STORAGE_KEY, JSON.stringify(DB));
+  if(gistSync.ready && shouldSync && !gistSync.suppress){
+    scheduleGistSync();
+  }
 }
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
 
@@ -1202,43 +1230,6 @@ document.getElementById('importFile').addEventListener('change', async (e)=>{
 });
 
 
-document.getElementById('importFile').addEventListener('change', async (e)=>{
-  const file = e.target.files[0];
-  if(!file) return;
-  try{
-    const buf = await file.arrayBuffer();
-    const wb = XLSX.read(buf, {type:'array', cellDates:true});
-    let importedYears = 0, importedFijos = 0;
-    wb.SheetNames.forEach(name=>{
-      if(/^\d{4}$/.test(name.trim())){
-        const ws = wb.Sheets[name];
-        const rows = XLSX.utils.sheet_to_json(ws, {header:1, raw:true, defval:null});
-        const parsed = parseYearSheet(rows, parseInt(name,10));
-        DB.years[name] = parsed;
-        importedYears++;
-        ui.year = name;
-      } else if(/^gastos$/i.test(name.trim())){
-        const ws = wb.Sheets[name];
-        const rows = XLSX.utils.sheet_to_json(ws, {header:1, raw:true, defval:null});
-        const items = parseGastosSheet(rows);
-        if(items.length){ DB.fijos = items; importedFijos = items.length; }
-      }
-    });
-    // Si solo se ha importado la hoja "Gastos" (sin hojas de año), se
-    // sincronizan los años ya generados con los nuevos importes/IPC.
-    if(importedFijos>0 && importedYears===0){
-      sincronizarDiarioConFijos();
-    }
-    saveDB();
-    renderAll();
-    toast(`Importado: ${importedYears} año(s), ${importedFijos} partida(s) fijas`);
-  }catch(err){
-    console.error(err);
-    toast('No se pudo leer el archivo');
-  }
-  e.target.value = '';
-});
-
 document.getElementById('btnExport').addEventListener('click', ()=>{
   const blob = new Blob([JSON.stringify(DB,null,2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
@@ -1264,6 +1255,7 @@ document.getElementById('yearSelect').addEventListener('change', e=>{
 });
 document.getElementById('btnGenerarProyeccion').addEventListener('click', generarTodosLosAnosProyectados);
 document.getElementById('btnSyncMaster').addEventListener('click', cargarMasterAutomatico);
+document.getElementById('btnGist').addEventListener('click', openGistPanel);
 document.getElementById('btnAddMov').addEventListener('click', modalAddMovimiento);
 document.getElementById('btnAddCat').addEventListener('click', modalAddCategoria);
 document.getElementById('btnAddFijo').addEventListener('click', modalAddFijo);
@@ -1292,6 +1284,308 @@ document.getElementById('btnCerrarMes').addEventListener('click', ()=>{
   toast(`Mes cerrado: −${fmt(total)} € en tarjeta`);
 });
 
+
+// ============================================================
+// GIST: sincronización central
+// ============================================================
+function gistHeaders(token){
+  const h = {
+    'Accept':'application/vnd.github+json',
+    'X-GitHub-Api-Version': GIST_API_VERSION
+  };
+  if(token) h['Authorization'] = `Bearer ${token}`;
+  return h;
+}
+
+function gistFetch(url, options={}){
+  const controller = new AbortController();
+  const timer = setTimeout(()=>controller.abort(), GIST_TIMEOUT_MS);
+  return fetch(url, {...options, signal:controller.signal}).finally(()=>clearTimeout(timer));
+}
+
+function setGistStatus(kind, text){
+  const el = document.getElementById('gistStatus');
+  if(!el) return;
+  el.textContent = text;
+  el.dataset.kind = kind || '';
+  gistSync.lastStatus = {kind, text};
+}
+
+function formatSyncDate(iso){
+  if(!iso) return '';
+  const d = new Date(iso);
+  if(isNaN(d.getTime())) return '';
+  return new Intl.DateTimeFormat('es-ES', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(d);
+}
+
+function localToken(){
+  try{
+    const remembered = localStorage.getItem(GIST_REMEMBER_KEY)==='1';
+    if(remembered){
+      const t = localStorage.getItem(GIST_TOKEN_LOCAL_KEY);
+      if(t) return {token:t, remember:true};
+    }
+    const s = sessionStorage.getItem(GIST_TOKEN_SESSION_KEY);
+    if(s) return {token:s, remember:false};
+  }catch(e){ console.warn('No se pudo leer el token local:', e); }
+  return {token:null, remember:false};
+}
+
+function setGistToken(token, remember){
+  gistSync.token = String(token||'').trim() || null;
+  gistSync.rememberToken = !!remember;
+  try{
+    if(gistSync.token){
+      sessionStorage.setItem(GIST_TOKEN_SESSION_KEY, gistSync.token);
+      if(remember){
+        localStorage.setItem(GIST_REMEMBER_KEY, '1');
+        localStorage.setItem(GIST_TOKEN_LOCAL_KEY, gistSync.token);
+      }else{
+        localStorage.removeItem(GIST_REMEMBER_KEY);
+        localStorage.removeItem(GIST_TOKEN_LOCAL_KEY);
+      }
+    }else{
+      sessionStorage.removeItem(GIST_TOKEN_SESSION_KEY);
+      localStorage.removeItem(GIST_REMEMBER_KEY);
+      localStorage.removeItem(GIST_TOKEN_LOCAL_KEY);
+    }
+  }catch(e){ console.warn('No se pudo guardar la preferencia del token:', e); }
+}
+
+function clearRememberedGistToken(){
+  try{
+    localStorage.removeItem(GIST_REMEMBER_KEY);
+    localStorage.removeItem(GIST_TOKEN_LOCAL_KEY);
+    sessionStorage.removeItem(GIST_TOKEN_SESSION_KEY);
+  }catch(e){}
+  gistSync.token = null;
+  gistSync.rememberToken = false;
+}
+
+function gistPayload(){
+  const snapshots = {};
+  Object.keys(DB.years||{}).forEach(y=>{
+    snapshots[y] = {
+      yearTotals: yearTotals(y),
+      monthlyAggregates: monthlyAggregates(y)
+    };
+  });
+  return {
+    schemaVersion: 1,
+    dashboard: 'diario-gastos',
+    updatedAt: DB.updatedAt || new Date().toISOString(),
+    data: JSON.parse(JSON.stringify(DB)),
+    calculatedSnapshots: snapshots,
+    calculatedAt: new Date().toISOString(),
+    engineVersion: 'gist-sync-1.0'
+  };
+}
+
+function isValidGistPayload(payload){
+  return !!payload && typeof payload==='object' && (
+    (payload.data && typeof payload.data==='object') ||
+    (payload.years && typeof payload.years==='object')
+  );
+}
+
+function normalizeGistPayload(payload){
+  if(payload && payload.data && typeof payload.data==='object'){
+    return {
+      data: payload.data,
+      updatedAt: payload.updatedAt || payload.data.updatedAt || null,
+      calculatedAt: payload.calculatedAt || null,
+      engineVersion: payload.engineVersion || null
+    };
+  }
+  return {data: payload, updatedAt: payload?.updatedAt || null, calculatedAt:null, engineVersion:null};
+}
+
+async function fetchGistRemote(){
+  const res = await gistFetch(GIST_API_URL, {headers:gistHeaders()});
+  if(!res.ok){
+    if(res.status===404) return {exists:false, payload:null, response:res};
+    throw new Error(`Gist HTTP ${res.status}`);
+  }
+  const gist = await res.json();
+  const file = gist.files && gist.files[GIST_FILE];
+  if(!file) return {exists:false, payload:null, response:res, gist};
+  let text = file.content;
+  if(file.truncated && file.raw_url){
+    const rawRes = await gistFetch(file.raw_url, {headers:gistHeaders()});
+    if(!rawRes.ok) throw new Error(`Gist raw HTTP ${rawRes.status}`);
+    text = await rawRes.text();
+  }
+  const payload = JSON.parse(text);
+  if(!isValidGistPayload(payload)) throw new Error('El archivo del Gist no tiene un formato válido');
+  const normalized = normalizeGistPayload(payload);
+  return {exists:true, payload:normalized, gist, response:res};
+}
+
+function applyGistData(data){
+  const clean = JSON.parse(JSON.stringify(data||{}));
+  if(!clean.ipc) clean.ipc = {gastos:2, ingresos:0.5};
+  if(!clean.fijos) clean.fijos = [];
+  if(!clean.fijosGroups) clean.fijosGroups = [];
+  if(!clean.years) clean.years = {};
+  delete clean.token;
+  DB = clean;
+}
+
+async function loadGistFirst(){
+  setGistStatus('loading', '☁ Gist · comprobando…');
+  try{
+    const remote = await fetchGistRemote();
+    if(!remote.exists){
+      gistSync.remoteUpdatedAt = null;
+      if(DB.updatedAt){
+        if(gistSync.token) scheduleGistSync();
+        setGistStatus('pending', '☁ Gist conectado · todavía no existen datos guardados para este dashboard');
+      }else{
+        setGistStatus('empty', '☁ Gist conectado · todavía no existen datos guardados para este dashboard');
+      }
+      return {exists:false};
+    }
+    const remoteUpdatedAt = remote.payload.updatedAt || remote.gist?.updated_at || null;
+    gistSync.remoteUpdatedAt = remoteUpdatedAt;
+    const localUpdatedAt = DB.updatedAt || null;
+    const remoteMs = remoteUpdatedAt ? Date.parse(remoteUpdatedAt) : 0;
+    const localMs = localUpdatedAt ? Date.parse(localUpdatedAt) : 0;
+
+    if(remoteMs >= localMs){
+      gistSync.suppress = true;
+      applyGistData(remote.payload.data);
+      DB.updatedAt = remoteUpdatedAt || DB.updatedAt || new Date().toISOString();
+      saveDB({sync:false});
+      gistSync.suppress = false;
+      setGistStatus('ok', `☁ Última actualización del Gist · ${formatSyncDate(DB.updatedAt)}`);
+      return {exists:true, winner:'gist'};
+    }
+
+    setGistStatus('pending', `☁ Gist · cambios locales pendientes · Gist ${formatSyncDate(remoteUpdatedAt)}`);
+    if(gistSync.token) scheduleGistSync();
+    return {exists:true, winner:'local'};
+  }catch(err){
+    console.warn('No se pudo leer Gist:', err);
+    const when = formatSyncDate(DB.updatedAt);
+    setGistStatus('error', when ? `⚠ Gist no disponible · mostrando copia local de ${when}` : '⚠ Gist no disponible · mostrando copia local');
+    return {exists:false, error:err};
+  }
+}
+
+function scheduleGistSync(){
+  if(!gistSync.ready || !gistSync.token) {
+    if(gistSync.ready && DB.updatedAt && (!gistSync.remoteUpdatedAt || Date.parse(DB.updatedAt) > Date.parse(gistSync.remoteUpdatedAt))){
+      setGistStatus('pending', '☁ Cambios locales pendientes · añade token para sincronizar');
+    }
+    return;
+  }
+  clearTimeout(gistSync.timer);
+  setGistStatus('syncing', '☁ Gist · sincronizando…');
+  gistSync.timer = setTimeout(()=>syncGistNow(), 700);
+}
+
+async function syncGistNow(){
+  if(!gistSync.token || gistSync.syncing) return false;
+  gistSync.syncing = true;
+  try{
+    setGistStatus('syncing', '☁ Gist · sincronizando…');
+    const payload = gistPayload();
+    const body = JSON.stringify({
+      files: {[GIST_FILE]: {content: JSON.stringify(payload, null, 2)}}
+    });
+    const res = await gistFetch(GIST_API_URL, {
+      method:'PATCH',
+      headers:{...gistHeaders(gistSync.token), 'Content-Type':'application/json'},
+      body
+    });
+    if(res.status===401 || res.status===403){
+      throw new Error('Token sin permiso para escribir el Gist');
+    }
+    if(!res.ok) throw new Error(`Gist HTTP ${res.status}`);
+    gistSync.remoteUpdatedAt = payload.updatedAt;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(DB));
+    setGistStatus('ok', `☁ Última actualización del Gist · ${formatSyncDate(payload.updatedAt)}`);
+    return true;
+  }catch(err){
+    console.warn('No se pudo sincronizar Gist:', err);
+    setGistStatus('error', '⚠ Gist · error de sincronización · cambios guardados localmente');
+    return false;
+  }finally{
+    gistSync.syncing = false;
+  }
+}
+
+async function replaceFromGist(){
+  setGistStatus('loading', '☁ Gist · trayendo datos…');
+  try{
+    const remote = await fetchGistRemote();
+    if(!remote.exists) throw new Error('No existe aún el archivo del dashboard en el Gist');
+    gistSync.suppress = true;
+    applyGistData(remote.payload.data);
+    DB.updatedAt = remote.payload.updatedAt || remote.gist?.updated_at || new Date().toISOString();
+    saveDB({sync:false});
+    renderAll();
+    gistSync.remoteUpdatedAt = DB.updatedAt;
+    setGistStatus('ok', `☁ Última actualización del Gist · ${formatSyncDate(DB.updatedAt)}`);
+    toast('Datos traídos del Gist');
+    return true;
+  }catch(err){
+    console.warn(err);
+    setGistStatus('error', '⚠ No se pudo traer el Gist');
+    toast('No se pudo traer el Gist');
+    return false;
+  }finally{
+    gistSync.suppress = false;
+  }
+}
+
+function openGistPanel(){
+  const saved = localToken();
+  openModal(`
+    <h3>☁ Gist</h3>
+    <div class="field-row"><label>Gist ID</label><input class="field" type="text" value="${GIST_ID}" readonly></div>
+    <div class="field-row"><label>Archivo</label><input class="field" type="text" value="${GIST_FILE}" readonly></div>
+    <div class="field-row"><label>Token de GitHub</label><input class="field" type="password" id="gistTokenInput" name="gistToken" autocomplete="current-password" spellcheck="false" value="${escapeHtml(saved.token||'')}"></div>
+    <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-soft);margin:-4px 0 12px;">
+      <input type="checkbox" id="gistRemember" ${saved.remember?'checked':''}>
+      Recordar token en este dispositivo
+    </label>
+    <div style="font-size:11.5px;color:var(--ink-soft);line-height:1.45;margin-bottom:12px;">
+      El token solo se usa para escribir. No se guarda en el Gist ni se incluye en el JSON. El gestor de contraseñas del navegador puede ofrecer guardarlo.
+    </div>
+    <div class="modal-actions">
+      <button class="btn ghost" id="gistClear">Borrar token</button>
+      <button class="btn ghost" id="gistFetch">Traer del Gist</button>
+      <button class="btn" id="gistSaveNow">Guardar ahora</button>
+      <button class="btn primary" id="gistSaveClose">Guardar y cerrar</button>
+    </div>
+  `, ()=>{
+    document.getElementById('gistClear').onclick = ()=>{ clearRememberedGistToken(); document.getElementById('gistTokenInput').value=''; document.getElementById('gistRemember').checked=false; setGistStatus('pending', '☁ Sin token · solo lectura del Gist'); };
+    document.getElementById('gistFetch').onclick = async ()=>{ await replaceFromGist(); };
+    document.getElementById('gistSaveNow').onclick = async ()=>{
+      const token = document.getElementById('gistTokenInput').value.trim();
+      const remember = document.getElementById('gistRemember').checked;
+      setGistToken(token, remember);
+      if(!token){ setGistStatus('pending', '☁ Sin token · solo lectura del Gist'); toast('Token borrado'); return; }
+      await syncGistNow();
+    };
+    document.getElementById('gistSaveClose').onclick = async ()=>{
+      const token = document.getElementById('gistTokenInput').value.trim();
+      const remember = document.getElementById('gistRemember').checked;
+      setGistToken(token, remember);
+      if(token) await syncGistNow();
+      closeModal();
+    };
+  });
+}
+
+function initGistSync(){
+  const saved = localToken();
+  gistSync.token = saved.token;
+  gistSync.rememberToken = saved.remember;
+  gistSync.ready = true;
+}
+
 function setMasterStatus(msg, ok=null){
   const el=document.getElementById('masterStatus');
   if(!el) return;
@@ -1312,5 +1606,13 @@ function renderAll(){
   renderTarjeta();
   renderFijos();
 }
-renderAll();
-cargarMasterAutomatico();
+
+async function initDashboard(){
+  initGistSync();
+  await loadGistFirst();
+  renderAll();
+  await cargarMasterAutomatico();
+  renderAll();
+}
+
+initDashboard();

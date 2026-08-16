@@ -278,6 +278,12 @@
   .toast.show{opacity:1;transform:translateX(-50%) translateY(-4px);}
 
   .footer-note{font-size:11.5px;color:var(--ink-soft);text-align:center;margin-top:30px;}
+  .gist-status{width:100%;text-align:center;color:#7C5A9E;font-size:11.5px;font-weight:600;margin:-7px 0 14px;min-height:18px;line-height:18px;}
+  .gist-status[data-kind=syncing]{color:#7C5A9E;}
+  .gist-status[data-kind=ok]{color:#7C5A9E;}
+  .gist-status[data-kind=pending]{color:#7C5A9E;}
+  .gist-status[data-kind=error]{color:var(--neg);}
+  .gist-status[data-kind=loading]{color:#7C5A9E;}
 
   input[type=file]{display:none;}
 </style>
@@ -296,11 +302,14 @@
       <button class="btn" id="btnGenerarProyeccion" title="Genera los años 2027+ desde MASTER, encadenando el saldo inicial con el saldo final del año anterior">Generar años proyectados</button>
       <button class="btn" id="btnSyncMaster">Actualizar MASTER</button>
       <span id="masterStatus" style="font-size:11.5px;color:var(--ink-soft);white-space:nowrap">MASTER: esperando…</span>
+      <button class="btn" id="btnGist">☁ Gist</button>
       <label class="btn" for="importFile">Importar Excel (fallback)</label>
       <input type="file" id="importFile" accept=".xlsx,.xls">
       <button class="btn ghost" id="btnExport">Exportar</button>
     </div>
   </div>
+
+  <div id="gistStatus" class="gist-status" data-kind="loading">☁ Gist · comprobando…</div>
 
   <div class="ticker-wrap">
     <div class="ticker-head">
