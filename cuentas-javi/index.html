@@ -303,7 +303,7 @@
       <input type="file" id="import2026File" accept=".xlsx,.xls">
       <label class="btn" for="import2027File">Importar 2027</label>
       <input type="file" id="import2027File" accept=".xlsx,.xls">
-      <button class="btn" id="btnGenerarProyeccion" title="Genera los años 2027+ usando la estructura guardada del Excel 2027">Generar estructura 2027+</button>
+      <button class="btn" id="btnGenerarProyeccion" title="Genera 2027 y todos los años siguientes usando MASTER y las reglas especiales">Generar 2027+ con MASTER</button>
       <button class="btn" id="btnSyncMaster">Actualizar MASTER</button>
       <span id="masterStatus" style="font-size:11.5px;color:var(--ink-soft);white-space:nowrap">MASTER: esperando…</span>
       <span id="bootstrapStatus" style="font-size:11.5px;color:var(--ink-soft);white-space:nowrap">Importa 2026 y 2027 una vez</span>
@@ -383,7 +383,7 @@
     <div class="panel">
       <div class="toolbar">
         <h2 style="margin-right:auto">Gastos fijos proyectados</h2>
-        <button class="btn small" id="btnIPC">% IPC</button>
+        <button class="btn small" id="btnIPC">% IPC</button><button class="btn small" id="btnSpecialRules">Reglas especiales</button>
         <button class="btn small" id="btnAddGroup">+ Grupo</button>
         <button class="btn small" id="btnAddFijo">+ Partida</button>
       </div>

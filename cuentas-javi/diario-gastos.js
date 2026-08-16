@@ -13,6 +13,7 @@ const MASTER_REFRESH_PARAM = () => `?v=${Date.now()}`;
 const MES_ABR_LOWER = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 const CONCEPT_ALIASES = { 'nom': 'nómina' }; // compatibilidad con plantillas antiguas
 const MASTER_FREQUENCIES = new Set(['mensual','anual','semanal']);
+const DEFAULT_SPECIAL_RULES = { ing:{ ingresoSemestral:4050, gastoNormal:675, mesesIngreso:[1,7], ultimoIngreso:'2034-01-01', cambioGasto:'2033-04-02', gastoReducido:304, finGasto:'2034-06-30' } };
 
 // Gist central del dashboard. El ID es público; el token NUNCA se incluye en el JSON.
 const GIST_ID = 'bcb12de9d4e6b476062a8d13a676532f';
@@ -55,10 +56,12 @@ function loadDB(){
       if(!('bootstrap' in db)) db.bootstrap = {version:0};
       if(!('template2027' in db)) db.template2027 = null;
       if(!('masterLoaded' in db)) db.masterLoaded = false;
+      if(!db.specialRules) db.specialRules = JSON.parse(JSON.stringify(DEFAULT_SPECIAL_RULES));
+      if(!db.specialRules.ing) db.specialRules.ing = JSON.parse(JSON.stringify(DEFAULT_SPECIAL_RULES.ing));
       return db;
     }
   }catch(e){ console.error('Error leyendo almacenamiento', e); }
-  return { years:{}, template2027:null, bootstrap:{version:0}, masterLoaded:false, fijos:[], ipc:{ gastos:2, ingresos:0.5 }, fijosGroups:[] };
+  return { years:{}, template2027:null, bootstrap:{version:0}, masterLoaded:false, specialRules:JSON.parse(JSON.stringify(DEFAULT_SPECIAL_RULES)), fijos:[], ipc:{ gastos:2, ingresos:0.5 }, fijosGroups:[] };
 }
 function saveDB(options={}){
   const shouldSync = options.sync !== false;
@@ -336,20 +339,18 @@ function renderDiario(){
   if(ui.monthFilterDiario!=='todos'){
     sorted = sorted.filter(e=> parseDateISO(e.date).getMonth()+1 === Number(ui.monthFilterDiario));
   }
-  // Las filas de plantilla sin concepto se ocultan para que el Diario no se
-  // convierta en una lista de 365 días vacíos. Siguen existiendo en DB y se
-  // pueden recuperar mediante un nuevo movimiento manual.
-  sorted = sorted.filter(e=> String(e.concept||'').trim()!=='');
   if(!sorted.length){
-    wrap.innerHTML = emptyState('Sin movimientos','No hay movimientos con concepto para este filtro.');
+    wrap.innerHTML = emptyState('Sin movimientos','No hay movimientos para este filtro.');
     return;
   }
-  // El año seleccionado se ordena siempre alrededor de hoy: el primer
-  // movimiento visible es hoy o el siguiente más cercano; lo anterior queda
-  // archivado debajo y visualmente atenuado.
+  // Si estamos viendo el año en curso, la línea de hoy (o la más próxima)
+  // sube arriba del todo; lo anterior a hoy queda archivado abajo, para
+  // no tener que hacer scroll entre los movimientos ya pasados cada vez.
+  const currentYear = new Date().getFullYear();
+  const isYearActual = Number(ui.year) === currentYear && Number(ui.year) !== FIJOS_REF_YEAR;
   const todayIso = isoDate(new Date());
-  const futuros = sorted.filter(e=> e.date >= todayIso);
-  const pasados = sorted.filter(e=> e.date < todayIso);
+  const futuros = isYearActual ? sorted.filter(e=> e.date >= todayIso) : sorted;
+  const pasados = isYearActual ? sorted.filter(e=> e.date < todayIso) : [];
 
   const rowHtml = (e, archived)=>{
     const cls = Number(e.amount)>=0 ? 'amount-pos':'amount-neg';
@@ -1059,14 +1060,14 @@ function templateMasterAliases(concept, medium){
     if(k===normalizeName('Regalo Navidad')) aliases.push(normalizeName('Regalo Navidad Niños'));
   }else if(medium==='tarjeta'){
     const map = {
-      'cloudapple':'cloud',
-      'semsanta':'semanasanta',
-      'findeano':'finano',
-      'seguro':'segurocoche',
-      'revision':'revisioncoche',
-      'numerito':'numeritocoche'
+      'cloud apple':'Cloud',
+      'semsanta':'Semana Santa',
+      'fin de año':'Fin Año',
+      'seguro':'Seguro Coche',
+      'revisión':'Revisión Coche',
+      'numerito':'Numerito Coche'
     };
-    if(map[k]) aliases.push(map[k]);
+    if(map[k]) aliases.push(normalizeTemplateKey(map[k]));
   }
   return aliases;
 }
@@ -1080,6 +1081,53 @@ function masterMatchesForTemplate(concept, medium){
     if(matches.length) return matches;
   }
   return [];
+}
+
+function ingRules(){
+  if(!DB.specialRules) DB.specialRules = JSON.parse(JSON.stringify(DEFAULT_SPECIAL_RULES));
+  if(!DB.specialRules.ing) DB.specialRules.ing = JSON.parse(JSON.stringify(DEFAULT_SPECIAL_RULES.ing));
+  return DB.specialRules.ing;
+}
+
+function dateOnlyMs(iso){ const d=parseDateISO(iso); return isNaN(d.getTime())?NaN:d.getTime(); }
+
+function amountForIng(date, year, incomeDates){
+  const r=ingRules();
+  const t=dateOnlyMs(date), lastIncome=dateOnlyMs(r.ultimoIngreso), change=dateOnlyMs(r.cambioGasto), end=dateOnlyMs(r.finGasto);
+  if(!Number.isFinite(t)) return {include:false,amount:0,source:'special'};
+  if(incomeDates && incomeDates.has(date) && Number.isFinite(lastIncome) && t<=lastIncome){
+    return {include:true,amount:Math.abs(Number(r.ingresoSemestral)||0),source:'special'};
+  }
+  if(Number.isFinite(change) && Number.isFinite(end) && t>=change && t<=end){
+    return {include:true,amount:-Math.abs(Number(r.gastoReducido)||0),source:'special'};
+  }
+  if(Number.isFinite(lastIncome) && t<=lastIncome){
+    return {include:true,amount:-Math.abs(Number(r.gastoNormal)||0),source:'special'};
+  }
+  return {include:false,amount:0,source:'special'};
+}
+
+function amountForTemplateDay(concept, date, year, incomeDates=null){
+  if(normalizeTemplateKey(concept)==='ing' || normalizeTemplateKey(concept)==='ing ingreso') return amountForIng(date,year,incomeDates);
+  const matches=masterMatchesForTemplate(concept,'cuenta');
+  if(!matches.length) return {include:false,amount:0,source:'unmatched'};
+  let total=0;
+  for(const item of matches){
+    const m=parseDateISO(date).getMonth()+1;
+    total += monthlyBudgetForMaster(item,year,m);
+  }
+  if(Math.abs(total)<1e-9) return {include:false,amount:0,source:'inactive'};
+  const tipo=matches[0].tipo;
+  return {include:true,amount:tipo==='ingreso'?Math.abs(total):-Math.abs(total),source:'master'};
+}
+
+function amountForTemplateCard(category, year, month){
+  const matches=masterMatchesForTemplate(category,'tarjeta');
+  if(!matches.length) return {include:false,amount:0,source:'unmatched'};
+  let total=0;
+  for(const item of matches) total += monthlyBudgetForMaster(item,year,month);
+  if(Math.abs(total)<1e-9) return {include:false,amount:0,source:'inactive'};
+  return {include:true,amount:Math.abs(total),source:'master'};
 }
 
 function templateMatchInfo(){
@@ -1098,17 +1146,30 @@ function setBootstrapStatus(msg, ok=null){
 }
 
 function bootstrapStateText(){
-  const has2026 = !!(DB.years && DB.years[String(FIJOS_REF_YEAR)] && DB.years[String(FIJOS_REF_YEAR)].days?.length===365);
-  const has2027 = !!(TEMPLATE_2027 && TEMPLATE_2027.days?.length===365);
   const hasMaster = !!DB.masterLoaded && Array.isArray(DB.fijos) && DB.fijos.some(f=>f.source==='master');
-  return `Base: 2026 ${has2026?'✓':'—'} · estructura 2027 ${has2027?'✓':'—'} · MASTER ${hasMaster?'✓':'—'}`;
+  return `Base: 2026 ${hasManual2026()?'✓':'—'} · estructura 2027 ${hasManual2027()?'✓':'—'} · MASTER ${hasMaster?'✓':'—'}`;
 }
 
-function templateDayKey(year, day, concept){
-  return String(year)+String(day.date).slice(4)+'|'+String(concept||'');
-}
-function templateCardKey(month, category){
-  return String(month)+'|'+normalizeTemplateKey(category);
+function templateDayKey(year, day, concept){ return String(year)+String(day.date).slice(4)+'|'+String(concept||''); }
+function templateCardKey(month, category){ return String(month)+'|'+normalizeTemplateKey(category); }
+
+function generateIngIncomeDates(year, templateDays){
+  const all=(templateDays||[]).filter(t=>{
+    const k=normalizeTemplateKey(t.concept);
+    return k==='ing' || k==='ing ingreso';
+  });
+  const chosen=new Set();
+  const r=ingRules();
+  for(const m of (r.mesesIngreso||[1,7]).map(Number)){
+    const preferred=all.filter(t=>normalizeTemplateKey(t.concept)==='ing ingreso' && parseDateISO(String(year)+String(t.date).slice(4)).getMonth()+1===m)
+      .map(t=>String(year)+String(t.date).slice(4));
+    const fallback=all.filter(t=>normalizeTemplateKey(t.concept)==='ing' && parseDateISO(String(year)+String(t.date).slice(4)).getMonth()+1===m)
+      .map(t=>String(year)+String(t.date).slice(4));
+    const candidates=preferred.length?preferred:fallback;
+    const d=nearestTemplateDateForMonth(year,m,candidates);
+    if(d) chosen.add(d);
+  }
+  return chosen;
 }
 
 function generarAnoDesdePlantilla(year){
@@ -1117,27 +1178,57 @@ function generarAnoDesdePlantilla(year){
   const existing=DB.years[yearStr];
   const prevDays=existing?.days ? existing.days.slice() : [];
   const prevCard=existing?.cardEntries ? existing.cardEntries.slice() : [];
-  const templateDayKeys=new Set(TEMPLATE_2027.days.map(t=>templateDayKey(year,t,t.concept)));
-  const templateCardKeys=new Set(TEMPLATE_2027.cardEntries.map(c=>templateCardKey(c.month,c.category)));
-  const manualDays=prevDays.filter(d=>!d.sourceTemplate2027&&!d.sourceMaster&&!templateDayKeys.has(d.date+'|'+String(d.concept||'')));
-  const manualCard=prevCard.filter(c=>!c.sourceTemplate2027&&!c.sourceMaster&&!templateCardKeys.has(templateCardKey(c.month,c.category)));
   const prevDaysMap=new Map(prevDays.map(d=>[d.date+'|'+String(d.concept||''),d]));
   const prevCardMap=new Map(prevCard.map(c=>[templateCardKey(c.month,c.category),c]));
+  const ingDates=generateIngIncomeDates(year,TEMPLATE_2027.days);
+  const todayIso=isoDate(new Date());
+
+  // Primero resolvemos Tarjeta para poder construir las líneas "Tarjetas Mes" del Diario.
+  const cardAgg=new Map();
+  for(const c of TEMPLATE_2027.cardEntries){
+    const month=Number(c.month);
+    const result=amountForTemplateCard(c.category,year,month);
+    if(!result.include) continue;
+    const matches=masterMatchesForTemplate(c.category,'tarjeta');
+    const resolvedName=matches.length ? matches[0].name : c.category;
+    const groupKey=month+'|'+normalizeTemplateKey(resolvedName);
+    if(!cardAgg.has(groupKey)) cardAgg.set(groupKey,{id:uid(),month,category:resolvedName,amount:0,sourceTemplate2027:true,sourceCalculation:'master'});
+    cardAgg.get(groupKey).amount += result.amount;
+  }
+  const cardEntries=Array.from(cardAgg.values());
+
+  const cardTotalByMonth={};
+  cardEntries.forEach(c=>{ cardTotalByMonth[c.month]=(cardTotalByMonth[c.month]||0)+Number(c.amount||0); });
+
   const days=[];
-  TEMPLATE_2027.days.forEach(t=>{
+  for(const t of TEMPLATE_2027.days){
     const date=String(year)+String(t.date).slice(4);
-    const key=date+'|'+String(t.concept||'');
+    const concept=String(t.concept||'');
+    const key=date+'|'+concept;
     const prev=prevDaysMap.get(key);
-    days.push({id:prev?.id||uid(),date,concept:t.concept||'',amount:0,sourceTemplate2027:true});
-  });
-  const cardEntries=[];
-  TEMPLATE_2027.cardEntries.forEach(c=>{
-    const prev=prevCardMap.get(templateCardKey(c.month,c.category));
-    cardEntries.push({id:prev?.id||uid(),month:Number(c.month),category:c.category,amount:0,sourceTemplate2027:true});
-  });
-  days.push(...manualDays);
-  cardEntries.push(...manualCard);
-  let start=0;
+    const isPast=date<todayIso;
+    if(prev && isPast){
+      days.push(prev);
+      continue;
+    }
+
+    let result;
+    if(/^tarjetas\s+/i.test(concept)){
+      const m=parseDateISO(date).getMonth()+1;
+      result={include:(cardTotalByMonth[m]||0)>0, amount:-(cardTotalByMonth[m]||0), source:'card-total'};
+    }else{
+      result=amountForTemplateDay(concept,date,year,ingDates);
+    }
+    if(!result.include) continue;
+    days.push({id:prev?.id||uid(),date,concept,amount:result.amount,sourceTemplate2027:true,sourceCalculation:result.source});
+  }
+
+  const prevManualDays=prevDays.filter(d=>!d.sourceTemplate2027 && !d.sourceMaster && !days.some(x=>x.id===d.id));
+  const prevManualCard=prevCard.filter(c=>!c.sourceTemplate2027 && !c.sourceMaster && !cardEntries.some(x=>x.id===c.id));
+  days.push(...prevManualDays);
+  cardEntries.push(...prevManualCard);
+
+  let start=existing?.start||0;
   const prevYear=DB.years[String(year-1)];
   if(prevYear){
     const sorted=getSortedDays(year-1);
@@ -1147,17 +1238,52 @@ function generarAnoDesdePlantilla(year){
 }
 
 function sincronizarDiarioConFijos(){
-  // En esta fase el MASTER actualiza Gastos fijos, pero no rellena dinero en 2027+.
+  if(!TEMPLATE_2027 || !DB.masterLoaded) return;
+  const years=fijosYears().filter(y=>y>FIJOS_REF_YEAR).sort((a,b)=>a-b);
+  years.forEach(year=>generarAnoDesdePlantilla(year));
 }
 
 function generarTodosLosAnosProyectados(){
   if(!TEMPLATE_2027){ toast('Carga la plantilla 2027 primero'); return; }
-  const years=fijosYears().filter(y=>y>FIJOS_REF_YEAR).sort((a,b)=>a-b);
-  if(!years.length){ toast(`No hay años posteriores a ${FIJOS_REF_YEAR} configurados en el Master`); return; }
+  if(!DB.masterLoaded){ toast('Carga MASTER primero'); return; }
+  const years=[];
+  for(let y=2027;y<=MASTER_MAX_YEAR;y++) years.push(y);
   years.forEach(year=>generarAnoDesdePlantilla(year));
-  ui.year=String(years[0]);
+  ui.year='2027';
   saveDB(); renderAll();
-  toast(`Estructura generada: ${years.join(', ')}`);
+  toast(`Proyección generada: ${years[0]}–${years[years.length-1]}`);
+}
+
+function openSpecialRulesModal(){
+  const r=ingRules();
+  openModal(`
+    <h3>Reglas especiales · ING</h3>
+    <div class="field-row"><label>Ingreso semestral (€)</label><input class="field" type="number" step="0.01" id="ingIngreso" value="${r.ingresoSemestral}"></div>
+    <div class="field-row"><label>Gasto normal ING (€)</label><input class="field" type="number" step="0.01" id="ingGastoNormal" value="${r.gastoNormal}"></div>
+    <div class="field-row"><label>Meses de ingreso (1 = enero, 7 = julio)</label><input class="field" type="text" id="ingMeses" value="${(r.mesesIngreso||[]).join('|')}"></div>
+    <div class="field-row"><label>Último ingreso</label><input class="field" type="date" id="ingUltimoIngreso" value="${r.ultimoIngreso}"></div>
+    <div class="field-row"><label>Fecha de cambio a gasto reducido</label><input class="field" type="date" id="ingCambioGasto" value="${r.cambioGasto}"></div>
+    <div class="field-row"><label>Gasto reducido ING (€)</label><input class="field" type="number" step="0.01" id="ingGastoReducido" value="${r.gastoReducido}"></div>
+    <div class="field-row"><label>Fin del gasto ING</label><input class="field" type="date" id="ingFinGasto" value="${r.finGasto}"></div>
+    <div style="font-size:12px;color:var(--ink-soft);">En enero/julio se usa la fecha de ING de la plantilla más cercana al día 1 disponible. Después de la última fecha indicada no se generan más ING.</div>
+    <div class="modal-actions"><button class="btn ghost" id="ingCancel">Cancelar</button><button class="btn primary" id="ingSave">Guardar reglas</button></div>
+  `,()=>{
+    document.getElementById('ingCancel').onclick=closeModal;
+    document.getElementById('ingSave').onclick=()=>{
+      const meses=String(document.getElementById('ingMeses').value||'').split('|').map(v=>Number(v.trim())).filter(v=>v>=1&&v<=12);
+      DB.specialRules={ing:{
+        ingresoSemestral:Number(document.getElementById('ingIngreso').value)||0,
+        gastoNormal:Number(document.getElementById('ingGastoNormal').value)||0,
+        mesesIngreso:meses,
+        ultimoIngreso:document.getElementById('ingUltimoIngreso').value,
+        cambioGasto:document.getElementById('ingCambioGasto').value,
+        gastoReducido:Number(document.getElementById('ingGastoReducido').value)||0,
+        finGasto:document.getElementById('ingFinGasto').value
+      }};
+      if(TEMPLATE_2027 && DB.masterLoaded) sincronizarDiarioConFijos();
+      DB.updatedAt=new Date().toISOString(); saveDB(); closeModal(); renderAll(); toast('Reglas especiales actualizadas');
+    };
+  });
 }
 
 function parseGastosSheet(rows){
@@ -1465,6 +1591,7 @@ document.getElementById('btnAddCat').addEventListener('click', modalAddCategoria
 document.getElementById('btnAddFijo').addEventListener('click', modalAddFijo);
 document.getElementById('btnAddGroup').addEventListener('click', modalAddGroup);
 document.getElementById('btnIPC').addEventListener('click', modalIPC);
+const btnSpecialRules=document.getElementById('btnSpecialRules'); if(btnSpecialRules) btnSpecialRules.addEventListener('click', openSpecialRulesModal);
 document.getElementById('monthFilter').addEventListener('change', e=>{
   ui.monthFilterDiario = e.target.value; renderDiario();
 });
