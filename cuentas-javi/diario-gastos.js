@@ -1153,6 +1153,22 @@ function bootstrapStateText(){
 function templateDayKey(year, day, concept){ return String(year)+String(day.date).slice(4)+'|'+String(concept||''); }
 function templateCardKey(month, category){ return String(month)+'|'+normalizeTemplateKey(category); }
 
+function nearestTemplateDateForMonth(year, month, candidates){
+  const arr=Array.isArray(candidates)?candidates.filter(Boolean):[];
+  if(!arr.length) return null;
+  const target=new Date(Number(year), Number(month)-1, 1).getTime();
+  let best=null, bestDist=Infinity;
+  arr.forEach(iso=>{
+    const d=dateOnlyMs(iso);
+    if(!Number.isFinite(d)) return;
+    const dist=Math.abs(d-target);
+    if(dist<bestDist || (dist===bestDist && String(iso)<String(best||''))){
+      best=String(iso); bestDist=dist;
+    }
+  });
+  return best;
+}
+
 function generateIngIncomeDates(year, templateDays){
   const all=(templateDays||[]).filter(t=>{
     const k=normalizeTemplateKey(t.concept);
