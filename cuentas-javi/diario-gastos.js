@@ -339,7 +339,9 @@ function populateMonthFilter(){
 function renderDiario(){
   const wrap = document.getElementById('diarioTableWrap');
   if(!ui.year){ wrap.innerHTML = emptyState('Sin año seleccionado','Crea o importa un año primero.'); return; }
-  let sorted = getSortedDays(ui.year);
+  // Los 365 días pueden seguir guardados internamente, pero en pantalla
+  // solo enseñamos las filas que tienen concepto.
+  let sorted = getSortedDays(ui.year).filter(e=> String(e.concept||'').trim()!=='');
   if(ui.monthFilterDiario!=='todos'){
     sorted = sorted.filter(e=> parseDateISO(e.date).getMonth()+1 === Number(ui.monthFilterDiario));
   }
@@ -347,14 +349,18 @@ function renderDiario(){
     wrap.innerHTML = emptyState('Sin movimientos','No hay movimientos para este filtro.');
     return;
   }
-  // Si estamos viendo el año en curso, la línea de hoy (o la más próxima)
-  // sube arriba del todo; lo anterior a hoy queda archivado abajo, para
-  // no tener que hacer scroll entre los movimientos ya pasados cada vez.
+
+  // 2026 debe comportarse como el año actual: al abrirlo se ve primero
+  // hoy y los movimientos futuros; los anteriores bajan a "Archivado".
+  // Los años futuros (2027+) no se archivan hasta que lleguen a ser años
+  // históricos. Las filas archivadas conservan el importe guardado y nunca
+  // se recalculan desde MASTER.
   const currentYear = new Date().getFullYear();
-  const isYearActual = Number(ui.year) === currentYear;
+  const yNum = Number(ui.year);
+  const isArchiveMode = yNum === currentYear;
   const todayIso = isoDate(new Date());
-  const futuros = isYearActual ? sorted.filter(e=> e.date >= todayIso) : sorted;
-  const pasados = isYearActual ? sorted.filter(e=> e.date < todayIso) : [];
+  const futuros = isArchiveMode ? sorted.filter(e=> e.date >= todayIso) : sorted;
+  const pasados = isArchiveMode ? sorted.filter(e=> e.date < todayIso) : [];
 
   const rowHtml = (e, archived)=>{
     const cls = Number(e.amount)>=0 ? 'amount-pos':'amount-neg';
@@ -1449,6 +1455,10 @@ async function fetchWorkbookFromCandidates(urls){
 }
 
 async function cargarMasterAutomatico(){
+  if(location.protocol==='file:'){
+    setMasterStatus('MASTER · abre desde GitHub Pages o usa «Importar MASTER» en este dispositivo',false);
+    return false;
+  }
   setMasterStatus('Cargando MASTER…');
   try{
     const buf=await fetchWorkbookFromCandidates(MASTER_URLS);
