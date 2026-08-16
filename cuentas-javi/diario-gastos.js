@@ -336,18 +336,20 @@ function renderDiario(){
   if(ui.monthFilterDiario!=='todos'){
     sorted = sorted.filter(e=> parseDateISO(e.date).getMonth()+1 === Number(ui.monthFilterDiario));
   }
+  // Las filas de plantilla sin concepto se ocultan para que el Diario no se
+  // convierta en una lista de 365 días vacíos. Siguen existiendo en DB y se
+  // pueden recuperar mediante un nuevo movimiento manual.
+  sorted = sorted.filter(e=> String(e.concept||'').trim()!=='');
   if(!sorted.length){
-    wrap.innerHTML = emptyState('Sin movimientos','No hay movimientos para este filtro.');
+    wrap.innerHTML = emptyState('Sin movimientos','No hay movimientos con concepto para este filtro.');
     return;
   }
-  // Si estamos viendo el año en curso, la línea de hoy (o la más próxima)
-  // sube arriba del todo; lo anterior a hoy queda archivado abajo, para
-  // no tener que hacer scroll entre los movimientos ya pasados cada vez.
-  const currentYear = new Date().getFullYear();
-  const isYearActual = Number(ui.year) === currentYear && Number(ui.year) !== FIJOS_REF_YEAR;
+  // El año seleccionado se ordena siempre alrededor de hoy: el primer
+  // movimiento visible es hoy o el siguiente más cercano; lo anterior queda
+  // archivado debajo y visualmente atenuado.
   const todayIso = isoDate(new Date());
-  const futuros = isYearActual ? sorted.filter(e=> e.date >= todayIso) : sorted;
-  const pasados = isYearActual ? sorted.filter(e=> e.date < todayIso) : [];
+  const futuros = sorted.filter(e=> e.date >= todayIso);
+  const pasados = sorted.filter(e=> e.date < todayIso);
 
   const rowHtml = (e, archived)=>{
     const cls = Number(e.amount)>=0 ? 'amount-pos':'amount-neg';
