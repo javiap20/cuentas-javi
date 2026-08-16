@@ -382,6 +382,7 @@ els.annualGrid.addEventListener('change',e=>{const el=e.target.closest('.annual-
 els.githubToken.addEventListener('input',()=>{persistRememberedToken();if(gistDirty&&String(els.githubToken.value||'').trim())scheduleAutoSave(600);});
 els.rememberToken.addEventListener('change',()=>{persistRememberedToken();});
 els.syncOpenBtn.addEventListener('click',openSync);els.syncCloseBtn.addEventListener('click',closeSync);els.syncModal.addEventListener('click',e=>{if(e.target===els.syncModal)closeSync();});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&els.syncModal.classList.contains('open'))closeSync();});els.saveGistBtn.addEventListener('click',()=>saveToGist());els.loadGistBtn.addEventListener('click',()=>loadFromGist());els.downloadJsonBtn.addEventListener('click',downloadJson);els.importJsonBtn.addEventListener('click',()=>els.importJsonInput.click());els.importJsonInput.addEventListener('change',()=>importJson(els.importJsonInput.files?.[0]));
+document.addEventListener('touchstart',e=>{const active=document.activeElement;if(!active||!(active.matches('input,textarea,select')||active.isContentEditable))return;if(e.target.closest('input,textarea,select,[contenteditable],label'))return;active.blur();},{passive:true});
 
 async function bootstrap(){
   loadRememberedToken();
